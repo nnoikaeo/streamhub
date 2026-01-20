@@ -31,8 +31,7 @@ Firestore Database (Multi-Company)
 {
   name: string                   // Company name
   code: string                   // Unique company code (STTH, STTN, etc.)
-  country: string                // Country location
-  location: string               // City/area
+  location: string               // Location/office (Bangkok, Vientiane, etc.)
   createdAt: Timestamp           // Creation date
   isActive: boolean              // Active/inactive status
   metadata: {
@@ -49,7 +48,6 @@ Firestore Database (Multi-Company)
 {
   "name": "Streamwash Thailand",
   "code": "STTH",
-  "country": "Thailand",
   "location": "Bangkok",
   "createdAt": Timestamp(2024-01-20),
   "isActive": true,

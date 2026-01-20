@@ -65,7 +65,6 @@ This guide provides step-by-step instructions to set up Firestore collections fo
 /companies/sttn
   ├── name: "Streamwash Laos"
   ├── code: "STTN"
-  ├── country: "Laos"
   ├── location: "Vientiane"
   ├── createdAt: 2024-01-21
   ├── isActive: true

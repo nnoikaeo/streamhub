@@ -153,7 +153,6 @@ Admins are responsible for **company-level management**:
   ├── stth
   │   ├── name: "Streamwash Thailand"
   │   ├── code: "STTH"
-  │   ├── country: "Thailand"
   │   ├── location: "Bangkok"
   │   ├── createdAt: 2024-01-21
   │   ├── isActive: true
@@ -166,7 +165,7 @@ Admins are responsible for **company-level management**:
   ├── sttn
   │   ├── name: "Streamwash Laos"
   │   ├── code: "STTN"
-  │   ├── country: "Laos"
+  │   ├── location: "Vientiane"
   │   └── ...
   │
   └── ... (other companies)
@@ -270,8 +269,7 @@ Admins MUST have `company` field (their home company), but can access all compan
 /companies/{companyCode}
   ├── name: string              // Company name
   ├── code: string              // Company code (STTH, STTN, etc.)
-  ├── country: string           // Country location
-  ├── location: string          // City/location
+  ├── location: string          // Location/office (Bangkok, Vientiane, etc.)
   ├── createdAt: timestamp      // When company was added to system
   ├── isActive: boolean         // Active/Inactive status
   └── metadata: map             // Additional info (departments, contact, etc.)
