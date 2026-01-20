@@ -28,7 +28,19 @@
 - Maintains **data isolation** from other companies
 
 **Key Principle:** 
-> Every folder, dashboard, and user is scoped to a **specific company**. Admins can access all companies; Moderators and Users are limited to their assigned company.
+> Every user is assigned to a **specific company**. Folders and dashboards have a `company` field for organizational purposes. Access control is determined by **role** and **permissions**, not just the company field.
+
+### Quick Reference: Role + Company Field
+
+| Role | Company Field | Scope & Permissions |
+|------|---------------|-------------------|
+| **USER** | "STTH" | Employee of STTH - Can view dashboards in STTH that they have permission to access (via `dashboard.permissions`) |
+| **MODERATOR** | "STTN" | Manager of STTN - Can manage folders assigned to them (via `folder.assignedModerators`) + create/edit dashboards in those folders |
+| **ADMIN** | "STTH" | Employee of STTH (home company) - Can access and manage ALL companies, folders, and dashboards regardless of their `company` field value |
+
+**Critical Distinction:**
+- `company` field = **organizational assignment** (what company are they in?)
+- **Role** + **Permissions** = **what can they do?** (determined by role + specific permissions)
 
 ---
 
