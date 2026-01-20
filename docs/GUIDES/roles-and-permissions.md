@@ -180,16 +180,14 @@ But CANNOT:
 │ Delete Folder        │   ❌   │    ❌    │   ✅    │
 │ Set Folder Perms     │   ❌   │    ❌    │   ✅    │
 │ Invite User          │   ❌   │    ❌    │   ✅    │
-│ Edit User Profile    │  ✅ **│    ❌    │   ✅    │
+│ Edit User Profile    │   ❌   │    ❌    │   ✅    │
 │ Change User Role     │   ❌   │    ❌    │   ✅    │
 │ Delete User          │   ❌   │    ❌    │   ✅    │
-│ View Activity Log    │  ✅***│    ✅    │   ✅    │
+│ View Activity Log    │   ❌   │    ❌    │   ✅    │
 │ View System Settings │   ❌   │    ❌    │   ✅    │
 └──────────────────────┴────────┴──────────┴─────────┘
 
 (*) = Only in assigned folders
-(**) = Only own profile
-(***) = Only own activities
 ```
 
 ---
@@ -483,10 +481,11 @@ service cloud.firestore {
 | **กำหนดสิทธิ์** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
 | **สร้าง Folder** | ❌ | ❌ | ✅ |
 | **จัดการ Folder** | ❌ | ❌ | ✅ |
+| **แก้ไข User Profile** | ❌ | ❌ | ✅ |
 | **เชิญ User** | ❌ | ❌ | ✅ |
 | **ลบ User** | ❌ | ❌ | ✅ |
 | **เปลี่ยน Role** | ❌ | ❌ | ✅ |
-| **ดู Logs** | ❌ | ❌ | ✅ |
+| **ดู Activity Log** | ❌ | ❌ | ✅ |
 
 ---
 
