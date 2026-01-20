@@ -98,19 +98,18 @@ This guide provides step-by-step instructions to set up Firestore collections fo
 - `photoURL`: Firebase Auth provides this
 - `role`: One of "user", "moderator", or "admin"
 - `company`: 
-  - For Users: company code (e.g., "STTH")
-  - For Moderators: company code (e.g., "STTN")
-  - For Admins: `null` (indicating global access)
+  - For Users: company code (e.g., "STTH") - represents home company
+  - For Moderators: company code (e.g., "STTN") - represents home company
+  - For Admins: company code (e.g., "STTH") - home company (still required!)
 - `assignedFolders`: Array of folder IDs (only for moderators)
 
-### 3. `/folders` - Dashboard Folders (Company-Scoped)
+### 3. `/folders` - Dashboard Folders
 
-**Purpose:** Organize dashboards into company-scoped folders
+**Purpose:** Organize dashboards into folders (NOT company-scoped)
 
 ```firestore
 /folders/{folderId}
   ├── name: string
-  ├── company: string (REQUIRED!)
   ├── description: string
   ├── createdBy: string (userId)
   ├── createdAt: timestamp
@@ -129,17 +128,16 @@ This guide provides step-by-step instructions to set up Firestore collections fo
   └── color: string (optional, for UI)
 ```
 
-**Critical:** The `company` field MUST be set for every folder!
+**Note:** NO `company` field! Access is controlled via `assignedModerators`. This way, folders are not tied to a company and won't break if an employee moves between companies.
 
-### 4. `/dashboards` - Dashboard Documents (Company-Scoped)
+### 4. `/dashboards` - Dashboard Documents
 
-**Purpose:** Store dashboard metadata and configurations
+**Purpose:** Store dashboard metadata and configurations (NOT company-scoped)
 
 ```firestore
 /dashboards/{dashboardId}
   ├── title: string
   ├── description: string
-  ├── company: string (REQUIRED!)
   ├── folderId: string
   ├── lookerUrl: string
   ├── icon: string
@@ -156,7 +154,7 @@ This guide provides step-by-step instructions to set up Firestore collections fo
       └── "uid:somchai": ["view", "edit"]
 ```
 
-**Critical:** The `company` field MUST be set for every dashboard!
+**Note:** NO `company` field! Access is controlled via the explicit `permissions` map. This way, dashboards are not tied to a company and can be shared across companies if needed.
 
 ### 5. `/invitations` - User Invitations (Company-Scoped)
 
@@ -428,8 +426,8 @@ For each company, create main folders:
   - [ ] Test: Moderator can't access other companies
 
 - [ ] **Create Indexes**
-  - [ ] Folders index (company, createdAt)
-  - [ ] Dashboards index (company, folderId, createdAt)
+  - [ ] Folders index (createdAt, assignedModerators)
+  - [ ] Dashboards index (folderId, createdAt, permissions)
   - [ ] Users index (company, role, isActive)
   - [ ] Invitations index (company, status, sentAt)
 
