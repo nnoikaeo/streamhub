@@ -1,0 +1,411 @@
+# Company Management Guide
+
+> **Document Status:** Foundational Guide for Multi-Company Architecture  
+> **Last Updated:** 2024-01  
+> **Document Owner:** Development Team
+
+---
+
+## 📋 Table of Contents
+
+1. [Overview](#overview)
+2. [Company Structure](#company-structure)
+3. [Company Codes](#company-codes)
+4. [Admin Responsibilities](#admin-responsibilities)
+5. [Company Setup Process](#company-setup-process)
+6. [Database Structure](#database-structure)
+7. [Access Control](#access-control)
+8. [Implementation Checklist](#implementation-checklist)
+
+---
+
+## 🎯 Overview
+
+**Streamwash** operates as a **holding company** with **10+ subsidiary companies** (บริษัทในเครือ). Each subsidiary:
+- Has its own separate **company code** (STTH, STTN, STCS, etc.)
+- Manages its own **folders and dashboards**
+- Has independent **user access control**
+- Maintains **data isolation** from other companies
+
+**Key Principle:** 
+> Every folder, dashboard, and user is scoped to a **specific company**. Admins can access all companies; Moderators and Users are limited to their assigned company.
+
+---
+
+## 🏢 Company Structure
+
+### Subsidiary Companies
+
+```
+Streamwash Group
+│
+├── STTH (Streamwash Thailand)
+│   ├── Departments: Operations, Finance, Sales, HR
+│   ├── Employees: ~30-50
+│   ├── Folders: Operations, Finance, Reports
+│   └── Dashboards: 20+
+│
+├── STTN (Streamwash Laos)
+│   ├── Departments: Operations, Finance, Sales
+│   ├── Employees: ~20-30
+│   ├── Folders: Operations, Finance
+│   └── Dashboards: 10+
+│
+├── STCS (Streamwash Cambodia)
+│   ├── Employees: ~15-20
+│   ├── Folders: Operations, Reports
+│   └── Dashboards: 8+
+│
+├── STNR (Streamwash Myanmar)
+│   └── ...
+│
+├── STPT (Streamwash Vietnam)
+│   └── ...
+│
+├── STPK (Streamwash Indonesia)
+│   └── ...
+│
+└── ... (4+ more companies)
+```
+
+**Total:**
+- **10+ subsidiary companies**
+- **150+ employees** across all companies
+- **100+ dashboards** total
+- **30+ folders** total
+
+---
+
+## 📍 Company Codes
+
+| Code | Company | Status |
+|------|---------|--------|
+| STTH | Streamwash Thailand | Active |
+| STTN | Streamwash Laos | Active |
+| STCS | Streamwash Cambodia | Active |
+| STNR | Streamwash Myanmar | Active |
+| STPT | Streamwash Vietnam | Active |
+| STPK | Streamwash Indonesia | Active |
+| STSG | Streamwash Singapore | TBD |
+| STKH | Streamwash Hong Kong | TBD |
+| STBR | Streamwash Brazil | TBD |
+| STIN | Streamwash India | TBD |
+
+---
+
+## 👨‍💼 Admin Responsibilities
+
+Admins are responsible for **company-level management**:
+
+### 1. **Create & Configure Companies**
+- Create new subsidiary company in Firestore
+- Set company code (STTH, STTN, etc.)
+- Define company metadata (name, location, department list)
+- Set up initial folders for the company
+
+### 2. **Manage Folders**
+- Create company-level folders (marked with `company` field)
+- Assign folders to moderators
+- Manage folder permissions
+- Delete folders when needed
+
+### 3. **Manage Users**
+- Invite users to specific companies
+- Assign role: User, Moderator, or Admin
+- Assign moderators to folders (if applicable)
+- Remove users from company
+- Change user roles
+
+### 4. **Configure Access Control**
+- Set up Firestore security rules
+- Configure role-based permissions
+- Manage cross-company access (admins only)
+- Review activity logs for compliance
+
+### 5. **Monitor System Health**
+- View activity logs for all companies
+- Monitor dashboard usage
+- Ensure data isolation between companies
+- Handle permission disputes
+
+---
+
+## 🔧 Company Setup Process
+
+### Step 1: Create Company in Firestore
+
+**Collection:** `/companies`
+
+```firestore
+/companies
+  ├── stth
+  │   ├── name: "Streamwash Thailand"
+  │   ├── code: "STTH"
+  │   ├── country: "Thailand"
+  │   ├── location: "Bangkok"
+  │   ├── createdAt: 2024-01-21
+  │   ├── isActive: true
+  │   └── metadata: {
+  │       "parentCompany": "Streamwash Group",
+  │       "departments": ["Operations", "Finance", "Sales", "HR"],
+  │       "contact": "...@stth.com"
+  │     }
+  │
+  ├── sttn
+  │   ├── name: "Streamwash Laos"
+  │   ├── code: "STTN"
+  │   ├── country: "Laos"
+  │   └── ...
+  │
+  └── ... (other companies)
+```
+
+### Step 2: Create Initial Folders
+
+**Collection:** `/folders`
+
+For each company, create main folders:
+
+```firestore
+/folders
+  ├── folder_stth_operations
+  │   ├── name: "Operations"
+  │   ├── company: "STTH"          // MUST SPECIFY COMPANY
+  │   ├── description: "Operations dashboards for STTH"
+  │   ├── createdBy: "admin_uid"
+  │   ├── createdAt: 2024-01-21
+  │   └── subfolders: [...]
+  │
+  ├── folder_stth_finance
+  │   ├── name: "Finance"
+  │   ├── company: "STTH"
+  │   └── ...
+  │
+  ├── folder_stth_reports
+  │   ├── name: "Reports"
+  │   ├── company: "STTH"
+  │   └── ...
+  │
+  └── ... (repeat for other companies)
+```
+
+### Step 3: Invite Moderators
+
+**Collection:** `/users`
+
+```firestore
+/users
+  ├── uid_somchai
+  │   ├── email: "somchai@stth.com"
+  │   ├── displayName: "สมชาย"
+  │   ├── role: "moderator"
+  │   ├── company: "STTH"          // MUST SPECIFY COMPANY
+  │   ├── assignedFolders: [
+  │   │   "folder_stth_operations",
+  │   │   "folder_stth_reports"
+  │   │ ]
+  │   └── createdAt: 2024-01-21
+  │
+  └── ... (other users)
+```
+
+### Step 4: Invite Regular Users
+
+```firestore
+/users
+  ├── uid_sunai
+  │   ├── email: "sunai@stth.com"
+  │   ├── displayName: "สุนัย"
+  │   ├── role: "user"
+  │   ├── company: "STTH"          // MUST SPECIFY COMPANY
+  │   └── assignedFolders: []      // Users don't have assigned folders
+  │
+  └── ... (other users)
+```
+
+---
+
+## 🗄️ Database Structure
+
+### Companies Collection
+
+```firestore
+/companies/{companyCode}
+  ├── name: string              // Company name
+  ├── code: string              // Company code (STTH, STTN, etc.)
+  ├── country: string           // Country location
+  ├── location: string          // City/location
+  ├── createdAt: timestamp      // When company was added to system
+  ├── isActive: boolean         // Active/Inactive status
+  └── metadata: map             // Additional info (departments, contact, etc.)
+```
+
+### Users Collection (Company-Scoped)
+
+```firestore
+/users/{userId}
+  ├── email: string
+  ├── displayName: string
+  ├── photoURL: string
+  ├── role: string              // "user" | "moderator" | "admin"
+  ├── company: string | null   // Company code or null for admins
+  │   // "STTH", "STTN", "STCS", or null (global admin)
+  ├── assignedFolders: array   // Only for moderators
+  │   // ["folder_stth_operations", "folder_stth_finance"]
+  ├── createdAt: timestamp
+  ├── isActive: boolean
+  └── lastLogin: timestamp
+```
+
+### Folders Collection (Company-Scoped)
+
+```firestore
+/folders/{folderId}
+  ├── name: string
+  ├── company: string            // REQUIRED! "STTH", "STTN", etc.
+  ├── description: string
+  ├── createdBy: string          // Admin UID
+  ├── createdAt: timestamp
+  ├── assignedModerators: array  // Moderators assigned to manage this folder
+  │   ├── userId: string
+  │   ├── name: string
+  │   └── permissions: array
+  ├── subfolders: array          // Nested subfolders
+  │   ├── id: string
+  │   ├── name: string
+  │   ├── createdBy: string
+  │   └── permissions: array
+  └── isActive: boolean
+```
+
+### Dashboards Collection (Company-Scoped)
+
+```firestore
+/dashboards/{dashboardId}
+  ├── title: string
+  ├── description: string
+  ├── company: string            // REQUIRED! "STTH", "STTN", etc.
+  ├── folderId: string
+  ├── lookerUrl: string          // Looker Studio embedded URL
+  ├── createdBy: string          // User or Moderator UID
+  ├── createdAt: timestamp
+  ├── updatedAt: timestamp
+  ├── isActive: boolean
+  └── permissions: map           // Role-based permissions
+      ├── "role:user": ["view"]
+      ├── "role:moderator": ["view"]
+      ├── "role:admin": ["view", "edit", "delete"]
+      ├── "uid:somchai": ["view", "edit", "delete"]
+      └── "company:STTH": ["view"]
+```
+
+---
+
+## 🔐 Access Control
+
+### Company Field Purpose
+
+The `company` field serves **three critical purposes:**
+
+1. **Data Isolation**
+   - Each folder/dashboard belongs to exactly one company
+   - Moderators can only manage folders in their company
+   - Users can only see dashboards in their company
+
+2. **Access Filtering**
+   - App loads only dashboards where `dashboard.company == user.company`
+   - Moderator's folder list filtered by company
+   - Admin sees all companies (company field is null)
+
+3. **Permission Inheritance**
+   - Folder-level company field controls who sees subfolders
+   - Dashboard-level company field controls visibility
+   - Company-wide permissions apply via "company:STTH" key
+
+### Company Field Rules
+
+**MUST BE SET FOR:**
+- ✅ Every folder
+- ✅ Every dashboard
+- ✅ Every non-admin user
+
+**MUST BE NULL FOR:**
+- ✅ Admin users (global access)
+- ✅ System-wide documents
+
+**MUST NOT CHANGE:**
+- 🚫 After creation (company ownership is permanent)
+- 🚫 When user role changes (handled separately)
+
+---
+
+## ✅ Implementation Checklist
+
+### Phase 1: Database Setup
+- [ ] Create `companies` collection
+- [ ] Create all company documents (STTH, STTN, STCS, etc.)
+- [ ] Add `company` field to `/users` collection
+- [ ] Add `company` field to `/folders` collection
+- [ ] Add `company` field to `/dashboards` collection
+- [ ] Create indexes for faster queries:
+  - [ ] `/folders` - index on: company, createdAt
+  - [ ] `/dashboards` - index on: company, folderId, createdAt
+  - [ ] `/users` - index on: company, role, isActive
+
+### Phase 2: Firestore Security Rules
+- [ ] Create rules that enforce company isolation
+- [ ] Implement rules for user/moderator/admin roles
+- [ ] Test rules for cross-company access prevention
+- [ ] Verify admin has global access
+- [ ] Document security rules
+
+### Phase 3: Pinia Store Updates
+- [ ] Update auth store to include user.company
+- [ ] Create company store for company list
+- [ ] Update permissions store:
+  - [ ] Filter folders by user.company
+  - [ ] Filter dashboards by user.company
+  - [ ] Allow admin cross-company access
+- [ ] Add company field validation
+
+### Phase 4: UI Component Updates
+- [ ] Add company selector to admin pages
+- [ ] Update folder list to show company
+- [ ] Update dashboard list to show company
+- [ ] Add company badge to user profiles
+- [ ] Create company management UI (admin only)
+
+### Phase 5: Testing & Validation
+- [ ] Test user access isolation per company
+- [ ] Test moderator folder assignment per company
+- [ ] Test admin cross-company access
+- [ ] Test dashboard visibility per company
+- [ ] Test permission enforcement
+- [ ] Test data migration from old model (if applicable)
+
+### Phase 6: Documentation & Training
+- [ ] Document company codes and structure
+- [ ] Create admin training guide
+- [ ] Document company setup process
+- [ ] Create troubleshooting guide
+- [ ] Train admins on company management
+
+---
+
+## 📚 Related Documents
+
+- [Roles & Permissions Guide](roles-and-permissions.md)
+- [Database Schema](database-schema.md)
+- [Development Roadmap](../OPERATIONS/roadmap.md)
+- [Firestore Setup Guide](firestore-setup.md) (TBD)
+
+---
+
+## 🎯 Next Steps
+
+1. **Create companies collection** in Firestore
+2. **Add company field** to users, folders, dashboards collections
+3. **Update Pinia stores** to respect company scoping
+4. **Implement Firestore security rules** for company isolation
+5. **Update admin UI** for company management
+6. **Train admins** on company setup and management

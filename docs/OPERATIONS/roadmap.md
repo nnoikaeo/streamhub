@@ -10,8 +10,8 @@
 ## 📊 Project Overview
 
 ### Organization Structure
-- **Departments:** HR, Sales, Account, Finance, Engineer, Audit, Purchase
-- **Users:** 150 employees
+- **Group Companies:** 10+ subsidiary companies (STTH, STTN, STCS, STNR, STPT, STPK, etc.)
+- **Users:** 150+ employees across all companies
 - **Role Levels:** User, Moderator, Admin
 
 ### Core Features
@@ -38,66 +38,85 @@
 ## 📅 Development Phases (8 weeks)
 
 ### Phase 1: Core Infrastructure (Week 1-2)
-**Goal:** Setup foundational features
+**Goal:** Setup foundational features for multi-company architecture
 
 - [x] Google Authentication
 - [x] Dashboard Header Component
-- [ ] **Sidebar Navigation** (feat/sidebar-nav)
-- [ ] Dashboard Layout wrapper
-- [ ] Base styling & theme setup
-- [ ] Firestore collections structure
+- [ ] **Setup Companies Collection** (feat/companies-setup)
+  - Create companies collection in Firestore
+  - Add all subsidiary company documents (STTH, STTN, STCS, etc.)
+  - Create company management UI (admin only)
 
-**Estimated Time:** 5-7 days
+- [ ] **Configure Company-Based Access Control**
+  - Add `company` field to users, folders, dashboards collections
+  - Implement company-scoped filtering logic
+  - Update auth store to include user.company
+
+- [ ] **Sidebar Navigation** (feat/sidebar-nav)
+- [ ] **Dashboard Layout wrapper**
+- [ ] **Base styling & theme setup**
+- [ ] **Firestore security rules for company isolation**
+
+**Estimated Time:** 7-10 days (extended due to company architecture)
 
 ---
 
-### Phase 2: Users Management (Week 2-4)
-**Goal:** Full CRUD for users + invitations
+### Phase 2: Users & Folder Management (Week 3-5)
+**Goal:** Full CRUD for users + company-scoped folders
 
 - [ ] **Users List Page** (feat/users-list)
-  - Table with filtering/search
-  - User data display
+  - Table with filtering/search (company-scoped)
+  - User data display (name, email, role, company)
   - Action buttons (edit, delete, view)
 
 - [ ] **Add/Edit User Modal** (feat/user-form)
   - Form validation
-  - Role/Department assignment
-  - Image upload (profile)
+  - Role assignment (User, Moderator, Admin)
+  - Company assignment
+  - Moderator folder assignment
 
 - [ ] **User Invitations** (feat/user-invitations)
-  - Bulk invite functionality
+  - Bulk invite functionality (company-specific)
   - Email invitation system
-  - Invitation tracking
+  - Invitation tracking by company
+
+- [ ] **Folder Management UI** (feat/folder-management)
+  - Create folders (admin only, company-scoped)
+  - Assign folders to moderators (admin only)
+  - Manage subfolders
 
 - [ ] **Role Management UI** (feat/roles)
   - Display user permissions
   - Change role interface
+  - Show company scope limitations
 
-**Estimated Time:** 10-12 days
+**Estimated Time:** 12-14 days
 
 ---
 
-### Phase 3: Dashboard Management (Week 4-6)
-**Goal:** Create, edit, manage dashboards + permissions
+### Phase 3: Dashboard Management (Week 5-7)
+**Goal:** Create, edit, manage dashboards + company-scoped permissions
 
 - [ ] **Dashboards List Page** (feat/dashboards-list)
-  - Display available dashboards
-  - Filter by department
+  - Display available dashboards (company-scoped)
+  - Filter by folder, company
   - Search functionality
 
 - [ ] **Dashboard Creation Form** (feat/create-dashboard)
   - Looker Studio URL input
   - Title, description, icon
-  - Department assignment
+  - Company assignment
+  - Folder assignment
 
 - [ ] **Dashboard Edit Page** (feat/edit-dashboard)
   - Update dashboard info
-  - Manage access permissions
+  - Manage access permissions (company-based)
   - Preview embed
 
 - [ ] **Access Control Settings** (feat/dashboard-permissions)
   - Role-based access matrix
-  - Department-level permissions
+  - Company-level permissions
+  - User-specific permissions
   - User-specific sharing
 
 - [ ] **Dashboard Viewer** (feat/dashboard-viewer)
@@ -164,78 +183,110 @@
 ### Firestore Collections
 
 ```
+/companies
+  ├── stth
+  │   ├── name: "Streamwash Thailand"
+  │   ├── code: "STTH"
+  │   ├── country: "Thailand"
+  │   ├── isActive: boolean
+  │   └── createdAt: timestamp
+  │
+  ├── sttn
+  │   ├── name: "Streamwash Laos"
+  │   ├── code: "STTN"
+  │   └── ...
+  │
+  └── ... (STCS, STNR, STPT, STPK, and more)
+
 /users
   ├── uid
   │   ├── email: string
   │   ├── displayName: string
   │   ├── photoURL: string
   │   ├── role: "user" | "moderator" | "admin"
-  │   ├── department: string
+  │   ├── company: string | null      // "STTH", "STTN", etc., null for admins
+  │   ├── assignedFolders: array      // For moderators only
   │   ├── createdAt: timestamp
   │   ├── isActive: boolean
-  │   └── invitedAt: timestamp
+  │   └── lastLogin: timestamp
+
+/folders
+  ├── folderId
+  │   ├── name: string
+  │   ├── company: string             // REQUIRED: "STTH", "STTN", etc.
+  │   ├── description: string
+  │   ├── createdBy: uid
+  │   ├── createdAt: timestamp
+  │   ├── assignedModerators: array
+  │   ├── subfolders: array
+  │   └── isActive: boolean
 
 /dashboards
   ├── dashboardId
   │   ├── title: string
   │   ├── description: string
+  │   ├── company: string             // REQUIRED: "STTH", "STTN", etc.
+  │   ├── folderId: string
   │   ├── lookerUrl: string
   │   ├── icon: string
-  │   ├── department: string
   │   ├── createdBy: uid
   │   ├── createdAt: timestamp
+  │   ├── updatedAt: timestamp
   │   └── permissions: {
-  │       "department:HR": ["view", "edit"],
+  │       "company:STTH": ["view"],
+  │       "role:moderator": ["view"],
   │       "role:admin": ["view", "edit", "delete"],
-  │       "uid:xxx": ["view"]
+  │       "uid:xxx": ["view", "edit"]
   │     }
-
-/departments
-  ├── departmentId
-  │   ├── name: string
-  │   ├── description: string
-  │   └── createdAt: timestamp
 
 /invitations
   ├── invitationId
   │   ├── email: string
   │   ├── sentBy: uid
   │   ├── role: string
-  │   ├── department: string
+  │   ├── company: string             // Which company to invite to
   │   ├── status: "pending" | "accepted" | "rejected"
   │   ├── sentAt: timestamp
   │   └── expiresAt: timestamp
 ```
 
-### Pinia Stores
+### Pinia Stores (Company-Scoped)
 
 ```
 stores/
-├── auth.ts (existing)
-├── users.ts (CRUD + invitations)
-├── dashboards.ts (CRUD + permissions)
-├── departments.ts (list)
-└── ui.ts (modals, notifications)
+├── auth.ts                    // Enhanced: Add user.company field
+├── companies.ts               // NEW: Manage companies list
+├── users.ts                   // CRUD + invitations (company-scoped)
+├── dashboards.ts              // CRUD + permissions (company-scoped)
+├── folders.ts                 // NEW: Manage folders (company-scoped)
+├── permissions.ts             // NEW: Check user permissions
+└── ui.ts                      // Modals, notifications
 ```
 
-### Pages Structure
+### Pages Structure (Company-Scoped)
 
 ```
 pages/
 └── dashboard/
-    ├── index.vue (main dashboard)
+    ├── index.vue              (Dashboard - company-scoped)
+    ├── companies/             (NEW - Admin only)
+    │   └── index.vue          (View all companies)
     ├── users/
-    │   ├── index.vue (list)
-    │   ├── [id].vue (edit)
-    │   └── new.vue (create)
+    │   ├── index.vue          (List users in current company)
+    │   ├── [id].vue           (Edit user)
+    │   └── new.vue            (Invite user to company)
+    ├── folders/               (NEW - Admin only)
+    │   ├── index.vue          (Manage folders)
+    │   ├── [id].vue           (Edit folder)
+    │   └── new.vue            (Create folder)
     ├── dashboards/
-    │   ├── index.vue (list)
-    │   ├── [id].vue (view/embed)
+    │   ├── index.vue          (List dashboards - company-scoped)
+    │   ├── [id].vue           (View/embed dashboard)
     │   ├── manage/
-    │   │   ├── index.vue (manage list)
-    │   │   ├── [id].vue (edit)
-    │   │   └── new.vue (create)
-    └── settings.vue (admin settings)
+    │   │   ├── index.vue      (Manage dashboards - moderator/admin)
+    │   │   ├── [id].vue       (Edit dashboard)
+    │   │   └── new.vue        (Create dashboard)
+    └── settings.vue           (Admin settings - global)
 ```
 
 ---

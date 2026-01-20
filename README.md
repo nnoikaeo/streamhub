@@ -18,7 +18,9 @@ A modern, secure, and scalable dashboard solution built with Nuxt 4, Firebase, a
 | 📋 **See development plan** | [Development Roadmap](docs/OPERATIONS/roadmap.md) |
 | 🏗️ **Understand architecture** | [Architecture Overview](docs/ARCHITECTURE/overview.md) |
 | 📚 **Learn features** | [Feature Guides](docs/GUIDES/README.md) |
-| 🔧 **Deploy to production** | [Deployment Guide](docs/OPERATIONS/deployment.md) |
+| � **Understand roles & permissions** | [Roles & Permissions](docs/GUIDES/roles-and-permissions.md) |
+| 🏢 **Learn company management** | [Company Management](docs/GUIDES/company-management.md) |
+| �🔧 **Deploy to production** | [Deployment Guide](docs/OPERATIONS/deployment.md) |
 | 🐛 **Fix a problem** | [Troubleshooting](docs/TROUBLESHOOTING/README.md) |
 | 🤝 **Contribute code** | [Contributing Guide](docs/CONTRIBUTING/workflow.md) |
 | 📡 **Check API reference** | [API Reference](docs/REFERENCE/README.md) |
