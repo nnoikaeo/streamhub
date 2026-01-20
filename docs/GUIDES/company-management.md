@@ -288,8 +288,8 @@ Admins MUST have `company` field (their home company), but can access all compan
   ├── displayName: string
   ├── photoURL: string
   ├── role: string              // "user" | "moderator" | "admin"
-  ├── company: string | null   // Company code or null for admins
-  │   // "STTH", "STTN", "STCS", or null (global admin)
+  ├── company: string           // Company code: "STTH", "STTN", "STCS", etc.
+  │   // Required for all users - represents employee's home company
   ├── assignedFolders: array   // Only for moderators
   │   // ["folder_stth_operations", "folder_stth_finance"]
   ├── createdAt: timestamp
@@ -353,9 +353,10 @@ The `company` field serves **three critical purposes:**
    - Users can only see dashboards in their company
 
 2. **Access Filtering**
-   - App loads only dashboards where `dashboard.company == user.company`
-   - Moderator's folder list filtered by company
-   - Admin sees all companies (company field is null)
+   - App loads dashboards based on role and permissions
+   - Regular users: filtered by `user.company == dashboard.company`
+   - Moderators: see assigned folders regardless of company (if assigned cross-company)
+   - Admins: see all companies and folders (no filtering, role grants global access)
 
 3. **Permission Inheritance**
    - Folder-level company field controls who sees subfolders

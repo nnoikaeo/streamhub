@@ -355,8 +355,8 @@ Companies
   │   ├── email: "admin@streamwash.com"
   │   ├── displayName: "เจ้านาย"
   │   ├── role: "admin"
-  │   ├── company: null      // Admin has global access
-  │   ├── assignedFolders: [] // Admin has access to all
+  │   ├── company: "STTH"    // Home company (but can access all companies via admin role)
+  │   ├── assignedFolders: [] // Admin has access to all (determined by role, not assignment)
   │   └── ...
   │
   └── uid9012

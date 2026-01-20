@@ -76,7 +76,7 @@ Firestore Database (Multi-Company)
   displayName: string            // Display name
   photoURL: string               // Profile photo URL
   role: 'user'|'moderator'|'admin'  // Role
-  company: string | null         // Company code or null for admins
+  company: string                // Company code (STTH, STTN, etc.) - ALL users including admins
   assignedFolders: string[]      // Folder IDs (moderators only)
   createdAt: Timestamp           // Account creation date
   updatedAt: Timestamp           // Last update date

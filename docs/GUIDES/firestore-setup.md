@@ -84,7 +84,7 @@ This guide provides step-by-step instructions to set up Firestore collections fo
   ├── displayName: string
   ├── photoURL: string
   ├── role: string ("user" | "moderator" | "admin")
-  ├── company: string | null (STTH, STTN, etc., or null for admins)
+  ├── company: string (STTH, STTN, etc. - required for all users including admins)
   ├── assignedFolders: array (moderator only)
   ├── createdAt: timestamp
   ├── updatedAt: timestamp
@@ -360,11 +360,11 @@ Create all subsidiary company documents:
 ```firestore
 /users/admin_uid_123
   email: "admin@streamwash.com"
-  displayName: "Admin"
+  displayName: "Admin Thailand"
   photoURL: ""
   role: "admin"
-  company: null  // Admin has global access
-  assignedFolders: []
+  company: "STTH"  // Home company (admin still needs a company field)
+  assignedFolders: []  // Admins don't need this - access everything via role
   createdAt: <timestamp>
   isActive: true
   lastLogin: null
@@ -404,7 +404,7 @@ For each company, create main folders:
   - [ ] Verify all company codes present
 
 - [ ] **Create `/users` collection**
-  - [ ] Add admin user with role="admin", company=null
+  - [ ] Add admin user with role="admin", company="STTH" (or home company code)
   - [ ] Test: Can read own user document
 
 - [ ] **Create `/folders` collection**
