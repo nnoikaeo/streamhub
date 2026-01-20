@@ -116,7 +116,7 @@ Admins are responsible for **company-level management**:
 - Set up initial folders for the company
 
 ### 2. **Manage Folders**
-- Create company-level folders (marked with `company` field)
+- Create folders (access controlled via `assignedModerators`, not company field)
 - Assign folders to moderators
 - Manage folder permissions
 - Delete folders when needed
@@ -398,17 +398,17 @@ Admins MUST have `company` field (their home company), but can access all compan
 - [ ] Create `companies` collection
 - [ ] Create all company documents (STTH, STTN, STCS, etc.)
 - [ ] Add `company` field to `/users` collection
-- [ ] Add `company` field to `/folders` collection
-- [ ] Add `company` field to `/dashboards` collection
+- [ ] Create `/folders` collection (NO company field)
+- [ ] Create `/dashboards` collection (NO company field)
 - [ ] Create indexes for faster queries:
-  - [ ] `/folders` - index on: company, createdAt
-  - [ ] `/dashboards` - index on: company, folderId, createdAt
+  - [ ] `/folders` - index on: assignedModerators, createdAt
+  - [ ] `/dashboards` - index on: folderId, createdAt
   - [ ] `/users` - index on: company, role, isActive
 
 ### Phase 2: Firestore Security Rules
-- [ ] Create rules that enforce company isolation
+- [ ] Create rules that check `user.permissions` instead of company field
 - [ ] Implement rules for user/moderator/admin roles
-- [ ] Test rules for cross-company access prevention
+- [ ] Test permission-based access control
 - [ ] Verify admin has global access
 - [ ] Document security rules
 
@@ -416,23 +416,23 @@ Admins MUST have `company` field (their home company), but can access all compan
 - [ ] Update auth store to include user.company
 - [ ] Create company store for company list
 - [ ] Update permissions store:
-  - [ ] Filter folders by user.company
-  - [ ] Filter dashboards by user.company
-  - [ ] Allow admin cross-company access
-- [ ] Add company field validation
+  - [ ] Check user.assignedFolders for folder management access
+  - [ ] Check dashboard.permissions for dashboard access
+  - [ ] Allow admin global access regardless of company
+- [ ] Add permission checking logic
 
 ### Phase 4: UI Component Updates
 - [ ] Add company selector to admin pages
-- [ ] Update folder list to show company
-- [ ] Update dashboard list to show company
+- [ ] Update folder list (no company field, but show who can manage)
+- [ ] Update dashboard list (use permissions map for visibility)
 - [ ] Add company badge to user profiles
 - [ ] Create company management UI (admin only)
 
 ### Phase 5: Testing & Validation
-- [ ] Test user access isolation per company
-- [ ] Test moderator folder assignment per company
-- [ ] Test admin cross-company access
-- [ ] Test dashboard visibility per company
+- [ ] Test user access based on dashboard permissions
+- [ ] Test moderator can manage assigned folders across any company
+- [ ] Test admin cross-company access to all folders/dashboards
+- [ ] Test dashboard visibility via permissions map
 - [ ] Test permission enforcement
 - [ ] Test data migration from old model (if applicable)
 
