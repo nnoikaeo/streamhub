@@ -31,8 +31,8 @@
 **สิทธิ์:**
 - ✅ ดู (View) Dashboard ที่มีสิทธิ์เข้าถึง
 - ✅ ดู Profile ตนเอง
-- ✅ เปลี่ยนรหัสผ่าน
-- ✅ ส่งออกข้อมูล (Export)
+- ❌ เปลี่ยนรหัสผ่าน
+- ❌ ส่งออกข้อมูล (Export)
 - ❌ สร้าง Dashboard
 - ❌ แก้ไข Dashboard
 - ❌ กำหนดสิทธิ์
@@ -66,21 +66,22 @@ But CANNOT:
 
 ### 2️⃣ MODERATOR (สิทธิ์กลาง)
 
-**คำจำกัดความ:** หัวหน้าหรือเจ้าหน้าที่ที่สามารถสร้าง/แก้ไข Dashboard ในโฟลเดอร์ที่ Admin มอบหมาย
+**คำจำกัดความ:** หัวหน้าหรือเจ้าหน้าที่ที่สามารถสร้าง/แก้ไข Dashboard และ Subfolder ในโฟลเดอร์ที่ Admin มอบหมาย
 
 **สิทธิ์:**
 - ✅ ดู (View) Dashboard ทั้งหมด (ในสิทธิ์ของตัวเอง)
+- ✅ **สร้าง Subfolder ใหม่** (ในโฟลเดอร์ที่อนุญาต)
+- ✅ **แก้ไข Subfolder** (ในโฟลเดอร์ที่อนุญาต)
+- ✅ **ลบ Subfolder** (ในโฟลเดอร์ที่อนุญาต)
+- ✅ **กำหนดสิทธิ์ Subfolder** (ในโฟลเดอร์ที่อนุญาต)
 - ✅ **สร้าง Dashboard ใหม่** (ในโฟลเดอร์ที่อนุญาต)
 - ✅ **แก้ไข Dashboard** (ในโฟลเดอร์ที่อนุญาต)
 - ✅ **ลบ Dashboard** (ในโฟลเดอร์ที่อนุญาต)
 - ✅ **กำหนดสิทธิ์ Dashboard** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ ดู User อื่น (ใน Department เดียวกัน)
 - ✅ ดูรายงาน (Reports)
 - ❌ เชิญ User
 - ❌ ลบ User
 - ❌ เปลี่ยน Role User
-- ❌ สร้าง Folder
-- ❌ ลบ Folder
 - ❌ เข้าถึงโฟลเดอร์อื่น (นอกเหนือจากที่มอบหมาย)
 
 **ตัวอย่าง:**
@@ -91,6 +92,10 @@ But CANNOT:
 ├── Assigned Folders: ["Sales", "Reports"]
 └── Can:
     ├── ✅ View all dashboards (in Sales folder)
+    ├── ✅ Create new subfolder in Sales folder
+    ├── ✅ Edit subfolder in Sales folder
+    ├── ✅ Delete subfolder in Sales folder
+    ├── ✅ Set permissions for subfolder in Sales folder
     ├── ✅ Create new dashboard in Sales folder
     ├── ✅ Edit Sales Dashboard
     ├── ✅ Delete Sales Dashboard
@@ -166,6 +171,10 @@ But CANNOT:
 │ Edit Dashboard       │   ❌   │  ✅ (*)  │   ✅    │
 │ Delete Dashboard     │   ❌   │  ✅ (*)  │   ✅    │
 │ Set Dashboard Perms  │   ❌   │  ✅ (*)  │   ✅    │
+│ Create Subfolder     │   ❌   │  ✅ (*)  │   ✅    │
+│ Edit Subfolder       │   ❌   │  ✅ (*)  │   ✅    │
+│ Delete Subfolder     │   ❌   │  ✅ (*)  │   ✅    │
+│ Set Subfolder Perms  │   ❌   │  ✅ (*)  │   ✅    │
 │ Create Folder        │   ❌   │    ❌    │   ✅    │
 │ Edit Folder          │   ❌   │    ❌    │   ✅    │
 │ Delete Folder        │   ❌   │    ❌    │   ✅    │
@@ -322,7 +331,21 @@ Folders (created by Admin)
   │   │     permissions: ["view", "create", "edit", "delete", "manage_perms"]
   │   │   }
   │   │ ]
-  │   └── createdAt: 2024-01-20
+  │   ├── createdAt: 2024-01-20
+  │   └── subfolders: [
+  │       {
+  │         id: "subfolder_sales_monthly",
+  │         name: "Monthly Reports",
+  │         createdBy: "uid1234",
+  │         permissions: {...}
+  │       },
+  │       {
+  │         id: "subfolder_sales_quarterly",
+  │         name: "Quarterly Reports",
+  │         createdBy: "uid1234",
+  │         permissions: {...}
+  │       }
+  │     ]
   │
   └── folder_finance
       ├── name: "Finance"
@@ -332,7 +355,14 @@ Folders (created by Admin)
       │     name: "นางสาว ก."
       │   }
       │ ]
-      └── ...
+      └── subfolders: [
+          {
+            id: "subfolder_finance_budget",
+            name: "Budget Planning",
+            createdBy: "uid5678",
+            permissions: {...}
+          }
+        ]
 ```
 
 ### Dashboards Collection
@@ -447,6 +477,9 @@ service cloud.firestore {
 | **สร้าง Dashboard** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
 | **แก้ไข Dashboard** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
 | **ลบ Dashboard** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
+| **สร้าง Subfolder** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
+| **แก้ไข Subfolder** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
+| **ลบ Subfolder** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
 | **กำหนดสิทธิ์** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
 | **สร้าง Folder** | ❌ | ❌ | ✅ |
 | **จัดการ Folder** | ❌ | ❌ | ✅ |
