@@ -4,6 +4,7 @@ Feature-by-feature development documentation.
 
 ## Navigation
 
+- [Roles & Permissions](roles-and-permissions.md) - 🔐 Complete role hierarchy guide
 - [Authentication System](authentication.md)
 - [Database Schema](database-schema.md)
 - [Component Development](components.md)
@@ -18,4 +19,4 @@ Feature-by-feature development documentation.
 - Code examples
 - Best practices
 
-**Next:** Pick a topic to learn!
+**Start here:** [Roles & Permissions](roles-and-permissions.md) for understanding user access control
