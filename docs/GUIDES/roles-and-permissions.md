@@ -197,22 +197,27 @@ But CANNOT:
 **Legend:**
 - ✅ = Allowed
 - ❌ = Not allowed
-- (*) = Only in assigned folders within own company
-
 ---
 
-## 🗂️ Folder-Based Access Control (Company-Scoped)
+## 🗂️ Folder-Based Access Control
 
 ### What is Folder?
 
-**Folder** คือการจัดกลุ่ม Dashboards ภายในแต่ละบริษัท (Company):
+**Folder** คือการจัดกลุ่ม Dashboards (ไม่ผูกติดบริษัท):
 
 ```
-Companies
-├── STTH (Streamwash Thailand)
-│   └── Folders (created by Admin)
-│       ├── Operations
-│       │   ├── Operations Dashboard
+Folders (created by Admin)
+├── Operations
+│   ├── Operations Dashboard
+│   ├── Daily Report
+│   └── Performance Metrics
+├── Finance
+│   ├── Budget Dashboard
+│   └── Revenue Report
+└── Reports
+    ├── Monthly Summary
+    └── Quarterly Analysis
+```
 │       │   ├── Performance Report
 │       │   └── Daily Analytics
 │       ├── Management
@@ -292,28 +297,19 @@ Companies
    └── createdBy: "uid1234"
 
 2. สมชาย sets permissions:
-   └── company:STTH → view (all STTH users can view)
-   └── uid:uid1234 → edit (สมชาย can edit)
-   └── role:admin → edit, delete (admins can fully manage)
-
-3. STTH users see dashboard in their dashboard list
-4. STTN users CANNOT see this dashboard (different company)
-5. Admin can see and manage this dashboard (global access)
-```
-
 ### Scenario 3: User Requests Dashboard Access from Another Company
 
 ```
 1. สุนัย (User at STTH) asks if he can see STTN's Finance Dashboard
-2. Answer: ❌ NO
-   - สุนัย is in company: "STTH"
-   - Dashboard is in company: "STTN"
-   - Moderators can only manage dashboards in their assigned company
-   - Only Admin can view cross-company dashboards
+2. Answer: ❌ NO (unless explicitly granted in dashboard.permissions)
+   - Dashboard.permissions doesn't include user UID
+   - Dashboard.permissions doesn't include company:STTH
+   - Access denied by permissions
 
-3. Admin CAN view and manage dashboards across all companies:
-   - Admin sees: STTH dashboards, STTN dashboards, STCS dashboards, etc.
-   - Admin can create/edit/delete in any company folder
+3. Admin CAN grant access if needed:
+   - Add "uid:sunai": ["view"] to dashboard.permissions
+   - Or add "company:STTH": ["view"] if whole company should access
+   - Then สุนัย can see it in their list
 ```
 
 ### Scenario 4: Promoting Moderator to Admin
@@ -321,7 +317,7 @@ Companies
 ```
 1. เจ้านาย (Admin) decides to promote สมชาย from Moderator to Admin
    └── Change: role: "moderator" → role: "admin"
-   └── Change: company: "STTH" → company: null (global access)
+   └── NO CHANGE to company field (สมชาย still has company: "STTH")
 
 2. สมชาย's access changes:
    ├── Can now manage all companies (STTH, STTN, STCS, etc.)
