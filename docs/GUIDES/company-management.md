@@ -378,6 +378,40 @@ The `company` field serves **three critical purposes:**
 - 🚫 After creation (company ownership is permanent)
 - 🚫 When user role changes (company is independent of role)
 
+### ⚠️ Impact of Changing Company Field
+
+**DON'T change a user's `company` field unless absolutely necessary!**
+
+If you must change it, understand the consequences:
+
+| User Type | Impact | What to Do |
+|-----------|--------|-----------|
+| **USER** | Loses all dashboard access in old company; gains access to new company only | ✅ Safe if intentional (moving employee) |
+| **MODERATOR** | `assignedFolders` becomes **invalid** - references folders in old company | ⚠️ **Must update** assignedFolders to point to new company folders |
+| **ADMIN** | Still has global access (role grants it); home company context changes | ✅ Usually safe, but changes organizational context |
+
+**Example Problem:**
+```firestore
+Before:
+/users/uid_somchai
+├── company: "STTH"
+├── role: "moderator"
+└── assignedFolders: ["folder_stth_operations"]  // ← STTH folder
+
+After changing company to STTN:
+/users/uid_somchai
+├── company: "STTN"  ← Changed!
+├── role: "moderator"
+└── assignedFolders: ["folder_stth_operations"]  // ← Still STTH! ❌ BROKEN
+     App tries to load STTH folder for STTN moderator = ERROR
+```
+
+**Correct Approach if Moving User Between Companies:**
+1. ✅ Update `assignedFolders` to reference new company folders
+2. ✅ Update `dashboard.permissions` if user listed individually
+3. ✅ Verify user can still access appropriate resources
+4. ✅ Then change `company` field
+
 ---
 
 ## ✅ Implementation Checklist
