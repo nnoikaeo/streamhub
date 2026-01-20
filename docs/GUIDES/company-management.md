@@ -199,7 +199,7 @@ For each company, create main folders:
   │   ├── email: "somchai@stth.com"
   │   ├── displayName: "สมชาย"
   │   ├── role: "moderator"
-  │   ├── company: "STTH"          // MUST SPECIFY COMPANY
+  │   ├── company: "STTH"          // MUST SPECIFY COMPANY (moderator's company)
   │   ├── assignedFolders: [
   │   │   "folder_stth_operations",
   │   │   "folder_stth_reports"
@@ -208,6 +208,34 @@ For each company, create main folders:
   │
   └── ... (other users)
 ```
+
+### Step 3b: Invite Admins
+
+**Collection:** `/users`
+
+Admins MUST have `company` field (their home company), but can access all companies:
+
+```firestore
+/users
+  ├── uid_admin_thailand
+  │   ├── email: "admin.thailand@streamwash.com"
+  │   ├── displayName: "Admin Thailand"
+  │   ├── role: "admin"
+  │   ├── company: "STTH"          // Home company, but can access ALL companies
+  │   ├── assignedFolders: []      // Admins don't need this (access everything)
+  │   └── createdAt: 2024-01-21
+  │
+  ├── uid_admin_global
+  │   ├── email: "admin.global@streamwash.com"
+  │   ├── displayName: "Global Admin"
+  │   ├── role: "admin"
+  │   ├── company: "STTH"          // Still has a company field
+  │   └── createdAt: 2024-01-21
+  │
+  └── ... (other users)
+```
+
+**KEY POINT:** Even admins have a `company` field! They just get cross-company access due to their `admin` role.
 
 ### Step 4: Invite Regular Users
 
@@ -327,15 +355,15 @@ The `company` field serves **three critical purposes:**
 **MUST BE SET FOR:**
 - ✅ Every folder
 - ✅ Every dashboard
-- ✅ Every non-admin user
+- ✅ Every user (including admins!)
 
-**MUST BE NULL FOR:**
-- ✅ Admin users (global access)
-- ✅ System-wide documents
+**REPRESENTS:**
+- For USER/MODERATOR: Their company (restricts access to that company's resources)
+- For ADMIN: Their "home company" (doesn't restrict access - admin role grants global access)
 
 **MUST NOT CHANGE:**
 - 🚫 After creation (company ownership is permanent)
-- 🚫 When user role changes (handled separately)
+- 🚫 When user role changes (company is independent of role)
 
 ---
 

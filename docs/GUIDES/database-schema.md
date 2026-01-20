@@ -126,13 +126,16 @@ Firestore Database (Multi-Company)
 ```json
 {
   "email": "admin@streamwash.com",
-  "displayName": "Admin",
+  "displayName": "Admin Thailand",
   "role": "admin",
-  "company": null,
+  "company": "STTH",
   "assignedFolders": [],
+  "createdAt": Timestamp(2024-01-20),
   "isActive": true
 }
 ```
+
+**Important:** Admins MUST have a `company` field (representing their home company). Their `admin` role grants them access to all companies and folders, but they still need a company assignment for organizational purposes.
 
 **Firestore Rules:**
 ```firestore
