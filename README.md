@@ -1,60 +1,127 @@
-# Nuxt Minimal Starter
+# StreamHub 📊
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+**Dashboard Management System for StreamVoice**
 
-## Setup
+A modern, secure, and scalable dashboard solution built with Nuxt 4, Firebase, and Tailwind CSS.
 
-Make sure to install dependencies:
+> **Status:** 🚀 Active Development | v0.1.0
+
+---
+
+## 🎯 Quick Navigation
+
+### 👨‍💻 I want to...
+
+| Goal | Read This |
+|------|-----------|
+| 🚀 **Start developing** | [Getting Started](docs/GETTING-STARTED/README.md) |
+| 🏗️ **Understand architecture** | [Architecture Overview](docs/ARCHITECTURE/overview.md) |
+| 📚 **Learn features** | [Feature Guides](docs/GUIDES/README.md) |
+| 🔧 **Deploy to production** | [Deployment Guide](docs/OPERATIONS/deployment.md) |
+| 🐛 **Fix a problem** | [Troubleshooting](docs/TROUBLESHOOTING/README.md) |
+| 🤝 **Contribute code** | [Contributing Guide](docs/CONTRIBUTING/workflow.md) |
+| 📡 **Check API reference** | [API Reference](docs/REFERENCE/README.md) |
+
+---
+
+## ✨ Features
+
+- ✅ **Google Authentication** - Secure OAuth 2.0 Sign-in
+- ✅ **Real-time Dashboard** - Firestore integration for live data
+- ✅ **Role-based Access** - Protected routes and permissions
+- ✅ **Cloud Storage** - File management with Firebase
+- ✅ **Responsive UI** - Tailwind CSS + @nuxt/ui
+- ✅ **TypeScript** - Full type safety
+- ✅ **SSR Ready** - Server-side rendering support
+
+---
+
+## 🛠️ Tech Stack
+
+```
+Frontend:     Nuxt 4 + Vue 3 + TypeScript
+Styling:      Tailwind CSS + @nuxt/ui
+State:        Pinia
+Backend:      Firebase (Auth, Firestore, Storage)
+Deployment:   Firebase Hosting
+```
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- npm or pnpm
+- Firebase account
+
+### Installation
 
 ```bash
-# npm
+# 1. Clone repository
+git clone https://github.com/nnoikaeo/streamhub.git
+cd streamhub
+
+# 2. Install dependencies
 npm install
 
-# pnpm
-pnpm install
+# 3. Setup environment
+cp .env.example .env.local
+# Edit .env.local with your Firebase credentials
 
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
+# 4. Run dev server
 npm run dev
 
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+# 5. Open browser
+# Visit http://localhost:3000
 ```
 
-## Production
+**[→ Detailed setup guide](docs/GETTING-STARTED/installation.md)**
 
-Build the application for production:
+---
+
+## 📖 Full Documentation
+
+- 🆕 [Getting Started](docs/GETTING-STARTED/README.md)
+- 🏗️ [Architecture](docs/ARCHITECTURE/overview.md)
+- 📚 [Development Guides](docs/GUIDES/README.md)
+- 🔧 [Operations & Deployment](docs/OPERATIONS/deployment.md)
+- 🐛 [Troubleshooting](docs/TROUBLESHOOTING/README.md)
+- 🤝 [Contributing](docs/CONTRIBUTING/workflow.md)
+- 📡 [API Reference](docs/REFERENCE/README.md)
+
+---
+
+## 🏃‍♂️ Available Commands
 
 ```bash
-# npm
-npm run build
+# Development
+npm run dev           # Start dev server (localhost:3000)
+npm run build         # Build for production
+npm run preview       # Preview production build
 
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+# Linting
+npm run lint          # Run ESLint
 ```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please read our [Contributing Guide](docs/CONTRIBUTING/workflow.md) first.
+
+**Quick steps:**
+1. Fork repository
+2. Create feature branch: `git checkout -b feat/your-feature`
+3. Commit changes: `git commit -m "feat: add feature"`
+4. Push to branch: `git push origin feat/your-feature`
+5. Open Pull Request
+
+---
+
+## 📝 License
+
+MIT License - See LICENSE file for details
 
 Locally preview production build:
 
