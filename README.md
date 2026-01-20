@@ -108,14 +108,60 @@ npm run lint          # Run ESLint
 
 ## 🤝 Contributing
 
-We welcome contributions! Please read our [Contributing Guide](docs/CONTRIBUTING/workflow.md) first.
+We welcome contributions! StreamHub uses **Git Flow Workflow** for organized development.
 
-**Quick steps:**
-1. Fork repository
-2. Create feature branch: `git checkout -b feat/your-feature`
-3. Commit changes: `git commit -m "feat: add feature"`
-4. Push to branch: `git push origin feat/your-feature`
-5. Open Pull Request
+**Read our [Contributing Guide](docs/CONTRIBUTING/workflow.md) for detailed instructions.**
+
+### Quick Git Flow Steps:
+
+```bash
+# 1. Start from develop (always!)
+git checkout develop
+git pull origin develop
+
+# 2. Create feature branch
+git checkout -b feat/your-feature
+
+# 3. Make changes and commit (use Conventional Commits)
+git add .
+git commit -m "feat(scope): description"
+
+# 4. Push to GitHub
+git push -u origin feat/your-feature
+
+# 5. Open Pull Request (base: develop, compare: feat/your-feature)
+
+# 6. After merge, cleanup
+git checkout develop
+git pull origin develop
+git branch -d feat/your-feature
+git push origin --delete feat/your-feature
+```
+
+### Branch Strategy:
+
+| Branch | Purpose | Protection |
+|--------|---------|------------|
+| `main` | Production-ready code | ✅ PR required, 1+ approvals |
+| `develop` | Staging/integration | ✅ PR required, 1+ approvals |
+| `feat/*` | Feature development | ❌ None |
+
+### Commit Message Format:
+
+```
+<type>(<scope>): <subject>
+
+feat(dashboard): add dashboard header component
+fix(auth): resolve login timeout issue
+docs(readme): update installation steps
+```
+
+**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
+
+### More Info:
+- 📖 Full workflow: [Contributing Guide](docs/CONTRIBUTING/workflow.md)
+- 🏗️ Architecture: [Architecture Overview](docs/ARCHITECTURE/overview.md)
+- 🛠️ Development: [Development Guides](docs/GUIDES/README.md)
 
 ---
 

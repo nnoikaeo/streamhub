@@ -1,41 +1,70 @@
 ---
 title: Contribution Workflow
-version: 1.0
+version: 2.0
 updated: 2024-01-21
 ---
 
 # Contribution Workflow
 
-How to contribute code to StreamHub.
+How to contribute code to StreamHub using **Git Flow**.
 
-## Step 1: Fork Repository
+## Git Flow Overview
 
-1. Go to [StreamHub Repository](https://github.com/nnoikaeo/streamhub)
-2. Click **"Fork"** button (top right)
-3. Clone your fork locally:
+StreamHub uses Git Flow branching model:
 
-```bash
-git clone https://github.com/YOUR_USERNAME/streamhub.git
-cd streamhub
+```
+main (production)
+  └── merge PRs from develop (release cycles)
+  
+develop (staging)
+  └── merge PRs from feat/* (feature development)
+  
+feat/feature-name (development)
+  └── create from develop
+  └── merge back to develop via PR
 ```
 
 ---
 
-## Step 2: Create Feature Branch
+## Step 1: Clone Repository
+
+```bash
+git clone https://github.com/nnoikaeo/streamhub.git
+cd streamhub
+npm install
+```
+
+---
+
+## Step 2: Start from Develop
+
+Always start new features from the `develop` branch:
+
+```bash
+git checkout develop
+git pull origin develop
+```
+
+---
+
+## Step 3: Create Feature Branch
+
+Create a feature branch from `develop`:
 
 ```bash
 git checkout -b feat/your-feature-name
 ```
 
-**Branch naming:**
+**Branch naming conventions:**
 - `feat/feature-name` - New feature
 - `fix/bug-name` - Bug fix
 - `docs/topic` - Documentation
 - `refactor/area` - Code refactoring
+- `perf/optimization` - Performance improvement
 
 ---
 
-## Step 3: Make Changes
+## Step 4: Make Changes
 
 Edit files and test locally:
 
@@ -48,20 +77,18 @@ npm run lint
 
 ---
 
-## Step 4: Commit with Meaningful Messages
+## Step 5: Commit with Conventional Commits Format
+
+Use meaningful commit messages following Conventional Commits:
 
 ```bash
 git add .
-git commit -m "feat(auth): add two-factor authentication"
+git commit -m "feat(dashboard): add analytics page"
 ```
 
 **Format:**
 ```
 <type>(<scope>): <subject>
-
-<body>
-
-<footer>
 ```
 
 **Types:**
@@ -70,95 +97,185 @@ git commit -m "feat(auth): add two-factor authentication"
 - `docs:` Documentation
 - `style:` Code formatting
 - `refactor:` Code restructuring
-- `perf:` Performance
+- `perf:` Performance improvement
 - `test:` Tests
-- `chore:` Dependencies
+- `chore:` Dependencies/build
 
-**Example commits:**
+**Examples:**
 ```bash
-git commit -m "feat(dashboard): add user analytics widget"
+git commit -m "feat(dashboard): add analytics page"
 git commit -m "fix(auth): handle OAuth timeout correctly"
-git commit -m "docs: update database schema guide"
+git commit -m "docs: update installation guide"
+git commit -m "refactor(components): simplify header logic"
 ```
 
 ---
 
-## Step 5: Push to Your Fork
+## Step 6: Push Feature Branch
+
+Push your feature branch to GitHub:
 
 ```bash
-git push origin feat/your-feature-name
+git push -u origin feat/your-feature-name
 ```
+
+The `-u` flag sets up tracking (first time only).
 
 ---
 
-## Step 6: Create Pull Request
+## Step 7: Create Pull Request
 
 1. Go to [StreamHub Repository](https://github.com/nnoikaeo/streamhub)
-2. Click **"New pull request"** or see prompt
-3. Select **base:** main → **compare:** your-branch
-4. Fill PR template:
+2. GitHub shows prompt: **"Compare & pull request"** - click it
+3. **Verify PR settings:**
+   - **Base:** `develop` (NOT main!)
+   - **Compare:** `feat/your-feature-name`
+4. Fill PR title and description:
 
 ```markdown
 ## Description
-What changes did you make?
+Brief description of what this PR does.
+
+## Changes
+- Added analytics page component
+- Updated navigation to include analytics link
+- Added documentation
 
 ## Type of Change
-- [ ] New feature
+- [x] New feature
 - [ ] Bug fix
 - [ ] Documentation update
 
 ## Testing
-How did you test this?
+Tested locally with `npm run dev`
 
 ## Checklist
-- [ ] Code follows style guide
-- [ ] Tests added/updated
-- [ ] Documentation updated
-- [ ] No breaking changes
+- [x] Code follows style guide
+- [x] Changes are focused and minimal
+- [x] Documentation updated
+- [ ] Tests added (if applicable)
 ```
 
 5. Click **"Create pull request"**
 
 ---
 
-## Step 7: Code Review
+## Step 8: Code Review & Approval
 
-- Maintainers review your code
-- Address feedback if requested
-- Rebase if needed:
+Your PR requires **at least 1 approval** before merging:
+
+- Reviewers will check your code
+- Address any feedback or questions
+- Make additional commits if needed (automatically updates PR)
+- Once approved, proceed to merge
+
+---
+
+## Step 9: Merge to Develop
+
+Once approved, merge the PR:
 
 ```bash
-git fetch origin
-git rebase origin/main
-git push origin feat/your-feature-name --force-with-lease
+# Option A: Merge via GitHub (recommended)
+# Click "Merge pull request" → "Create a merge commit" → "Confirm merge"
+
+# Option B: Merge via command line
+git checkout develop
+git pull origin develop
+git merge feat/your-feature-name
+git push origin develop
+```
+
+**Merge strategies:**
+- **Create a merge commit** (recommended) - Preserves feature branch history
+- **Squash and merge** - Single commit, clean history
+- **Rebase and merge** - Linear history, advanced users
+
+---
+
+## Step 10: Cleanup
+
+After merge, delete the feature branch:
+
+```bash
+# Delete locally
+git branch -d feat/your-feature-name
+
+# Delete on GitHub
+git push origin --delete feat/your-feature-name
+
+# Switch back to develop
+git checkout develop
+git pull origin develop
 ```
 
 ---
 
-## Step 8: Merge
+## Complete Workflow Example
 
-Once approved:
-1. Maintainer merges PR
-2. Your branch is deleted
-3. Feature is deployed
+Here's a complete example creating a Users page:
+
+```bash
+# 1. Start from develop
+git checkout develop
+git pull origin develop
+
+# 2. Create feature branch
+git checkout -b feat/users-page
+
+# 3. Create component
+touch app/pages/dashboard/users.vue
+# Edit file with Users page logic
+
+# 4. Test locally
+npm run dev
+# Visit http://localhost:3000/dashboard/users
+
+# 5. Commit
+git add .
+git commit -m "feat(users): add users management page"
+
+# 6. Push
+git push -u origin feat/users-page
+
+# 7. Create PR on GitHub
+# - Base: develop
+# - Compare: feat/users-page
+# - Add description
+
+# 8. Wait for approval (1 required)
+
+# 9. Merge via GitHub or CLI
+git checkout develop
+git pull origin develop
+git merge feat/users-page
+git push origin develop
+
+# 10. Cleanup
+git branch -d feat/users-page
+git push origin --delete feat/users-page
+```
 
 ---
 
 ## Tips for Success
 
 ✅ **DO:**
+- Always start from `develop` branch
 - Keep changes focused & small
 - Write clear commit messages
-- Add/update tests
-- Update documentation
-- Test thoroughly locally
+- Test locally before pushing
+- Update documentation if needed
+- Be responsive to review feedback
+- Use meaningful branch names
 
 ❌ **DON'T:**
+- Push directly to `develop` (PRs required!)
 - Mix multiple features in one PR
-- Rewrite large sections
 - Ignore linting errors
-- Commit secrets (API keys)
+- Commit secrets (API keys, passwords)
 - Force-push without good reason
+- Leave feature branches hanging
 
 ---
 
@@ -167,77 +284,56 @@ Once approved:
 ### Adding a Feature
 
 ```bash
-# 1. Start
-git checkout -b feat/new-dashboard-page
-
-# 2. Create files
-touch app/pages/dashboard/analytics.vue
-touch docs/GUIDES/analytics.md
-
-# 3. Implement
-# Edit files, test locally
-
-# 4. Commit
+git checkout develop
+git pull origin develop
+git checkout -b feat/new-feature
+# Make changes...
 git add .
-git commit -m "feat(dashboard): add analytics page"
-
-# 5. Push & PR
-git push origin feat/new-dashboard-page
-# Create PR on GitHub
+git commit -m "feat(scope): description"
+git push -u origin feat/new-feature
+# Create PR, get approval, merge, cleanup
 ```
 
 ### Fixing a Bug
 
 ```bash
-# 1. Start
-git checkout -b fix/auth-timeout
-
-# 2. Find & fix
-# Edit app/composables/useAuth.ts
-
-# 3. Test
-npm run dev
-# Manually test in browser
-
-# 4. Commit
+git checkout develop
+git pull origin develop
+git checkout -b fix/bug-name
+# Fix the bug...
 git add .
-git commit -m "fix(auth): handle OAuth timeout gracefully"
-
-# 5. Push & PR
-git push origin fix/auth-timeout
+git commit -m "fix(scope): description"
+git push -u origin fix/bug-name
+# Create PR, get approval, merge, cleanup
 ```
 
 ### Updating Documentation
 
 ```bash
-# 1. Start
-git checkout -b docs/auth-guide
-
-# 2. Edit docs
-# Edit docs/GUIDES/authentication.md
-
-# 3. Commit
+git checkout develop
+git pull origin develop
+git checkout -b docs/topic
+# Edit docs...
 git add .
-git commit -m "docs: expand authentication guide with examples"
-
-# 4. Push & PR
-git push origin docs/auth-guide
+git commit -m "docs: description"
+git push -u origin docs/topic
+# Create PR, get approval, merge, cleanup
 ```
 
 ---
 
-## Syncing With Main
+## Syncing With Develop
 
-If main has updated while you're working:
+If `develop` has been updated while you're working:
 
 ```bash
-# Fetch latest
+# Fetch latest from GitHub
 git fetch origin
 
-# Rebase on main
-git rebase origin/main
+# Rebase your branch on latest develop
+git rebase origin/develop
 
-# Force push your branch
+# Force push your branch (safe, uses --force-with-lease)
 git push origin feat/your-feature --force-with-lease
 ```
 
@@ -245,7 +341,7 @@ git push origin feat/your-feature --force-with-lease
 
 ## Reverting a Commit
 
-If you need to undo:
+If you need to undo a commit:If you need to undo:
 
 ```bash
 # Undo last commit (keep changes)
