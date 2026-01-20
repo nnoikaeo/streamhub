@@ -28,7 +28,7 @@
 - Maintains **data isolation** from other companies
 
 **Key Principle:** 
-> Every user is assigned to a **specific company**. Folders and dashboards have a `company` field for organizational purposes. Access control is determined by **role** and **permissions**, not just the company field.
+> Only **users** have a `company` field. **Folders and dashboards DO NOT** have a company field to avoid breaking references when employees move between companies. Access control is determined by **role**, **assignments**, and **permissions**.
 
 ### Quick Reference: Role + Company Field
 
@@ -180,26 +180,23 @@ For each company, create main folders:
 
 ```firestore
 /folders
-  ├── folder_stth_operations
+  ├── folder_operations
   │   ├── name: "Operations"
-  │   ├── company: "STTH"          // MUST SPECIFY COMPANY
-  │   ├── description: "Operations dashboards for STTH"
+  │   ├── description: "Operations dashboards"
   │   ├── createdBy: "admin_uid"
   │   ├── createdAt: 2024-01-21
   │   └── subfolders: [...]
   │
-  ├── folder_stth_finance
+  ├── folder_finance
   │   ├── name: "Finance"
-  │   ├── company: "STTH"
   │   └── ...
   │
-  ├── folder_stth_reports
-  │   ├── name: "Reports"
-  │   ├── company: "STTH"
-  │   └── ...
-  │
-  └── ... (repeat for other companies)
+  └── folder_reports
+      ├── name: "Reports"
+      └── ...
 ```
+
+**Note:** No `company` field! Access is controlled via `assignedModerators`. This way, folders can be reused across companies if needed.
 
 ### Step 3: Invite Moderators
 
@@ -297,20 +294,19 @@ Admins MUST have `company` field (their home company), but can access all compan
   └── lastLogin: timestamp
 ```
 
-### Folders Collection (Company-Scoped)
+### Folders Collection
 
 ```firestore
 /folders/{folderId}
   ├── name: string
-  ├── company: string            // REQUIRED! "STTH", "STTN", etc.
   ├── description: string
   ├── createdBy: string          // Admin UID
   ├── createdAt: timestamp
-  ├── assignedModerators: array  // Moderators assigned to manage this folder
+  ├── assignedModerators: array  // Who can manage this folder
   │   ├── userId: string
   │   ├── name: string
   │   └── permissions: array
-  ├── subfolders: array          // Nested subfolders
+  ├── subfolders: array
   │   ├── id: string
   │   ├── name: string
   │   ├── createdBy: string
@@ -318,99 +314,81 @@ Admins MUST have `company` field (their home company), but can access all compan
   └── isActive: boolean
 ```
 
-### Dashboards Collection (Company-Scoped)
+**Note:** No `company` field! Folders are accessible regardless of user's company assignment. Access control via `assignedModerators` + user's permissions.
+
+### Dashboards Collection
 
 ```firestore
 /dashboards/{dashboardId}
   ├── title: string
   ├── description: string
-  ├── company: string            // REQUIRED! "STTH", "STTN", etc.
   ├── folderId: string
   ├── lookerUrl: string          // Looker Studio embedded URL
   ├── createdBy: string          // User or Moderator UID
   ├── createdAt: timestamp
   ├── updatedAt: timestamp
   ├── isActive: boolean
-  └── permissions: map           // Role-based permissions
+  └── permissions: map           // Who can view/edit this dashboard
       ├── "role:user": ["view"]
       ├── "role:moderator": ["view"]
       ├── "role:admin": ["view", "edit", "delete"]
-      ├── "uid:somchai": ["view", "edit", "delete"]
+      ├── "uid:somchai": ["view", "edit"]
       └── "company:STTH": ["view"]
 ```
+
+**Note:** No `company` field! Dashboard permissions are explicit. Access control via `permissions` map + user's role.
 
 ---
 
 ## 🔐 Access Control
 
-### Company Field Purpose
+### How Access Works (Without Company Fields on Folders/Dashboards)
 
-The `company` field serves **three critical purposes:**
+**User wants to view/edit a dashboard:**
 
-1. **Data Isolation**
-   - Each folder/dashboard belongs to exactly one company
-   - Moderators can only manage folders in their company
-   - Users can only see dashboards in their company
+1. **Load Dashboard**
+   - App loads `/dashboards/{dashboardId}` (no company filter needed)
+   - Check dashboard.permissions map
 
-2. **Access Filtering**
-   - App loads dashboards based on role and permissions
-   - Regular users: filtered by `user.company == dashboard.company`
-   - Moderators: see assigned folders regardless of company (if assigned cross-company)
-   - Admins: see all companies and folders (no filtering, role grants global access)
+2. **Check Permissions**
+   - Is user role in permissions? (e.g., "role:moderator")
+   - Is user UID in permissions? (e.g., "uid:somchai")
+   - Is user's company in permissions? (e.g., "company:STTH")
+   - ✅ If any match → allow access
+   - ❌ If none match → deny access
 
-3. **Permission Inheritance**
-   - Folder-level company field controls who sees subfolders
-   - Dashboard-level company field controls visibility
-   - Company-wide permissions apply via "company:STTH" key
+3. **For Moderators Managing Folders**
+   - Check if folder ID is in `user.assignedFolders`
+   - ✅ If yes → can create/edit dashboards in this folder
+   - ❌ If no → cannot manage
+
+**Benefits:**
+- ✅ Folders/Dashboards **NOT tied to company**
+- ✅ Employee changes company? No impact on folder/dashboard structure!
+- ✅ Can share folders across companies if designed that way
+- ✅ Explicit permissions = clear control
+
+### Why NO Company Field on Folders/Dashboards?
+
+| Scenario | With company field ❌ | Without company field ✅ |
+|----------|----------------------|------------------------|
+| Employee moves STTH → STTN | assignedFolders break | No change needed |
+| Share folder across companies | Very complex | Simple via permissions |
+| Clarity of access control | Implicit (company == access) | Explicit (permissions map) |
+| Data isolation | Company field | Permissions enforce it |
 
 ### Company Field Rules
 
 **MUST BE SET FOR:**
-- ✅ Every folder
-- ✅ Every dashboard
-- ✅ Every user (including admins!)
+- ✅ Every user (their home company)
 
-**REPRESENTS:**
-- For USER/MODERATOR: Their company (restricts access to that company's resources)
-- For ADMIN: Their "home company" (doesn't restrict access - admin role grants global access)
+**MUST NOT BE SET FOR:**
+- ❌ Folders (use assignedModerators instead)
+- ❌ Dashboards (use permissions map instead)
 
-**MUST NOT CHANGE:**
-- 🚫 After creation (company ownership is permanent)
-- 🚫 When user role changes (company is independent of role)
-
-### ⚠️ Impact of Changing Company Field
-
-**DON'T change a user's `company` field unless absolutely necessary!**
-
-If you must change it, understand the consequences:
-
-| User Type | Impact | What to Do |
-|-----------|--------|-----------|
-| **USER** | Loses all dashboard access in old company; gains access to new company only | ✅ Safe if intentional (moving employee) |
-| **MODERATOR** | `assignedFolders` becomes **invalid** - references folders in old company | ⚠️ **Must update** assignedFolders to point to new company folders |
-| **ADMIN** | Still has global access (role grants it); home company context changes | ✅ Usually safe, but changes organizational context |
-
-**Example Problem:**
-```firestore
-Before:
-/users/uid_somchai
-├── company: "STTH"
-├── role: "moderator"
-└── assignedFolders: ["folder_stth_operations"]  // ← STTH folder
-
-After changing company to STTN:
-/users/uid_somchai
-├── company: "STTN"  ← Changed!
-├── role: "moderator"
-└── assignedFolders: ["folder_stth_operations"]  // ← Still STTH! ❌ BROKEN
-     App tries to load STTH folder for STTN moderator = ERROR
-```
-
-**Correct Approach if Moving User Between Companies:**
-1. ✅ Update `assignedFolders` to reference new company folders
-2. ✅ Update `dashboard.permissions` if user listed individually
-3. ✅ Verify user can still access appropriate resources
-4. ✅ Then change `company` field
+**REPRESENTS (for users only):**
+- For USER/MODERATOR: Their company (for filtering lists, context)
+- For ADMIN: Their "home company" (doesn't restrict access - role grants global access)
 
 ---
 
