@@ -150,14 +150,13 @@ match /users/{userId} {
 ## 3. Folders Collection
 
 **Path:** `/folders/{folderId}`  
-**Purpose:** Dashboard organization (company-scoped)
+**Purpose:** Dashboard organization (not company-scoped - uses permissions instead)
 
 **Document Structure:**
 
 ```typescript
 {
   name: string                   // Folder name
-  company: string                // Company code (REQUIRED!)
   description: string            // Description
   createdBy: string              // Admin user ID
   createdAt: Timestamp           // Creation date
@@ -183,8 +182,7 @@ match /users/{userId} {
 ```json
 {
   "name": "Operations",
-  "company": "STTH",
-  "description": "Operations dashboards for STTH",
+  "description": "Operations dashboards",
   "createdBy": "admin_uid",
   "createdAt": Timestamp(2024-01-20),
   "assignedModerators": [
@@ -196,7 +194,7 @@ match /users/{userId} {
   ],
   "subfolders": [
     {
-      "id": "subfolder_stth_ops_daily",
+      "id": "subfolder_ops_daily",
       "name": "Daily Reports",
       "createdBy": "uid_somchai",
       "permissions": ["view", "edit"]
@@ -241,10 +239,9 @@ match /users/{userId} {
 **Example:**
 ```json
 {
-  "title": "STTH Daily Operations Report",
+  "title": "Daily Operations Report",
   "description": "Daily performance metrics",
-  "company": "STTH",
-  "folderId": "folder_stth_operations",
+  "folderId": "folder_operations",
   "lookerUrl": "https://lookerstudio.google.com/embed/reporting/...",
   "icon": "bar_chart",
   "createdBy": "uid_somchai",
@@ -261,13 +258,13 @@ match /users/{userId} {
 }
 ```
 
-**Critical:** `company` field MUST be set!
+**Note:** No `company` field! Access is controlled via explicit `permissions` map instead.
 
 **Firestore Rules:**
 ```firestore
 match /dashboards/{dashboardId} {
-  allow read: if isAdmin() || isInCompany(resource.data.company);
-  allow write: if isAdmin() || isModerator(resource.data.company);
+  allow read: if hasPermission(request.auth.uid, "view");
+  allow write: if hasPermission(request.auth.uid, "edit");
   allow delete: if isAdmin();
 }
 ```
