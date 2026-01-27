@@ -30,8 +30,10 @@ This document outlines the user flows for StreamHub Dashboard Management System 
 - All users must authenticate via Google OAuth
 - Access is permission-based (not company-based for resources)
 - Admins have global cross-company access
-- Users see dashboards based on `dashboard.permissions` map
+- Users see dashboards based on **3-layer permission model** (see [Roles & Permissions Guide > Permission Structure](../GUIDES/roles-and-permissions.md#-permission-structure))
 - Moderators manage folders via `assignedFolders` array
+
+**📌 Note:** For complete permission structure details, access logic, and Firestore security rules, refer to [Roles & Permissions Guide](../GUIDES/roles-and-permissions.md) - the single source of truth for all role and permission definitions.
 
 ---
 
@@ -84,11 +86,12 @@ A regular user (Employee) can view dashboards within their company and those sha
 │  Dashboard Discover Page       │
 │  (app/pages/dashboard/index)   │
 │                                │
-│  Show all dashboards where:    │
-│  - role:"user" in permissions  │
-│  - role:"admin" in permissions │
-│  - uid:{userId} in permissions │
-│  - company:{userCompany}       │
+│  Show dashboards where user    │
+│  has access permission.        │
+│                                │
+│  (For permission logic, see    │
+│  Roles & Permissions Guide >   │
+│  Access Logic section)         │
 └──────┬───────────────────────────┘
        │
        ├─────────────────────────────────────┐
@@ -157,6 +160,8 @@ A regular user (Employee) can view dashboards within their company and those sha
 | | ❌ No | Hide dashboard from list |
 | **Expired Session?** | ✅ Yes | Refresh token / Re-authenticate |
 | | ❌ No | Continue using app |
+
+**📝 Note:** Permission checking uses 3-layer model (direct, company-scoped, restrictions). See [Roles & Permissions Guide > Access Logic](../GUIDES/roles-and-permissions.md#-access-logic) for details.
 
 ---
 
@@ -291,6 +296,8 @@ A moderator (Team Lead) manages folders and dashboards within their assigned fol
 | | ❌ No | Show view-only mode |
 | **Permission changed?** | ✅ Yes | Update DB and refresh UI |
 | | ❌ No | Discard changes |
+
+**📝 Note:** Dashboard permissions are checked using 3-layer model. See [Roles & Permissions Guide > Permission Structure](../GUIDES/roles-and-permissions.md#-dashboard-access-structure) for details.
 
 ---
 
@@ -728,6 +735,8 @@ For MODERATOR and ADMIN users who work across companies:
 
 ## ❌ Permission Denied Scenarios
 
+📌 **For detailed permission checking logic, see [Roles & Permissions Guide > Access Logic](../GUIDES/roles-and-permissions.md#-access-logic) and [Use Cases & Examples](../GUIDES/roles-and-permissions.md#-use-cases--examples).**
+
 ### Scenario 1: USER Tries to View Protected Dashboard
 
 ```
@@ -739,14 +748,12 @@ For MODERATOR and ADMIN users who work across companies:
        ▼
 ┌──────────────────────────┐
 │ Check Permissions        │
-│ dashboard.permissions =  │
-│ {                        │
-│   "role:moderator":      │
-│   ["view", "edit"]       │
-│ }                        │
+│ (3-layer model:          │
+│  direct, company,        │
+│  restrictions)           │
 │                          │
 │ User role = "user"       │
-│ NO MATCH ❌              │
+│ NO MATCH in any layer ❌ │
 └──────┬───────────────────┘
        │
        ▼
@@ -867,9 +874,13 @@ For MODERATOR and ADMIN users who work across companies:
 
 ## 📚 Related Documents
 
-- [Database Schema](database-schema.md)
-- [Company Management Guide](company-management.md)
-- [Roles & Permissions Guide](roles-and-permissions.md)
+- **[Roles & Permissions Guide](../GUIDES/roles-and-permissions.md)** ⭐ Single Source of Truth for permission logic
+  - [Permission Structure](../GUIDES/roles-and-permissions.md#-permission-structure)
+  - [Access Logic](../GUIDES/roles-and-permissions.md#-access-logic)
+  - [Use Cases & Examples](../GUIDES/roles-and-permissions.md#-use-cases--examples)
+  - [Firestore Security Rules](../GUIDES/roles-and-permissions.md#-firestore-security-rules)
+- [Database Schema](../GUIDES/database-schema.md)
+- [Company Management Guide](../GUIDES/company-management.md)
 - [Development Roadmap](../OPERATIONS/roadmap.md)
 
 ---
