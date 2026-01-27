@@ -340,6 +340,8 @@ Admins MUST have `company` field (their home company), but can access all compan
 
 ## 🔐 Access Control
 
+**For complete access control logic and permission structure details, see [Roles & Permissions Guide](./roles-and-permissions.md) - the single source of truth for all role and permission definitions.**
+
 ### How Access Works (Without Company Fields on Folders/Dashboards)
 
 **User wants to view/edit a dashboard:**

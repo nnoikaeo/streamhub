@@ -218,6 +218,8 @@ The `permissions` map uses dot-notation keys:
 
 ## 🔐 Security Rules
 
+**IMPORTANT:** For complete Firestore security rules and access control logic, **see [Roles & Permissions Guide > Firestore Security Rules](./roles-and-permissions.md#firestore-security-rules)**
+
 Create these Firestore security rules to enforce company isolation:
 
 ```javascript

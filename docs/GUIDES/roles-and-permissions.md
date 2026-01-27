@@ -1,577 +1,535 @@
 # 🔐 Roles & Permissions Guide
 
-**StreamHub Role-Based Access Control (RBAC) System**
+> **Document Status:** Single Source of Truth for Roles & Access Control  
+> **Last Updated:** 2024-01-27  
+> **Document Owner:** Development Team  
+> **Version:** 3.0 (Contextual INTERSECT Architecture)
+
+**StreamHub Role-Based Access Control (RBAC) with Structured Permissions (Direct + Company-Scoped)**
 
 ---
 
-## 📊 Role Hierarchy
+## 📋 Table of Contents
+
+1. [Overview](#overview)
+2. [Role Definitions](#role-definitions)
+3. [Permission Structure](#permission-structure)
+4. [Access Logic](#access-logic)
+5. [Firestore Security Rules](#firestore-security-rules)
+6. [Use Cases & Examples](#use-cases--examples)
+7. [Implementation Checklist](#implementation-checklist)
+
+---
+
+## 🎯 Overview
+
+**StreamHub** uses **Contextual INTERSECT architecture** for role-based access control:
 
 ```
 ┌─────────────────────────────────────────┐
-│              ADMIN (最高)               │
-│  └─ Manage everything in the system    │
+│          ROLE HIERARCHY                 │
 ├─────────────────────────────────────────┤
-│           MODERATOR (中等)              │
-│  └─ Manage dashboards in assigned     │
-│     folders only                       │
-├─────────────────────────────────────────┤
-│            USER (基本)                  │
-│  └─ View dashboards (read-only)       │
+│                                         │
+│              ADMIN                      │
+│   ├─ Global access (all companies)      │
+│   ├─ No company restrictions            │
+│   └─ Manage everything                  │
+│                                         │
+│           MODERATOR                     │
+│   ├─ Company-scoped access              │
+│   ├─ Manage assigned folders            │
+│   └─ Create/Edit dashboards             │
+│                                         │
+│              USER                       │
+│   ├─ Company-scoped access              │
+│   ├─ View-only dashboards               │
+│   └─ Based on permissions               │
+│                                         │
 └─────────────────────────────────────────┘
 ```
 
+**Key Principle:**
+> Access control uses **Contextual INTERSECT**: Role + Company are AND'ed together (security first), while different layers are OR'ed (flexibility).
+
 ---
 
-## 👤 Role Definitions
+## 👥 Role Definitions
 
-### 1️⃣ USER (สิทธิ์พื้นฐาน)
+### 1️⃣ USER (基本权限)
 
-**คำจำกัดความ:** พนักงานทั่วไปที่สามารถดู Dashboard ตามสิทธิ์ที่กำหนด
+**Definition:** Regular employee who can view dashboards based on assigned permissions
 
-**สิทธิ์:**
-- ✅ ดู (View) Dashboard ที่มีสิทธิ์เข้าถึง
-- ✅ ดู Profile ตนเอง
-- ❌ เปลี่ยนรหัสผ่าน
-- ❌ ส่งออกข้อมูล (Export)
-- ❌ สร้าง Dashboard
-- ❌ แก้ไข Dashboard
-- ❌ กำหนดสิทธิ์
-- ❌ จัดการผู้ใช้อื่น
-- ❌ สร้าง Folder
+**Permissions:**
+- ✅ View dashboards (with access rights)
+- ✅ View own profile
+- ✅ Update own profile (limited)
+- ❌ Create/Edit/Delete dashboards
+- ❌ Create/Manage folders
+- ❌ Invite users
+- ❌ Manage permissions
 
-**ตัวอย่าง:**
+**Access Scope:**
+- **Own Company:** Can view dashboards in their company
+- **Other Companies:** Only if explicitly shared
+- **Folders:** Can browse assigned folders (read-only)
+
+**Example:**
 ```
-👤 User: "สมชาย" (Company: STTH)
+User: สมชาย (STTH)
 ├── Company: STTH
 ├── Role: User
-└── Can view:
-    ├── STTH Sales Dashboard (shared to company)
-    ├── Group Overview (shared to all)
-    └── My Performance (shared individually)
-
-But CANNOT:
-├── Edit STTH Sales Dashboard
-├── Create new dashboard
-├── Add users
-└── Manage folders
+├── Can view:
+│   ├── STTH Sales Dashboard (company-scoped)
+│   ├── Group Overview (cross-company group)
+│   └── Special Report (individual UID)
+└── Cannot:
+    ├── Edit dashboards
+    ├── Create new dashboard
+    ├── Invite users
+    └── Manage folders
 ```
 
-**Use Case:**
-- 📱 ตัวแทนขาย (Sales Rep)
-- 💰 Staff บัญชี (Accounting Staff)
-- 👥 เจ้าหน้าที่ (Officer)
-- ⚙️ วิศวกร (Engineer)
+**Use Cases:**
+- 📱 Sales Representative
+- 💰 Accounting Staff
+- 👥 Officer
+- ⚙️ Engineer
 
 ---
 
-### 2️⃣ MODERATOR (สิทธิ์กลาง)
+### 2️⃣ MODERATOR (中级权限)
 
-**คำจำกัดความ:** หัวหน้าหรือเจ้าหน้าที่ที่สามารถสร้าง/แก้ไข Dashboard และ Subfolder ในโฟลเดอร์ที่ Admin มอบหมาย
+**Definition:** Team lead or manager who can manage dashboards and subfolders within assigned folders
 
-**สิทธิ์:**
-- ✅ ดู (View) Dashboard ทั้งหมด (ในสิทธิ์ของตัวเอง)
-- ✅ **สร้าง Subfolder ใหม่** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ **แก้ไข Subfolder** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ **ลบ Subfolder** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ **กำหนดสิทธิ์ Subfolder** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ **สร้าง Dashboard ใหม่** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ **แก้ไข Dashboard** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ **ลบ Dashboard** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ **กำหนดสิทธิ์ Dashboard** (ในโฟลเดอร์ที่อนุญาต)
-- ✅ ดูรายงาน (Reports)
-- ❌ เชิญ User
-- ❌ ลบ User
-- ❌ เปลี่ยน Role User
-- ❌ เข้าถึงโฟลเดอร์อื่น (นอกเหนือจากที่มอบหมาย)
+**Permissions:**
+- ✅ View all dashboards (in company scope)
+- ✅ Create/Edit/Delete subfolders (in assigned folders)
+- ✅ Set subfolder permissions (in assigned folders)
+- ✅ Create/Edit/Delete dashboards (in assigned folders)
+- ✅ Set dashboard permissions (in assigned folders)
+- ✅ View activity logs (in company)
+- ❌ Invite users
+- ❌ Manage users (remove, role change)
+- ❌ Create company-level folders
+- ❌ Access other companies' folders
 
-**ตัวอย่าง:**
+**Access Scope:**
+- **Own Company:** Full management of assigned folders
+- **Assigned Folders:** Only folders explicitly assigned
+- **Other Companies:** No access
+- **Cross-Company:** No cross-company dashboard creation
+
+**Example:**
 ```
-👤 User: "นายหา" (Company: STTH)
+Moderator: นายหา (STTH)
 ├── Company: STTH
 ├── Role: Moderator
 ├── Assigned Folders: ["Operations", "Reports"]
-└── Can:
-    ├── ✅ View all dashboards (in STTH folders)
-    ├── ✅ Create new subfolder in assigned folders
-    ├── ✅ Edit subfolder in assigned folders
-    ├── ✅ Delete subfolder in assigned folders
-    ├── ✅ Set permissions for subfolder
-    ├── ✅ Create new dashboard in assigned folders
-    ├── ✅ Edit Dashboard
-    ├── ✅ Delete Dashboard
-    ├── ✅ Set permissions for Dashboard
-    ├── ❌ Access other company folders (STTN, STCS, etc.)
-    ├── ❌ Create folders at company level
-    └── ❌ Invite new users
+├── Can:
+│   ├── ✅ View all dashboards in STTH
+│   ├── ✅ Create subfolder in Operations
+│   ├── ✅ Create dashboard in assigned folders
+│   ├── ✅ Edit/Delete own dashboards
+│   └── ✅ Set permissions for dashboards
+└── Cannot:
+    ├── Access STTN, STCS folders
+    ├── Create top-level folders
+    ├── Invite new users
+    └── Manage other moderators
 ```
 
-**Use Case:**
-- 🏢 หัวหน้าแผนก (Department Head)
+**Use Cases:**
+- 🏢 Department Head
 - 📊 Data Analyst
 - 📈 Report Manager
 - 💼 Team Lead
 
 ---
 
-### 3️⃣ ADMIN (สิทธิ์สูงสุด)
+### 3️⃣ ADMIN (最高权限)
 
-**คำจำกัดความ:** ผู้บริหาร IT/ระบบ ที่สามารถจัดการทุกสิ่งในระบบ (ทั้ง company ได้)
+**Definition:** System administrator with global access across all companies
 
-**สิทธิ์:**
-- ✅ **ดู Dashboard ทั้งหมด** (ทุก company)
-- ✅ **สร้าง/แก้ไข/ลบ Dashboard** (ทุก Folder)
-- ✅ **กำหนดสิทธิ์ Dashboard** (ทุกอย่าง)
-- ✅ **สร้าง Folder ใหม่** (ทุก company)
-- ✅ **แก้ไข/ลบ Folder** (ทุก company)
-- ✅ **กำหนดสิทธิ์ Folder** ให้ Moderator
-- ✅ **เชิญ User ใหม่** (ทั้ง company)
-- ✅ **แก้ไข User** (ชื่อ, Email, Profile)
-- ✅ **เปลี่ยน Role User** (User → Moderator → Admin)
-- ✅ **ลบ User**
-- ✅ **ดู Activity Logs** (ทั้งระบบ, ทั้ง company)
-- ✅ **ดู System Settings**
-- ✅ **ดู Usage Analytics** (ทั้ง company)
+**Permissions:**
+- ✅ View all dashboards (all companies)
+- ✅ Create/Edit/Delete dashboards (all companies)
+- ✅ Set dashboard permissions (all companies)
+- ✅ Create/Edit/Delete folders (all companies)
+- ✅ Assign folders to moderators
+- ✅ Invite users (all companies)
+- ✅ Edit user profiles (all companies)
+- ✅ Change user roles (all companies)
+- ✅ Remove users (all companies)
+- ✅ View activity logs (all companies)
+- ✅ View system settings
+- ✅ Configure Looker Studio integrations
 
-**ตัวอย่าง:**
-```
-👤 User: "เจ้านาย" (Admin)
-├── Company: N/A (Global access)
-├── Role: Admin
-├── Access: All folders and users across all companies
-└── Can:
-    ├── ✅ Create new folders for any company
-    ├── ✅ Assign folders to Moderators
-    ├── ✅ Invite new users to any company
-    ├── ✅ Delete users from any company
-    ├── ✅ Change any user role
-    ├── ✅ View all dashboards (all companies)
-    ├── ✅ Create/Edit/Delete dashboards (all companies)
-    ├── ✅ Set any permissions
-    ├── ✅ View activity logs (all companies)
-    ├── ✅ Configure system settings
-    └── ✅ View usage analytics (all companies)
-```
-
-**Use Case:**
-- 👨‍💼 IT Administrator
-- 👨‍💻 System Manager
-- 📊 CTO / Technical Lead
-- 🔐 Security Officer
+**Access Scope:**
+- **Global:** All companies, all folders, all dashboards
+- **No Restrictions:** Company field doesn't restrict admin access
+- **Full Control:** Can manage everything in the system
 
 ---
 
-## 📋 Permission Matrix
+## 🔐 Permission Structure
 
-| **Dashboard & Folder Operations** | **USER** | **MODERATOR** | **ADMIN** |
-|---|:---:|:---:|:---:|
-| View dashboards (own company) | ✅ | ✅ | ✅ |
-| View dashboards (other companies) | ❌ | ❌ | ✅ |
-| Create dashboard | ❌ | ✅ (*) | ✅ |
-| Edit dashboard | ❌ (if assigned) | ✅ (*) | ✅ |
-| Delete dashboard | ❌ | ✅ (*) | ✅ |
-| Create subfolder | ❌ | ✅ (*) | ✅ |
-| Manage subfolder | ❌ | ✅ (*) | ✅ |
-| Create folder (company-level) | ❌ | ❌ | ✅ |
-| Edit folder (company-level) | ❌ | ❌ | ✅ |
-| Delete folder (company-level) | ❌ | ❌ | ✅ |
-| Assign folder to moderator | ❌ | ❌ | ✅ |
-
-| **User & Company Management** | **USER** | **MODERATOR** | **ADMIN** |
-|---|:---:|:---:|:---:|
-| View users in own company | ❌ | ✅ | ✅ |
-| View users in other companies | ❌ | ❌ | ✅ |
-| Invite user to own company | ❌ | ✅ | ✅ |
-| Invite user to other companies | ❌ | ❌ | ✅ |
-| Change user role (within company) | ❌ | ❌ | ✅ |
-| Remove user from company | ❌ | ❌ | ✅ |
-| Create new company | ❌ | ❌ | ✅ |
-| Assign company admins | ❌ | ❌ | ✅ |
-
-| **System & Audit** | **USER** | **MODERATOR** | **ADMIN** |
-|---|:---:|:---:|:---:|
-| View activity log (own company) | ❌ | ✅ | ✅ |
-| View activity log (all companies) | ❌ | ❌ | ✅ |
-| View system settings | ❌ | ❌ | ✅ |
-| Configure Looker Studio integrations | ❌ | ❌ | ✅ |
-
-**Legend:**
-- ✅ = Allowed
-- ❌ = Not allowed
----
-
-## 🗂️ Folder-Based Access Control
-
-### What is Folder?
-
-**Folder** คือการจัดกลุ่ม Dashboards (ไม่ผูกติดบริษัท):
-
-```
-Folders (created by Admin)
-├── Operations
-│   ├── Operations Dashboard
-│   ├── Daily Report
-│   └── Performance Metrics
-├── Finance
-│   ├── Budget Dashboard
-│   └── Revenue Report
-└── Reports
-    ├── Monthly Summary
-    └── Quarterly Analysis
-```
-│       │   ├── Performance Report
-│       │   └── Daily Analytics
-│       ├── Management
-│       │   ├── Executive Dashboard
-│       │   └── KPI Report
-│       └── Reports
-│           ├── Monthly Report
-│           └── Quarterly Report
-│
-├── STTN (Streamwash Laos)
-│   └── Folders
-│       ├── Operations
-│       ├── Finance
-│       └── Reports
-│
-├── STCS (Streamwash Cambodia)
-│   └── Folders (...)
-│
-└── ... (other companies)
-```
-
-### Admin assigns Folders to Moderators:
-
-```
-👤 Admin (Global)
-  ├── Creates Folder: "Operations" for STTH
-  ├── Assigns Folder to: สมชาย (STTH Moderator)
-  │
-  ├── Creates Folder: "Finance" for STTH
-  ├── Assigns Folder to: นางสาว ก. (STTH Moderator)
-  │
-  └── Creates Folder: "Operations" for STTN
-      └── Assigns Folder to: Mr. Phoumy (STTN Moderator)
-
-👤 Moderator: สมชาย (Company: STTH)
-  ├── Assigned Folder: Operations (STTH)
-  ├── Can manage:
-  │   ├── Create/Edit/Delete dashboards in Operations folder
-  │   ├── Set permissions for dashboards
-  │   └── View all dashboards in STTH
-  └── Cannot:
-      ├── Access STTN, STCS (other company) folders
-      ├── Create top-level folders
-      └── Manage other companies
-```
+**This section is the SINGLE SOURCE OF TRUTH for permissions.**
 
 ---
 
-## 🔄 Typical Workflow (Company-Based)
+### Dashboard Access Structure
 
-### Scenario 1: Admin Sets Up Folder for STTH Company
-
-```
-1. เจ้านาย (Global Admin) creates Folder structure for STTH company
-   ├── Folder: "Operations" (company: "STTH")
-   ├── Folder: "Finance" (company: "STTH")
-   └── Folder: "Reports" (company: "STTH")
-
-2. Admin assigns "Operations" folder to สมชาย (STTH Moderator)
-   └── สมชาย: {userId: "uid1234", company: "STTH"}
-
-3. Admin assigns "Finance" folder to นางสาว ก. (STTH Moderator)
-   └── นางสาว ก.: {userId: "uid5678", company: "STTH"}
-
-4. สมชาย logs in → sees only "Operations" folder (assigned)
-5. สมชาย CANNOT see Finance folder (assigned to different moderator)
-6. สมชาย CANNOT see STTN company folders
-```
-
-### Scenario 2: Moderator Creates Dashboard in Assigned Folder
-
-```
-1. สมชาย (STTH Moderator) creates "Monthly Operations Report"
-   ├── title: "Monthly Operations Report"
-   ├── company: "STTH"  // Automatically set
-   ├── folderId: "folder_stth_operations"
-   └── createdBy: "uid1234"
-
-2. สมชาย sets permissions:
-### Scenario 3: User Requests Dashboard Access from Another Company
-
-```
-1. สุนัย (User at STTH) asks if he can see STTN's Finance Dashboard
-2. Answer: ❌ NO (unless explicitly granted in dashboard.permissions)
-   - Dashboard.permissions doesn't include user UID
-   - Dashboard.permissions doesn't include company:STTH
-   - Access denied by permissions
-
-3. Admin CAN grant access if needed:
-   - Add "uid:sunai": ["view"] to dashboard.permissions
-   - Or add "company:STTH": ["view"] if whole company should access
-   - Then สุนัย can see it in their list
-```
-
-### Scenario 4: Promoting Moderator to Admin
-
-```
-1. เจ้านาย (Admin) decides to promote สมชาย from Moderator to Admin
-   └── Change: role: "moderator" → role: "admin"
-   └── NO CHANGE to company field (สมชาย still has company: "STTH")
-
-2. สมชาย's access changes:
-   ├── Can now manage all companies (STTH, STTN, STCS, etc.)
-   ├── Can create/edit/delete folders at company level
-   ├── Can invite users to any company
-   └── Can view activity logs for all companies
-
-3. Previous assignment to "Operations" folder is irrelevant now
-   └── สมชาย has access to ALL folders in ALL companies
-```
-
----
-
-## 🔐 Database Structure
-
-### Users Collection
+Dashboards use a **structured 3-layer permission model**:
 
 ```firestore
-/users
-  ├── uid1234
-  │   ├── email: "somchai@stth.com"
-  │   ├── displayName: "สมชาย"
-  │   ├── photoURL: "https://..."
-  │   ├── role: "moderator"  // "user" | "moderator" | "admin"
-  │   ├── company: "STTH"    // Company code (STTH, STTN, STCS, etc.)
-  │   ├── assignedFolders: ["operations", "reports"]  // Moderator only
-  │   ├── createdAt: 2024-01-21
-  │   └── isActive: true
+/dashboards/{dashboardId}
+  ├── title: string
+  ├── company: string          // REQUIRED: Dashboard owner (STTH, STTN, etc.)
+  ├── folder: string
   │
-  ├── uid5678
-  │   ├── email: "admin@streamwash.com"
-  │   ├── displayName: "เจ้านาย"
-  │   ├── role: "admin"
-  │   ├── company: "STTH"    // Home company (but can access all companies via admin role)
-  │   ├── assignedFolders: [] // Admin has access to all (determined by role, not assignment)
-  │   └── ...
+  ├── access: {
+  │   // ============================================================
+  │   // Layer 1: Direct Access (Standalone OR - no restrictions)
+  │   // ============================================================
+  │   direct: {
+  │     "uid:uid-1": ["view"],
+  │     "uid:uid-2": ["view"],
+  │     "group:board_members": ["view"],  // Cross-company groups OK
+  │     "role:admin": ["view", "edit", "delete"]
+  │   },
+  │   
+  │   // ============================================================
+  │   // Layer 2: Company-Scoped Access (AND with company - secure)
+  │   // ============================================================
+  │   company: {
+  │     "STTH": {
+  │       "role:user": ["view"],
+  │       "role:moderator": ["view", "edit"],
+  │       "group:finance": ["view", "edit"]
+  │     },
+  │     "STTN": {
+  │       "role:user": ["view"],
+  │       "group:finance": ["view"]
+  │     }
+  │   }
+  │ },
   │
-  └── uid9012
-      ├── email: "user@stth.com"
-      ├── displayName: "สุนัย"
-      ├── role: "user"
-      ├── company: "STTH"
-      ├── assignedFolders: [] // User doesn't use this
-      └── ...
+  ├── restrictions: {
+  │   revoke: ["uid:uid-5"],               // Explicitly deny
+  │   expiry: {
+  │     "uid:uid-6": "2024-02-22T23:59:59Z" // Auto-revoke after date
+  │   }
+  │ }
+  │
+  └── metadata: {
+      createdBy: string
+      createdAt: timestamp
+      updatedAt: timestamp
+    }
 ```
-
-### Folders Collection
-
-```firestore
-/folders
-  ├── folder_stth_operations
-  │   ├── name: "Operations"
-  │   ├── company: "STTH"           // REQUIRED: Company ownership
-  │   ├── description: "Operations Dashboards for STTH"
-  │   ├── createdBy: "admin_id"
-  │   ├── assignedModerators: [
-  │   │   {
-  │   │     userId: "uid1234",
-  │   │     name: "สมชาย",
-  │   │     permissions: ["view", "create", "edit", "delete", "manage_perms"]
-  │   │   }
-  │   │ ]
-  │   ├── createdAt: 2024-01-20
-  │   └── subfolders: [
-  │       {
-  │         id: "subfolder_stth_operations_daily",
-  │         name: "Daily Reports",
-  │         createdBy: "uid1234",
-  │         permissions: {...}
-  │       },
-  │       {
-  │         id: "subfolder_stth_operations_weekly",
-  │         name: "Weekly Reports",
-  │         createdBy: "uid1234",
-  │         permissions: {...}
-  │       }
-  │     ]
-  │
-  ├── folder_stth_finance
-  │   ├── name: "Finance"
-  │   ├── company: "STTH"
-  │   ├── assignedModerators: [
-  │   │   {
-  │   │     userId: "uid5678",
-  │   │     name: "นางสาว ก."
-  │   │   }
-  │   │ ]
-  │   └── ...
-  │
-  ├── folder_sttn_operations
-  │   ├── name: "Operations"
-  │   ├── company: "STTN"           // Different company
-  │   ├── assignedModerators: [
-  │   │   {
-  │   │     userId: "uid9999",
-  │   │     name: "Mr. Phoumy"
-  │   │   }
-  │   │ ]
-  │   └── ...
-  │
-  └── ... (other companies: STCS, STNR, STPT, STPK, etc.)
-```
-
-**Key Point:** Each folder must have a `company` field to ensure data isolation between companies!
-
-### Dashboards Collection
-
-```firestore
-/dashboards
-  ├── dash_stth_ops_daily
-  │   ├── title: "STTH Daily Operations Report"
-  │   ├── description: "Daily operations performance"
-  │   ├── company: "STTH"          // REQUIRED: Company ownership
-  │   ├── folderId: "folder_stth_operations"
-  │   ├── lookerUrl: "https://lookerstudio.google.com/..."
-  │   ├── createdBy: "uid1234"
-  │   ├── permissions: {
-  │   │   "role:user": ["view"],
-  │   │   "role:moderator": ["view", "edit"],
-  │   │   "role:admin": ["view", "edit", "delete"],
-  │   │   "uid:1234": ["view", "edit", "delete"],  // Owner
-  │   │   "company:STTH": ["view"]
-  │   │ }
-  │   ├── createdAt: 2024-01-21
-  │   └── updatedAt: 2024-01-21
-  │
-  ├── dash_stth_finance_budget
-  │   ├── title: "STTH Budget vs Actual"
-  │   ├── company: "STTH"
-  │   ├── folderId: "folder_stth_finance"
-  │   ├── permissions: {
-  │   │   "role:moderator": ["view"],
-  │   │   "role:admin": ["view", "edit", "delete"],
-  │   │   "company:STTH": ["view"]
-  │   │ }
-  │   └── ...
-  │
-  ├── dash_sttn_ops_daily
-  │   ├── title: "STTN Daily Operations Report"
-  │   ├── company: "STTN"          // Different company
-  │   ├── folderId: "folder_sttn_operations"
-  │   ├── createdBy: "uid9999"
-  │   ├── permissions: {
-  │   │   "company:STTN": ["view"]  // Only STTN users can view
-  │   │ }
-  │   └── ...
-  │
-  └── ... (other companies dashboards)
-```
-
-**Key Point:** Each dashboard must have a `company` field to ensure proper filtering and access control!
 
 ---
 
-## 🛠️ Implementation Checklist
+### Permission Levels
 
-### Database Setup
-- [ ] Create `/folders` collection
-- [ ] Add `folderId` field to `/dashboards`
-- [ ] Add `role` field to `/users`
-- [ ] Add `assignedFolders` field to `/users`
-- [ ] Create permissions rules for Firestore
+All access fields use this array:
 
-### Pinia Stores
-- [ ] Create `stores/permissions.ts`
-  ```typescript
-  // Permission checking logic
-  canViewDashboard(dashboardId)
-  canCreateDashboard(folderId)
-  canEditDashboard(dashboardId)
-  canDeleteDashboard(dashboardId)
-  canManageFolders()
-  canInviteUsers()
-  canChangeUserRole()
-  ```
+```typescript
+type Permission = "view" | "edit" | "delete"
 
-### Components
-- [ ] `components/PermissionGuard.vue`
-  - Check permission before showing component
-- [ ] `components/RoleBadge.vue`
-  - Display user role indicator
-- [ ] `components/FolderManager.vue`
-  - Manage folders (Admin only)
-- [ ] `components/UserManager.vue`
-  - Manage users (Admin only)
+// Examples:
+"uid:uid-1": ["view"]                      // View only
+"group:finance": ["view", "edit"]           // View + Edit
+"role:admin": ["view", "edit", "delete"]    // Full access
+```
 
-### Pages
-- [ ] `pages/dashboard/admin/users.vue`
-  - User management page (Admin only)
-- [ ] `pages/dashboard/admin/folders.vue`
-  - Folder management page (Admin only)
-- [ ] `pages/dashboard/dashboards/manage.vue`
-  - Moderator dashboard management
+---
 
-### Firestore Security Rules
+### Groups Collection (Reusable)
+
+Groups are shared across dashboards:
+
+```firestore
+/groups/{groupId}
+  ├── name: string             // "Finance Team"
+  ├── description: string
+  ├── members: array           // Array of UIDs
+  │   ├── "uid:uid-1"
+  │   ├── "uid:uid-2"
+  │   └── "uid:uid-3"
+  ├── createdBy: string
+  ├── createdAt: timestamp
+  └── metadata: { ... }
+
+// Benefits:
+// - 1 UID can be in multiple groups
+// - 1 group can be in multiple dashboards
+// - Central member management
+// - Automatic access when added to group
+```
+
+---
+
+## ⚙️ Access Logic
+
+### Contextual INTERSECT (Layer-Based)
+
+**Layer 1: Direct Access (Standalone OR)**
+```
+User CAN ACCESS if:
+  "uid:{userId}" in access.direct
+  OR "role:admin" in access.direct
+  OR userInDirectGroups()
+  
+(No company filter for direct access)
+```
+
+**Layer 2: Company-Scoped (AND with company)**
+```
+User CAN ACCESS if:
+  (
+    "role:{userRole}" in access.company[userCompany]
+    OR "group:{userGroup}" in access.company[userCompany]
+  )
+  AND userCompany EXISTS in access.company
+  
+(MUST have both role/group AND company match)
+```
+
+**Layer 3: Restrictions (Explicit Deny)**
+```
+User CANNOT ACCESS if:
+  userId in restrictions.revoke
+  OR (userId in restrictions.expiry AND expiry < now())
+```
+
+**Final Access Decision:**
 ```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // User can view own data
-    match /users/{userId} {
-      allow read: if request.auth.uid == userId;
-      allow write: if request.auth.uid == userId || 
-                      isAdmin();
-    }
+allow read: if
+  // Layer 1: Direct (OR)
+  (direct["uid:" + uid] != null)
+  OR (direct["role:admin"] != null)
+  OR isUserInDirectGroups()
+  
+  // Layer 2: Company-Scoped (AND)
+  OR (
+    company[userCompany] != null
+    AND (
+      company[userCompany]["role:" + role] != null
+      OR isUserInCompanyGroups()
+    )
+  )
+  
+  // Layer 3: Restrictions (AND NOT)
+  AND !isRevoked(uid, restrictions.revoke)
+  AND !isExpired(uid, restrictions.expiry);
+```
+
+---
+
+## 🛡️ Firestore Security Rules
+
+### Dashboard Rules (Complete)
+
+```javascript
+match /dashboards/{dashboardId} {
+  let access = resource.data.access;
+  let restrictions = resource.data.restrictions;
+  let userRole = request.auth.token.role;
+  let userCompany = request.auth.token.company;
+  let userGroups = request.auth.token.groups;  // Array
+  
+  // =========================================
+  // Read Access
+  // =========================================
+  allow read: if
+    // Layer 1: Direct access (no restrictions)
+    (access.direct["uid:" + request.auth.uid] != null)
+    OR (access.direct["role:admin"] != null)
+    OR isUserInDirectGroups(request.auth.uid, access.direct)
     
-    // Dashboard access control
-    match /dashboards/{dashboardId} {
-      allow read: if hasPermission(resource, 'view');
-      allow write: if hasPermission(resource, 'edit');
-      allow delete: if hasPermission(resource, 'delete');
-    }
+    // Layer 2: Company-scoped access (AND with company)
+    OR (
+      access.company[userCompany] != null
+      AND (
+        access.company[userCompany]["role:" + userRole] != null
+        OR isUserInCompanyGroups(request.auth.uid, access.company[userCompany])
+      )
+    )
     
-    // Folder access
-    match /folders/{folderId} {
-      allow read: if isAdmin() || 
-                     isModerator(resource);
-      allow write: if isAdmin();
-    }
-  }
+    // Layer 3: Check restrictions
+    AND !isRevoked(request.auth.uid, restrictions.revoke)
+    AND !isExpired(request.auth.uid, restrictions.expiry);
+  
+  // =========================================
+  // Write Access (Edit)
+  // =========================================
+  allow write: if
+    request.auth.uid == resource.data.createdBy
+    OR (access.direct["uid:" + request.auth.uid] has "edit")
+    OR (access.direct["role:admin"] has "edit")
+    OR (
+      access.company[userCompany] != null
+      AND access.company[userCompany]["role:" + userRole] has "edit"
+    );
+  
+  // =========================================
+  // Delete Access
+  // =========================================
+  allow delete: if
+    request.auth.token.role == "admin"
+    OR (access.direct["uid:" + request.auth.uid] has "delete");
+}
+
+// =========================================
+// Helper Functions
+// =========================================
+
+function isUserInDirectGroups(uid, directAccess) {
+  return directAccess.keys().hasAny(
+    getUserGroups(uid).map(g => "group:" + g)
+  );
+}
+
+function isUserInCompanyGroups(uid, companyAccess) {
+  return companyAccess.keys().hasAny(
+    getUserGroups(uid).map(g => "group:" + g)
+  );
+}
+
+function getUserGroups(uid) {
+  return get(/databases/$(database)/documents/users/$(uid)).data.groups;
+}
+
+function isRevoked(uid, revokeList) {
+  return uid in revokeList;
+}
+
+function isExpired(uid, expiryMap) {
+  let expiry = expiryMap[uid];
+  return expiry != null && expiry < request.time;
 }
 ```
 
 ---
 
-## 📚 Summary Table
+## 💡 Use Cases & Examples
 
-| ลักษณะ | User | Moderator | Admin |
-|--------|------|-----------|-------|
-| **ดู Dashboard** | ✅ (ตามสิทธิ์) | ✅ (ในโฟลเดอร์) | ✅ (ทั้งหมด) |
-| **สร้าง Dashboard** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
-| **แก้ไข Dashboard** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
-| **ลบ Dashboard** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
-| **สร้าง Subfolder** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
-| **แก้ไข Subfolder** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
-| **ลบ Subfolder** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
-| **กำหนดสิทธิ์** | ❌ | ✅ (ในโฟลเดอร์) | ✅ |
-| **สร้าง Folder** | ❌ | ❌ | ✅ |
-| **จัดการ Folder** | ❌ | ❌ | ✅ |
-| **แก้ไข User Profile** | ❌ | ❌ | ✅ |
-| **เชิญ User** | ❌ | ❌ | ✅ |
-| **ลบ User** | ❌ | ❌ | ✅ |
-| **เปลี่ยน Role** | ❌ | ❌ | ✅ |
-| **ดู Activity Log** | ❌ | ❌ | ✅ |
+### Example 1: Company-Specific Dashboard
+
+```firestore
+Dashboard: "STTH Daily Report"
+├── company: "STTH"
+├── access: {
+│   company: {
+│     "STTH": {
+│       "role:user": ["view"],
+│       "role:moderator": ["view", "edit"]
+│     }
+│   }
+│ }
+
+Access Results:
+✅ somchai (STTH, role=user) → Can view
+✅ nayha (STTH, role=moderator) → Can view & edit
+❌ user1 (STTN, role=user) → Cannot view (company mismatch)
+✅ admin → Can view & edit (admin override)
+```
+
+### Example 2: Group-Based Access
+
+```firestore
+Dashboard: "Finance Report"
+├── company: "STTH"
+├── access: {
+│   company: {
+│     "STTH": {
+│       "group:finance": ["view", "edit"]
+│     }
+│   }
+│ }
+
+Access Results:
+✅ user1 (STTH, groups=[finance]) → Can view & edit
+❌ user2 (STTH, groups=[sales]) → Cannot view
+❌ user3 (STTN, groups=[finance]) → Cannot view (company mismatch)
+```
+
+### Example 3: Cross-Company Group
+
+```firestore
+Dashboard: "Global Metrics"
+├── company: null
+├── access: {
+│   direct: {
+│     "group:executives": ["view"]
+│   }
+│ }
+
+Access Results:
+✅ ceo (STTH, groups=[executives]) → Can view
+✅ cfo (STTN, groups=[executives]) → Can view
+✅ director (STCS, groups=[executives]) → Can view
+(Cross-company OK for global dashboards)
+```
+
+### Example 4: Individual + Expiry
+
+```firestore
+Dashboard: "Q1 Audit"
+├── access: {
+│   direct: {
+│     "uid:auditor": ["view"]
+│   }
+│ },
+├── restrictions: {
+│   expiry: {
+│     "uid:auditor": "2024-02-28T23:59:59Z"
+│   }
+│ }
+
+Access Results:
+✅ auditor (before 2024-02-28) → Can view
+❌ auditor (after 2024-02-28) → Cannot view (expired)
+```
 
 ---
 
-## 🎯 Next Steps
+## ✅ Implementation Checklist
 
-1. **Understand the hierarchy** ← You are here
-2. **Design Firestore structure** (Phase 1)
-3. **Create Pinia permission store** (Phase 1)
-4. **Build UI components** (Phase 2)
-5. **Implement role-based features** (Phase 2-3)
-6. **Test all scenarios** (Phase 5)
+### Phase 1: Database Schema
+- [ ] Add `access.direct` to dashboards
+- [ ] Add `access.company` to dashboards
+- [ ] Add `restrictions` to dashboards
+- [ ] Create `groups` collection
+- [ ] Add `groups` array to users
 
-**ข้อมูลนี้ชัดเจนไหม? มีคำถามไหม?** 🤔
+### Phase 2: Firestore Rules
+- [ ] Implement Layer 1 rules (direct)
+- [ ] Implement Layer 2 rules (company-scoped)
+- [ ] Implement Layer 3 rules (restrictions)
+- [ ] Test all scenarios
+
+### Phase 3: Pinia Stores
+- [ ] Create `stores/permissions.ts`
+- [ ] Implement permission checking functions
+- [ ] Load user groups on login
+
+### Phase 4: UI Components
+- [ ] Create permission guard components
+- [ ] Update dashboard list filtering
+- [ ] Add permission indicators
+
+---
+
+## 📚 Related Documents
+
+- [Database Schema](./database-schema.md) - For field definitions, **see Permission Structure section above**
+- [Firestore Setup](./firestore-setup.md) - For setup, **see Firestore Security Rules section above**
+- [Company Management](./company-management.md) - For company setup, **see Use Cases section above**
+- [User Flows](../DESIGN/user-flows.md) - For access flow diagrams
+
+---
+
+**Last Updated:** 2024-01-27  
+**Version:** 3.0 (Contextual INTERSECT + Mixed Permissions)

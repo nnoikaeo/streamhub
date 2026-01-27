@@ -213,6 +213,8 @@ match /users/{userId} {
 **Path:** `/dashboards/{dashboardId}`  
 **Purpose:** Dashboard metadata and configuration
 
+**⚠️ IMPORTANT:** For complete access control logic and permission structure details, **see [Roles & Permissions Guide > Permission Structure](./roles-and-permissions.md#permission-structure)**
+
 **Document Structure:**
 
 ```typescript
@@ -228,8 +230,13 @@ match /users/{userId} {
   updatedAt: Timestamp           // Last update
   isActive: boolean              // Active/inactive
   views: number                  // View count
-  permissions: {
-    [key: string]: string[]      // Role/user-based permissions
+  access: {                      // ← See roles-and-permissions.md for details
+    direct: {[key: string]: string[]}        // Direct access (no restrictions)
+    company: {[company: string]: {[key: string]: string[]}}  // Company-scoped
+  },
+  restrictions: {                // ← See roles-and-permissions.md for details
+    revoke: string[]             // Explicitly revoked UIDs
+    expiry: {[uid: string]: Timestamp}  // Time-based revocation
   }
 }
 ```
