@@ -854,12 +854,12 @@ For MODERATOR and ADMIN users who work across companies:
 
 ## 🎯 Next Steps
 
-1. **Create Wireframes** for key pages (coming next)
-   - Dashboard List Page
-   - Folder Management Page
-   - User Management Page
-   - Company Selector
-   - Permission Modal
+1. **Create Wireframes** for key pages
+   - ✅ [Dashboard Discover Page](./wireframes/dashboard-discover-page.md) - USER role
+   - [ ] Folder Management Page
+   - [ ] User Management Page (ADMIN)
+   - [ ] Company Selector
+   - [ ] Permission Modal
 
 2. **Design Navigation** structure
    - Sidebar layout for each role
