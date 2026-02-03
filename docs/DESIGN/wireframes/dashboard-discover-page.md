@@ -24,50 +24,67 @@
 ├──────────────────────┬───────────────────────────────────────────────────┤
 │                      │                                                    │
 │   LEFT PANE:         │      RIGHT PANE:                                 │
-│   FOLDER TREE        │      MAIN CONTENT (Dashboard Grid)               │
+│   FOLDER TREE ONLY   │      MAIN CONTENT (Dashboard Grid)               │
 │   (Sidebar)          │                                                    │
 │                      │  ┌──────────────────────────────────────────────┐
 │  🏠 Dashboard Home   │  │  Breadcrumb:                                 │
-│                      │  │  🏠 > Sales > Regional Reports               │
+│                      │  │  🏠 > Sales > Regional > Reports             │
 │  📂 Sales ↓          │  │                                              │
 │  ├─ 📂 Reports      │  ├──────────────────────────────────────────────┤
-│  │  ├─ Dashboard 1  │  │  Search in folder: [🔍            ] [Sort ▼] │
-│  │  ├─ Dashboard 2  │  │                                              │
-│  │  └─ Dashboard 3  │  ├──────────────────────────────────────────────┤
-│  ├─ 📂 Regional     │  │  📊 4 Dashboards Found                       │
-│  │  ├─ Dashboard 4  │  │                                              │
-│  │  └─ Dashboard 5  │  │  ┌──────────────────┐  ┌──────────────────┐│
-│  │                  │  │  │ Regional         │  │ Regional Sales   ││
-│  ├─ 📂 Analytics    │  │  │ Performance 📈   │  │ Map 🗺️            ││
-│  │  └─ Dashboard 6  │  │  │                  │  │                  ││
-│  │                  │  │  │ You can: View ✓  │  │ You can: View ✓  ││
-│  📂 Finance ↓       │  │  │ [Open →]         │  │ [Open →]         ││
-│  ├─ 📂 Budget       │  │  └──────────────────┘  └──────────────────┘│
-│  │  ├─ Dashboard 7  │  │                                              │
-│  │  └─ Dashboard 8  │  │  ┌──────────────────┐  ┌──────────────────┐│
-│  │                  │  │  │ Regional         │  │ Regional         ││
-│  └─ 📂 Payroll      │  │  │ Forecast 📉      │  │ Breakdown        ││
-│     ├─ Dashboard 9  │  │  │                  │  │ (own by you)     ││
-│     └─ Dashboard 10 │  │  │ You can: View ✓  │  │ You can:         ││
+│  │  └─ 📂 East      │  │  Search in folder: [🔍            ] [Sort ▼] │
+│  ├─ 📂 Regional     │  │                                              │
+│  │  ├─ 📂 North     │  ├──────────────────────────────────────────────┤
+│  │  └─ 📂 South     │  │  📊 4 Dashboards Found                       │
+│  ├─ 📂 Analytics    │  │                                              │
+│  └─ 📂 Quarterly    │  │  ┌──────────────────┐  ┌──────────────────┐│
+│                      │  │  │ Regional East    │  │ Regional Sales   ││
+│  📂 Finance ↓       │  │  │ Performance 📈   │  │ Map 🗺️            ││
+│  ├─ 📂 Budget       │  │  │                  │  │                  ││
+│  │  ├─ 📂 2024      │  │  │ You can: View ✓  │  │ You can: View ✓  ││
+│  │  └─ 📂 2025      │  │  │ [Open →]         │  │ [Open →]         ││
+│  ├─ 📂 Payroll      │  │  └──────────────────┘  └──────────────────┘│
+│  └─ 📂 Forecasts    │  │                                              │
+│                      │  │  ┌──────────────────┐  ┌──────────────────┐│
+│  📂 Operations      │  │  │ Regional         │  │ Regional         ││
+│  ├─ 📂 Inventory    │  │  │ Forecast 📉      │  │ Breakdown        ││
+│  └─ 📂 Supply       │  │  │                  │  │ (own by you)     ││
+│     └─ 📂 Chain     │  │  │ You can: View ✓  │  │ You can:         ││
 │                      │  │  │ [Open →]         │  │ View ✓ Edit ✓    ││
-│  📂 Operations      │  │  │                  │  │ [Open →]         ││
-│  ├─ 📂 Inventory    │  │  └──────────────────┘  └──────────────────┘│
-│  │  └─ Dashboard 11 │  │                                              │
-│  └─ 📂 Supply Chain │  │  [Scroll to load more...]                   │
-│     └─ Dashboard 12 │  │                                              │
-│                      │  └──────────────────────────────────────────────┘
-│  [HR not shown]     │
-│  [No accessible    │
-│   dashboards]       │
-│                      │
+│  [HR not shown]     │  │  │                  │  │ [Open →]         ││
+│  [No accessible    │  │  └──────────────────┘  └──────────────────┘│
+│   dashboards]       │  │                                              │
+│                      │  │  [Scroll to load more...]                   │
+│                      │  │                                              │
 └──────────────────────┴───────────────────────────────────────────────────┘
 ```
 
+**Key Points:**
+- ✅ Sidebar shows **FOLDERS ONLY** (no dashboards listed)
+- ✅ Handles 4-5 level depth without overflow
+- ✅ Dashboard cards displayed in RIGHT PANE grid
+- ✅ Breadcrumb shows full path for current location
+
 ---
 
-## 📋 Sidebar Component (Left Pane)
+## 📋 Sidebar Component (Left Pane - Folders Only)
 
-### **Folder Tree Structure**
+### **Important: Sidebar Shows FOLDERS ONLY, Not Dashboards**
+
+```
+✅ WHAT SIDEBAR SHOWS:
+├─ Folder hierarchy (tree structure)
+├─ Smart collapse/expand for deep levels
+├─ Current path highlighted
+└─ All accessible folders visible
+
+❌ WHAT SIDEBAR DOES NOT SHOW:
+├─ Individual dashboard items
+├─ Dashboard names or lists
+└─ Dashboard permissions
+   (These are shown in RIGHT PANE grid instead)
+```
+
+### **Folder Tree Structure (4-5 Levels Deep)**
 
 ```
 ┌─────────────────────────────────────┐
@@ -75,90 +92,102 @@
 │                                     │
 │  🏠 Dashboard Home ←─ Home page     │
 │                                     │
-│  📂 Sales                           │
-│  ├─ 📂 Reports                      │
-│  ├─ 📂 Regional                     │
+│  📂 Sales ↓                         │
+│  ├─ 📂 Reports ↓                    │
+│  │  └─ 📂 East ← SELECTED            │
+│  ├─ 📂 Regional ↓                   │
+│  │  ├─ 📂 North                     │
+│  │  ├─ 📂 South                     │
+│  │  └─ 📂 Central                   │
 │  └─ 📂 Analytics                    │
-│     (Only shown because user        │
-│      has access to dashboards)      │
 │                                     │
-│  📂 Finance                         │
-│  ├─ 📂 Budget                       │
-│  └─ 📂 Payroll                      │
-│     (Shown - user is finance group) │
+│  📂 Finance ↓                       │
+│  ├─ 📂 Budget ↓                     │
+│  │  ├─ 📂 2024                      │
+│  │  └─ 📂 2025                      │
+│  ├─ 📂 Payroll                      │
+│  └─ 📂 Forecasts                    │
 │                                     │
-│  📂 Operations                      │
+│  📂 Operations ↓                    │
 │  ├─ 📂 Inventory                    │
-│  └─ 📂 Supply Chain                 │
-│     (Shown - role has access)       │
+│  └─ 📂 Supply ↓                     │
+│     └─ 📂 Chain                     │
 │                                     │
 │  [HR] ✗ Hidden                      │
-│  ├─ No accessible dashboards        │
-│  └─ User cannot see this folder     │
-│                                     │
 │  [Engineering] ✗ Hidden             │
-│  ├─ Dashboard requires role:admin   │
-│  └─ User does not have role         │
 │                                     │
 └─────────────────────────────────────┘
 
 Notes:
-✅ Only folders with accessible content shown
-❌ Empty or restricted folders hidden
-⭐ User doesn't need to see full structure
+✅ Clean hierarchy (folders only)
+✅ Supports 4-5 level depth
+✅ Smart collapse (siblings auto-close)
+✅ Shows full path without overflow
 ```
 
-### **Folder Selection Behavior (with Smart Collapse)**
+### **Folder Selection Behavior (with Smart Collapse - Folders Only)**
 
 ```
-User clicks "Sales > Regional Reports" folder (4 levels deep)
+User clicks "Sales > Regional > East" folder (4 levels deep)
 
-Step 1: Breadcrumb Update
-└─ Calculate full path: 🏠 > Sales > Regional > Reports
-└─ Show in breadcrumb (can click any level to jump)
-
-Step 2: Sidebar Smart Collapse
-├─ Current path is [Sales, Regional, Reports]
+Step 1: Sidebar Smart Collapse (Folders ONLY)
+├─ Current path is [Sales, Regional, East]
 ├─ EXPAND: Sales (in path) ↓
 │  EXPAND: Regional (in path) ↓
-│    EXPAND: Reports (selected) ↓
-│      Show dashboards in Reports
-│    COLLAPSE: Other folders under Regional
-│  COLLAPSE: Other folders under Sales
+│    EXPAND: East (selected) ↓
+│    COLLAPSE: North, South, Central (siblings)
+│  COLLAPSE: Reports, Analytics (siblings of Regional)
+└─ COLLAPSE: Finance, Operations (other root folders)
 
-Result in Sidebar:
+Result in Sidebar (Clean, no overflow!):
 📂 Sales ↓
 ├─ 📂 Regional ↓
-│  ├─ 📂 Reports ← SELECTED
-│  │  ├─ Dashboard 1
-│  │  ├─ Dashboard 2
-│  │  └─ Dashboard 3
-│  └─ 📂 Analytics (collapsed)
-└─ 📂 Operations (collapsed)
+│  └─ 📂 East ← SELECTED (no dashboard items!)
+└─ [Other folders collapsed]
 
-Step 3: Check Access
-└─ Loop through all dashboards in Reports folder
-   ├─ Dashboard A: User can access? ✅ YES
-   ├─ Dashboard B: User can access? ✅ YES
-   ├─ Dashboard C: User can access? ❌ NO (restricted)
-   ├─ Dashboard D: User can access? ✅ YES
-   └─ Count: 3 accessible
+Step 2: Breadcrumb Update
+└─ Calculate full path: 🏠 > Sales > Regional > East
+└─ Show in breadcrumb (can click any level to jump)
 
-Step 4: Update Main Area
-├─ Show breadcrumb: "🏠 > Sales > Regional > Reports"
+Step 3: Check Access & Load Dashboards
+├─ Fetch dashboards in "East" folder
+├─ Check 3-layer permission for each
+└─ Filter to accessible ones only
+
+Step 4: Update Right Pane (Dashboard Grid)
+├─ Show breadcrumb: "🏠 > Sales > Regional > East"
 ├─ Display search box (scoped to folder)
-└─ Show 3 accessible dashboards in grid
+├─ Show dashboard cards in grid (NOT in sidebar!)
+│  ├─ Regional East Performance
+│  ├─ Regional East Forecast
+│  ├─ Regional East Report
+│  └─ ...more dashboards
 
 Result:
 ✅ Sidebar never overflows (max 3-4 levels expanded)
 ✅ Breadcrumb shows full path clearly
-✅ Only accessible dashboards shown
-✅ Clean experience, no clutter
+✅ Only accessible dashboards shown in RIGHT PANE
+✅ Clean, organized experience (folders ≠ dashboards)
 ```
 
 ---
 
-## 📊 Main Content Area (Right Pane)
+## 📊 Main Content Area (Right Pane - Dashboards Grid)
+
+### **Important: This Pane Shows DASHBOARDS, Not Folders**
+
+```
+✅ WHAT RIGHT PANE SHOWS:
+├─ Dashboard cards/grid
+├─ Dashboard metadata (creator, updated date)
+├─ Permission info (which layer grants access)
+├─ Available actions (View, Edit)
+└─ Search & filter within folder
+
+❌ WHAT RIGHT PANE DOES NOT SHOW:
+├─ Folder tree (that's in sidebar)
+└─ Nested folder structure
+```
 
 ### **Header with Breadcrumb**
 
@@ -188,15 +217,17 @@ Features:
 - View options: Grid, List, Compact
 ```
 
-### **Dashboard Cards in Folder Context**
+### **Dashboard Cards in Right Pane (Grid View)**
+
+When user clicks "Sales > Regional > East" folder:
 
 ```
-When in "Sales > Regional Reports" folder:
+RIGHT PANE displays these dashboards:
 
 ┌──────────────────────────┐
 │                          │
-│  Regional Performance    │
-│  📈                      │
+│  Regional East           │
+│  Performance 📈          │
 │                          │
 │  Created by: John        │
 │  Updated: 1 day ago      │
@@ -211,11 +242,33 @@ When in "Sales > Regional Reports" folder:
 │                          │
 └──────────────────────────┘
 
-Notes:
-- Still shows "Access via" (which layer)
-- Shows available permissions
-- Card indicates it's in Sales/Regional folder
+┌──────────────────────────┐
+│                          │
+│  Regional East           │
+│  Sales Map 🗺️            │
+│                          │
+│  Created by: Admin       │
+│  Updated: Today          │
+│                          │
+│  Access via:             │
+│  ✓ Direct access         │
+│    (uid: you)            │
+│                          │
+│  You can: View, Edit     │
+│                          │
+│  [Open →]                │
+│                          │
+└──────────────────────────┘
+
+...more dashboards in grid
 ```
+
+**Key Points:**
+- 🔑 Sidebar = Folders navigation
+- 📊 Right Pane = Dashboard display
+- They are **separate concerns**
+- No dashboard items clutter sidebar
+- Easy to navigate deep hierarchies
 
 ---
 
@@ -1235,6 +1288,6 @@ User Experience:
 ---
 
 **Created:** 2024-01-27  
-**Updated:** 2024-02-03 (Hybrid Model for Deep Hierarchies - Desktop-First)  
+**Updated:** 2024-02-03 (Sidebar: Folders Only | Right Pane: Dashboards - Deep Hierarchy Fix)  
 **Designer:** Development Team  
-**Version:** 3.0 (Smart Collapse/Expand + 4-5 Level Support)
+**Version:** 3.1 (Separated Concerns: Sidebar ≠ Dashboards)
