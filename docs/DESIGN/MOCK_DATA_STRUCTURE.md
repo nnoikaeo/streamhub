@@ -58,7 +58,7 @@ app/composables/useDashboardService.ts
 mockUsers = [
   {
     uid: 'user_john_admin',
-    role: 'admin',      // Can access everything
+    role: 'admin',      // Can access everythingพื
     company: 'STTH',
     groups: [],
   },
