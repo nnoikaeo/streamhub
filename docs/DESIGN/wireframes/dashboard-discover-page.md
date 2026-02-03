@@ -3,7 +3,7 @@
 > **Purpose:** Two-pane file explorer navigation for Dashboard discovery (50+ dashboards)  
 > **Target User:** Regular employees browsing accessible dashboards by folder  
 > **Navigation Model:** Folder Tree (Left) + Dashboard Grid (Right) - File Explorer Style  
-> **Last Updated:** 2024-01-28  
+> **Last Updated:** 2024-02-03  
 
 ---
 
@@ -535,9 +535,13 @@ Features:
 - Sort options (newest, alphabetical, frequency)
 ```
 
-### **4. Dashboard Cards (Grid View)**
+### **4. Dashboard Cards (Grid View) - Role-Based Actions**
 
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CARD FOR: USER (View Only)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ┌──────────────────────────┐
 │                          │
 │   STTH Sales Dashboard   │  ← Dashboard Name
@@ -554,9 +558,17 @@ Features:
 │ Permissions:             │
 │ 👁️  View Only            │
 │                          │
-│         [Open →]         │  ← CTA Button
+│         [Open →]         │  ← Only action for USER
 │                          │
 └──────────────────────────┘
+
+Actions: [Open] only
+No share, edit, or delete buttons
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CARD FOR: MODERATOR (Own Dashboard)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ┌──────────────────────────┐
 │                          │
@@ -564,7 +576,7 @@ Features:
 │   💰                     │  
 │                          │
 │ ─────────────────────── │
-│ Created by: Somchai      │
+│ Created by: You ✓        │  ← Owned by Moderator
 │ Last updated: Today      │
 │                          │
 │ Access Reason:           │  ← GROUP-BASED ACCESS
@@ -572,19 +584,120 @@ Features:
 │   (group: finance)       │
 │                          │
 │ Permissions:             │
-│ 👁️  View                 │
 │ ✏️  Edit                 │
+│ 🔗 Share                 │
+│ 🗑️  Delete               │
 │                          │
-│         [Open →]         │
+│ [Open →]                 │
+│ [Edit] [Share] [Delete]  │
 │                          │
 └──────────────────────────┘
+
+Actions for MODERATOR (owns):
+- [Open]: View dashboard
+- [Edit]: Edit dashboard content/settings
+- [Share]: Opens Quick Share Dialog → moderator-quick-share-dialog.md
+- [Delete]: Delete dashboard (with confirmation)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CARD FOR: MODERATOR (Other's Dashboard)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌──────────────────────────┐
+│                          │
+│   Sales East Report      │  
+│   📊                     │  
+│                          │
+│ ─────────────────────── │
+│ Created by: John         │  ← NOT owned by this Moderator
+│ Last updated: 2 days ago │
+│                          │
+│ Access Reason:           │
+│ ✓ Direct access          │
+│   (user: you)            │
+│                          │
+│ Permissions:             │
+│ 👁️  View                 │
+│ 🔍 Request Edit Access   │
+│                          │
+│ [Open →]                 │
+│                          │
+└──────────────────────────┘
+
+Actions for MODERATOR (doesn't own):
+- [Open]: View dashboard only
+- [Request Edit Access]: Message to owner for edit permission
+- No share/delete (only owner can share)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CARD FOR: ADMIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌──────────────────────────┐
+│                          │
+│   Budget Forecast        │  
+│   💰                     │  
+│                          │
+│ ─────────────────────── │
+│ Created by: Finance Team │  ← Any dashboard
+│ Last updated: Today      │
+│                          │
+│ Access Reason:           │
+│ ✓ Role: admin            │
+│                          │
+│ Permissions:             │
+│ ✏️  Edit                 │
+│ 🔐 Manage Access         │
+│ 🗑️  Delete               │
+│                          │
+│ [Open →]                 │
+│ [Edit] [Manage Access]   │
+│ [Delete]                 │
+│                          │
+└──────────────────────────┘
+
+Actions for ADMIN (all dashboards):
+- [Open]: View dashboard
+- [Edit]: Edit dashboard content
+- [Manage Access]: Opens Admin Permission Panel → admin-permission-management-page.md
+  (Full 3-layer permission UI)
+- [Delete]: Delete dashboard
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUMMARY: ROLE-BASED BUTTON VISIBILITY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Card Contents:
 - Dashboard name + icon
 - Creator name + timestamp
 - Access reason (which permission layer)
-- Available actions (view/edit)
+- Available actions (based on role & ownership) ← KEY DIFFERENCE
 - Open button
+
+
+Card Contents Table:
+┌──────────────────┬──────────┬──────────┬──────────┬──────────┐
+│ Button           │ USER     │ MODERATOR│ MODERATOR│ ADMIN    │
+│                  │ (all)    │ (owner)  │ (others) │ (all)    │
+├──────────────────┼──────────┼──────────┼──────────┼──────────┤
+│ [Open]           │ ✅ Show  │ ✅ Show  │ ✅ Show  │ ✅ Show  │
+│ [Edit]           │ ❌ Hide  │ ✅ Show  │ ❌ Hide  │ ✅ Show  │
+│ [Share]          │ ❌ Hide  │ ✅ Show  │ ❌ Hide  │ ❌ Hide  │
+│                  │          │ (Quick)  │          │          │
+│ [Manage Access]  │ ❌ Hide  │ ❌ Hide  │ ❌ Hide  │ ✅ Show  │
+│                  │          │          │          │ (Full)   │
+│ [Delete]         │ ❌ Hide  │ ✅ Show  │ ❌ Hide  │ ✅ Show  │
+│ [Request Edit]   │ ❌ Hide  │ ❌ Hide  │ ✅ Show  │ ❌ Hide  │
+└──────────────────┴──────────┴──────────┴──────────┴──────────┘
+
+Key Points:
+✅ USER: Can only view
+✅ MODERATOR (owner): Can edit/share/delete own dashboards
+✅ MODERATOR (other's): Can view, request edit from owner
+✅ ADMIN: Can do everything + manage full permissions
 ```
 
 ### **5. Empty/Limited States**
@@ -630,15 +743,17 @@ Card Contents:
 
 ---
 
-## 🔄 User Interactions & Flows
+---
 
-### **Flow 1: Click "Open" Button**
+## 🎬 Action Button Workflows
+
+### **Flow 1: USER - [Open] Dashboard**
 
 ```
-User clicks [Open →] on Dashboard Card
+USER clicks [Open] on any dashboard card
        │
        ▼
-Check access permission again (confirm still valid)
+Check access permission (confirm still valid)
        │
        ├─ ✅ Access confirmed
        │   └─→ Redirect to /dashboard/{dashboardId}
@@ -648,34 +763,235 @@ Check access permission again (confirm still valid)
                └─→ Back to Dashboard Discover Page
 ```
 
-### **Flow 2: Search for Dashboard**
+---
+
+### **Flow 2: MODERATOR - [Share] Own Dashboard**
 
 ```
-User types in search box: "Sales"
+MODERATOR clicks [Share] on own dashboard card
        │
        ▼
-Filter dashboards by name/description
+Opens Modal/Drawer: "⚡ Quick Share"
+├─ See: moderator-quick-share-dialog.md
+├─ Can add users with optional expiry
+├─ Limited to Layer 1 direct access
+└─ NO complex 3-layer logic
        │
        ▼
-Re-apply permission filter (only show accessible ones)
+[Share] click → Save to Firestore
        │
        ▼
-Update card display with matched dashboards
+✅ Users added to direct access
+   └─ Success message shown
+   └─ Dialog closes
 ```
 
-### **Flow 3: Filter by Access Type**
+---
+
+### **Flow 3: MODERATOR - [Edit] Own Dashboard**
 
 ```
-User clicks "Filter By" → "By Group"
+MODERATOR clicks [Edit] on own dashboard card
        │
        ▼
-Show only dashboards where user's groups grant access
+Opens: Dashboard Editor Page (new route)
+├─ Edit dashboard name/description
+├─ Configure dashboard settings
+├─ Change dashboard owner (if allowed)
+└─ [Save Changes] [Cancel]
        │
-Example:
-├─ ✅ Finance Summary (group: finance)
-├─ ❌ Sales Dashboard (no group match)
-└─ ❌ Admin Only (no group match)
+       ▼
+✅ Dashboard updated
+   └─ Returns to Discover Page
 ```
+
+---
+
+### **Flow 4: MODERATOR - [Delete] Own Dashboard**
+
+```
+MODERATOR clicks [Delete] on own dashboard card
+       │
+       ▼
+Confirmation dialog appears:
+│ "Are you sure you want to delete this dashboard?"
+│ "This action cannot be undone."
+│ [Delete] [Cancel]
+       │
+       ├─ Cancel: Returns to card
+       │
+       └─ Delete: Removes from Firestore
+           │
+           ▼
+           ✅ Dashboard deleted
+              └─ Card disappears from grid
+              └─ Success message shown
+```
+
+---
+
+### **Flow 5: MODERATOR - [Request Edit Access]**
+
+```
+MODERATOR clicks [Request Edit Access] on other's dashboard
+       │
+       ▼
+Modal opens: "Request Edit Permission"
+│ Message: [Type reason for requesting edit access...]
+│ [Send Request] [Cancel]
+       │
+       ├─ Cancel: Modal closes
+       │
+       └─ Send Request: Create notification for dashboard owner
+           │
+           ▼
+           ✅ Request sent
+              ├─ Owner gets notification
+              ├─ Moderator can see: "Request pending..."
+              └─ Owner can approve/deny from Admin Panel
+```
+
+---
+
+### **Flow 6: ADMIN - [Manage Access]**
+
+```
+ADMIN clicks [Manage Access] on ANY dashboard card
+       │
+       ▼
+Opens: Admin Permission Management Page
+├─ See: admin-permission-management-page.md
+├─ Full 3-layer UI (Direct, Company-Scoped, Restrictions)
+├─ Can modify complex permissions
+├─ Set layer 1: Direct users/roles/groups
+├─ Set layer 2: Company-scoped access
+├─ Set layer 3: Restrictions/revoke/expiry
+└─ Save changes → Firestore
+       │
+       ▼
+✅ Permissions updated
+   └─ (Optionally stays in Admin panel or returns to Discover)
+```
+
+---
+
+### **Flow 7: ADMIN - [Edit] Dashboard**
+
+```
+ADMIN clicks [Edit] on any dashboard
+       │
+       ▼
+Opens: Dashboard Editor Page
+├─ Edit dashboard content/settings
+├─ (Same as MODERATOR edit, but no ownership restrictions)
+└─ [Save] [Cancel]
+```
+
+---
+
+### **Flow 8: ADMIN - [Delete] Dashboard**
+
+```
+ADMIN clicks [Delete] on any dashboard
+       │
+       ▼
+Confirmation dialog appears:
+│ "Delete this dashboard? Cannot be undone."
+│ [Delete] [Cancel]
+       │
+       └─ Delete: Remove from Firestore
+           │
+           ▼
+           ✅ Dashboard deleted from system
+```
+
+---
+
+## 🔐 Role-Based Action Availability
+
+### **Where Buttons Appear on Page**
+
+**Dashboard Cards (Right Pane):**
+- Show buttons based on user's role AND ownership
+- USER: [Open] only
+- MODERATOR (owner): [Open] [Edit] [Share] [Delete]
+- MODERATOR (other's): [Open] [Request Edit Access]
+- ADMIN: [Open] [Edit] [Manage Access] [Delete]
+
+**Breadcrumb Navigation:**
+- Click any folder level to navigate up
+- Works for all roles
+
+**Search & Filter:**
+- Available for all roles
+- Scoped to current folder
+
+---
+
+## 🌐 Navigation to Admin Panel
+
+### **From Discover Page → Admin Panel**
+
+```
+Method 1: Via Dashboard Card [Manage Access] button
+├─ Admin clicks [Manage Access] on dashboard
+├─ Opens: /admin/dashboards/{id}/permissions
+└─ Shows: admin-permission-management-page.md
+
+Method 2: Via User Profile Menu
+├─ Click user avatar in top-right
+├─ Menu shows: [Settings] [Admin Panel] [Logout]
+├─ Click [Admin Panel]
+└─ Opens: /admin (full admin interface)
+
+Method 3: Direct URL Navigation
+├─ Type URL directly: /admin
+└─ Shows: admin-permission-management-page.md
+   (If user is Admin role, otherwise redirected to Discover)
+```
+
+---
+
+### **From Admin Panel → Back to Discover Page**
+
+```
+Method 1: Click Dashboard Name in Sidebar
+├─ Admin clicks specific dashboard in left sidebar
+├─ Right pane shows permission editor for that dashboard
+├─ Click [View Dashboard] button (top-right)
+└─ Opens: /dashboard/{dashboardId} (view page)
+
+Method 2: Click 🏠 Home in Sidebar
+├─ Returns to: / (Discover Page)
+
+Method 3: Breadcrumb Click
+├─ Shows: 🏠 > Dashboards > [Dashboard Name]
+├─ Click 🏠 or Dashboards
+└─ Returns to relevant page
+
+Method 4: Browser Back Button
+├─ Returns to previous page
+└─ (History-based navigation)
+```
+
+---
+
+## 📋 Permission Action Reference Table
+
+| User Action | USER | MODERATOR<br>(Owner) | MODERATOR<br>(Other) | ADMIN |
+|---|---|---|---|---|
+| **Browse Dashboards** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Open Dashboard** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Edit Dashboard** | ❌ No | ✅ Own only | ❌ No | ✅ All |
+| **Delete Dashboard** | ❌ No | ✅ Own only | ❌ No | ✅ All |
+| **Quick Share (Layer 1 Direct)** | ❌ No | ✅ Own only | ❌ No | ❌ No |
+| **Manage Permissions (Full 3-Layer)** | ❌ No | ❌ No | ❌ No | ✅ Yes |
+| **Revoke Access** | ❌ No | ❌ No | ❌ No | ✅ Yes |
+| **Set Expiry Dates** | ❌ No | ❌ No | ❌ No | ✅ Yes |
+| **Request Edit Access** | ❌ No | N/A | ✅ Yes | ❌ N/A |
+| **Access Admin Panel** | ❌ No | ❌ No | ❌ No | ✅ Yes |
+
+---
 
 ---
 
@@ -1282,12 +1598,14 @@ User Experience:
   - [Access Logic](../GUIDES/roles-and-permissions.md#-access-logic)
   - [Use Cases & Examples](../GUIDES/roles-and-permissions.md#-use-cases--examples)
 - [Dashboard View Page](./dashboard-view-page.md) - Display dashboard after clicking Open
+- [Admin Permission Management Page](./admin-permission-management-page.md) - Admin-only permission UI (full 3-layer)
+- [Moderator Quick Share Dialog](./moderator-quick-share-dialog.md) - Quick share modal for moderators
 - [User Flows](../user-flows.md) - Complete USER flow diagram
 - [Database Schema](../GUIDES/database-schema.md) - Dashboard & Folder structure
 
 ---
 
 **Created:** 2024-01-27  
-**Updated:** 2024-02-03 (Sidebar: Folders Only | Right Pane: Dashboards - Deep Hierarchy Fix)  
+**Updated:** 2024-02-03 (Added role-based action buttons + Admin/Moderator workflows)  
 **Designer:** Development Team  
-**Version:** 3.1 (Separated Concerns: Sidebar ≠ Dashboards)
+**Version:** 3.2 (Role-Based Actions + Action Flows)
