@@ -1,9 +1,10 @@
 # Dashboard View Page - Wireframe
 
-> **Purpose:** Display individual dashboard with Looker Studio embed + navigation options  
+> **Purpose:** Display individual dashboard with Looker Studio embed + quick-switch to related dashboards  
 > **Target User:** Users viewing and interacting with dashboards  
 > **Navigation Context:** From Dashboard Discover Page or direct URL  
-> **Last Updated:** 2024-01-28  
+> **Last Updated:** 2024-02-03  
+> **Alignment:** Sidebar folders only (consistent with dashboard-discover-page.md v3.1)  
 
 ---
 
@@ -15,27 +16,32 @@
 ├──────────────────────┬───────────────────────────────────────────────────┤
 │                      │                                                    │
 │   LEFT PANE:         │      RIGHT PANE:                                 │
-│   CONTEXT NAV        │      MAIN DASHBOARD AREA                         │
-│   (Optional)         │                                                    │
+│   FOLDER TREE        │      MAIN DASHBOARD AREA                         │
+│   (Folders Only)     │                                                    │
 │                      │  Breadcrumb & Header                             │
-│  Current folder:     │  ┌──────────────────────────────────────────────┐
-│  Sales > Regional    │  │ 🏠 > Sales > Regional Reports                │
+│  📂 Sales ↓          │  ┌──────────────────────────────────────────────┐
+│  ├─ 📂 Regional ↓    │  │ 🏠 > Sales > Regional > Reports             │
+│  │  ├─ 📂 Reports    │  │                                              │
+│  │  ├─ 📂 North      │  │ Regional Performance Dashboard 📈             │
+│  │  └─ 📂 South      │  │ Created by: John | Updated: 1 day ago        │
+│  ├─ 📂 Analytics     │  │                                              │
+│  └─ 📂 Quarterly     │  │ Share: [  ]  Edit: [  ]  More: [...]       │
+│                      │  ├──────────────────────────────────────────────┤
+│  📂 Finance ↓        │  │                                              │
+│  ├─ 📂 Budget        │  │  Quick Switch (Same Folder):                │
+│  ├─ 📂 Payroll       │  │  • Monthly Sales ▶                          │
+│  └─ 📂 Forecasts     │  │  • Regional Performance ✓ (current)         │
+│                      │  │  • Regional East ▶                          │
+│  [Other folders]     │  │  • Regional Forecast ▶                      │
+│                      │  │  [◀ Prev | Next ▶]  [Back to folder]      │
+│                      │  ├──────────────────────────────────────────────┤
 │                      │  │                                              │
-│  Related dashboards: │  │ Regional Performance Dashboard                │
-│  (in same folder)    │  │ Created by: John | Updated: 1 day ago        │
+│                      │  │  [Embedded Looker Studio Dashboard]         │
 │                      │  │                                              │
-│  • Dashboard 1 ▶     │  │ Share: [  ]  Edit: [  ]  More: [...]       │
-│  • Dashboard 2 ▶     │  ├──────────────────────────────────────────────┤
-│  • Dashboard 3 ▶     │  │                                              │
-│  (highlighted)       │  │  [Embedded Looker Studio]                   │
-│  • Dashboard 4 ▶     │  │                                              │
 │                      │  │  ┌────────────────────────────────────────┐ │
-│  Previous / Next:    │  │  │                                        │ │
-│  ◀ Prev | Next ▶    │  │  │     📊 DASHBOARD VISUALIZATION        │ │
-│                      │  │  │     (Looker Studio Embed)             │ │
 │                      │  │  │                                        │ │
-│  [Back to folder]    │  │  │                                        │ │
-│  [Back to all]       │  │  │                                        │ │
+│                      │  │  │     📊 DASHBOARD VISUALIZATION        │ │
+│                      │  │  │     (Looker Studio Embed)             │ │
 │                      │  │  │                                        │ │
 │                      │  │  │  (Interactive charts, filters, etc.)   │ │
 │                      │  │  │                                        │ │
@@ -47,6 +53,12 @@
 │                      │
 └──────────────────────┴───────────────────────────────────────────────────┘
 ```
+
+**Key Design Changes (v3.1):**
+- ✅ Sidebar shows **folders only** (not dashboard items)
+- ✅ Quick-switch panel for dashboards in current folder (right pane)
+- ✅ Separation of concerns: Navigation (left) vs Content (right)
+- ✅ Consistent with dashboard-discover-page.md
 
 ---
 
@@ -131,120 +143,82 @@ Features:
 
 ---
 
-## 🧭 Left Sidebar Navigation (Optional But Recommended)
+## 🧭 Left Sidebar (Folder Tree Only)
 
-### **Option A: Minimal (Back Buttons Only)**
+**Sidebar Structure (v3.1 - Folders Only):**
 
 ```
 ┌─────────────────────────────┐
-│                             │
-│  Current Folder:            │
-│  Sales > Regional Reports   │
-│                             │
+│  DASHBOARD FOLDERS          │
 │  ─────────────────────────  │
 │                             │
-│  [◀ Back to Folder]         │
-│  [◀ Back to All Dashboards] │
+│  📂 Sales ↓                 │
+│  ├─ 📂 Regional ↓           │
+│  │  ├─ 📂 Reports           │
+│  │  │  └─ [Current folder] │
+│  │  ├─ 📂 North             │
+│  │  └─ 📂 South             │
+│  ├─ 📂 Analytics            │
+│  └─ 📂 Quarterly            │
+│                             │
+│  📂 Finance ↓               │
+│  ├─ 📂 Budget               │
+│  ├─ 📂 Payroll              │
+│  └─ 📂 Forecasts            │
+│                             │
+│  📂 Operations ↓            │
+│  ├─ 📂 Inventory            │
+│  └─ 📂 Supply ↓             │
+│     └─ 📂 Chain             │
 │                             │
 └─────────────────────────────┘
 ```
 
----
-
-### **Option B: Enhanced (Quick Navigation)**
-
-```
-┌─────────────────────────────┐
-│  Folder Context             │
-│  ─────────────────────────  │
-│                             │
-│  📂 Sales > Regional Reports │
-│                             │
-│  Other dashboards in folder │
-│  (click to switch quickly)   │
-│  ─────────────────────────  │
-│                             │
-│  • Monthly Sales            │
-│  • Regional Performance ✓   │
-│    (currently viewing)      │
-│  • Regional Forecast        │
-│  • Regional Breakdown       │
-│                             │
-│  ─────────────────────────  │
-│  Navigation                 │
-│  ─────────────────────────  │
-│                             │
-│  ◀ Previous Dashboard       │
-│  Next Dashboard ▶           │
-│                             │
-│  ─────────────────────────  │
-│                             │
-│  [◀ Back to Folder]         │
-│  [◀ Back to All]            │
-│                             │
-└─────────────────────────────┘
-```
-
-**Recommended: Option B** (Better UX - quick switching)
+**Why Folders Only on Sidebar:**
+- ✅ Clean, hierarchical navigation
+- ✅ Supports deep folder hierarchies (4-5 levels)
+- ✅ No overflow/truncation issues
+- ✅ Users can navigate to other folders
+- ✅ Dashboard switching is in the main area (right pane)
 
 ---
 
-## 🔄 Dashboard Navigation Options
+## 🔄 Dashboard Navigation (Right Pane - Quick Switch)
 
-### **Option 1: Sidebar Quick Navigation (Recommended)**
+### **Quick Switch Panel (Below Header)**
 
-```
-User is viewing: "Regional Performance Dashboard"
-
-Sidebar shows:
-📂 Sales > Regional Reports
-├─ Monthly Sales → [Click to Switch ▶]
-├─ Regional Performance → [Currently Viewing ✓]
-├─ Regional Forecast → [Click to Switch ▶]
-└─ Regional Breakdown → [Click to Switch ▶]
-
-When user clicks "Regional Forecast":
-├─ Permission check (confirm still accessible)
-├─ Update URL: /dashboard/dash-regional-forecast
-├─ Reload Looker embed for new dashboard
-├─ Update header info
-├─ Highlight "Regional Forecast" in sidebar
-└─ Maintain scroll position (optional)
-
-Benefits:
-✅ Quick switch without leaving page
-✅ See related dashboards
-✅ Know folder context
-✅ No loading page transitions
-```
-
----
-
-### **Option 2: Prev/Next Navigation**
+**Location:** Right pane, above the embedded dashboard
 
 ```
-Dashboards in current folder (in order):
-1. Monthly Sales
-2. Regional Performance (CURRENT)
-3. Regional Forecast
-4. Regional Breakdown
+Quick Switch (Same Folder - "Sales > Regional > Reports"):
+────────────────────────────────────────────────────────
+• Monthly Sales ▶                  [Click to switch]
+• Regional Performance ✓ (current) [Currently viewing]
+• Regional East ▶                  [Click to switch]
+• Regional Forecast ▶              [Click to switch]
+• Regional Breakdown ▶             [Click to switch]
 
-Navigation buttons:
-[◀ Previous]  Regional Performance  [Next ▶]
-└─ Goes to #1          (current)        └─ Goes to #3
-
-Click "Next ▶":
-├─ Switch to "Regional Forecast"
-├─ Load its dashboard
-└─ Update navigation buttons for #3
-   [◀ Previous]  Regional Forecast  [Next ▶]
-   └─ #2                (current)        └─ #4
-
-Benefits:
-✅ Linear navigation through folder
-✅ Simple interface
-✅ Good for sequential viewing
+Navigation:
+[◀ Previous] | [Next ▶]            [← Back to folder]
 ```
+
+**When User Clicks "Regional East ▶":**
+```
+1. Permission check (confirm still accessible)
+2. Update URL: /dashboard/dash-regional-east
+3. Update header: "Regional East Dashboard"
+4. Reload Looker embed for new dashboard
+5. Highlight "Regional East" in quick-switch panel
+6. Maintain folder context in sidebar
+```
+
+**Benefits of This Approach:**
+- ✅ Quick switch without leaving page
+- ✅ See all dashboards in current folder
+- ✅ Know folder context (breadcrumb + sidebar)
+- ✅ No page transitions (smooth UX)
+- ✅ Can jump to any dashboard or navigate linearly
+- ✅ Sidebar remains clean (folders only)
 
 ---
 
@@ -752,5 +726,6 @@ Full Access:
 ---
 
 **Created:** 2024-01-28  
+**Updated:** 2024-02-03 (Sidebar: Folders Only | Quick-Switch in Right Pane)  
 **Designer:** Development Team  
-**Version:** 1.0
+**Version:** 3.1 (Aligned with dashboard-discover-page.md v3.1)
