@@ -683,8 +683,9 @@ export function getAccessibleDashboards(
       return false // User is explicitly revoked
     }
 
-    if (restrictions.expiry[user.uid]) {
-      if (new Date() > restrictions.expiry[user.uid]) {
+    const expiryDate = restrictions.expiry[user.uid]
+    if (expiryDate) {
+      if (new Date() > expiryDate) {
         return false // User's access has expired
       }
     }
@@ -705,9 +706,8 @@ export function getAccessibleDashboards(
     }
 
     // Layer 2: Company-scoped (AND logic: company + (role OR group))
-    if (access.company[user.company]) {
-      const companyAccess = access.company[user.company]
-
+    const companyAccess = access.company[user.company]
+    if (companyAccess) {
       if (companyAccess.roles.includes(user.role)) {
         return true
       }

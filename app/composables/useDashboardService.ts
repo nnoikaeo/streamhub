@@ -410,8 +410,8 @@ export class MockDashboardService implements IDashboardService {
     }
 
     // Check layer 2
-    if (access.company[user.company]) {
-      const compAccess = access.company[user.company]
+    const compAccess = access.company[user.company]
+    if (compAccess) {
       if (compAccess.roles.includes(user.role)) return true
       if (user.groups.some((g) => compAccess.groups.includes(g))) {
         return true
@@ -462,9 +462,9 @@ export class MockDashboardService implements IDashboardService {
       }
     }
 
-    if (access.company[user.company]) {
-      const compAccess = access.company[user.company]
-      if (compAccess.roles.includes(user.role)) {
+    const compAccess2 = access.company[user.company]
+    if (compAccess2) {
+      if (compAccess2.roles.includes(user.role)) {
         return {
           hasAccess: true,
           layer: 2,
@@ -474,7 +474,7 @@ export class MockDashboardService implements IDashboardService {
       }
 
       for (const group of user.groups) {
-        if (compAccess.groups.includes(group)) {
+        if (compAccess2.groups.includes(group)) {
           return {
             hasAccess: true,
             layer: 2,
@@ -536,12 +536,12 @@ export class MockDashboardService implements IDashboardService {
 
     // Company-scoped
     mockUsers.forEach((user) => {
-      if (access.company[user.company]) {
-        const compAccess = access.company[user.company]
-        if (compAccess.roles.includes(user.role)) {
+      const compAccess3 = access.company[user.company]
+      if (compAccess3) {
+        if (compAccess3.roles.includes(user.role)) {
           result.add(user.uid)
         }
-        if (user.groups.some((g) => compAccess.groups.includes(g))) {
+        if (user.groups.some((g) => compAccess3.groups.includes(g))) {
           result.add(user.uid)
         }
       }
@@ -558,7 +558,7 @@ export class MockDashboardService implements IDashboardService {
     // Mock: add to direct users
     const dashboard = await this.getDashboard(dashboardId)
     if (!dashboard) {
-      return { success: false, message: 'Dashboard not found' }
+      return { success: false, message: 'Dashboard not found', updatedAt: new Date() }
     }
 
     // Add users
@@ -593,7 +593,7 @@ export class MockDashboardService implements IDashboardService {
   ): Promise<SavePermissionsResponse> {
     const dashboard = await this.getDashboard(dashboardId)
     if (!dashboard) {
-      return { success: false, message: 'Dashboard not found' }
+      return { success: false, message: 'Dashboard not found', updatedAt: new Date() }
     }
 
     // Remove user
