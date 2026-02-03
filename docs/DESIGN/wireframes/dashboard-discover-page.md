@@ -108,32 +108,52 @@ Notes:
 ⭐ User doesn't need to see full structure
 ```
 
-### **Folder Selection Behavior**
+### **Folder Selection Behavior (with Smart Collapse)**
 
 ```
-User clicks "Sales > Regional Reports" folder
+User clicks "Sales > Regional Reports" folder (4 levels deep)
 
-Step 1: Check Access
-└─ Loop through all dashboards in this folder
+Step 1: Breadcrumb Update
+└─ Calculate full path: 🏠 > Sales > Regional > Reports
+└─ Show in breadcrumb (can click any level to jump)
+
+Step 2: Sidebar Smart Collapse
+├─ Current path is [Sales, Regional, Reports]
+├─ EXPAND: Sales (in path) ↓
+│  EXPAND: Regional (in path) ↓
+│    EXPAND: Reports (selected) ↓
+│      Show dashboards in Reports
+│    COLLAPSE: Other folders under Regional
+│  COLLAPSE: Other folders under Sales
+
+Result in Sidebar:
+📂 Sales ↓
+├─ 📂 Regional ↓
+│  ├─ 📂 Reports ← SELECTED
+│  │  ├─ Dashboard 1
+│  │  ├─ Dashboard 2
+│  │  └─ Dashboard 3
+│  └─ 📂 Analytics (collapsed)
+└─ 📂 Operations (collapsed)
+
+Step 3: Check Access
+└─ Loop through all dashboards in Reports folder
    ├─ Dashboard A: User can access? ✅ YES
    ├─ Dashboard B: User can access? ✅ YES
    ├─ Dashboard C: User can access? ❌ NO (restricted)
    ├─ Dashboard D: User can access? ✅ YES
    └─ Count: 3 accessible
 
-Step 2: Update Right Pane
-├─ Show breadcrumb: "🏠 > Sales > Regional Reports"
+Step 4: Update Main Area
+├─ Show breadcrumb: "🏠 > Sales > Regional > Reports"
 ├─ Display search box (scoped to folder)
 └─ Show 3 accessible dashboards in grid
 
-Step 3: Hide Inaccessible Dashboards
-└─ Dashboard C is NOT shown
-   (User only sees dashboards they can access)
-
 Result:
-✅ Clean experience
-✅ No "locked" or "restricted" messages
-✅ Only accessible content displayed
+✅ Sidebar never overflows (max 3-4 levels expanded)
+✅ Breadcrumb shows full path clearly
+✅ Only accessible dashboards shown
+✅ Clean experience, no clutter
 ```
 
 ---
@@ -606,33 +626,311 @@ Example:
 
 ---
 
-## 📱 Responsive Design Notes
+## 📱 Responsive Design Notes (Desktop-First)
 
-### **Desktop (> 1024px)**
+### **Desktop-First Strategy (Primary Focus)**
+
+Since StreamHub is enterprise/business dashboard tool primarily used on desktop:
+- **PRIMARY**: Desktop (> 1024px) - Full featured
+  - Sidebar with smart collapse + breadcrumb
+  - Supports 4-5 level deep hierarchies
+  - Full grid with 2-3 columns
+  
+- **SECONDARY**: Tablet (768px - 1024px) - Simplified
+  - Sidebar still available (smaller width)
+  - Breadcrumb more prominent
+  - 2-column dashboard grid
+  
+- **TERTIARY**: Mobile (< 768px) - Basic navigation
+  - Sidebar hidden (hamburger menu)
+  - Breadcrumb primary navigation
+  - 1-column list view
+
+### **Desktop (> 1024px) - FULL EXPERIENCE**
+
 ```
 ┌─────────────────────────────────────┐
-│  Sidebar (250px) │ Main Content      │
-│                  │ - 2-3 column grid │
-│                  │ - Full width      │
-└─────────────────────────────────────┘
+│ Header: Logo, Title, User Menu      │
+├──────────┬──────────────────────────┤
+│          │ Breadcrumb + Search      │
+│ Sidebar  │ (Full width, desktop)    │
+│ (250px)  ├──────────────────────────┤
+│          │ Dashboard Grid           │
+│ Smart    │ (2-3 columns)            │
+│ Collapse │ Lots of space for cards  │
+│          │                          │
+│ 4-5      │ [Card] [Card] [Card]     │
+│ levels   │ [Card] [Card] [Card]     │
+│ deep     │ [Card] [Card]            │
+│          │                          │
+│          │ [Load More...]           │
+└──────────┴──────────────────────────┘
+
+Features:
+✅ Sidebar shows full folder tree (smart collapsed)
+✅ Breadcrumb shows exact location
+✅ Large dashboard cards with full info
+✅ Spacious layout (room for lots of dashboards)
+✅ Easy to read folder names (not truncated)
+✅ Perfect for 4-5 level hierarchies
 ```
 
-### **Tablet (768px - 1024px)**
+### **Tablet (768px - 1024px) - OPTIMIZED**
+
 ```
-┌──────────────────────┐
-│ Sidebar (collapsed)  │
-│        + Main        │
-│ - 2 column grid      │
-└──────────────────────┘
+┌────────────────────────────────────┐
+│ Header: Logo, Menu, User          │
+├────────┬─────────────────────────┤
+│        │ Breadcrumb + Search     │
+│Sidebar │ (Full width)            │
+│(200px) ├─────────────────────────┤
+│        │ Dashboard Grid          │
+│Smaller │ (2 columns)             │
+│width   │ Smaller cards           │
+│        │                         │
+│        │ [Card] [Card]           │
+│        │ [Card] [Card]           │
+│        │ [Card] [Card]           │
+│        │ [Load More...]          │
+└────────┴─────────────────────────┘
+
+Changes from Desktop:
+- Sidebar width reduced to 200px
+- Dashboard cards slightly smaller
+- Still shows folder names (not too truncated)
+- Breadcrumb takes more priority
 ```
 
-### **Mobile (< 768px)**
+### **Mobile (< 768px) - HAMBURGER MENU**
+
 ```
-┌──────────────────┐
-│ Hamburger Menu   │
-│   Main Content   │
-│ - 1 column list  │
-└──────────────────┘
+┌────────────────────────────────────┐
+│☰ Logo          Title          👤   │
+├────────────────────────────────────┤
+│ 🏠 > Sales > Regional > Reports   │
+│ (Scrollable breadcrumb)            │
+├────────────────────────────────────┤
+│ Search: [Find...]    [Sort ▼]     │
+├────────────────────────────────────┤
+│ [Dashboard Card]                   │
+│ [Dashboard Card]                   │
+│ [Dashboard Card]                   │
+│ [Load More...]                     │
+└────────────────────────────────────┘
+
+When user clicks ☰ (Hamburger):
+┌────────────────────────────────────┐
+│☰ Menu        [X] Close             │
+├────────────────────────────────────┤
+│ 📂 Sales ↓                         │
+│ ├─ 📂 Regional ↓                   │
+│ │  ├─ 📂 Reports                   │
+│ │  │  (Dashboard A, B, C)          │
+│ │  └─ 📂 Analytics                 │
+│ └─ 📂 Operations                   │
+│                                    │
+│ 📂 Finance ↓                       │
+│ ├─ 📂 Budget                       │
+│ └─ 📂 Payroll                      │
+│                                    │
+│ [Close Menu]                       │
+└────────────────────────────────────┘
+
+Features:
+- Sidebar shown in overlay/modal
+- User can browse folders
+- Click folder to view in main area
+- Close menu to see dashboards
+```
+
+---
+
+## 🌳 Handling Deep Hierarchies (4-5 Levels)
+
+### **Problem: Deep Folder Trees in Sidebar**
+
+With 4-5 folder depth levels, the sidebar can become:
+- Text truncation (folder names cut off)
+- Vertical overflow (requires scrolling)
+- Hard to navigate (too many click levels)
+- Difficult to see current location
+
+### **Solution: Hybrid Model (Sidebar + Smart Collapse + Breadcrumb)**
+
+```
+Strategy:
+1. Sidebar shows: Current path ONLY (smart collapse)
+   └─ Only expands 2-3 levels at a time
+   └─ Auto-collapses sibling branches
+
+2. Breadcrumb shows: Full path
+   └─ 🏠 > Sales > Regional > Reports > Q4 Analytics
+   └─ Click any level to jump there
+
+3. Current folder: Fully expanded
+   └─ User can see subfolders to drill down
+
+Result:
+✅ Sidebar never overflows (max 3 visible levels)
+✅ Breadcrumb shows exact location
+✅ Users can navigate efficiently
+✅ Works for unlimited depth
+```
+
+### **Smart Sidebar Collapse/Expand Behavior**
+
+```
+Example: 5-Level Deep Hierarchy
+
+LEVEL 1 (Root)
+├─ 📂 Sales ↓
+│  └─ LEVEL 2
+│     ├─ 📂 North ↓
+│     │  └─ LEVEL 3
+│     │     ├─ 📂 Q4 2024 ↓
+│     │     │  └─ LEVEL 4
+│     │     │     ├─ 📂 Analytics ← SELECTED
+│     │     │     │  └─ LEVEL 5
+│     │     │     │     ├─ Dashboard A
+│     │     │     │     └─ Dashboard B
+│     │     │     └─ 📂 Reports (collapsed)
+│     │     └─ 📂 Q3 2024 (collapsed)
+│     └─ 📂 South (collapsed)
+└─ 📂 Finance (collapsed)
+
+Display Logic:
+- Sales: Show (has accessible dashboards) ✅
+- North: Show (current path) ✅
+- Q4 2024: Show (current path) ✅
+- Analytics: Show (selected) ✅
+- Dashboard A,B: Show (in folder) ✅
+- South: Collapse (not in current path) 🔽
+- Finance: Collapse (not in current path) 🔽
+- Q3 2024: Collapse (not in current path) 🔽
+
+Breadcrumb (Top):
+🏠 > Sales > North > Q4 2024 > Analytics
+
+User can:
+- Click "Sales" in breadcrumb → Jump to Sales level
+- Click "Q4 2024" in breadcrumb → Jump to Q4 level
+- Expand "Q3 2024" in sidebar → See that branch
+```
+
+### **Visual: Different Depth Scenarios**
+
+```
+# Scenario 1: User at 2-Level Deep
+Breadcrumb: 🏠 > Sales > Reports
+
+Sidebar:
+📂 Sales ↓
+├─ 📂 Reports ← CURRENT
+│  ├─ Dashboard 1
+│  ├─ Dashboard 2
+│  └─ Dashboard 3
+└─ 📂 Regional
+
+Result: Clean, 2 levels visible ✅
+
+
+# Scenario 2: User at 4-Level Deep
+Breadcrumb: 🏠 > Sales > North > Q4 2024
+
+Sidebar:
+📂 Sales ↓
+├─ 📂 North ↓
+│  ├─ 📂 Q4 2024 ← CURRENT
+│  │  ├─ Dashboard A
+│  │  └─ Dashboard B
+│  └─ 📂 Q3 2024
+└─ 📂 South
+
+Result: Still clean, shows current path + siblings ✅
+
+
+# Scenario 3: User at 5-Level Deep
+Breadcrumb: 🏠 > Sales > North > Q4 > Analytics
+
+Sidebar:
+📂 Sales ↓
+├─ 📂 North ↓
+│  ├─ 📂 Q4 2024 ↓
+│  │  ├─ 📂 Analytics ← CURRENT
+│  │  │  ├─ Dashboard X
+│  │  │  └─ Dashboard Y
+│  │  └─ 📂 Reports
+│  └─ 📂 Q3 2024
+└─ 📂 South
+
+Result: Still fits in viewport, max 3 expanded levels ✅
+```
+
+### **Implementation: Smart Expand/Collapse Logic**
+
+```javascript
+function shouldExpandFolder(folder, currentPath) {
+  // Expand if folder is in the current path OR is current folder
+  const folderPath = getPathToFolder(folder)
+  const isInCurrentPath = currentPath.includes(folder.id)
+  const isCurrentFolder = currentPath[currentPath.length - 1] === folder.id
+  
+  return isInCurrentPath || isCurrentFolder
+}
+
+function getSidebarFolders(allFolders, currentPath) {
+  // Start from root, expand only folders in current path
+  return allFolders.map(folder => ({
+    ...folder,
+    isExpanded: shouldExpandFolder(folder, currentPath),
+    // Recursively apply to children
+    children: folder.children.map(child => ({
+      ...child,
+      isExpanded: shouldExpandFolder(child, currentPath),
+      // And so on for deeper levels
+    }))
+  }))
+}
+
+// Example:
+const currentPath = ["Sales", "North", "Q4", "Analytics"]
+const sidebar = getSidebarFolders(allFolders, currentPath)
+// Result: Only shows Sales > North > Q4 > Analytics expanded
+// Other branches (South, Q3, Reports) remain collapsed
+```
+
+### **Breadcrumb + Sidebar Working Together**
+
+```
+User's Mental Model:
+┌──────────────────────────────────────┐
+│ Breadcrumb: Shows exact location     │
+│ 🏠 > Sales > North > Q4 > Analytics  │
+│ (Can click any level to jump)        │
+│                                      │
+│ Sidebar: Shows navigation tree       │
+│ (Smart collapse - not overwhelming)  │
+│                                      │
+│ Main area: Show current folder       │
+│ (Dashboards in "Analytics")          │
+└──────────────────────────────────────┘
+
+Example Flow:
+1. User clicks "Q4 2024" in breadcrumb
+   └─ Immediately jump to Q4 view
+   └─ Sidebar updates to show Q4's subfolders
+   └─ Main area shows Q4's dashboards
+
+2. User clicks "Sales" in breadcrumb
+   └─ Jump to Sales root level
+   └─ Sidebar shows Sales' direct subfolders
+   └─ Main area shows all Sales dashboards
+
+3. User clicks folder in sidebar
+   └─ Navigate down to that folder
+   └─ Breadcrumb extends: 🏠 > Sales > North > Q4 > Analytics > Q4 YTD
+   └─ Sidebar updates (smart collapse of siblings)
+   └─ Main area shows dashboards in Q4 YTD folder
 ```
 
 ---
@@ -835,30 +1133,56 @@ User Experience:
 - [ ] Create `FolderSidebar.vue`
   - [ ] Display folder tree (recursive)
   - [ ] Only show folders with accessible dashboards
-  - [ ] Handle folder expansion/collapse
+  - [ ] **Smart collapse/expand:** Only expand folders in current path
+  - [ ] Collapse sibling branches to prevent overflow
+  - [ ] Handle folder expansion/collapse with animation
   - [ ] Highlight current folder
+  - [ ] Show folder depth indicator (optional)
 
 - [ ] Create `BreadcrumbNavigation.vue`
-  - [ ] Show current path: 🏠 > Sales > Regional
-  - [ ] Click to navigate to parent folders
+  - [ ] Show current path: 🏠 > Sales > Regional > Reports
+  - [ ] Support 4-5 levels deep without truncation
+  - [ ] Click any level to jump to that folder
   - [ ] Update when folder selected
+  - [ ] Show scroll capability if very deep (optional)
 
 - [ ] Create `DashboardGrid.vue`
   - [ ] Display accessible dashboards only
   - [ ] Show access reason (which permission layer)
   - [ ] Handle [Open] button clicks
-  - [ ] Responsive grid layout
+  - [ ] Responsive grid layout (2-3 columns desktop, 2 tablet, 1 mobile)
 
 - [ ] Create `FolderScopedSearch.vue`
   - [ ] Search within selected folder
   - [ ] Respects permission (only show accessible)
   - [ ] Live filtering
+  - [ ] Works at any folder depth
+
+### **Utility Functions for Deep Hierarchies**
+
+- [ ] `calculateCurrentPath(folderId)`
+  - [ ] Return array of folder IDs from root to current
+  - [ ] Example: ["Sales", "North", "Q4", "Analytics"]
+
+- [ ] `shouldExpandFolder(folder, currentPath)`
+  - [ ] Return true if folder is in current path or is current folder
+  - [ ] Used for smart collapse/expand logic
+
+- [ ] `getSidebarFolders(allFolders, currentPath)`
+  - [ ] Return folders with smart expand/collapse applied
+  - [ ] Prevents sidebar overflow for deep hierarchies
+  - [ ] Recursive function for nested folders
+
+- [ ] `getVisibleBreadcrumb(currentPath)`
+  - [ ] Convert path IDs to readable folder names
+  - [ ] Example: ["Sales", "North", "Q4"] → "🏠 > Sales > North > Q4"
 
 ### **Permission Functions**
 
 - [ ] `filterAccessibleFolders(allFolders, user)`
   - [ ] Check each folder recursively
   - [ ] Return only folders with accessible dashboards
+  - [ ] Works with nested folders at any depth
 
 - [ ] `filterAccessibleDashboards(dashboards, user)`
   - [ ] Apply 3-layer permission check
@@ -873,12 +1197,28 @@ User Experience:
 ### **Data Flow**
 
 - [ ] Load user data on app startup
-- [ ] Fetch all folders on page load
-- [ ] Build sidebar with accessible folders
+- [ ] Fetch all folders on page load (with hierarchy structure)
+- [ ] Build sidebar with accessible folders (smart collapse applied)
 - [ ] Show default view (🏠 Dashboard Home)
-- [ ] Handle folder clicks → update main area
+- [ ] Handle folder clicks:
+  - [ ] Calculate new path
+  - [ ] Update breadcrumb
+  - [ ] Update sidebar (smart collapse)
+  - [ ] Fetch dashboards in new folder
+  - [ ] Apply permission filter
+  - [ ] Update main area
+- [ ] Handle breadcrumb clicks (jump to level):
+  - [ ] Update current path
+  - [ ] Refresh sidebar with smart collapse
+  - [ ] Refresh main area with new folder
 - [ ] Handle search → filter results
 - [ ] Handle dashboard opens → permission check
+
+### **Responsive Implementation**
+
+- [ ] Desktop (> 1024px): Full sidebar with smart collapse
+- [ ] Tablet (768-1024px): Sidebar reduced width, breadcrumb prominent
+- [ ] Mobile (< 768px): Hamburger menu for sidebar, breadcrumb scrollable
 
 ---
 
@@ -895,6 +1235,6 @@ User Experience:
 ---
 
 **Created:** 2024-01-27  
-**Updated:** 2024-01-28 (Two-Pane Model, Approach 2)  
+**Updated:** 2024-02-03 (Hybrid Model for Deep Hierarchies - Desktop-First)  
 **Designer:** Development Team  
-**Version:** 2.0 (File Explorer Navigation)
+**Version:** 3.0 (Smart Collapse/Expand + 4-5 Level Support)
