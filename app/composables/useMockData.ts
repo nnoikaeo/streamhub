@@ -590,9 +590,29 @@ export const mockDashboards: Dashboard[] = [
 
 /**
  * Get user by UID from mock data
+ * For testing purposes, if user not found, create a default admin user
  */
 export function getMockUserByUid(uid: string): User | undefined {
-  return mockUsers.find((u) => u.uid === uid)
+  let user = mockUsers.find((u) => u.uid === uid)
+  
+  // If not found in mock data, create a default test user with admin privileges
+  // This allows any logged-in Firebase user to access the system for testing
+  if (!user) {
+    console.log('🔍 [useMockData] User not in mock data, creating default admin user for testing')
+    user = {
+      uid: uid,
+      email: 'test@gmail.com', // Will be replaced by actual email from auth
+      name: 'Test User',
+      role: 'admin',
+      company: 'STTH', // DEFAULT COMPANY FOR TESTING
+      groups: ['sales', 'finance', 'operations'],
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+  }
+  
+  return user
 }
 
 /**
@@ -670,8 +690,18 @@ export function getAccessibleDashboards(
   dashboards: Dashboard[]
 ): Dashboard[] {
   return dashboards.filter((dashboard) => {
-    // Check if archived - admins can see, others cannot
-    if (dashboard.isArchived && user.role !== 'admin') {
+    // Admins can see all dashboards (except they still respect explicit revocation for security)
+    if (user.role === 'admin') {
+      // Even admins are blocked by explicit revocation
+      if (dashboard.restrictions.revoke.includes(user.uid)) {
+        return false
+      }
+      return true
+    }
+
+    // Check if archived - non-admins cannot see archived dashboards
+    // (admins already returned above)
+    if (dashboard.isArchived) {
       return false
     }
 

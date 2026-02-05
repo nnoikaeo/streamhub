@@ -95,7 +95,7 @@ interface Props {
   allowCreate: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   selectedFolderId: null,
   allowSearch: true,
   allowCreate: false,

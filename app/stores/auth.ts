@@ -5,6 +5,7 @@ export interface UserData {
   email: string | null
   displayName: string | null
   photoURL: string | null
+  role?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
