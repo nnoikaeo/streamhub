@@ -422,7 +422,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 2rem;
+  padding: 0 2rem;
 }
 
 /* ========== DASHBOARDS HEADER ========== */
@@ -456,9 +456,9 @@ onMounted(async () => {
 /* Responsive */
 @media (max-width: 768px) {
   .discover-main-content {
-    padding: 1rem;
+    padding: 0 1rem;
   }
-  
+
   .dashboards-count {
     font-size: 1.125rem;
   }
