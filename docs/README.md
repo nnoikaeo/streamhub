@@ -40,6 +40,16 @@ Welcome to StreamHub's comprehensive documentation. This guide covers all aspect
   - Practical examples
   - Testing approaches
 
+### Testing & Quality Assurance
+- **[TESTING_CHECKLIST.md](TESTING_CHECKLIST.md)** - Strategy 4 implementation testing
+  - Type checking verification
+  - Manual code verification
+  - Runtime testing procedures
+  - Browser testing checklist
+  - Code quality assessment
+  - Documentation verification
+  - Sign-off template
+
 ### Design System
 - **[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)** - Design tokens and styling
   - CSS variables reference
@@ -104,6 +114,7 @@ docs/
 ├── README.md                              ← You are here
 ├── STRATEGY_4_HYBRID_APPROACH.md          ← New page architecture (⭐ START HERE)
 ├── PERMISSIONS_STORE.md                   ← Access control
+├── TESTING_CHECKLIST.md                   ← Testing guide (✓ NEW)
 ├── COMPONENT_CONVENTIONS.md               ← Component organization
 ├── DESIGN_SYSTEM.md                       ← Design tokens
 ├── LAYOUT_COMPONENTS.md                   ← Layout patterns
@@ -185,6 +196,7 @@ All defined in `assets/css/main.css`
 | ARCHITECTURE_GUIDE.md | ✅ Current | Feb 11, 2025 |
 | STRATEGY_4_HYBRID_APPROACH.md | ✅ Current | Feb 11, 2025 |
 | PERMISSIONS_STORE.md | ✅ Current | Feb 11, 2025 |
+| TESTING_CHECKLIST.md | ✅ Current | Feb 11, 2025 |
 | COMPONENT_CONVENTIONS.md | ✅ Current | Feb 10, 2025 |
 | DESIGN_SYSTEM.md | ✅ Current | Feb 10, 2025 |
 | LAYOUT_COMPONENTS.md | ✅ Current | Feb 10, 2025 |
