@@ -1,15 +1,15 @@
 <template>
   <ClientOnly>
-    <div v-if="!isLoading && rootFolders.length > 0" class="discover-page-wrapper">
+    <div v-if="!isLoading && folders.length > 0" class="discover-page-wrapper">
       <DiscoverPageLayout>
         <!-- Sidebar: Folder Tree Navigation -->
         <template #sidebar>
           <FolderSidebar
-            :folders="rootFolders"
+            :folders="folders"
             :selected-folder-id="selectedFolderId"
             :allow-search="true"
-            :allow-create="currentUserRole === 'admin'"
-            @select-folder="(folder: Folder) => handleFolderSelect(folder.id)"
+            :allow-create="canCreateFolder"
+            @select-folder="(folder: Folder) => selectFolder(folder.id)"
             @create-folder="handleCreateFolder"
           />
         </template>
@@ -81,11 +81,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '~/composables/useAuth'
-import { useDashboardService } from '~/composables/useDashboardService'
+/**
+ * Dashboard Discover Page - Strategy 4 Implementation
+ *
+ * Strategy 4: Hybrid Approach using:
+ * - Layout Composition (DiscoverPageLayout)
+ * - Pinia Stores (dashboard, permissions)
+ * - Composable Logic (useDashboardPage)
+ * - Generic Components (DashboardGrid, FolderSidebar)
+ *
+ * Benefits:
+ * - Page logic extracted to composables (reusable)
+ * - State managed in Pinia stores (shared across app)
+ * - Permissions integrated in composable (permission checks at data level)
+ * - Cleaner component code (focus on template/presentation)
+ * - Easy to test (can mock composable)
+ * - Easy to extend (add new features in composable)
+ *
+ * Before (old approach): ~300 lines of inline logic
+ * After (Strategy 4): ~50 lines of pure presentation
+ */
+
 import type { Folder, Dashboard } from '~/types/dashboard'
+import { useDashboardPage } from '~/composables/useDashboardPage'
 import DiscoverPageLayout from '~/components/compositions/DiscoverPageLayout.vue'
 import FolderSidebar from '~/components/features/FolderSidebar.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
@@ -98,286 +116,81 @@ definePageMeta({
   ssr: false,
 })
 
-// Debug logging - MUST BE FIRST
-const DEBUG = true
-const log = (label: string, data?: any) => {
-  if (DEBUG) {
-    if (data !== undefined) {
-      console.log(`🔍 [discover.vue] ${label}`, data)
-    } else {
-      console.log(`🔍 [discover.vue] ${label}`)
-    }
-  }
-}
+// ========== Strategy 4: Extract all logic to composable ==========
+// This is the key difference from the old approach:
+// Instead of inline state management and methods, we use the composable
+// which encapsulates all dashboard page logic
+const {
+  // Data from store
+  dashboards,
+  folders,
+  selectedFolderId,
+  selectedDashboard,
+  folderPath,
+  breadcrumbItems,
+  isLoading,
+  error,
+  shareDialogOpen,
+  availableUsers,
+  infiniteScrollSentinel,
 
-// Router and Auth
-const router = useRouter()
-const route = useRoute()
-log('Calling useAuth composable')
-const authComposable = useAuth()
-log('useAuth composable returned', { keys: Object.keys(authComposable) })
-const { user, loading, isAuthenticated, initAuth } = authComposable
-log('Destructured from useAuth', { user: !!user, loading: !!loading, isAuthenticated: !!isAuthenticated, initAuth: !!initAuth })
+  // Permissions from store
+  canCreateFolder,
+  canShareDashboard,
 
-const dashboardService = useDashboardService()
-
-// State
-const selectedFolderId = ref<string | null>(null)
-const dashboards = ref<Dashboard[]>([])
-const rootFolders = ref<Folder[]>([])
-const currentFolder = ref<Folder | null>(null)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-const shareDialogOpen = ref(false)
-const selectedDashboard = ref<Dashboard | null>(null)
-const folderPath = ref<Folder[]>([])
-const availableUsers = ref<any[]>([])
-const infiniteScrollSentinel = ref<HTMLElement | null>(null)
-
-// Computed properties
-const currentUserId = computed(() => {
-  try {
-    const uid = user?.value?.uid || ''
-    log('currentUserId computed', { uid, userExists: !!user, userValueExists: !!user?.value })
-    return uid
-  } catch (err) {
-    log('currentUserId computed ERROR', err)
-    return ''
-  }
+  // Methods
+  selectFolder,
+  handleViewDashboard,
+  handleShareDashboard,
+  handleMenuDashboard,
+  handleShare,
+  handleCreateFolder,
+} = useDashboardPage({
+  enableInfiniteScroll: true,
 })
 
-const currentUserRole = computed(() => {
-  try {
-    const role = user?.value?.role || 'user'
-    log('currentUserRole computed', { role })
-    return role
-  } catch (err) {
-    log('currentUserRole computed ERROR', err)
-    return 'user'
-  }
-})
+// ========== Key Differences from Old Approach ==========
 
-const breadcrumbItems = computed(() => {
-  log('breadcrumbItems computed', { folderPathLength: folderPath.value?.length })
-  return [
-    { label: 'Dashboard', to: '/dashboard/discover' },
-    ...(folderPath.value?.map((folder) => ({
-      label: folder.name,
-      to: `/dashboard/discover?folder=${folder.id}`,
-    })) || []),
-  ]
-})
+// OLD: ~120 lines of state declarations
+// NEW: Everything comes from useDashboardPage composable
 
-// Watch for route query param changes (breadcrumb navigation)
-watch(() => route.query.folder, (newFolderId) => {
-  log('route.query.folder changed', { newFolderId })
-  if (newFolderId && typeof newFolderId === 'string') {
-    selectedFolderId.value = newFolderId
-    loadDashboards()
-  }
-})
+// OLD: ~60 lines of methods for folder/dashboard loading
+// NEW: loadFolders and loadDashboards are in composable
 
-const loadFolders = async () => {
-  try {
-    log('loadFolders started')
-    isLoading.value = true
-    error.value = null
+// OLD: ~50 lines of watcher logic
+// NEW: Route watcher is in composable
 
-    if (!user?.value) {
-      log('loadFolders error: user not authenticated')
-      error.value = 'User not authenticated'
-      return
-    }
+// OLD: ~70 lines of lifecycle and infinite scroll setup
+// NEW: setupInfiniteScroll is called in composable's onMounted
 
-    const uid = user.value.uid
-    const company = (user.value as any).company || 'default'
-    log('loadFolders calling service', { uid, company })
-    const response = await dashboardService.getFolders(uid, company)
-    rootFolders.value = response.folders
-    log('loadFolders completed', { folderCount: rootFolders.value.length })
+// ========== Permission-Based UI ==========
 
-    // Set default folder to root if not specified
-    if (!selectedFolderId.value && rootFolders.value.length > 0) {
-      const firstFolder = rootFolders.value[0]
-      if (firstFolder) {
-        selectedFolderId.value = firstFolder.id
-        log('loadFolders set default folder', { folderId: selectedFolderId.value })
-      }
-    }
-  } catch (err) {
-    log('loadFolders error', err)
-    error.value = err instanceof Error ? err.message : 'Failed to load folders'
-    console.error('Error loading folders:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
+// Permission checks are now automatic in composable:
+// - If canCreateFolder = false, create button will be disabled (prop binding)
+// - If canShareDashboard = false, share dialog won't open
+// - If canViewDashboards = false, view action is blocked at composable level
 
-const loadDashboards = async () => {
-  try {
-    log('loadDashboards started', { userId: user?.value?.uid, folderId: selectedFolderId.value })
-    isLoading.value = true
-    error.value = null
+// ========== Benefits of Strategy 4 ==========
 
-    if (!user?.value || !selectedFolderId.value) {
-      log('loadDashboards skipped: missing user or folderId')
-      return
-    }
-
-    const uid = user.value.uid
-    const company = (user.value as any).company || 'default'
-    log('loadDashboards calling service', { uid, company, folderId: selectedFolderId.value })
-    const response = await dashboardService.getDashboards(uid, company, {
-      folderId: selectedFolderId.value,
-    })
-
-    dashboards.value = response.dashboards
-    log('loadDashboards got dashboards', { count: dashboards.value.length })
-
-    // Load current folder info
-    log('loadDashboards loading folder info')
-    const folder = await dashboardService.getFolder(selectedFolderId.value)
-    if (folder) {
-      currentFolder.value = folder
-      log('loadDashboards got folder', { name: folder.name })
-      
-      log('loadDashboards loading folder path')
-      const path = await dashboardService.getFolderPath(selectedFolderId.value)
-      folderPath.value = path || []
-      log('loadDashboards got folder path', { pathLength: folderPath.value.length })
-    }
-  } catch (err) {
-    log('loadDashboards error', err)
-    error.value = err instanceof Error ? err.message : 'Failed to load dashboards'
-    console.error('Error loading dashboards:', err)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Event handlers
-const handleFolderSelect = async (folderId: string) => {
-  log('handleFolderSelect', { folderId })
-  selectedFolderId.value = folderId
-  await loadDashboards()
-}
-
-
-const handleViewDashboard = async (dashboard: Dashboard) => {
-  log('handleViewDashboard', { dashboardId: dashboard.id })
-  await router.push(`/dashboard/view/${dashboard.id}`)
-}
-
-const handleShareDashboard = (dashboard: Dashboard) => {
-  log('handleShareDashboard', { dashboardId: dashboard.id })
-  selectedDashboard.value = dashboard
-  shareDialogOpen.value = true
-}
-
-const handleMenuDashboard = (dashboard: Dashboard, event: MouseEvent) => {
-  log('handleMenuDashboard', { dashboardId: dashboard.id })
-  console.log('Menu action event:', event, 'Dashboard:', dashboard.id)
-  // Handle menu actions here
-}
-
-const handleShare = async (payload: { dashboardId: string; userIds: string[]; expiryDate?: string }) => {
-  log('handleShare', { dashboardId: payload.dashboardId, userCount: payload.userIds.length })
-  try {
-    console.log('Share dashboard:', payload)
-    // API call would go here
-    error.value = null
-  } catch (err) {
-    log('handleShare error', err)
-    error.value = err instanceof Error ? err.message : 'Failed to share dashboard'
-    console.error('Error sharing dashboard:', err)
-  }
-}
-
-const handleCreateFolder = () => {
-  log('handleCreateFolder', { folderId: selectedFolderId.value })
-  // TODO: Implement folder creation dialog
-  console.log('Create folder in:', selectedFolderId.value)
-}
-
-// Lifecycle
-onMounted(async () => {
-  log('onMounted: Page mounted, starting initialization')
-  try {
-    log('onMounted: Initial user state', { userExists: !!user, userValueExists: !!user?.value })
-    
-    // Wait for user to be loaded (max 5 seconds)
-    log('onMounted: Waiting for user authentication')
-    let attempts = 0
-    while (!user?.value && attempts < 50) {
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      attempts++
-    }
-
-    log('onMounted: Auth wait completed', { attempts, userLoaded: !!user?.value })
-
-    if (!user?.value) {
-      log('onMounted: ERROR - User still not loaded after 5 seconds')
-      error.value = 'User authentication failed. Please reload the page.'
-      return
-    }
-
-    const uid = user.value.uid
-    const company = (user.value as any).company || 'default'
-    log('onMounted: User authenticated', { uid, company })
-
-    // Check if folder is specified in query params first
-    if (route.query.folder) {
-      selectedFolderId.value = route.query.folder as string
-      log('onMounted: Folder from query param', { folderId: selectedFolderId.value })
-    }
-    
-    log('onMounted: Calling loadFolders')
-    await loadFolders()
-    
-    log('onMounted: After loadFolders', { selectedFolderId: selectedFolderId.value, folderCount: rootFolders.value.length })
-    
-    // If no folder selected yet, use first folder
-    if (!selectedFolderId.value && rootFolders.value.length > 0) {
-      const firstFolder = rootFolders.value[0]
-      if (firstFolder) {
-        selectedFolderId.value = firstFolder.id
-        log('onMounted: Set default folder', { folderId: selectedFolderId.value })
-      }
-    }
-    
-    log('onMounted: Calling loadDashboards')
-    await loadDashboards()
-
-    log('onMounted: Initialization complete', { dashboardCount: dashboards.value.length })
-
-    // Setup infinite scroll sentinel
-    log('onMounted: Setting up infinite scroll')
-    if (infiniteScrollSentinel.value) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          const entry = entries?.[0]
-          if (!entry) return
-          log('Infinite scroll sentinel visibility', { isVisible: entry.isIntersecting })
-          // When sentinel becomes visible, load more dashboards
-          if (entry.isIntersecting && !isLoading.value && dashboards.value.length > 0) {
-            log('Loading more dashboards via infinite scroll')
-            loadDashboards()
-          }
-        },
-        {
-          root: null,
-          rootMargin: '100px', // Load when 100px away from bottom
-          threshold: 0.01
-        }
-      )
-      observer.observe(infiniteScrollSentinel.value)
-    }
-  } catch (err) {
-    log('onMounted: CATCH block error', err)
-    error.value = err instanceof Error ? err.message : 'Failed to initialize page'
-    console.error('Initialization error:', err)
-  }
-})
+// 1. Reusability: useDashboardPage can be used in AdminPage, or other pages
+//    that need similar dashboard logic
+//
+// 2. State Sharing: Pinia stores (dashboard, permissions) are shared across app
+//    If another page changes a dashboard, all pages get updated automatically
+//
+// 3. Permissions: All permission checks are centralized in usePermissionsStore
+//    No need for inline v-if checks in template
+//
+// 4. Testing: Easy to unit test the composable
+//    Mock dashboardService and test all edge cases
+//
+// 5. Performance: Computed properties in stores are cached
+//    No unnecessary re-renders
+//
+// 6. Maintenance: Adding new feature only requires changes in:
+//    - useDashboardPage composable
+//    - Template (to use new data/methods)
+//    - No need to modify multiple files
 </script>
 
 <style scoped>
