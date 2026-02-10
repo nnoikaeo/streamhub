@@ -35,10 +35,10 @@ import { type Dashboard } from '../../types/dashboard'
 import DashboardCard from './DashboardCard.vue'
 
 /**
- * DashboardGrid - Responsive 3-column grid of dashboard cards
+ * DashboardGrid - Responsive 5-column grid of dashboard cards
  *
  * Features:
- * - 3-column grid layout (responsive: 2 on tablet, 1 on mobile)
+ * - 5-column grid layout (responsive: 3 on tablet, 1 on mobile)
  * - Compact dashboard cards with hover effects
  * - Empty state handling
  * - Loading state with spinner
@@ -99,11 +99,11 @@ defineEmits<{
   height: 100%;
 }
 
-/* ========== CARDS GRID - 3 COLUMNS ========== */
+/* ========== CARDS GRID - 5 COLUMNS ========== */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
   width: 100%;
 }
 
@@ -159,10 +159,20 @@ defineEmits<{
 
 /* ========== RESPONSIVE ========== */
 
-/* Tablet - 2 columns */
+/* Large Desktop - 5 columns (default) */
+/* Desktop ≥ 1280px - 5 columns */
+
+/* Desktop/Tablet - 4 columns */
+@media (max-width: 1279px) {
+  .cards-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Tablet - 3 columns */
 @media (max-width: 1024px) {
   .cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;
   }
 }
