@@ -55,15 +55,8 @@
             @menu-dashboard="handleMenuDashboard"
           />
 
-          <!-- Load More Footer -->
-          <div v-if="dashboards.length > 0" class="load-more-footer">
-            <button class="load-more-btn" @click="handleLoadMore">
-              Scroll to load more...
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-          </div>
+          <!-- Infinite scroll sentinel (triggers load when visible) -->
+          <div ref="infiniteScrollSentinel" class="infinite-scroll-sentinel" />
 
           <!-- Quick Share Dialog -->
           <ClientOnly>
@@ -139,6 +132,7 @@ const shareDialogOpen = ref(false)
 const selectedDashboard = ref<Dashboard | null>(null)
 const folderPath = ref<Folder[]>([])
 const availableUsers = ref<any[]>([])
+const infiniteScrollSentinel = ref<HTMLElement | null>(null)
 
 // Computed properties
 const currentUserId = computed(() => {
@@ -305,12 +299,6 @@ const handleCreateFolder = () => {
   console.log('Create folder in:', selectedFolderId.value)
 }
 
-const handleLoadMore = () => {
-  log('handleLoadMore', { currentCount: dashboards.value.length })
-  // TODO: Implement pagination or infinite scroll
-  console.log('Load more dashboards...')
-}
-
 // Lifecycle
 onMounted(async () => {
   log('onMounted: Page mounted, starting initialization')
@@ -359,8 +347,31 @@ onMounted(async () => {
     
     log('onMounted: Calling loadDashboards')
     await loadDashboards()
-    
+
     log('onMounted: Initialization complete', { dashboardCount: dashboards.value.length })
+
+    // Setup infinite scroll sentinel
+    log('onMounted: Setting up infinite scroll')
+    if (infiniteScrollSentinel.value) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries?.[0]
+          if (!entry) return
+          log('Infinite scroll sentinel visibility', { isVisible: entry.isIntersecting })
+          // When sentinel becomes visible, load more dashboards
+          if (entry.isIntersecting && !isLoading.value && dashboards.value.length > 0) {
+            log('Loading more dashboards via infinite scroll')
+            loadDashboards()
+          }
+        },
+        {
+          root: null,
+          rootMargin: '100px', // Load when 100px away from bottom
+          threshold: 0.01
+        }
+      )
+      observer.observe(infiniteScrollSentinel.value)
+    }
   } catch (err) {
     log('onMounted: CATCH block error', err)
     error.value = err instanceof Error ? err.message : 'Failed to initialize page'
@@ -436,44 +447,10 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* ========== LOAD MORE FOOTER ========== */
-.load-more-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--color-border-light);
-}
-
-.load-more-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.load-more-btn:hover {
-  background: var(--color-bg-secondary);
-  border-color: var(--color-neutral-500);
-  color: var(--color-text-primary);
-}
-
-.load-more-btn svg {
-  width: 1rem;
-  height: 1rem;
-  transition: transform 0.2s ease;
-}
-
-.load-more-btn:hover svg {
-  transform: translateY(2px);
+/* ========== INFINITE SCROLL SENTINEL ========== */
+.infinite-scroll-sentinel {
+  height: 1px;
+  visibility: hidden;
 }
 
 /* Responsive */
