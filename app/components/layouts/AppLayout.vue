@@ -18,8 +18,8 @@
       </main>
     </div>
 
-    <!-- Footer (Fixed) -->
-    <footer class="app-footer">
+    <!-- Footer (Fixed) - TEMPORARILY HIDDEN FOR PREVIEW -->
+    <footer v-if="false" class="app-footer">
       <AppFooter />
     </footer>
   </div>

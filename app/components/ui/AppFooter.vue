@@ -22,7 +22,7 @@
 .app-footer-content {
   background-color: var(--color-bg-secondary);
   border-top: 1px solid var(--color-border-light);
-  min-height: 3.5rem;
+  min-height: 2rem;
 }
 
 .footer-container {
