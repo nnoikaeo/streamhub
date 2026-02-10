@@ -8,29 +8,6 @@
       </div>
     </div>
 
-    <!-- Dashboard Type Badge -->
-    <div class="dashboard-type">
-      <component :is="dashboardTypeIcon" class="type-icon" />
-      <span>{{ dashboardTypeLabel }}</span>
-    </div>
-
-    <!-- Permissions/Ownership Info -->
-    <div class="dashboard-permissions">
-      <div v-if="dashboard.owner === currentUserId" class="permission-item ownership">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-        <span>Owned by you</span>
-      </div>
-      <div class="permission-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-        <span>You can: {{ permissionsText }}</span>
-      </div>
-    </div>
-
     <!-- Open Button - Using Primary Brand Color -->
     <button class="open-button" @click="$emit('view')">
       <span>Open</span>
@@ -59,81 +36,9 @@ const props = defineProps<Props>()
 
 defineEmits<{
   view: []
-  share: []
-  menu: [event: MouseEvent]
 }>()
 
-// Mock current user ID (replace with actual auth)
-const currentUserId = 'current-user-id'
-
-// Dashboard type mapping
-const dashboardTypeLabel = computed(() => {
-  const typeMap: Record<string, string> = {
-    performance: 'Performance Dashboard',
-    geographic: 'Geographic Dashboard',
-    forecast: 'Forecast Dashboard',
-    analysis: 'Analysis Dashboard',
-    looker: 'Looker Dashboard',
-    custom: 'Custom Dashboard',
-    external: 'External Dashboard',
-  }
-  return typeMap[props.dashboard.type] || 'Dashboard'
-})
-
-// Permissions text
-const permissionsText = computed(() => {
-  if (props.dashboard.owner === currentUserId) {
-    return 'View, Edit'
-  }
-  return 'View'
-})
-
-// Dashboard type icon component
-const dashboardTypeIcon = computed(() => {
-  const iconMap: Record<string, any> = {
-    performance: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('polyline', { points: '22 12 18 12 15 21 9 3 6 12 2 12' })
-    ]),
-    geographic: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('path', { d: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z' }),
-      h('circle', { cx: '12', cy: '10', r: '3' })
-    ]),
-    forecast: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('polyline', { points: '23 6 13.5 15.5 8.5 10.5 1 18' }),
-      h('polyline', { points: '17 6 23 6 23 12' })
-    ]),
-    analysis: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('rect', { x: '3', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '14', width: '7', height: '7' }),
-      h('rect', { x: '3', y: '14', width: '7', height: '7' })
-    ]),
-  }
-  
-  return iconMap[props.dashboard.type] || iconMap.analysis
-})
-
-// Large dashboard icon for top-right corner
+// Dashboard icon for card header
 const dashboardIcon = computed(() => {
   const iconMap: Record<string, any> = {
     performance: () => h('svg', {
@@ -183,16 +88,17 @@ const dashboardIcon = computed(() => {
 
 <style scoped>
 /* ============================================================================
-   DASHBOARD CARD - Using StreamHub Theme Variables
+   DASHBOARD CARD - Compact Design
    ============================================================================ */
 
 .dashboard-card {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-md);
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
   transition: all var(--transition-base);
   box-shadow: var(--shadow-sm);
 }
@@ -207,23 +113,23 @@ const dashboardIcon = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-md);
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 500;
   color: var(--color-primary);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.3;
   flex: 1;
+  word-break: break-word;
 }
 
 .card-icon {
   flex-shrink: 0;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -231,72 +137,23 @@ const dashboardIcon = computed(() => {
 }
 
 .card-icon svg {
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
-/* ========== DASHBOARD TYPE ========== */
-.dashboard-type {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-sm) 0;
-}
-
-.type-icon {
-  width: 1rem;
-  height: 1rem;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-}
-
-.dashboard-type span {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-/* ========== PERMISSIONS ========== */
-.dashboard-permissions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-  flex: 1;
-}
-
-.permission-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.permission-item.ownership {
-  color: var(--color-text-primary);
-}
-
-.permission-item svg {
-  width: 1rem;
-  height: 1rem;
-  flex-shrink: 0;
-}
-
-/* ========== OPEN BUTTON - Using Primary Brand Color ========== */
+/* ========== OPEN BUTTON ========== */
 .open-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
   width: 100%;
-  padding: 0.875rem var(--spacing-lg);
+  padding: 0.65rem var(--spacing-md);
   background: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -314,8 +171,8 @@ const dashboardIcon = computed(() => {
 }
 
 .open-button svg {
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 1rem;
+  height: 1rem;
   transition: transform var(--transition-fast);
 }
 
@@ -326,21 +183,21 @@ const dashboardIcon = computed(() => {
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .dashboard-card {
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm);
   }
-  
+
   .card-title {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
-  
+
   .card-icon {
-    width: 2rem;
-    height: 2rem;
-  }
-  
-  .card-icon svg {
     width: 1.5rem;
     height: 1.5rem;
+  }
+
+  .card-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
   }
 }
 </style>
