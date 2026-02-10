@@ -62,11 +62,11 @@ defineProps({
 
 <style scoped>
 .card {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 /* Interactive state */
@@ -74,8 +74,8 @@ defineProps({
   cursor: pointer;
 
   &:hover {
-    border-color: #d1d5db;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-border-default);
+    box-shadow: var(--shadow-md);
     transform: translateY(-1px);
   }
 
@@ -87,8 +87,8 @@ defineProps({
 /* Card Header */
 .card-header {
   padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #f9fafb;
+  border-bottom: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-secondary);
 
   &:empty {
     display: none;
@@ -100,15 +100,15 @@ defineProps({
   padding: 1rem;
 
   &:only-child {
-    background-color: #ffffff;
+    background-color: var(--color-bg-primary);
   }
 }
 
 /* Card Footer */
 .card-footer {
   padding: 1rem;
-  border-top: 1px solid #e5e7eb;
-  background-color: #f9fafb;
+  border-top: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-secondary);
 
   &:empty {
     display: none;

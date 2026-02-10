@@ -151,9 +151,9 @@
     <!-- Quick Share Dialog -->
     <QuickShareDialog
       v-if="shareDialogOpen && dashboard"
-      :dashboard="dashboard"
-      :current-user-id="currentUserId"
-      @close="shareDialogOpen = false"
+      v-model="shareDialogOpen"
+      :dashboard-id="dashboard.id"
+      :available-users="[]"
       @share="handleShare"
     />
   </AppLayout>
@@ -162,13 +162,13 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '~/composables/useAuth'
-import { useDashboardService } from '~/composables/useDashboardService'
-import type { Dashboard, Folder, User } from '~/types/dashboard'
-import AppLayout from '~/components/layouts/AppLayout.vue'
-import TwoPaneLayout from '~/components/compositions/TwoPaneLayout.vue'
-import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
-import DashboardViewHeader from '~/components/features/DashboardViewHeader.vue'
+import { useAuth } from '../../composables/useAuth'
+import { useDashboardService } from '../../composables/useDashboardService'
+import type { Dashboard, Folder, User } from '../../types/dashboard'
+import AppLayout from '../../components/layouts/AppLayout.vue'
+import TwoPaneLayout from '../../components/compositions/TwoPaneLayout.vue'
+import QuickShareDialog from '../../components/features/QuickShareDialog.vue'
+import DashboardViewHeader from '../../components/features/DashboardViewHeader.vue'
 
 // Page metadata
 definePageMeta({
@@ -206,7 +206,12 @@ const ownerName = computed(() => {
 
 const isPublic = computed(() => {
   if (!dashboard.value) return false
-  return dashboard.value.access.public || false
+  // Check if company access allows public or if direct access includes any users/roles/groups
+  const hasDirectAccess = 
+    dashboard.value.access.direct.users.length > 0 ||
+    dashboard.value.access.direct.roles.length > 0 ||
+    dashboard.value.access.direct.groups.length > 0
+  return hasDirectAccess
 })
 
 const accessReason = computed(() => {
@@ -297,14 +302,11 @@ const openShareDialog = () => {
   shareDialogOpen.value = true
 }
 
-const handleShare = async (data: { grantedUntil?: Date; sendNotification: boolean }) => {
+const handleShare = async (payload: { dashboardId: string; userIds: string[]; expiryDate?: string }) => {
   try {
-    if (!dashboard.value) return
-
-    console.log('Share dashboard:', dashboard.value.id, data)
+    console.log('Share dashboard:', payload)
     // API call would go here
     error.value = null
-    shareDialogOpen.value = false
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to share dashboard'
     console.error('Error sharing dashboard:', err)

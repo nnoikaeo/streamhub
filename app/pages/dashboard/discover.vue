@@ -1,7 +1,7 @@
 <template>
   <ClientOnly>
     <div v-if="!isLoading && rootFolders.length > 0" class="discover-page-wrapper">
-      <DiscoverPageLayout :breadcrumb-items="breadcrumbItems" @navigate-breadcrumb="handleBreadcrumbNavigate">
+      <DiscoverPageLayout>
         <!-- Sidebar: Folder Tree Navigation -->
         <template #sidebar>
           <FolderSidebar
@@ -16,8 +16,30 @@
 
         <!-- Main: Dashboard Grid -->
         <div class="discover-main-content">
-          <!-- Folder Info Header -->
-          <FolderInfoCard v-if="currentFolder" :folder="currentFolder" :dashboard-count="dashboards.length" />
+          <!-- Breadcrumbs Navigation -->
+          <nav class="breadcrumb-nav">
+            <button
+              v-for="(item, index) in breadcrumbItems"
+              :key="index"
+              class="breadcrumb-item"
+              @click="handleBreadcrumbNavigate(item.path)"
+            >
+              {{ item.label }}
+            </button>
+          </nav>
+
+          <!-- Dashboards Found Header -->
+          <div class="dashboards-header">
+            <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
+            <h2 class="dashboards-count">{{ dashboards.length }} Dashboards Found</h2>
+          </div>
 
           <!-- Error Message -->
           <div v-if="error" class="theme-alert theme-alert--error" role="alert">
@@ -41,6 +63,16 @@
             @share-dashboard="handleShareDashboard"
             @menu-dashboard="handleMenuDashboard"
           />
+
+          <!-- Load More Footer -->
+          <div v-if="dashboards.length > 0" class="load-more-footer">
+            <button class="load-more-btn" @click="handleLoadMore">
+              Scroll to load more...
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          </div>
 
           <!-- Quick Share Dialog -->
           <ClientOnly>
@@ -72,7 +104,6 @@ import { useDashboardService } from '~/composables/useDashboardService'
 import type { Folder, Dashboard } from '~/types/dashboard'
 import DiscoverPageLayout from '~/components/compositions/DiscoverPageLayout.vue'
 import FolderSidebar from '~/components/features/FolderSidebar.vue'
-import FolderInfoCard from '~/components/features/FolderInfoCard.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 
@@ -286,6 +317,12 @@ const handleCreateFolder = () => {
   console.log('Create folder in:', selectedFolderId.value)
 }
 
+const handleLoadMore = () => {
+  log('handleLoadMore', { currentCount: dashboards.value.length })
+  // TODO: Implement pagination or infinite scroll
+  console.log('Load more dashboards...')
+}
+
 // Lifecycle
 onMounted(async () => {
   log('onMounted: Page mounted, starting initialization')
@@ -385,14 +422,130 @@ onMounted(async () => {
 .discover-main-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   padding: 2rem;
+}
+
+/* ========== BREADCRUMB NAVIGATION ========== */
+.breadcrumb-nav {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border-light);
+  flex-wrap: wrap;
+}
+
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  background: none;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 400;
+}
+
+.breadcrumb-item:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.breadcrumb-item:first-child {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  cursor: default;
+  padding-right: 0.5rem;
+}
+
+.breadcrumb-item:first-child:hover {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+/* Separator between breadcrumb items */
+.breadcrumb-item:not(:first-child)::before {
+  content: '/';
+  display: inline-block;
+  margin: 0 0.5rem;
+  color: var(--color-border-light);
+  font-weight: 300;
+}
+
+/* ========== DASHBOARDS HEADER ========== */
+.dashboards-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.header-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.dashboards-count {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* ========== LOAD MORE FOOTER ========== */
+.load-more-footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.load-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.load-more-btn:hover {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-neutral-500);
+  color: var(--color-text-primary);
+}
+
+.load-more-btn svg {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.load-more-btn:hover svg {
+  transform: translateY(2px);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .discover-main-content {
     padding: 1rem;
+  }
+  
+  .dashboards-count {
+    font-size: 1.125rem;
   }
 }
 </style>

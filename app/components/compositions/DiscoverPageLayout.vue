@@ -2,14 +2,6 @@
   <AppLayout :show-sidebar="false">
     <!-- Main Content Area with Header + Grid -->
     <div class="discover-page-layout">
-      <!-- Breadcrumb Navigation -->
-      <div class="discover-header">
-        <Breadcrumb
-          :items="breadcrumbItems"
-          @navigate="$emit('navigate-breadcrumb', $event)"
-        />
-      </div>
-
       <!-- Two-Pane Container (Sidebar + Dashboard Grid) -->
       <TwoPaneLayout :sidebar-width="280" class="discover-panes">
         <!-- Sidebar: Folder Navigation -->
@@ -45,18 +37,14 @@
  * Features:
  * - Folder tree in sidebar (files/folders only)
  * - Dashboard grid in main area
- * - Breadcrumb shows current path
  * - Responsive (sidebar hidden on mobile)
  *
  * Slots:
  * - sidebar: Folder navigation component
  * - default: Dashboard grid content
  *
- * Events:
- * - navigate-breadcrumb: Fired when breadcrumb clicked
- *
  * Usage:
- * <DiscoverPageLayout :breadcrumb-items="items">
+ * <DiscoverPageLayout>
  *   <template #sidebar>
  *     <FolderTree :folders="folders" />
  *   </template>
@@ -64,27 +52,7 @@
  * </DiscoverPageLayout>
  */
 
-interface BreadcrumbItem {
-  label: string
-  to?: string | null
-}
-
-defineProps({
-  /**
-   * Breadcrumb items for current path
-   */
-  breadcrumbItems: {
-    type: Array as () => BreadcrumbItem[],
-    required: true,
-  },
-})
-
-defineEmits<{
-  'navigate-breadcrumb': [to: string]
-}>()
-
 import AppLayout from '~/components/layouts/AppLayout.vue'
-import Breadcrumb from '~/components/ui/Breadcrumb.vue'
 import TwoPaneLayout from './TwoPaneLayout.vue'
 </script>
 

@@ -203,6 +203,7 @@ const handleFolderExpand = (folderId: string) => {
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .search-input {
@@ -213,6 +214,7 @@ const handleFolderExpand = (folderId: string) => {
   border-radius: 0.375rem;
   transition: all 0.2s ease;
   font-family: inherit;
+  box-sizing: border-box;
 
   &::placeholder {
     color: #d1d5db;

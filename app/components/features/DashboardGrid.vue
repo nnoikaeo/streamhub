@@ -31,14 +31,14 @@
 </template>
 
 <script setup lang="ts">
-import { type Dashboard } from '~/types/dashboard'
+import { type Dashboard } from '../../types/dashboard'
 import DashboardCard from './DashboardCard.vue'
 
 /**
- * DashboardGrid - Responsive grid of dashboard cards
+ * DashboardGrid - Responsive 2-column grid of dashboard cards
  *
  * Features:
- * - Responsive grid layout (auto columns)
+ * - 2-column grid layout (1 column on mobile)
  * - Dashboard cards with hover effects
  * - Empty state handling
  * - Loading state with spinner
@@ -99,10 +99,10 @@ defineEmits<{
   height: 100%;
 }
 
-/* ========== CARDS GRID ========== */
+/* ========== CARDS GRID - 2 COLUMNS ========== */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
   width: 100%;
 }
@@ -159,16 +159,15 @@ defineEmits<{
 
 /* ========== RESPONSIVE ========== */
 
-/* Tablet */
+/* Tablet - Still 2 columns */
 @media (max-width: 1024px) {
   .cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1rem;
+    gap: 1.25rem;
   }
 }
 
-/* Mobile */
-@media (max-width: 640px) {
+/* Mobile - 1 column */
+@media (max-width: 768px) {
   .cards-grid {
     grid-template-columns: 1fr;
     gap: 1rem;

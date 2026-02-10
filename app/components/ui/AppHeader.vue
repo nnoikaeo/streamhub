@@ -3,7 +3,7 @@
     <div class="header-container">
       <!-- Logo / Brand -->
       <div class="header-brand">
-        <h1 class="brand-logo">StreamHub</h1>
+        <h1 class="brand-logo">Dashboard Hub</h1>
       </div>
 
       <!-- Header Content Slot -->
@@ -31,8 +31,8 @@
 
 <style scoped>
 .app-header-content {
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-light);
   min-height: 3.5rem;
 }
 
@@ -52,7 +52,7 @@
 .brand-logo {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-text-primary);
   margin: 0;
 }
 
@@ -70,14 +70,14 @@
   gap: 0.75rem;
   padding: 0.5rem 1rem;
   background: none;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 
   &:hover {
-    background-color: #f9fafb;
-    border-color: #d1d5db;
+    background-color: var(--color-bg-secondary);
+    border-color: var(--color-border-default);
   }
 }
 
@@ -87,7 +87,7 @@
 
 .user-name {
   font-size: 0.875rem;
-  color: #1f2937;
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 </style>

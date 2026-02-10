@@ -1,7 +1,7 @@
 <template>
   <footer class="app-footer-content">
     <div class="footer-container">
-      <p class="footer-text">© 2025 StreamHub. All rights reserved.</p>
+      <p class="footer-text">© 2026 Streamwash (THAILAND) Co.Ltd. All rights reserved.</p>
       <nav class="footer-links">
         <a href="#" class="footer-link">Terms</a>
         <a href="#" class="footer-link">Privacy</a>
@@ -20,9 +20,9 @@
 
 <style scoped>
 .app-footer-content {
-  background-color: #f9fafb;
-  border-top: 1px solid #e5e7eb;
-  min-height: 3rem;
+  background-color: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border-light);
+  min-height: 3.5rem;
 }
 
 .footer-container {
@@ -36,7 +36,7 @@
 
 .footer-text {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -47,12 +47,12 @@
 
 .footer-link {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 
   &:hover {
-    color: #1f2937;
+    color: var(--color-text-primary);
     text-decoration: underline;
   }
 }

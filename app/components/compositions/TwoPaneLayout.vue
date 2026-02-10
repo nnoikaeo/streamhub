@@ -87,14 +87,14 @@ defineProps({
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background-color: #ffffff;
+  background-color: var(--color-bg-primary);
 }
 
 /* ========== SIDEBAR PANE ========== */
 .two-pane-sidebar {
   flex-shrink: 0;
   width: v-bind('`${sidebarWidth}px`');
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid var(--color-border-light);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -108,7 +108,7 @@ defineProps({
 
   /* Custom scrollbar */
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f3f4f6;
+  scrollbar-color: var(--color-neutral-400) var(--color-neutral-100);
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -119,11 +119,11 @@ defineProps({
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #d1d5db;
+    background: var(--color-neutral-400);
     border-radius: 3px;
 
     &:hover {
-      background: #9ca3af;
+      background: var(--color-neutral-500);
     }
   }
 }
@@ -139,7 +139,7 @@ defineProps({
 
   /* Custom scrollbar */
   scrollbar-width: thin;
-  scrollbar-color: #d1d5db #f3f4f6;
+  scrollbar-color: var(--color-neutral-400) var(--color-neutral-100);
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -150,11 +150,11 @@ defineProps({
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #d1d5db;
+    background: var(--color-neutral-400);
     border-radius: 3px;
 
     &:hover {
-      background: #9ca3af;
+      background: var(--color-neutral-500);
     }
   }
 }
