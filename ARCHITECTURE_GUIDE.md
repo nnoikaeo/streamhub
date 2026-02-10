@@ -536,11 +536,25 @@ npm run dev
 
 ## 📚 Documentation References
 
-For detailed information about component organization and design system, refer to:
-
+### Component & Design System
 - **[Component Conventions](docs/COMPONENT_CONVENTIONS.md)** - Component auto-import, naming conventions, organization
 - **[Design System](docs/DESIGN_SYSTEM.md)** - Design tokens, CSS variables, styling guidelines
 - **[Layout Components](docs/LAYOUT_COMPONENTS.md)** - Layout structure, composition patterns, responsive design
+
+### Page Architecture & State Management
+- **[Strategy 4: Hybrid Approach](docs/STRATEGY_4_HYBRID_APPROACH.md)** - **Recommended architecture** for page reusability using Pinia stores + composables
+  - How to structure reusable pages
+  - Pinia store management
+  - Composable logic extraction
+  - Permission integration
+  - Real-world examples and patterns
+
+- **[Permissions Store](docs/PERMISSIONS_STORE.md)** - Role-based access control (RBAC) with Pinia
+  - User permissions and roles
+  - Permission checking at multiple levels
+  - Integration with UI components
+  - Practical implementation examples
+  - Testing strategies
 
 ---
 
