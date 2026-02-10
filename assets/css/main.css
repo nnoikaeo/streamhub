@@ -2,10 +2,407 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * StreamHub Theme Variables
+ * Centralized CSS variables for consistent theming across all pages
+ * Change these values once to update the entire application
+ */
+:root {
+  /* Primary Colors - Main Brand Color */
+  --color-primary: #2d3389;
+  --color-primary-dark: #1f2461;
+  --color-primary-light: #5d7eb8;
+  --color-primary-lighter: #8fa6d0;
+  --color-primary-lightest: #e0e5f3;
+
+  /* Secondary Colors - White */
+  --color-secondary: #ffffff;
+  --color-secondary-light: #fafafa;
+  --color-secondary-lighter: #f5f5f5;
+
+  /* Neutral Grays */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #eeeeee;
+  --color-neutral-300: #e0e0e0;
+  --color-neutral-400: #bdbdbd;
+  --color-neutral-500: #9e9e9e;
+  --color-neutral-600: #757575;
+  --color-neutral-700: #616161;
+  --color-neutral-800: #424242;
+  --color-neutral-900: #212121;
+
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Text Colors */
+  --color-text-primary: #212121;
+  --color-text-secondary: #757575;
+  --color-text-disabled: #bdbdbd;
+  --color-text-inverse: #ffffff;
+
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #fafafa;
+  --color-bg-tertiary: #f5f5f5;
+
+  /* Border Colors */
+  --color-border-light: #eeeeee;
+  --color-border-default: #e0e0e0;
+  --color-border-dark: #bdbdbd;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+}
+
+/* Base Styles */
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-50;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+/* Ensure consistent font rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================================
+   HEADINGS - Use Primary Brand Color (GLOBAL - Override All Scoped Styles)
+   ============================================================================ */
+
+/* Critical: Use !important to override Vue scoped styles */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  color: var(--color-primary) !important;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 0;
+}
+
+h1, .h1 {
+  font-size: 2.25rem; /* 36px */
+  margin-bottom: 1rem;
+}
+
+h2, .h2 {
+  font-size: 1.875rem; /* 30px */
+  margin-bottom: 0.875rem;
+}
+
+h3, .h3 {
+  font-size: 1.5rem; /* 24px */
+  margin-bottom: 0.75rem;
+}
+
+h4, .h4 {
+  font-size: 1.25rem; /* 20px */
+  margin-bottom: 0.625rem;
+}
+
+h5, .h5 {
+  font-size: 1.125rem; /* 18px */
+  margin-bottom: 0.5rem;
+}
+
+h6, .h6 {
+  font-size: 1rem; /* 16px */
+  margin-bottom: 0.5rem;
+}
+
+/* Specific overrides for common heading classes */
+.brand-logo,
+.sidebar-title,
+.page-title,
+.section-title,
+.card-title,
+.modal-title,
+.dashboards-count {
+  color: var(--color-primary) !important;
+}
+
+/* ============================================================================
+   BUTTONS - Use Primary Brand Color (GLOBAL)
+   ============================================================================ */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Default button styles - can be overridden by component classes */
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]) {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-weight: 500;
+}
+
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* ============================================================================
+   BUTTON TEXT & ICON COLOR FIXES - ULTRA HIGH SPECIFICITY
+   Fix for User Menu Button and Create Folder Button
+   ============================================================================ */
+
+/* User Menu Button - Force white text */
+.header-user .user-menu-btn,
+button.user-menu-btn {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+/* User Menu Button - Force white for all children */
+.header-user .user-menu-btn *,
+button.user-menu-btn * {
+  color: inherit !important;
+}
+
+.header-user .user-menu-btn .user-name,
+.header-user .user-menu-btn .user-avatar,
+button.user-menu-btn .user-name,
+button.user-menu-btn .user-avatar {
+  color: var(--color-text-inverse) !important;
+}
+
+/* ============================================================================
+   CREATE FOLDER BUTTON - ULTRA HIGH SPECIFICITY FOR SVG ELEMENTS
+   ============================================================================ */
+
+/* Level 1: Button itself */
+.sidebar-header .create-folder-btn,
+button.create-folder-btn {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: var(--spacing-sm) !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border: none !important;
+}
+
+/* Level 2: SVG element */
+.sidebar-header .create-folder-btn svg,
+button.create-folder-btn svg {
+  stroke: var(--color-text-inverse) !important;
+  fill: none !important;
+  color: var(--color-text-inverse) !important;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* Level 3: All SVG children (line, path, circle, etc.) */
+.sidebar-header .create-folder-btn svg *,
+button.create-folder-btn svg * {
+  stroke: inherit !important;
+  fill: inherit !important;
+  color: inherit !important;
+}
+
+/* Level 4: Specific line elements inside SVG */
+.sidebar-header .create-folder-btn svg line,
+button.create-folder-btn svg line {
+  stroke: var(--color-text-inverse) !important;
+}
+
+/* Level 5: Path elements inside SVG */
+.sidebar-header .create-folder-btn svg path,
+button.create-folder-btn svg path {
+  stroke: var(--color-text-inverse) !important;
+}
+
+/* ============================================================================
+   ULTRA HIGH SPECIFICITY - VUE SCOPED ATTRIBUTES
+   Target Vue scoped attributes directly
+   ============================================================================ */
+
+/* Create Folder Button with Vue scoped attribute */
+[data-v-19d67b45].create-folder-btn,
+.sidebar-header [data-v-19d67b45].create-folder-btn,
+button[data-v-19d67b45].create-folder-btn {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+/* SVG with Vue scoped attribute */
+[data-v-19d67b45].create-folder-btn svg,
+[data-v-19d67b45].create-folder-btn svg[data-v-19d67b45],
+.sidebar-header [data-v-19d67b45].create-folder-btn svg {
+  stroke: var(--color-text-inverse) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+/* SVG children with Vue scoped attribute */
+[data-v-19d67b45].create-folder-btn svg *,
+[data-v-19d67b45].create-folder-btn svg[data-v-19d67b45] *,
+[data-v-19d67b45].create-folder-btn svg line[data-v-19d67b45] {
+  stroke: var(--color-text-inverse) !important;
+}
+
+/* User Menu Button with Vue scoped attribute */
+[data-v-efec796d] button.user-menu-btn,
+[data-v-efec796d] .user-menu-btn {
+  color: var(--color-text-inverse) !important;
+}
+
+[data-v-efec796d] button.user-menu-btn *,
+[data-v-efec796d] .user-menu-btn * {
+  color: inherit !important;
+}
+
+/* ============================================================================
+   NUCLEAR OPTION - ABSOLUTE HIGHEST SPECIFICITY
+   Use multiple selectors combined for maximum override power
+   ============================================================================ */
+
+/* Sidebar + class + Vue scope */
+.sidebar-header button.create-folder-btn[data-v-19d67b45] {
+  color: var(--color-text-inverse) !important;
+}
+
+.sidebar-header button.create-folder-btn[data-v-19d67b45] svg {
+  stroke: var(--color-text-inverse) !important;
+  color: var(--color-text-inverse) !important;
+}
+
+.sidebar-header button.create-folder-btn[data-v-19d67b45] svg line {
+  stroke: var(--color-text-inverse) !important;
+}
+
+.sidebar-header button.create-folder-btn[data-v-19d67b45] svg[data-v-19d67b45] {
+  stroke: var(--color-text-inverse) !important;
+}
+
+.sidebar-header button.create-folder-btn[data-v-19d67b45] svg[data-v-19d67b45] line[data-v-19d67b45] {
+  stroke: var(--color-text-inverse) !important;
+}
+
+/* ============================================================================
+   CATCH-ALL RULES - Apply to ANY button with primary background
+   ============================================================================ */
+
+/* General: Force white text/icons on all primary background buttons */
+button[style*="background-color: var(--color-primary)"],
+button[style*="background-color:#2d3389"],
+button[style*="background-color: #2d3389"] {
+  color: var(--color-text-inverse) !important;
+}
+
+button[style*="background-color: var(--color-primary)"] *,
+button[style*="background-color:#2d3389"] *,
+button[style*="background-color: #2d3389"] * {
+  color: inherit !important;
+  stroke: inherit !important;
+}
+
+button[style*="background-color: var(--color-primary)"] svg,
+button[style*="background-color:#2d3389"] svg,
+button[style*="background-color: #2d3389"] svg {
+  stroke: currentColor !important;
+  color: var(--color-text-inverse) !important;
+}
+
+button[style*="background-color: var(--color-primary)"] svg *,
+button[style*="background-color:#2d3389"] svg *,
+button[style*="background-color: #2d3389"] svg * {
+  stroke: var(--color-text-inverse) !important;
+}
+
+/* ============================================================================
+   LINKS - Use Primary Brand Color
+   ============================================================================ */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+}
+
+/* ============================================================================
+   COMPONENT-SPECIFIC OVERRIDES (High Specificity)
+   ============================================================================ */
+
+/* Header Brand */
+.header-brand h1,
+.header-brand .brand-logo {
+  color: var(--color-primary) !important;
+}
+
+/* Sidebar */
+.sidebar-header h3,
+.sidebar-header .sidebar-title {
+  color: var(--color-primary) !important;
+}
+
+/* Dashboard Headers */
+.dashboards-header h2,
+.dashboards-header .dashboards-count {
+  color: var(--color-primary) !important;
+}
+
+/* Card Headers */
+.card-header h3,
+.dashboard-card h3,
+.theme-card h3 {
+  color: var(--color-primary) !important;
+}
+
+/* Section Titles */
+.section-title,
+.page-header__title {
+  color: var(--color-primary) !important;
+}
+
+/* Ensure primary color works even with data attributes (Vue scoped) */
+[data-v-efec796d] h1,
+[data-v-19d67b45] h3 {
+  color: var(--color-primary) !important;
 }

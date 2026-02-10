@@ -389,6 +389,127 @@ defineProps<{
 
 ---
 
+## Page Components (Implemented)
+
+### Dashboard Discovery Page
+
+**File:** `app/pages/dashboard/discover.vue` (351 lines)
+
+**Purpose:** Main dashboard browsing page with folder navigation
+
+**Features:**
+- DiscoverPageLayout composition
+- FolderSidebar + FolderTree (folder navigation)
+- DashboardGrid + DashboardCard (dashboard display)
+- Breadcrumb navigation
+- Quick share dialog integration
+- Error handling and loading states
+
+**Service Methods Used:**
+- `getFolders()` - Load accessible folders
+- `getDashboards()` - Load dashboards in folder
+- `getFolder()` - Get folder details
+- `getFolderPath()` - Get breadcrumb path
+
+**State Management:**
+```typescript
+const selectedFolderId = ref<string | null>(null)
+const dashboards = ref<Dashboard[]>([])
+const rootFolders = ref<Folder[]>([])
+const currentFolder = ref<Folder | null>(null)
+const breadcrumbItems = computed(() => [...])
+```
+
+**Usage:**
+```bash
+Navigation: /dashboard/discover
+Query params: ?folder=folderId (optional)
+```
+
+---
+
+### Single Dashboard View Page
+
+**File:** `app/pages/dashboard/view.vue` (816 lines)
+
+**Purpose:** Display single dashboard with metadata and Looker embed
+
+**Features:**
+- AppLayout + TwoPaneLayout
+- Dashboard metadata sidebar
+- Looker embed placeholder
+- Quick share button
+- Three-dot menu with actions
+- Related dashboards list
+- Access status indicator
+- Back navigation
+
+**Service Methods Used:**
+- `getDashboard()` - Load dashboard
+- `getFolder()` - Load parent folder
+- `getUser()` - Load owner info
+- `getDashboardsByFolder()` - Load related dashboards
+- `canAccessDashboard()` - Verify access
+
+**State Management:**
+```typescript
+const dashboard = ref<Dashboard | null>(null)
+const currentFolder = ref<Folder | null>(null)
+const owner = ref<User | null>(null)
+const relatedDashboards = ref<Dashboard[]>([])
+const menuOpen = ref(false)
+const shareDialogOpen = ref(false)
+```
+
+**Usage:**
+```bash
+Navigation: /dashboard/view/:id
+Example: /dashboard/view/dashboard_1
+```
+
+---
+
+### Admin Permissions Page
+
+**File:** `app/pages/admin/permissions.vue` (701 lines)
+
+**Purpose:** Admin panel for managing dashboard permissions (3-layer model)
+
+**Features:**
+- AdminPanelLayout with admin navigation
+- PermissionEditor component (3 layers)
+- Dashboard selector
+- Permission management UI
+- Save/Reset actions
+- Admin role verification
+- Success/error messaging
+- Query parameter support
+
+**Service Methods Used:**
+- `getDashboards()` - List all dashboards
+- `getDashboard()` - Get dashboard details
+- `getFolder()` - Get folder location
+- `getDashboardPermissions()` - Load current permissions
+- `saveDashboardPermissions()` - Save changes
+
+**State Management:**
+```typescript
+const selectedDashboardId = ref<string>('')
+const currentDashboard = ref<Dashboard | null>(null)
+const permissionsToEdit = ref<{ access: AccessControl; restrictions: AccessRestrictions }>({...})
+const originalPermissions = ref<{...}>({...})
+const hasChanges = computed(() => {...})
+```
+
+**Usage:**
+```bash
+Navigation: /admin/permissions
+Query params: ?dashboard=dashboardId (pre-select)
+Auth Required: Admin role only
+```
+
+---
+
 ## Testing Components (Future)
 
 ```typescript

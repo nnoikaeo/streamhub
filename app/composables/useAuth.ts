@@ -1,5 +1,6 @@
 import { signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
 import { useAuthStore, type UserData } from '~/stores/auth'
+import { getMockUserByUid } from '~/composables/useMockData'
 
 export const useAuth = () => {
   const { $firebase } = useNuxtApp()
@@ -16,11 +17,15 @@ export const useAuth = () => {
       const userCredential = await signInWithPopup($firebase.auth, provider)
       console.log('✅ Sign-in successful:', userCredential.user.email)
       
+      // Fetch role from mock data
+      const mockUser = getMockUserByUid(userCredential.user.uid)
+      
       const userData: UserData = {
         uid: userCredential.user.uid,
         email: userCredential.user.email,
         displayName: userCredential.user.displayName,
-        photoURL: userCredential.user.photoURL
+        photoURL: userCredential.user.photoURL,
+        role: mockUser?.role || 'user'
       }
       authStore.setUser(userData)
       return { success: true }
@@ -54,17 +59,24 @@ export const useAuth = () => {
         console.log('🔍 Auth state changed:', user?.email || 'not logged in')
         
         if (user) {
+          // Fetch role from mock data
+          const mockUser = getMockUserByUid(user.uid)
+          console.log(`🔍 [useAuth.initAuth] Got mock user with role: ${mockUser?.role || 'undefined'}`)
+          
           const userData: UserData = {
             uid: user.uid,
             email: user.email,
             displayName: user.displayName,
-            photoURL: user.photoURL
+            photoURL: user.photoURL,
+            role: mockUser?.role || 'user'
           }
+          console.log(`🔍 [useAuth.initAuth] Setting user data:`, userData)
           authStore.setUser(userData)
         } else {
           authStore.setUser(null)
         }
         
+        console.log(`🔍 [useAuth.initAuth] Setting loading to false`)
         authStore.setLoading(false)
         resolve(user)
       })
@@ -72,8 +84,12 @@ export const useAuth = () => {
   }
 
   return {
+    user: computed(() => authStore.user),
+    loading: computed(() => authStore.loading),
+    isAuthenticated: computed(() => authStore.isAuthenticated),
     signInWithGoogle,
     logout,
     initAuth
   }
 }
+

@@ -1,8 +1,19 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { fileURLToPath } from 'url'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-20',
   devtools: { enabled: true },
 
+  alias: {
+    '~': fileURLToPath(new URL('./app', import.meta.url))
+  },
+
+  css: [
+    fileURLToPath(new URL('./assets/css/main.css', import.meta.url)),
+    fileURLToPath(new URL('./assets/css/theme.css', import.meta.url))
+  ],
+  
   modules: [
     '@nuxt/eslint',
     '@nuxt/image',
@@ -13,6 +24,36 @@ export default defineNuxtConfig({
   imports: {
     autoImport: true
   },
+
+  components: [
+    // Layout components - prefix 'Layout'
+    {
+      path: '~/components/layouts',
+      prefix: 'Layout',
+      global: false
+    },
+
+    // Composition components - prefix 'Composition'
+    {
+      path: '~/components/compositions',
+      prefix: 'Composition',
+      global: false
+    },
+
+    // UI components - NO prefix (for convenience)
+    {
+      path: '~/components/ui',
+      prefix: '',
+      global: true
+    },
+
+    // Feature components - prefix 'Feature'
+    {
+      path: '~/components/features',
+      prefix: 'Feature',
+      global: false
+    }
+  ],
 
   runtimeConfig: {
     public: {

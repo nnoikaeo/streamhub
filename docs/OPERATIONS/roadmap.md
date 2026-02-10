@@ -97,10 +97,39 @@
 ### Phase 3: Dashboard Management (Week 5-7)
 **Goal:** Create, edit, manage dashboards + company-scoped permissions
 
-- [ ] **Dashboards List Page** (feat/dashboards-list)
-  - Display available dashboards (company-scoped)
-  - Filter by folder, company
-  - Search functionality
+- [x] **Dashboard Discovery Page** ✅ COMPLETED
+  - `app/pages/dashboard/discover.vue` (351 lines)
+  - Display available dashboards with folder navigation
+  - FolderSidebar + FolderTree for hierarchy
+  - DashboardGrid + DashboardCard for display
+  - Breadcrumb navigation showing folder path
+  - Quick share dialog integration
+  - Full mock data support (6 users, 17 folders, 8 dashboards)
+  - Responsive design (mobile/tablet/desktop)
+  - WCAG 2.1 AA accessibility compliance
+
+- [x] **Single Dashboard View Page** ✅ COMPLETED
+  - `app/pages/dashboard/view.vue` (816 lines)
+  - Dashboard metadata display (type, owner, dates)
+  - Looker embed placeholder with iframe
+  - Quick share button + dialog
+  - Three-dot menu with additional actions
+  - Related dashboards sidebar
+  - Access control status indicator
+  - Navigation back to discover page
+  - Loading/error states
+  - Responsive layout adaptation
+
+- [x] **Access Control Settings** ✅ COMPLETED
+  - `app/pages/admin/permissions.vue` (701 lines)
+  - AdminPanelLayout with admin navigation
+  - PermissionEditor integration (3-layer model)
+  - Dashboard selector dropdown
+  - Full permission management (Layer 1, 2, 3)
+  - Save/Reset/Cancel actions
+  - Admin role verification
+  - Success/error messages with auto-dismiss
+  - Query parameter support (pre-select dashboard)
 
 - [ ] **Dashboard Creation Form** (feat/create-dashboard)
   - Looker Studio URL input
@@ -113,18 +142,7 @@
   - Manage access permissions (company-based)
   - Preview embed
 
-- [ ] **Access Control Settings** (feat/dashboard-permissions)
-  - Role-based access matrix
-  - Company-level permissions
-  - User-specific permissions
-  - User-specific sharing
-
-- [ ] **Dashboard Viewer** (feat/dashboard-viewer)
-  - Embed Looker Studio iframes
-  - Role-based filtering
-  - Responsive layout
-
-**Estimated Time:** 10-12 days
+**Estimated Time:** 10-12 days (3-layer pages completed, creation/edit pending)
 
 ---
 

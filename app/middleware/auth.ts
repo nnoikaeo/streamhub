@@ -21,7 +21,7 @@ export default (to: RouteLocationNormalized, from: RouteLocationNormalized) => {
     return
   }
   
-  console.log(`📊 Auth state - Authenticated: ${authStore.isAuthenticated}, User: ${authStore.user?.email || 'none'}`)
+  console.log(`📊 Auth state - Authenticated: ${authStore.isAuthenticated}, User: ${authStore.user?.email || 'none'}, Role: ${authStore.user?.role || 'none'}`)
 
   // If user is authenticated and trying to access login, redirect to dashboard
   if (authStore.isAuthenticated && to.path === '/login') {
@@ -39,5 +39,15 @@ export default (to: RouteLocationNormalized, from: RouteLocationNormalized) => {
   if (!authStore.isAuthenticated) {
     console.log('🔐 Not authenticated, redirecting to login')
     return navigateTo('/login')
+  }
+  
+  // Check admin role for admin routes
+  if (to.path.startsWith('/admin/')) {
+    console.log(`🔐 Admin route detected: ${to.path}, checking admin role. Current role: ${authStore.user?.role}`)
+    if (authStore.user?.role !== 'admin') {
+      console.log(`❌ Not admin (role: ${authStore.user?.role}), redirecting to /dashboard/discover`)
+      return navigateTo('/dashboard/discover')
+    }
+    console.log(`✅ Admin access granted`)
   }
 }
