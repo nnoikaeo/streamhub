@@ -17,16 +17,7 @@
         <!-- Main: Dashboard Grid -->
         <div class="discover-main-content">
           <!-- Breadcrumbs Navigation -->
-          <nav class="breadcrumb-nav">
-            <button
-              v-for="(item, index) in breadcrumbItems"
-              :key="index"
-              class="breadcrumb-item"
-              @click="handleBreadcrumbNavigate(item.path)"
-            >
-              {{ item.label }}
-            </button>
-          </nav>
+          <Breadcrumbs :items="breadcrumbItems" />
 
           <!-- Dashboards Found Header -->
           <div class="dashboards-header">
@@ -97,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
@@ -175,12 +166,21 @@ const currentUserRole = computed(() => {
 const breadcrumbItems = computed(() => {
   log('breadcrumbItems computed', { folderPathLength: folderPath.value?.length })
   return [
-    { label: 'Dashboard', path: '/dashboard/discover' },
+    { label: 'Dashboard', to: '/dashboard/discover' },
     ...(folderPath.value?.map((folder) => ({
       label: folder.name,
-      path: `/dashboard/discover?folder=${folder.id}`,
+      to: `/dashboard/discover?folder=${folder.id}`,
     })) || []),
   ]
+})
+
+// Watch for route query param changes (breadcrumb navigation)
+watch(() => route.query.folder, (newFolderId) => {
+  log('route.query.folder changed', { newFolderId })
+  if (newFolderId && typeof newFolderId === 'string') {
+    selectedFolderId.value = newFolderId
+    loadDashboards()
+  }
 })
 
 const loadFolders = async () => {
@@ -268,18 +268,6 @@ const handleFolderSelect = async (folderId: string) => {
   await loadDashboards()
 }
 
-const handleBreadcrumbNavigate = (path: string) => {
-  log('handleBreadcrumbNavigate', { path })
-  const match = path.match(/folder=([^&]+)/)
-  if (match?.[1]) {
-    selectedFolderId.value = match[1]
-    loadDashboards()
-  } else {
-    // Navigate to root
-    selectedFolderId.value = rootFolders.value[0]?.id || null
-    loadDashboards()
-  }
-}
 
 const handleViewDashboard = async (dashboard: Dashboard) => {
   log('handleViewDashboard', { dashboardId: dashboard.id })
@@ -424,56 +412,6 @@ onMounted(async () => {
   flex-direction: column;
   gap: 1.5rem;
   padding: 2rem;
-}
-
-/* ========== BREADCRUMB NAVIGATION ========== */
-.breadcrumb-nav {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--color-border-light);
-  flex-wrap: wrap;
-}
-
-.breadcrumb-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  background: none;
-  border: none;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-weight: 400;
-}
-
-.breadcrumb-item:hover {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
-
-.breadcrumb-item:first-child {
-  font-weight: 500;
-  color: var(--color-text-primary);
-  cursor: default;
-  padding-right: 0.5rem;
-}
-
-.breadcrumb-item:first-child:hover {
-  color: var(--color-text-primary);
-  text-decoration: none;
-}
-
-/* Separator between breadcrumb items */
-.breadcrumb-item:not(:first-child)::before {
-  content: '/';
-  display: inline-block;
-  margin: 0 0.5rem;
-  color: var(--color-border-light);
-  font-weight: 300;
 }
 
 /* ========== DASHBOARDS HEADER ========== */
