@@ -1,0 +1,619 @@
+/**
+ * StreamHub Component Theme Styles
+ * Centralized styling for all page components
+ * Import this in your pages for consistent theming
+ */
+
+/* ============================================================================
+   HEADER STYLES
+   ============================================================================ */
+.page-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-text-inverse);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--color-primary-dark);
+}
+
+.page-header__title {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-inverse);
+}
+
+.page-header__subtitle {
+  font-size: 0.875rem;
+  color: var(--color-primary-lighter);
+  margin-top: var(--spacing-sm);
+}
+
+/* ============================================================================
+   SIDEBAR STYLES
+   ============================================================================ */
+.sidebar-container {
+  background-color: var(--color-secondary-lighter);
+  border-right: 1px solid var(--color-border-light);
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--spacing-lg) 0;
+}
+
+.sidebar-item {
+  padding: var(--spacing-md) var(--spacing-lg);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  display: block;
+  transition: background-color var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.sidebar-item:hover {
+  background-color: var(--color-bg-secondary);
+  border-left-color: var(--color-primary);
+}
+
+.sidebar-item.active {
+  background-color: var(--color-primary-lightest);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* ============================================================================
+   CARD STYLES
+   ============================================================================ */
+.theme-card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-base);
+}
+
+.theme-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-default);
+}
+
+.theme-card--primary {
+  border-left: 4px solid var(--color-primary);
+}
+
+.theme-card__header {
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.theme-card__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.theme-card__content {
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* ============================================================================
+   BADGE STYLES
+   ============================================================================ */
+.theme-badge {
+  display: inline-block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.theme-badge--primary {
+  background-color: var(--color-primary-lightest);
+  color: var(--color-primary);
+}
+
+.theme-badge--success {
+  background-color: #d1fae5;
+  color: var(--color-success);
+}
+
+.theme-badge--warning {
+  background-color: #fef3c7;
+  color: var(--color-warning);
+}
+
+.theme-badge--error {
+  background-color: #fee2e2;
+  color: var(--color-error);
+}
+
+/* ============================================================================
+   BUTTON STYLES
+   ============================================================================ */
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.theme-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.theme-btn--primary {
+  background-color: var(--color-primary);
+  /* color: var(--color-text-inverse); */
+  color: var(--color-text-inverse) !important;
+}
+
+.theme-btn--primary:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+.theme-btn--secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border-default);
+}
+
+.theme-btn--secondary:hover:not(:disabled) {
+  background-color: var(--color-secondary-lighter);
+  border-color: var(--color-primary);
+}
+
+.theme-btn--ghost {
+  background-color: transparent;
+  color: var(--color-primary);
+}
+
+.theme-btn--ghost:hover:not(:disabled) {
+  background-color: var(--color-primary-lightest);
+}
+
+.theme-btn--small {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.75rem;
+}
+
+.theme-btn--large {
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: 1rem;
+}
+
+/* ============================================================================
+   BREADCRUMB STYLES
+   ============================================================================ */
+.theme-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) 0;
+  font-size: 0.875rem;
+}
+
+.theme-breadcrumb__item {
+  color: var(--color-text-secondary);
+}
+
+.theme-breadcrumb__link {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.theme-breadcrumb__link:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+.theme-breadcrumb__separator {
+  color: var(--color-border-default);
+}
+
+/* ============================================================================
+   FORM STYLES
+   ============================================================================ */
+.theme-form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.theme-form-label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.theme-form-input,
+.theme-form-select,
+.theme-form-textarea {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+}
+
+.theme-form-input:focus,
+.theme-form-select:focus,
+.theme-form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(45, 51, 137, 0.1);
+}
+
+.theme-form-input:disabled,
+.theme-form-select:disabled,
+.theme-form-textarea:disabled {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.theme-form-help {
+  margin-top: var(--spacing-sm);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.theme-form-error {
+  color: var(--color-error);
+  font-size: 0.75rem;
+  margin-top: var(--spacing-sm);
+}
+
+/* ============================================================================
+   TABLE STYLES
+   ============================================================================ */
+.theme-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.theme-table thead {
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.theme-table th {
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.theme-table td {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+}
+
+.theme-table tbody tr:hover {
+  background-color: var(--color-secondary-lighter);
+}
+
+.theme-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ============================================================================
+   LOADING SPINNER STYLES
+   ============================================================================ */
+.theme-spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid var(--color-border-light);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================================
+   MODAL/DIALOG STYLES
+   ============================================================================ */
+.theme-modal {
+  background-color: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-light);
+}
+
+.theme-modal__header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.theme-modal__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.theme-modal__body {
+  padding: var(--spacing-lg);
+  color: var(--color-text-secondary);
+}
+
+.theme-modal__footer {
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+}
+
+/* ============================================================================
+   ALERT STYLES
+   ============================================================================ */
+.theme-alert {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border-left: 4px solid;
+  margin-bottom: var(--spacing-lg);
+}
+
+.theme-alert--success {
+  background-color: #d1fae5;
+  border-color: var(--color-success);
+  color: #065f46;
+}
+
+.theme-alert--error {
+  background-color: #fee2e2;
+  border-color: var(--color-error);
+  color: #7f1d1d;
+}
+
+.theme-alert--warning {
+  background-color: #fef3c7;
+  border-color: var(--color-warning);
+  color: #78350f;
+}
+
+.theme-alert--info {
+  background-color: #dbeafe;
+  border-color: var(--color-info);
+  color: #0c2340;
+}
+
+/* ============================================================================
+   GRID & LAYOUT
+   ============================================================================ */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.theme-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.theme-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.theme-grid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+
+  .theme-grid--2,
+  .theme-grid--3,
+  .theme-grid--4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================================
+   FOOTER STYLES - MATCHING ACTUAL HTML STRUCTURE
+   ============================================================================ */
+
+/* Main footer wrappers */
+.app-footer,
+footer.app-footer {
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-top: 1px solid var(--color-border-light);
+  background-color: var(--color-bg-primary);
+  min-height: 0px;
+  font-size: 0.875rem;
+}
+
+/* Inner footer content */
+.app-footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Footer container - main layout */
+.footer-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100%;
+  max-width: 1400px;
+  gap: var(--spacing-lg);
+}
+
+/* Footer text (copyright) */
+.footer-text {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Footer links navigation */
+.footer-links {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--spacing-lg);
+}
+
+/* Individual footer links */
+.footer-link {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  line-height: 1.5;
+}
+
+.footer-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+/* ============================================================================
+   FOOTER COMPONENT OVERRIDES - Remove Scoped Styles
+   ============================================================================ */
+
+/* Override component scoped border and background */
+footer.app-footer-content,
+.app-footer-content,
+footer.app-footer-content[data-v-ff1c851e],
+.app-footer-content[data-v-ff1c851e] {
+  border-top: none !important;
+  background-color: transparent !important;
+  min-height: auto !important;
+}
+
+/* Ensure border is only on main footer */
+footer.app-footer,
+.app-footer {
+  border-top: 1px solid var(--color-border-light) !important;
+  background-color: var(--color-bg-primary) !important;
+}
+
+/* ============================================================================
+   FOOTER - HIGH SPECIFICITY RULES WITH VUE SCOPED ATTRIBUTES
+   ============================================================================ */
+
+/* Target with Vue scoped attributes */
+[data-v-1b117b50].app-footer,
+[data-v-ff1c851e].app-footer-content {
+  display: flex !important;
+  align-items: center !important;
+}
+
+[data-v-ff1c851e] .footer-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+[data-v-ff1c851e] .footer-links {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--spacing-lg);
+}
+
+[data-v-ff1c851e] .footer-link {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+[data-v-ff1c851e] .footer-link:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+[data-v-ff1c851e] .footer-text {
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ============================================================================
+   FOOTER RESPONSIVE
+   ============================================================================ */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: var(--spacing-md);
+  }
+
+  .footer-links {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: var(--spacing-sm) !important;
+  }
+
+  [data-v-ff1c851e] .footer-container {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  [data-v-ff1c851e] .footer-links {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.bg-primary-light {
+  background-color: var(--color-primary-lightest);
+}
+
+.bg-secondary {
+  background-color: var(--color-secondary-lighter);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-light {
+  border-color: var(--color-border-light);
+}

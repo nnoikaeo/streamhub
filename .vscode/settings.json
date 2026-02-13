@@ -1,0 +1,12 @@
+{
+    "css.lint.unknownAtRules": "ignore",
+    "postcss.validate": true,
+    "editor.formatOnSave": true,
+    "css.validate": true,
+    "tailwindCSS.experimental.classRegex": [
+        [
+            "cva\\(([^)]*)\\)",
+            "(?:'|\"|`)([^']*)(?:'|\"|`)"
+        ]
+    ]
+}
