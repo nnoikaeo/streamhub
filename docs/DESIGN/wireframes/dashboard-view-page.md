@@ -1,731 +1,295 @@
-# Dashboard View Page - Wireframe
+# Dashboard View Page
 
-> **Purpose:** Display individual dashboard with Looker Studio embed + quick-switch to related dashboards  
-> **Target User:** Users viewing and interacting with dashboards  
-> **Navigation Context:** From Dashboard Discover Page or direct URL  
-> **Last Updated:** 2024-02-03  
-> **Alignment:** Sidebar folders only (consistent with dashboard-discover-page.md v3.1)  
-
----
-
-## 📐 Page Layout
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          STREAMHUB DASHBOARD                                │
-├──────────────────────┬───────────────────────────────────────────────────┤
-│                      │                                                    │
-│   LEFT PANE:         │      RIGHT PANE:                                 │
-│   FOLDER TREE        │      MAIN DASHBOARD AREA                         │
-│   (Folders Only)     │                                                    │
-│                      │  Breadcrumb & Header                             │
-│  📂 Sales ↓          │  ┌──────────────────────────────────────────────┐
-│  ├─ 📂 Regional ↓    │  │ 🏠 > Sales > Regional > Reports             │
-│  │  ├─ 📂 Reports    │  │                                              │
-│  │  ├─ 📂 North      │  │ Regional Performance Dashboard 📈             │
-│  │  └─ 📂 South      │  │ Created by: John | Updated: 1 day ago        │
-│  ├─ 📂 Analytics     │  │                                              │
-│  └─ 📂 Quarterly     │  │ Share: [  ]  Edit: [  ]  More: [...]       │
-│                      │  ├──────────────────────────────────────────────┤
-│  📂 Finance ↓        │  │                                              │
-│  ├─ 📂 Budget        │  │  Quick Switch (Same Folder):                │
-│  ├─ 📂 Payroll       │  │  • Monthly Sales ▶                          │
-│  └─ 📂 Forecasts     │  │  • Regional Performance ✓ (current)         │
-│                      │  │  • Regional East ▶                          │
-│  [Other folders]     │  │  • Regional Forecast ▶                      │
-│                      │  │  [◀ Prev | Next ▶]  [Back to folder]      │
-│                      │  ├──────────────────────────────────────────────┤
-│                      │  │                                              │
-│                      │  │  [Embedded Looker Studio Dashboard]         │
-│                      │  │                                              │
-│                      │  │  ┌────────────────────────────────────────┐ │
-│                      │  │  │                                        │ │
-│                      │  │  │     📊 DASHBOARD VISUALIZATION        │ │
-│                      │  │  │     (Looker Studio Embed)             │ │
-│                      │  │  │                                        │ │
-│                      │  │  │  (Interactive charts, filters, etc.)   │ │
-│                      │  │  │                                        │ │
-│                      │  │  └────────────────────────────────────────┘ │
-│                      │  │                                              │
-│                      │  │ [Scroll down for full dashboard]             │
-│                      │  │                                              │
-│                      │  └──────────────────────────────────────────────┘
-│                      │
-└──────────────────────┴───────────────────────────────────────────────────┘
-```
-
-**Key Design Changes (v3.1):**
-- ✅ Sidebar shows **folders only** (not dashboard items)
-- ✅ Quick-switch panel for dashboards in current folder (right pane)
-- ✅ Separation of concerns: Navigation (left) vs Content (right)
-- ✅ Consistent with dashboard-discover-page.md
+> **Purpose:** Display individual dashboard with Looker Studio embed and related dashboards
+> **Users:** All roles with dashboard access (USER, MODERATOR, ADMIN)
+> **Current Implementation:** `app/pages/dashboard/view.vue` using AppLayout + TwoPaneLayout
+> **Last Updated:** 2026-02-13
+> **Version:** 4.0 (Consolidated with Single Source of Truth)
 
 ---
 
-## 📋 Header Section (After Breadcrumb)
+## 🎯 Key Principle
+
+**Display dashboard with context and related content**
+- Embedded dashboard visualization (Looker Studio)
+- Dashboard metadata and access information
+- Related dashboards from same folder for quick switching
+- Clean error and loading states
+
+---
+
+## 🏗️ Page Structure
+
+### Layout & Components
+
+**Main Layout:**
+- Uses: `AppLayout` (no sidebar)
+- Uses: `TwoPaneLayout` (left sidebar + right content)
+- Header: `DashboardViewHeader` (breadcrumb, actions)
+
+**Key Components:**
+- `DashboardViewHeader` - Breadcrumb, dashboard title, action buttons
+- `TwoPaneLayout` - Two-pane composition (sidebar + main)
+- `QuickShareDialog` - Share dialog for moderators
+
+**Sidebar Width:** 320px
+
+---
+
+## 📂 Left Sidebar: Dashboard Info
+
+### Dashboard Metadata Section
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ 🏠 > Sales > Regional Reports                                            │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  Regional Performance Dashboard 📈                                       │
-│                                                                          │
-│  Created by: John Admin                                                 │
-│  Last updated: 1 day ago                                               │
-│  Dashboard ID: dash-12345 (Copy) 📋                                     │
-│                                                                          │
-│  ┌──────────────┬──────────────┬──────────────┬──────────────────┐      │
-│  │ 👁️ View Only │ 🔗 Share     │ ⚙️ Settings  │ ⋮ More Options   │      │
-│  └──────────────┴──────────────┴──────────────┴──────────────────┘      │
-│                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────┐
+│  Dashboard Info                │
+│                                │
+│  Description:                  │
+│  [Dashboard description text]  │
+│                                │
+│  Owner: John Admin             │
+│  Created: Feb 13, 2026         │
+│  Updated: Feb 13, 2026         │
+└────────────────────────────────┘
+```
 
-Elements:
-- Breadcrumb: Navigate back to folders
+**Shows:**
+- Description (if available)
+- Owner name
+- Created and updated dates
+
+### Access Status Section
+
+```
+┌────────────────────────────────┐
+│  Access Status                 │
+│                                │
+│  [🌐 Public]  or  [🔒 Private] │
+│                                │
+│  Access via:                   │
+│  ✓ Company-scoped (role: user) │
+└────────────────────────────────┘
+```
+
+**Shows:**
+- Public/Restricted badge
+- Access reason (which permission layer granted access)
+
+### Related Dashboards Section
+
+```
+┌────────────────────────────────┐
+│  Related Dashboards            │
+│  (Same Folder)                 │
+│                                │
+│  • Sales Report                │
+│  • Sales Map                   │
+│  • Sales Forecast              │
+│  • Regional Performance        │
+│  • Regional Breakdown          │
+└────────────────────────────────┘
+```
+
+**Features:**
+- Shows up to 5 dashboards from same folder
+- Click to switch to another dashboard
+- No page reload (smooth navigation via router.push)
+- Only shows accessible dashboards (permission-filtered)
+
+---
+
+## 🎨 Main Content Area
+
+### Header Section (DashboardViewHeader)
+
+```
+🏠 > Sales > Regional > Reports > Regional Performance
+
+Regional Performance Dashboard 📈
+Created by: John Admin | Updated: 1 day ago
+
+[🔗 Share] [⚙️ Settings] [⋮ More]
+```
+
+**Elements:**
+- Breadcrumb navigation (click to navigate back)
 - Dashboard title with icon
-- Creator info + last updated
-- Action buttons: View/Edit mode, Share, Settings
-- More options (bookmark, download, print, etc.)
-```
+- Creator info and timestamp
+- Action buttons (role-based)
 
----
-
-## 🎨 Main Content Area (Embedded Dashboard)
+### Looker Studio Embed
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                    LOOKER STUDIO EMBEDDED REPORT                         │
-│                                                                          │
-│  [Loading...] or [Full Screen ⛶] [Refresh 🔄] [Export ...]            │
-│                                                                          │
-│  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │                                                                  │   │
-│  │               📊 Interactive Looker Dashboard                    │   │
-│  │                                                                  │   │
-│  │  Filter: [Region ▼]  [Date Range ▼]  [Category ▼]              │   │
-│  │                                                                  │   │
-│  │  ┌────────────────────────┐  ┌────────────────────────┐        │   │
-│  │  │ Sales by Region 📈     │  │ Top Products 📊       │        │   │
-│  │  │                        │  │                        │        │   │
-│  │  │  [Chart Area]          │  │  [Chart Area]          │        │   │
-│  │  │                        │  │                        │        │   │
-│  │  └────────────────────────┘  └────────────────────────┘        │   │
-│  │                                                                  │   │
-│  │  ┌──────────────────────────────────────────────────────────┐  │   │
-│  │  │ Sales Trend (Last 12 Months) 📉                          │  │   │
-│  │  │                                                           │  │   │
-│  │  │  [Line Chart Area]                                       │  │   │
-│  │  │                                                           │  │   │
-│  │  └──────────────────────────────────────────────────────────┘  │   │
-│  │                                                                  │   │
-│  │  ┌──────────────────────────────────────────────────────────┐  │   │
-│  │  │ Detailed Data Table 📋                                   │  │   │
-│  │  │                                                           │  │   │
-│  │  │ [Table with data...]                                    │  │   │
-│  │  │                                                           │  │   │
-│  │  └──────────────────────────────────────────────────────────┘  │   │
-│  │                                                                  │   │
-│  └──────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│  [Scroll to see more content]                                          │
-│                                                                          │
-└──────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────┐
+│                                  │
+│  [Full Screen ⛶] [Refresh 🔄]   │
+│                                  │
+│  ┌────────────────────────────┐  │
+│  │                            │  │
+│  │   Looker Studio Dashboard  │  │
+│  │   (Interactive charts,     │  │
+│  │    filters, tables, etc.)  │  │
+│  │                            │  │
+│  └────────────────────────────┘  │
+│                                  │
+│  [Scroll down for more content]  │
+└──────────────────────────────────┘
+```
 
-Features:
-- Embedded Looker Studio report (interactive)
-- Filters at top (region, date range, etc.)
-- Multiple visualizations (charts, tables)
+**Features:**
+- Embedded iframe (Looker Studio)
+- Interactive visualizations
+- Filters and controls
 - Full-screen mode option
-- Refresh button
-- Responsive to screen size
+- Responsive sizing
+- Loading state while embedding
+
+### Loading State
+
+```
+┌──────────────────────────────┐
+│                              │
+│        [Spinner]             │
+│                              │
+│    Loading dashboard...      │
+│                              │
+└──────────────────────────────┘
+```
+
+### Error State
+
+```
+┌──────────────────────────────┐
+│  ❌ Error Loading Dashboard  │
+│                              │
+│  Dashboard not found or      │
+│  access denied.              │
+│                              │
+│  [← Go Back]                 │
+└──────────────────────────────┘
 ```
 
 ---
 
-## 🧭 Left Sidebar (Folder Tree Only)
+## 🔐 Permission & Access
 
-**Sidebar Structure (v3.1 - Folders Only):**
+**3-Layer Permission Check:**
 
-```
-┌─────────────────────────────┐
-│  DASHBOARD FOLDERS          │
-│  ─────────────────────────  │
-│                             │
-│  📂 Sales ↓                 │
-│  ├─ 📂 Regional ↓           │
-│  │  ├─ 📂 Reports           │
-│  │  │  └─ [Current folder] │
-│  │  ├─ 📂 North             │
-│  │  └─ 📂 South             │
-│  ├─ 📂 Analytics            │
-│  └─ 📂 Quarterly            │
-│                             │
-│  📂 Finance ↓               │
-│  ├─ 📂 Budget               │
-│  ├─ 📂 Payroll              │
-│  └─ 📂 Forecasts            │
-│                             │
-│  📂 Operations ↓            │
-│  ├─ 📂 Inventory            │
-│  └─ 📂 Supply ↓             │
-│     └─ 📂 Chain             │
-│                             │
-└─────────────────────────────┘
-```
+1. **Layer 1: Direct Access**
+   - Specific uid, role, or group assignment
 
-**Why Folders Only on Sidebar:**
-- ✅ Clean, hierarchical navigation
-- ✅ Supports deep folder hierarchies (4-5 levels)
-- ✅ No overflow/truncation issues
-- ✅ Users can navigate to other folders
-- ✅ Dashboard switching is in the main area (right pane)
+2. **Layer 2: Company-Scoped**
+   - Role or group access within user's company
+
+3. **Layer 3: Restrictions**
+   - Explicit deny or expiry dates
+
+**Summary:**
+- User must have access to view dashboard
+- Access denied → show error state + "Go Back" button
+- Permission re-checked when switching related dashboards
+- Related dashboards filtered by permission
+
+**Full Details:** See [docs/GUIDES/roles-and-permissions.md](../../GUIDES/roles-and-permissions.md)
 
 ---
 
-## 🔄 Dashboard Navigation (Right Pane - Quick Switch)
+## 🎯 Header Actions (Role-Based)
 
-### **Quick Switch Panel (Below Header)**
+| Action | USER | MODERATOR<br/>(owner) | ADMIN |
+|--------|------|----------------------|-------|
+| View | ✅ | ✅ | ✅ |
+| Share | ❌ | ✅ | ✅ |
+| Edit Info | ❌ | ✅ | ✅ |
+| Download | ✅ | ✅ | ✅ |
+| Manage Permissions | ❌ | ❌ | ✅ |
+| Archive | ❌ | ✅ | ✅ |
 
-**Location:** Right pane, above the embedded dashboard
+**Action Details:**
+- **View:** Current state, read-only dashboard
+- **Share:** Opens Quick Share dialog (direct access layer only)
+- **Edit Info:** Edit dashboard name, description, folder
+- **Download:** Export dashboard as PDF or image
+- **Manage Permissions:** Full 3-layer permission UI (admin only)
+- **Archive:** Archive dashboard (hide from discovery)
 
-```
-Quick Switch (Same Folder - "Sales > Regional > Reports"):
-────────────────────────────────────────────────────────
-• Monthly Sales ▶                  [Click to switch]
-• Regional Performance ✓ (current) [Currently viewing]
-• Regional East ▶                  [Click to switch]
-• Regional Forecast ▶              [Click to switch]
-• Regional Breakdown ▶             [Click to switch]
-
-Navigation:
-[◀ Previous] | [Next ▶]            [← Back to folder]
-```
-
-**When User Clicks "Regional East ▶":**
-```
-1. Permission check (confirm still accessible)
-2. Update URL: /dashboard/dash-regional-east
-3. Update header: "Regional East Dashboard"
-4. Reload Looker embed for new dashboard
-5. Highlight "Regional East" in quick-switch panel
-6. Maintain folder context in sidebar
-```
-
-**Benefits of This Approach:**
-- ✅ Quick switch without leaving page
-- ✅ See all dashboards in current folder
-- ✅ Know folder context (breadcrumb + sidebar)
-- ✅ No page transitions (smooth UX)
-- ✅ Can jump to any dashboard or navigate linearly
-- ✅ Sidebar remains clean (folders only)
+**See:** [dashboard-discover-page.md](./dashboard-discover-page.md) for complete role details
 
 ---
 
-### **Option 3: Breadcrumb + Folder Link**
+## 🔄 User Flow
 
 ```
-User at: "Sales > Regional Reports > Regional Performance"
+1. User on Dashboard Discover page
+   ↓
+2. Clicks [Open] button on dashboard card
+   ↓
+3. Navigate to /dashboard/view/{dashboardId}
+   ↓
+4. Page loads, check permission (3-layer check)
+   ├─ ✅ Access granted
+   │  ├─ Load dashboard data from Firestore
+   │  ├─ Load related dashboards (same folder)
+   │  └─ Render page
+   │
+   └─ ❌ Access denied
+      └─ Show error state + [Go Back]
 
-Breadcrumb:
-🏠 > Sales > Regional Reports > Regional Performance
+5. User sees:
+   - Header: Breadcrumb + dashboard title + actions
+   - Left sidebar: Info + Access + Related dashboards
+   - Main: Looker embed iframe
 
-Options:
-- Click "Regional Reports" → back to folder view
-- Click "Sales" → back to Sales folder
-- Click "🏠" → back to all dashboards
-
-Then user can:
-├─ Select different dashboard from folder list
-├─ Or navigate to different folder
-└─ Return to original dashboard
-
-Benefits:
-✅ Context awareness
-✅ Easy folder navigation
-✅ No sidebar clutter
+6. User can:
+   - View interactive dashboard
+   - Click breadcrumb to go back
+   - Click related dashboard to switch
+   - Use header actions (based on role)
+   - Click [Go Back] in header to return
 ```
 
 ---
 
-## ⭐ Recommended Solution: Option 1 + Option 3
+## 📱 Responsive Design
 
-**Combine both for best UX:**
+- **Desktop (>1024px):** Full sidebar (320px) + main content
+- **Tablet (768-1024px):** Sidebar toggleable + main content
+- **Mobile (<768px):** Sidebar hidden by default, full-width embed
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ Header with Breadcrumb                                                  │
-│ 🏠 > Sales > Regional Reports > Regional Performance                   │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-├──────────────────────┬─────────────────────────────────────────────┤
-│  Left Sidebar        │  Main Content                               │
-│  (Optional)          │  [Looker Dashboard]                         │
-│                      │                                             │
-│  📂 Regional Reports │                                             │
-│                      │                                             │
-│  • Monthly Sales     │                                             │
-│  • Regional Perf ✓   │                                             │
-│  • Regional Forecast │                                             │
-│  • Regional Break    │                                             │
-│                      │                                             │
-│  [◀ Back to Folder]  │                                             │
-│                      │                                             │
-└──────────────────────┴─────────────────────────────────────────────┘
-```
-
-**User actions:**
-1. **Quick switch:** Click "Regional Forecast" in sidebar
-2. **Back to folder:** Click "[◀ Back to Folder]" button
-3. **Navigate folders:** Click breadcrumb
-4. **Back to all:** Click "[◀ Back to All Dashboards]"
+**Detailed Patterns:** See [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md)
 
 ---
 
-## 🔐 Permission & Access Check
+## 🔗 Related Documents
 
-### **When Dashboard View Loads:**
-
-```javascript
-// User clicks [Open] on a dashboard from Discover Page
-// URL changes to: /dashboard/{dashboardId}
-
-Step 1: Permission Check
-├─ Fetch dashboard data from Firestore
-├─ Check: Does user still have access?
-│  ├─ Layer 1: Direct access?
-│  ├─ Layer 2: Company-scoped?
-│  ├─ Layer 3: Restrictions?
-├─ Result: ✅ YES → Proceed
-└─ Result: ❌ NO → Show error (see below)
-
-Step 2: Load Dashboard
-├─ Get Looker Studio embed URL
-├─ Get dashboard metadata (title, creator, updated)
-├─ Render page with Looker embed
-
-Step 3: Display Related Dashboards
-├─ Get dashboards in same folder
-├─ Filter to only accessible ones
-├─ Display in sidebar with highlights
-
-Step 4: Render Complete
-├─ User sees dashboard with navigation options
-├─ Can switch to related dashboards
-└─ Can go back to folder/all views
-```
+| Document | Purpose | Link |
+|----------|---------|------|
+| **Implementation** | Actual Vue component | `app/pages/dashboard/view.vue` |
+| **Discover Page** | Dashboard discovery page | [dashboard-discover-page.md](./dashboard-discover-page.md) |
+| **Permissions** | 3-layer permission logic | [docs/GUIDES/roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
+| **Quick Share** | Share dialog details | [moderator-quick-share-dialog.md](./moderator-quick-share-dialog.md) |
+| **Design System** | Colors, typography, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
+| **Components** | Component architecture | [COMPONENT_ARCHITECTURE.md](../COMPONENT_ARCHITECTURE.md) |
+| **User Flows** | Complete user journeys | [user-flows.md](../user-flows.md) |
 
 ---
 
-### **Access Denied Scenario:**
+## ✨ Key Differences from v3.x
 
-```
-User tries to access: /dashboard/dash-admin-only
-  │
-  └─ Permission check: ❌ DENIED
-      ├─ Reason: role:admin only, user is "user"
-      │
-      ▼
-┌──────────────────────────────────────┐
-│  ❌ Access Denied                    │
-│                                      │
-│  You don't have permission to view   │
-│  this dashboard.                     │
-│                                      │
-│  Reason:                             │
-│  • Dashboard requires admin role     │
-│  • Your role: user                   │
-│                                      │
-│  Options:                            │
-│  • [← Back to Dashboards]            │
-│  • Contact admin for access          │
-│                                      │
-│  Contact: admin@streamhub.com        │
-└──────────────────────────────────────┘
-```
+- ✅ Consolidated from 731 lines to ~300 lines (59% reduction)
+- ✅ Removed folder tree sidebar descriptions (not in actual implementation)
+- ✅ Updated to match actual view.vue implementation
+- ✅ Clarified "Related Dashboards" (not "Quick Switch" panel)
+- ✅ Removed detailed navigation options (kept what's implemented)
+- ✅ Removed Vue code examples (see actual code)
+- ✅ Removed duplicate permission logic (link to source instead)
+- ✅ Removed implementation checklists (already done)
+- ✅ Added cross-references (Single Source of Truth)
+- ✅ Consistent structure with discover-page.md v4.0
 
 ---
 
-## 🔄 Navigation Flow Diagram
-
-```
-Dashboard Discover Page
-    │
-    └─ User clicks [Open] on dashboard
-        │
-        ▼
-    Permission Check
-    ├─ ✅ YES → Load Dashboard
-    │   └─ Display dashboard with Looker embed
-    │   └─ Show sidebar with related dashboards
-    │   └─ User can:
-    │       ├─ View current dashboard
-    │       ├─ Click related dashboard in sidebar
-    │       │   └─ Quick switch (load new dashboard)
-    │       ├─ Click breadcrumb to go to folder
-    │       │   └─ Back to Discover Page (folder view)
-    │       ├─ Click [◀ Back to All]
-    │       │   └─ Back to Discover Page (all dashboards)
-    │       └─ Interact with Looker charts/filters
-    │
-    └─ ❌ NO → Access Denied Error
-        └─ Show error message with options
-```
-
----
-
-## 💡 Key UX Decisions
-
-### **Should User Stay in Current Folder View?**
-
-```
-✅ YES (Recommended)
-
-Reason:
-1. Context awareness - User knows they're in "Sales > Regional"
-2. Related items - See other dashboards in same folder
-3. Quick navigation - Switch between related dashboards easily
-4. Logical grouping - Stay with similar content
-
-UX Flow:
-Discover Page (folder: Regional Reports)
-    ↓
-Click dashboard
-    ↓
-View Dashboard (still in Regional Reports context)
-    ↓
-Click sidebar: "Regional Forecast"
-    ↓
-View different dashboard (same folder context)
-```
-
----
-
-### **Should Sidebar Auto-Hide on Mobile?**
-
-```
-Desktop (> 1024px):
-├─ Sidebar visible
-├─ Main content: ~75% width
-└─ Looker dashboard: responsive
-
-Tablet (768px - 1024px):
-├─ Sidebar collapsible (hamburger toggle)
-├─ Collapsed: Show only icons
-├─ Main content: expands when sidebar hidden
-
-Mobile (< 768px):
-├─ Sidebar hidden by default
-├─ Hamburger menu to open
-├─ Dashboard takes full width
-├─ Modal/drawer for navigation
-```
-
----
-
-## 📋 Implementation Details
-
-### **Dashboard View Page Structure**
-
-```vue
-<template>
-  <div class="dashboard-view">
-    <!-- Header with Breadcrumb -->
-    <header>
-      <Breadcrumb :path="breadcrumbPath" />
-      <DashboardHeader :dashboard="currentDashboard" />
-      <ActionButtons :dashboard="currentDashboard" />
-    </header>
-
-    <!-- Two-pane layout -->
-    <div class="layout">
-      <!-- Left: Sidebar Navigation -->
-      <aside class="sidebar" v-if="!isMobileHidden">
-        <FolderContext :folder="currentFolder" />
-        <RelatedDashboards 
-          :dashboards="accessibleDashboardsInFolder"
-          :current="currentDashboard"
-          @select="switchDashboard"
-        />
-        <NavigationButtons 
-          @back-folder="goBackToFolder"
-          @back-all="goBackToAll"
-        />
-      </aside>
-
-      <!-- Right: Main Content -->
-      <main class="content">
-        <!-- Looker Studio Embed -->
-        <div class="looker-embed" v-if="!loading">
-          <LookerEmbed :url="lookerUrl" />
-        </div>
-        
-        <!-- Loading State -->
-        <div v-else class="loading">
-          Loading dashboard...
-        </div>
-
-        <!-- Error State -->
-        <div v-if="error" class="error">
-          <AccessDeniedError :reason="error" />
-        </div>
-      </main>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-// 1. Get dashboard ID from route
-const dashboardId = route.params.id
-
-// 2. Fetch dashboard + check permission
-onMounted(async () => {
-  const dashboard = await fetchDashboard(dashboardId)
-  
-  if (!userCanAccess(dashboard)) {
-    error.value = "Access Denied"
-    return
-  }
-  
-  currentDashboard.value = dashboard
-  
-  // 3. Get related dashboards in folder
-  const folder = await fetchFolder(dashboard.folderId)
-  const accessible = folder.dashboards.filter(d => userCanAccess(d))
-  accessibleDashboardsInFolder.value = accessible
-})
-
-// 4. Handle dashboard switch
-function switchDashboard(newDashboard) {
-  // Permission check again
-  if (!userCanAccess(newDashboard)) {
-    error.value = "Access Denied"
-    return
-  }
-  
-  // Update current dashboard
-  currentDashboard.value = newDashboard
-  
-  // Update URL (without page reload)
-  router.push(`/dashboard/${newDashboard.id}`)
-  
-  // Update Looker embed
-  lookerUrl.value = newDashboard.lookerUrl
-}
-</script>
-```
-
----
-
-## 🎯 Action Buttons (Header)
-
-```
-┌─────────────────────────────────────────────────────┐
-│ 👁️ View Only │ 🔗 Share │ ⚙️ Settings │ ⋮ More     │
-└─────────────────────────────────────────────────────┘
-
-Button Details:
-
-1. 👁️ View Mode (disabled for USER role)
-   └─ Indicates: "You have VIEW ONLY access"
-   └─ MODERATOR can click to toggle edit mode (if permission)
-
-2. 🔗 Share
-   └─ Opens share modal
-   ├─ Share dashboard with users/groups
-   ├─ Manage permissions
-   └─ Copy share link
-
-3. ⚙️ Settings
-   └─ Dashboard metadata
-   ├─ Edit title (if owner/mod)
-   ├─ Edit description
-   ├─ Manage folder
-   └─ View history
-
-4. ⋮ More Options
-   └─ Additional actions
-   ├─ Bookmark / Add to favorites
-   ├─ Download PDF
-   ├─ Print
-   ├─ Duplicate (if permission)
-   ├─ Move to folder (if permission)
-   └─ Delete (if owner/admin)
-```
-
----
-
-## 📊 Related Dashboard Sidebar
-
-### **Display Logic:**
-
-```javascript
-// Get all dashboards in current folder
-const dashboardsInFolder = folder.dashboards
-
-// Filter to only accessible ones
-const accessible = dashboardsInFolder.filter(d => 
-  user.hasAccess(d)
-)
-
-// Sort by order (or name, or recent)
-const sorted = accessible.sort((a, b) => 
-  a.order - b.order
-)
-
-// Display in sidebar
-// Highlight current dashboard
-// Show count
-
-Result:
-📂 Regional Reports (4 dashboards)
-• Monthly Sales
-• Regional Performance ✓ (CURRENT)
-• Regional Forecast
-• Regional Breakdown
-```
-
----
-
-## 🚀 Responsive Behavior
-
-```
-Desktop (> 1024px)
-┌──────────────┬─────────────────────────┐
-│  Sidebar     │  Main Content (Looker)  │
-│  (250px)     │  (Responsive)           │
-└──────────────┴─────────────────────────┘
-
-Tablet (768px - 1024px)
-┌──────┬──────────────────────────────┐
-│ ☰    │  Main Content (Looker)       │
-│Side  │  (Sidebar collapsed)         │
-│bar   │                              │
-│ col  │  [Click ☰ to expand]         │
-│lapse │                              │
-└──────┴──────────────────────────────┘
-
-Mobile (< 768px)
-┌─────────────────────────────┐
-│  Main Content (Full Width)  │
-│  (Looker Dashboard)         │
-│                             │
-│  [☰ Menu for sidebar]       │
-└─────────────────────────────┘
-
-Mobile Menu (Overlay):
-┌──────────────────────┐
-│ [X]                  │
-│                      │
-│ 📂 Regional Reports  │
-│ • Monthly Sales      │
-│ • Regional Perf ✓    │
-│ • Regional Forecast  │
-│ • Regional Break     │
-│                      │
-│ [◀ Back to Folder]   │
-│ [◀ Back to All]      │
-│                      │
-└──────────────────────┘
-```
-
----
-
-## ✅ Feature Checklist
-
-- [ ] **Breadcrumb Navigation**
-  - [ ] Show current path
-  - [ ] Click to navigate back to folder/all
-
-- [ ] **Dashboard Header**
-  - [ ] Title, creator, last updated
-  - [ ] Copy dashboard ID button
-
-- [ ] **Action Buttons**
-  - [ ] View/Edit mode toggle (for MODERATOR)
-  - [ ] Share button
-  - [ ] Settings button
-  - [ ] More options menu
-
-- [ ] **Sidebar Navigation**
-  - [ ] Show related dashboards in folder
-  - [ ] Highlight current dashboard
-  - [ ] Click to switch dashboards
-  - [ ] Back buttons
-
-- [ ] **Looker Embed**
-  - [ ] Embedded dashboard display
-  - [ ] Full-screen mode
-  - [ ] Refresh button
-  - [ ] Responsive sizing
-
-- [ ] **Permission Checking**
-  - [ ] Check access on page load
-  - [ ] Check again before switching dashboards
-  - [ ] Show access denied error
-  - [ ] Provide contact admin option
-
-- [ ] **Mobile Responsive**
-  - [ ] Sidebar collapses on tablet
-  - [ ] Sidebar hidden on mobile
-  - [ ] Hamburger menu for navigation
-  - [ ] Dashboard takes full width
-
----
-
-## 🔐 Permission-Based Features
-
-### **For USER Role**
-
-```
-View Only:
-✅ View dashboard
-✅ Interact with Looker filters/charts
-✅ View related dashboards in sidebar
-✅ Navigate between dashboards in folder
-❌ Edit dashboard
-❌ Share dashboard
-❌ Change settings
-❌ Delete dashboard
-```
-
-### **For MODERATOR Role**
-
-```
-Can Edit (if created dashboard or has edit permission):
-✅ View dashboard
-✅ Edit dashboard metadata
-✅ Change Looker embed URL
-✅ Manage folder assignment
-✅ Share dashboard
-✅ Manage permissions
-✅ Delete dashboard (with confirmation)
-✅ Duplicate dashboard
-```
-
-### **For ADMIN Role**
-
-```
-Full Access:
-✅ All MODERATOR actions
-✅ Override any permission
-✅ View audit logs
-✅ Delete other users' dashboards
-✅ Manage all dashboard settings
-```
-
----
-
-## 📚 Related Documents
-
-- [Roles & Permissions Guide](../GUIDES/roles-and-permissions.md) - Permission checking logic
-- [Dashboard Discover Page](./dashboard-discover-page.md) - Previous page flow
-- [User Flows](../user-flows.md) - Complete user flow diagram
-- [Database Schema](../GUIDES/database-schema.md) - Dashboard data structure
-
----
-
-**Created:** 2024-01-28  
-**Updated:** 2024-02-03 (Sidebar: Folders Only | Quick-Switch in Right Pane)  
-**Designer:** Development Team  
-**Version:** 3.1 (Aligned with dashboard-discover-page.md v3.1)
+**Created:** 2024-01-28
+**Updated:** 2026-02-13 (v4.0 - Consolidated & Aligned with discover-page.md)
+**Designer:** Development Team
+**Version:** 4.0

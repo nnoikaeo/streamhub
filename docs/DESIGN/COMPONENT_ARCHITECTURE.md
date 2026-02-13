@@ -1,875 +1,288 @@
 # Component Architecture & Layout System
 
-> **Purpose:** Define reusable component hierarchy to ensure consistent UI across all pages  
-> **Problem Solved:** Prevents layout inconsistency when different pages define structure differently  
-> **Created:** 2024-02-03
+> **Purpose:** Component hierarchy, structure, and layout patterns for StreamHub
+> **Strategy:** Strategy 4 (Hybrid Approach) using Pinia stores + composables
+> **Current Implementation:** `app/components/` directory with 4-layer architecture
+> **Last Updated:** 2026-02-13
+> **Version:** 4.0 (Consolidated with Single Source of Truth)
 
 ---
 
 ## 🎯 Core Principles
 
-### **1. Layout Components = Foundation**
-ทุก page ต้องใช้ layout component เดียวกัน ไม่อนุญาตให้ page กำหนด structure เองตามใจชอบ
+StreamHub uses a **4-layer component architecture**:
 
-### **2. Composition Components = Reusable Sections**
-สร้าง reusable section components (e.g., Header, Sidebar, MainContent) ใช้ซ้ำได้ทุก page
+1. **Layout Components** (Foundation) - Page structure, headers, sidebars
+2. **Composition Components** (Reusable Sections) - Combine layouts with features
+3. **Feature Components** (Page-Specific) - Dashboard cards, folder sidebar, grids
+4. **UI Components** (Building Blocks) - Buttons, cards, modals, forms
 
-### **3. UI Components = Building Blocks**
-Generic components (Card, Button, Modal, etc.) ที่ reusable และ configurable
-
-### **4. Feature Components = Page-Specific Logic**
-Feature-specific components (DashboardCard, QuickShareDialog, PermissionEditor) อยู่บน foundation
+**Benefits:**
+- ✅ Reusable across pages
+- ✅ Single responsibility (each layer has clear purpose)
+- ✅ Easy to test and maintain
+- ✅ Consistent structure across app
 
 ---
 
 ## 🏗️ Component Hierarchy
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    LAYOUT COMPONENTS                        │
-│  (Enforce consistent page structure across app)             │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────────┐  ┌──────────────────┐                │
-│  │ AppLayout        │  │ AdminLayout      │                │
-│  │ (Standard pages) │  │ (Admin panel)    │                │
-│  └──────────────────┘  └──────────────────┘                │
-│         │                      │                             │
-│         ├─ Header              ├─ Header                    │
-│         ├─ MainContent         ├─ AdminSidebar              │
-│         └─ Footer              ├─ MainContent               │
-│                                └─ Footer                    │
-│                                                              │
-├─────────────────────────────────────────────────────────────┤
-│             COMPOSITION/CONTAINER COMPONENTS                │
-│  (Reusable multi-component sections)                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────────┐  ┌──────────────────┐                │
-│  │ TwoPane Layout   │  │ DiscoverPageLayout                │
-│  │ (Sidebar + Main) │  │ (Sidebar + Grid) │                │
-│  └──────────────────┘  └──────────────────┘                │
-│         │                      │                             │
-│         ├─ DashboardSidebar    ├─ DashboardSidebar          │
-│         └─ MainContentPane     └─ DashboardGrid             │
-│                                                              │
-├─────────────────────────────────────────────────────────────┤
-│               REUSABLE UI COMPONENTS                        │
-│  (Generic, configurable, reusable everywhere)              │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │ Button, Card, Modal, Input, Breadcrumb, etc.       │   │
-│  │ All styled consistently with design system         │   │
-│  └─────────────────────────────────────────────────────┘   │
-│                                                              │
-├─────────────────────────────────────────────────────────────┤
-│             FEATURE/DOMAIN COMPONENTS                      │
-│  (Page-specific, builds on UI components)                  │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────────┐  ┌──────────────────┐                │
-│  │ DashboardCard    │  │ QuickShareDialog │                │
-│  │ FolderTree       │  │ PermissionEditor │                │
-│  │ DashboardGrid    │  │ AuditLog         │                │
-│  └──────────────────┘  └──────────────────┘                │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+StreamHub Application
+│
+├── Layout Components (Foundation)
+│   ├── AppLayout
+│   ├── AdminLayout
+│   └── AuthLayout (future)
+│
+├── Composition Components (Reusable Sections)
+│   ├── TwoPaneLayout
+│   ├── DiscoverPageLayout
+│   └── AdminPanelLayout
+│
+├── Feature Components (Page-Specific)
+│   ├── DashboardViewHeader
+│   ├── FolderSidebar
+│   ├── DashboardGrid
+│   └── QuickShareDialog
+│
+└── UI Components (Building Blocks)
+    ├── Buttons, Cards, Modals
+    ├── Forms, Inputs, Selects
+    └── Alerts, Badges, Spinners
 ```
 
 ---
 
-## 📐 1. LAYOUT COMPONENTS (Structure Enforcers)
+## 📐 Layer 1: Layout Components (Foundation)
 
-### **AppLayout** - Standard Page Layout
-```
-┌─────────────────────────────────────────────────┐
-│                   Header                        │  Fixed height
-├──────────────┬──────────────────────────────────┤
-│   Sidebar    │         MainContent              │  Flex layout
-│ (Optional)   │         (Scrollable)             │
-│              │                                  │
-│              │                                  │
-│              │         [Slot: content]          │
-│              │                                  │
-│              │                                  │
-├──────────────┴──────────────────────────────────┤
-│                   Footer                        │  Fixed height
-└─────────────────────────────────────────────────┘
-```
-
+### AppLayout
 **File:** `app/components/layouts/AppLayout.vue`
 
-```typescript
-<template>
-  <div class="app-layout">
-    <!-- Header (Fixed) -->
-    <AppHeader :user="user" />
+**Purpose:** Standard application layout with fixed header/footer
 
-    <!-- Main Content Area -->
-    <div class="layout-container">
-      <!-- Optional Sidebar -->
-      <div v-if="showSidebar" class="sidebar">
-        <slot name="sidebar" />
-      </div>
+**Props:**
+- `showSidebar?: boolean` - Optional sidebar support
 
-      <!-- Main Content (Scrollable) -->
-      <div class="main-content">
-        <slot />
-      </div>
-    </div>
-
-    <!-- Footer (Fixed) -->
-    <AppFooter />
-  </div>
-</template>
-
-<script setup lang="ts">
-defineProps({
-  showSidebar: {
-    type: Boolean,
-    default: false
-  }
-})
-</script>
-
-<style scoped>
-.app-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.layout-container {
-  display: flex;
-  flex: 1;
-}
-
-.sidebar {
-  width: 250px;
-  border-right: 1px solid #e5e7eb;
-  overflow-y: auto;
-}
-
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-}
-</style>
+**Structure:**
+```
+┌─────────────────────────┐
+│    <AppHeader>          │ Fixed
+├─────────────────────────┤
+│  <slot> Page Content    │ Scrollable
+├─────────────────────────┤
+│    <AppFooter>          │ Fixed
+└─────────────────────────┘
 ```
 
-**ทำความเข้าใจ:**
-- ✅ **Consistent structure** - ทุก page ต้องใช้ layout นี้
-- ✅ **Flexible content** - Slot ให้ page ใส่ content เองแล้ว layout จะ manage structure
-- ✅ **Optional sidebar** - Prop บอก show/hide sidebar
-- ✅ **Responsive** - Fixed header/footer + scrollable main area
+**Usage:** All main application pages
 
 ---
 
-### **AdminLayout** - Admin Panel Layout
-```
-┌─────────────────────────────────────────────────┐
-│         Header (with Admin badge)               │
-├──────────────┬──────────────────────────────────┤
-│              │                                  │
-│  Admin       │        Admin Content             │
-│  Sidebar     │        (Different styling)       │
-│  (Menu)      │                                  │
-│              │                                  │
-└──────────────┴──────────────────────────────────┘
-```
-
-**File:** `app/components/layouts/AdminLayout.vue`
-
-```typescript
-<template>
-  <div class="admin-layout">
-    <!-- Admin Header -->
-    <AdminHeader />
-
-    <!-- Admin Container -->
-    <div class="admin-container">
-      <!-- Admin Sidebar (Navigation) -->
-      <AdminSidebar />
-
-      <!-- Admin Main Content -->
-      <div class="admin-content">
-        <slot />
-      </div>
-    </div>
-  </div>
-</template>
-
-<style scoped>
-.admin-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background-color: #f3f4f6;
-}
-
-.admin-container {
-  display: flex;
-  flex: 1;
-}
-
-.admin-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2rem;
-}
-</style>
-```
-
----
-
-## 🧩 2. COMPOSITION COMPONENTS (Reusable Sections)
-
-### **TwoPaneLayout** - Sidebar + Main Content Pattern
-สำหรับ pages ที่ใช้ pattern: Sidebar (folder tree) + Main (content grid)
-
+### TwoPaneLayout
 **File:** `app/components/compositions/TwoPaneLayout.vue`
 
-```typescript
-<template>
-  <AppLayout show-sidebar>
-    <template #sidebar>
-      <!-- Left: Sidebar (Reusable) -->
-      <div class="two-pane-sidebar">
-        <slot name="sidebar" />
-      </div>
-    </template>
+**Purpose:** Generic two-pane composition (sidebar + main content)
 
-    <!-- Right: Main Content -->
-    <div class="two-pane-content">
-      <!-- Top: Header/Breadcrumb -->
-      <div class="content-header">
-        <slot name="header" />
-      </div>
+**Props:**
+- `sidebarWidth?: number` (default: 280)
+- `showSidebar?: boolean` (default: true)
+- `sidebarBg?: string` (default: #f9fafb)
+- `mainBg?: string` (default: #ffffff)
 
-      <!-- Middle: Main Content (Grid/List) -->
-      <div class="content-main">
-        <slot />
-      </div>
-    </div>
-  </AppLayout>
-</template>
+**Slots:**
+- `#sidebar` - Sidebar content
+- `default` - Main content area
 
-<style scoped>
-.two-pane-sidebar {
-  padding: 1rem;
-  border-right: 1px solid #e5e7eb;
-}
-
-.two-pane-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.content-header {
-  padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.content-main {
-  flex: 1;
-  padding: 1rem;
-  overflow-y: auto;
-}
-</style>
+**Structure:**
 ```
-
-**Usage in Dashboard Discover Page:**
-```vue
-<template>
-  <TwoPaneLayout>
-    <!-- Sidebar: Folder tree -->
-    <template #sidebar>
-      <FolderSidebar 
-        :folders="folders"
-        @folder-selected="onFolderSelected"
-      />
-    </template>
-
-    <!-- Header: Breadcrumb + Search -->
-    <template #header>
-      <BreadcrumbNavigation :path="currentPath" />
-      <DashboardSearchBar />
-    </template>
-
-    <!-- Main: Dashboard grid -->
-    <DashboardGrid :dashboards="dashboards" />
-  </TwoPaneLayout>
-</template>
+┌──────────┬──────────────────┐
+│          │                  │
+│ Sidebar  │  Main Content    │
+│ (Fixed)  │  (Scrollable)    │
+│          │                  │
+└──────────┴──────────────────┘
 ```
 
 ---
 
-### **DiscoverPageLayout** - Discover Page Specific
+### DiscoverPageLayout
 **File:** `app/components/compositions/DiscoverPageLayout.vue`
 
-```typescript
-<template>
-  <TwoPaneLayout>
-    <template #sidebar>
-      <FolderSidebar 
-        :folders="accessibleFolders"
-        :current-folder="currentFolderId"
-        @select="onFolderSelect"
-      />
-    </template>
+**Purpose:** Specialized composition for Dashboard Discover page
 
-    <template #header>
-      <div class="discover-header">
-        <BreadcrumbNavigation :path="folderPath" />
-        <div class="header-actions">
-          <DashboardSearchBar @search="onSearch" />
-          <SortDropdown @sort="onSort" />
-        </div>
-      </div>
-    </template>
+**Structure:** Combines AppLayout + TwoPaneLayout
 
-    <!-- Main Grid -->
-    <DashboardGrid 
-      :dashboards="filteredDashboards"
-      :loading="loading"
-      @dashboard-open="onDashboardOpen"
-      @dashboard-share="onDashboardShare"
-      @dashboard-delete="onDashboardDelete"
-    />
-  </TwoPaneLayout>
-</template>
-```
+**Usage:** See [dashboard-discover-page.md](wireframes/dashboard-discover-page.md)
 
 ---
 
-## 🎨 3. REUSABLE UI COMPONENTS (Design System)
+### AdminLayout
+**File:** `app/components/layouts/AdminLayout.vue`
 
-### **Button Component**
-**File:** `app/components/ui/Button.vue`
+**Purpose:** Admin panel layout with dark header and sidebar navigation
 
-```typescript
-<template>
-  <button 
-    :class="buttonClasses"
-    :disabled="disabled"
-    @click="$emit('click')"
-  >
-    <slot />
-  </button>
-</template>
+**Features:**
+- Fixed dark header (#1f2937)
+- Left sidebar navigation
+- Right content area
+- Desktop-only (Phase 1)
 
-<script setup lang="ts">
-defineProps({
-  variant: {
-    type: String,
-    default: 'primary',
-    validator: (v) => ['primary', 'secondary', 'danger', 'ghost'].includes(v)
-  },
-  size: {
-    type: String,
-    default: 'md',
-    validator: (v) => ['sm', 'md', 'lg'].includes(v)
-  },
-  disabled: Boolean
-})
+---
 
-const buttonClasses = computed(() => ({
-  'btn': true,
-  [`btn-${variant}`]: true,
-  [`btn-${size}`]: true,
-  'disabled': disabled
-}))
-</script>
+### AuthLayout (To Be Created)
+**File:** `app/components/layouts/AuthLayout.vue` (future)
 
-<style scoped>
-.btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
+**Purpose:** Simple centered layout for authentication pages (login, register)
 
-.btn-primary {
-  background-color: #3b82f6;
-  color: white;
-}
+**Structure:** Centered form container with minimal navigation
 
-.btn-secondary {
-  background-color: #e5e7eb;
-  color: #1f2937;
-}
+---
 
-.btn-danger {
-  background-color: #ef4444;
-  color: white;
-}
+## 🎨 Layer 2: Composition Components
 
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-</style>
-```
+Combine layout components with feature components for specific pages.
 
-**Usage everywhere:**
+### AdminPanelLayout
+**File:** `app/components/compositions/AdminPanelLayout.vue`
+
+**Purpose:** Admin pages combining AdminLayout + TwoPaneLayout
+
+**Usage Example:**
 ```vue
-<Button variant="primary" size="md" @click="handleClick">
-  Save Changes
-</Button>
-```
-
----
-
-### **Card Component** - Consistent Card Display
-**File:** `app/components/ui/Card.vue`
-
-```typescript
-<template>
-  <div class="card" :class="{ 'card-hover': clickable }">
-    <!-- Card Header (Optional) -->
-    <div v-if="$slots.header" class="card-header">
-      <slot name="header" />
-    </div>
-
-    <!-- Card Body -->
-    <div class="card-body">
-      <slot />
-    </div>
-
-    <!-- Card Footer (Optional) -->
-    <div v-if="$slots.footer" class="card-footer">
-      <slot name="footer" />
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-defineProps({
-  clickable: Boolean
-})
-</script>
-
-<style scoped>
-.card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.card-hover:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-}
-
-.card-header {
-  padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  font-weight: 600;
-}
-
-.card-body {
-  padding: 1rem;
-}
-
-.card-footer {
-  padding: 1rem;
-  border-top: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-}
-</style>
-```
-
-**Usage:**
-```vue
-<Card clickable @click="openDashboard">
-  <template #header>
-    <h3>Dashboard Name</h3>
+<CompositionAdminPanelLayout>
+  <template #sidebar>
+    <!-- Admin navigation -->
   </template>
-
-  <p>Dashboard description</p>
-
-  <template #footer>
-    <Button variant="primary">Open</Button>
-  </template>
-</Card>
+  <!-- Admin content -->
+</CompositionAdminPanelLayout>
 ```
 
 ---
 
-### **Modal Component**
-**File:** `app/components/ui/Modal.vue`
+## 🔧 Layer 3: Feature Components
 
-```typescript
-<template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="modelValue" class="modal-overlay" @click="close">
-        <div class="modal" @click.stop>
-          <!-- Header -->
-          <div class="modal-header">
-            <h2>{{ title }}</h2>
-            <button class="close-btn" @click="close">✕</button>
-          </div>
+Page-specific components for dashboard functionality.
 
-          <!-- Body -->
-          <div class="modal-body">
-            <slot />
-          </div>
+### DashboardViewHeader
+**File:** `app/components/features/DashboardViewHeader.vue`
 
-          <!-- Footer -->
-          <div class="modal-footer">
-            <slot name="footer">
-              <Button variant="secondary" @click="close">
-                Cancel
-              </Button>
-              <Button variant="primary" @click="$emit('confirm')">
-                Confirm
-              </Button>
-            </slot>
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
-</template>
+**Purpose:** Header for dashboard view page with breadcrumb and actions
 
-<script setup lang="ts">
-defineProps({
-  modelValue: Boolean,
-  title: String
-})
-
-const emit = defineEmits(['update:modelValue', 'confirm'])
-
-const close = () => emit('update:modelValue', false)
-</script>
-
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-}
-
-.modal {
-  background: white;
-  border-radius: 0.5rem;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow: auto;
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-}
-
-.modal-enter-active, .modal-leave-active {
-  transition: opacity 0.2s;
-}
-
-.modal-enter-from, .modal-leave-to {
-  opacity: 0;
-}
-</style>
-```
+**Props:**
+- `breadcrumbItems: BreadcrumbItem[]`
+- `dashboardTitle: string`
+- `creatorName: string`
+- `updatedTime: Date`
 
 ---
 
-## 🎯 4. FEATURE COMPONENTS (Domain Logic)
-
-### **DashboardCard** - Dashboard Display Card
-**File:** `app/components/features/DashboardCard.vue`
-
-```typescript
-<template>
-  <Card 
-    clickable
-    :data-testid="`dashboard-card-${dashboard.id}`"
-    @click="$emit('open')"
-  >
-    <template #header>
-      <div class="card-title">
-        <h3>{{ dashboard.name }}</h3>
-        <span class="dashboard-icon">
-          {{ getTypeIcon(dashboard.type) }}
-        </span>
-      </div>
-    </template>
-
-    <!-- Metadata -->
-    <div class="metadata">
-      <p class="creator">By: {{ getCreatorName(dashboard.owner) }}</p>
-      <p class="updated">Updated: {{ formatDate(dashboard.updatedAt) }}</p>
-    </div>
-
-    <!-- Access Info -->
-    <div class="access-info">
-      <p class="access-label">Access via:</p>
-      <div class="access-badge" :class="`layer-${accessReason.layer}`">
-        {{ accessReasonText }}
-      </div>
-    </div>
-
-    <!-- Actions Footer -->
-    <template #footer>
-      <div class="card-actions">
-        <Button variant="primary" size="sm">Open →</Button>
-
-        <!-- Role-based action buttons -->
-        <template v-if="canEdit">
-          <Button variant="secondary" size="sm" @click.stop="$emit('edit')">
-            Edit
-          </Button>
-        </template>
-
-        <template v-if="canShare">
-          <Button variant="secondary" size="sm" @click.stop="$emit('share')">
-            Share
-          </Button>
-        </template>
-
-        <template v-if="canManageAccess">
-          <Button variant="secondary" size="sm" @click.stop="$emit('manage-access')">
-            Manage Access
-          </Button>
-        </template>
-
-        <template v-if="canDelete">
-          <Button variant="danger" size="sm" @click.stop="$emit('delete')">
-            Delete
-          </Button>
-        </template>
-      </div>
-    </template>
-  </Card>
-</template>
-
-<script setup lang="ts">
-import type { DashboardCardData } from '~/types/dashboard'
-
-defineProps<{
-  dashboard: DashboardCardData
-  accessReason: {
-    layer: 1 | 2 | 3
-    grantedBy: 'user' | 'role' | 'group'
-    grantName: string
-  }
-}>()
-
-defineEmits(['open', 'edit', 'share', 'manage-access', 'delete'])
-
-const { canEdit, canShare, canDelete, canManageAccess } = usePermissions()
-</script>
-
-<style scoped>
-.card-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dashboard-icon {
-  font-size: 1.5rem;
-}
-
-.metadata {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0.5rem 0;
-}
-
-.access-info {
-  margin: 0.5rem 0;
-}
-
-.access-badge {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.layer-1 {
-  background-color: #dbeafe;
-  color: #0c4a6e;
-}
-
-.layer-2 {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.card-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-</style>
-```
-
----
-
-### **DashboardGrid** - Reusable Grid Container
-**File:** `app/components/features/DashboardGrid.vue`
-
-```typescript
-<template>
-  <div class="dashboard-grid-wrapper">
-    <!-- Results info -->
-    <div class="results-header">
-      <p class="results-count">
-        {{ dashboards.length }} dashboard{{ dashboards.length !== 1 ? 's' : '' }} found
-      </p>
-    </div>
-
-    <!-- Grid -->
-    <div v-if="dashboards.length > 0" class="dashboard-grid">
-      <DashboardCard
-        v-for="dashboard in dashboards"
-        :key="dashboard.id"
-        :dashboard="dashboard"
-        :access-reason="dashboard.accessReason"
-        @open="$emit('open', dashboard.id)"
-        @edit="$emit('edit', dashboard.id)"
-        @share="$emit('share', dashboard.id)"
-        @manage-access="$emit('manage-access', dashboard.id)"
-        @delete="$emit('delete', dashboard.id)"
-      />
-    </div>
-
-    <!-- Empty state -->
-    <div v-else class="empty-state">
-      <p>📭 No dashboards found</p>
-      <p class="empty-message">Try adjusting your search or filters</p>
-    </div>
-  </div>
-</template>
-
-<script setup lang="ts">
-import type { DashboardCardData } from '~/types/dashboard'
-
-defineProps<{
-  dashboards: DashboardCardData[]
-}>()
-
-defineEmits(['open', 'edit', 'share', 'manage-access', 'delete'])
-</script>
-
-<style scoped>
-.dashboard-grid-wrapper {
-  width: 100%;
-}
-
-.results-header {
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #6b7280;
-}
-
-.empty-message {
-  font-size: 0.875rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
-```
-
----
-
-### **FolderSidebar** - Reusable Folder Tree
+### FolderSidebar
 **File:** `app/components/features/FolderSidebar.vue`
 
-```typescript
-<template>
-  <div class="folder-sidebar">
-    <div class="sidebar-header">
-      <h3>📁 Folders</h3>
-    </div>
+**Purpose:** Hierarchical folder navigation with accordion behavior
 
-    <!-- Folder Tree -->
-    <FolderTree
-      :folders="folders"
-      :current-folder-id="currentFolderId"
-      @select="$emit('select', $event)"
-    />
-  </div>
-</template>
+**Props:**
+- `folders: Folder[]` - Folder tree data
+- `selectedFolderId: string`
+- `allowSearch: boolean`
+- `allowCreate: boolean`
 
-<script setup lang="ts">
-import type { Folder } from '~/types/dashboard'
+**Features:**
+- Smart collapse for 4-5 level deep hierarchies
+- Search box to find folders
+- Accordion expand/collapse behavior
 
-defineProps<{
-  folders: Folder[]
-  currentFolderId?: string
-}>()
+**See:** [dashboard-discover-page.md - Smart Collapse logic](wireframes/dashboard-discover-page.md)
 
-defineEmits(['select'])
-</script>
+---
 
-<style scoped>
-.folder-sidebar {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+### DashboardGrid
+**File:** `app/components/features/DashboardGrid.vue`
 
-.sidebar-header {
-  padding: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
+**Purpose:** Responsive grid display of dashboard cards
 
-.sidebar-header h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-</style>
-```
+**Props:**
+- `dashboards: Dashboard[]`
+- `loading: boolean`
+- `emptyMessage: string`
+
+**Features:**
+- Infinite scroll pagination
+- Responsive grid (2-3 columns on desktop)
+- Dashboard card with actions
+
+---
+
+### QuickShareDialog
+**File:** `app/components/features/QuickShareDialog.vue`
+
+**Purpose:** Modal dialog for moderators to share dashboards
+
+**Props:**
+- `dashboardId: string`
+- `availableUsers: User[]`
+
+**Features:**
+- User search and multi-select
+- Expiry date options
+- Layer 1 Direct Access only
+
+**See:** [moderator-quick-share-dialog.md](wireframes/moderator-quick-share-dialog.md)
+
+---
+
+## 🎛️ Layer 4: UI Components (Building Blocks)
+
+Basic reusable components (buttons, cards, forms, etc.).
+
+**Theme Classes Available:**
+- `.theme-btn` / `.theme-btn--primary` / `.theme-btn--secondary`
+- `.theme-card` / `.theme-card--primary`
+- `.theme-modal` / `.theme-modal__header` / `.theme-modal__body`
+- `.theme-form-group` / `.theme-form-label` / `.theme-form-input`
+- `.theme-alert` / `.theme-badge` / `.theme-spinner`
+
+**See:** [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) for complete reference
+
+---
+
+## 🔐 State Management (Strategy 4)
+
+**Pinia Stores:**
+- `useDashboardStore` - Dashboard data and operations
+- `usePermissionsStore` - Permission checks and role-based access
+- `useFolderStore` - Folder hierarchy and navigation
+
+**Composables:**
+- `useDashboardPage()` - Encapsulates dashboard page logic
+- Permission-aware data loading (built into stores)
+
+**Benefits:**
+- State shared across app
+- Permissions integrated at data level
+- Easy to extend and test
+
+---
+
+## 📱 Responsive Design
+
+**Desktop (>1024px):**
+- Two-pane layout with full sidebar
+- 2-3 column grid
+- All navigation visible
+
+**Tablet (768-1024px):**
+- Collapsible sidebar
+- 2 column grid
+- Touch-friendly spacing
+
+**Mobile (<768px):**
+- Hamburger menu
+- 1 column list
+- Full-width content
+
+**Details:** See [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)
 
 ---
 
@@ -907,99 +320,33 @@ app/components/
 
 ---
 
-## 🚀 Page Implementation Using Components
+## 🔗 Related Documents
 
-### **Dashboard Discover Page**
-```typescript
-// pages/dashboards/index.vue
-
-<template>
-  <DiscoverPageLayout>
-    <!-- Everything else handled by layout -->
-  </DiscoverPageLayout>
-</template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useDashboardService } from '~/composables/useDashboardService'
-
-const dashboardService = useDashboardService()
-const dashboards = ref([])
-const folders = ref([])
-
-onMounted(async () => {
-  // Load data
-  const response = await dashboardService.getDashboards(
-    currentUser.value.uid,
-    currentUser.value.company
-  )
-  dashboards.value = response.dashboards
-})
-</script>
-```
-
-✅ **Page is CLEAN** - No layout definition, just uses DiscoverPageLayout
-✅ **Consistent** - All discover pages look identical
-✅ **Reusable** - Layout can be used by multiple pages
+| Document | Purpose | Link |
+|----------|---------|------|
+| **Dashboard Discover Page** | Two-pane layout with folder sidebar | [dashboard-discover-page.md](wireframes/dashboard-discover-page.md) |
+| **Dashboard View Page** | Two-pane layout with dashboard info | [dashboard-view-page.md](wireframes/dashboard-view-page.md) |
+| **Admin Permissions** | Admin permission management page | [admin-permission-management-page.md](wireframes/admin-permission-management-page.md) |
+| **Quick Share Dialog** | Moderator share dialog | [moderator-quick-share-dialog.md](wireframes/moderator-quick-share-dialog.md) |
+| **Design System** | Colors, typography, spacing, components | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
+| **Theme Implementation** | CSS variables, utility classes, best practices | [THEME_IMPLEMENTATION.md](THEME_IMPLEMENTATION.md) |
 
 ---
 
-### **Admin Permission Page**
-```typescript
-// pages/admin/permissions.vue
+## ✨ Key Differences from v3.x
 
-<template>
-  <AdminLayout>
-    <PermissionEditor :dashboard="selectedDashboard" />
-  </AdminLayout>
-</template>
-
-<script setup lang="ts">
-// Layout handles structure, component handles logic
-</script>
-```
+- ✅ Consolidated from 1,448 lines (separate docs) to ~350 lines
+- ✅ Merged LAYOUT_COMPONENTS.md content into COMPONENT_ARCHITECTURE.md
+- ✅ Removed duplicate layout descriptions
+- ✅ Removed verbose code examples
+- ✅ Simplified to focus on structure and purpose
+- ✅ Added cross-references (Single Source of Truth)
+- ✅ Updated to match Strategy 4 implementation
+- ✅ Removed implementation checklists and detailed phase-by-phase instructions
 
 ---
 
-## ✅ ต้องสร้าง Components ตามลำดับนี้:
-
-### **Phase 1: Layouts (Foundation)**
-- [ ] `AppLayout.vue` - base structure
-- [ ] `AdminLayout.vue` - admin variant
-
-### **Phase 2: UI Components (Design System)**
-- [ ] `Button.vue`
-- [ ] `Card.vue`
-- [ ] `Modal.vue`
-- [ ] `Input.vue`
-- [ ] `Breadcrumb.vue`
-- [ ] `Badge.vue`
-
-### **Phase 3: Composition Components (Patterns)**
-- [ ] `TwoPaneLayout.vue`
-- [ ] `DiscoverPageLayout.vue`
-- [ ] `AdminPanelLayout.vue`
-
-### **Phase 4: Feature Components (Logic)**
-- [ ] `DashboardCard.vue`
-- [ ] `DashboardGrid.vue`
-- [ ] `FolderSidebar.vue`
-- [ ] `FolderTree.vue`
-- [ ] `QuickShareDialog.vue`
-- [ ] `PermissionEditor.vue`
-
----
-
-## 💡 Key Benefits
-
-| Problem | Solution |
-|---------|----------|
-| Layout inconsistency | Layout components enforce structure |
-| Repeated code | Composition components reuse patterns |
-| Style inconsistency | Design system (UI components) |
-| Hard to maintain | Clear hierarchy & file structure |
-| Pages too complex | Pages just use layouts, not build structure |
-
----
-
-**Next:** Create components starting with Phase 1 (Layouts)? 🎯
+**Created:** 2024-01-25
+**Updated:** 2026-02-13 (v4.0 - Consolidated & Merged)
+**Designer:** Development Team
+**Version:** 4.0
