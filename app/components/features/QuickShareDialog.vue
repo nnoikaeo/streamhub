@@ -287,7 +287,7 @@ const closeDialog = () => {
 .share-description {
   margin: 0;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   line-height: 1.5;
 }
 
@@ -301,7 +301,7 @@ const closeDialog = () => {
 .share-label {
   font-weight: 500;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -317,18 +317,18 @@ const closeDialog = () => {
   flex: 1;
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-light);
   border-radius: 0.375rem;
   font-family: inherit;
 
   &::placeholder {
-    color: #d1d5db;
+    color: var(--color-border-light);
   }
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(45, 51, 137, 0.1);
   }
 }
 
@@ -339,8 +339,8 @@ const closeDialog = () => {
   width: 2.375rem;
   height: 2.375rem;
   padding: 0;
-  background-color: #3b82f6;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: white;
   border: none;
   border-radius: 0.375rem;
   cursor: pointer;
@@ -352,11 +352,12 @@ const closeDialog = () => {
   }
 
   &:hover {
-    background-color: #2563eb;
+    background-color: var(--color-primary-dark);
+    opacity: 0.9;
   }
 
   &:active {
-    background-color: #1d4ed8;
+    opacity: 0.8;
   }
 }
 
@@ -367,8 +368,8 @@ const closeDialog = () => {
   gap: 0.25rem;
   max-height: 200px;
   overflow-y: auto;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-light);
   border-radius: 0.375rem;
   padding: 0.5rem 0;
 }
@@ -386,19 +387,19 @@ const closeDialog = () => {
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: #f3f4f6;
+    background-color: var(--color-bg-light);
   }
 }
 
 .user-name {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #1f2937;
+  color: var(--color-text-primary);
 }
 
 .user-email {
   font-size: 0.8125rem;
-  color: #9ca3af;
+  color: var(--color-gray-400);
 }
 
 /* ========== SELECTED USERS ========== */
@@ -414,8 +415,8 @@ const closeDialog = () => {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem;
-  background-color: #f0f9ff;
-  border: 1px solid #bfdbfe;
+  background-color: var(--color-bg-info);
+  border: 1px solid var(--color-border-info);
   border-radius: 0.375rem;
 }
 
@@ -444,7 +445,7 @@ const closeDialog = () => {
   background: none;
   border: none;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   transition: all 0.2s ease;
   flex-shrink: 0;
 
@@ -454,8 +455,8 @@ const closeDialog = () => {
   }
 
   &:hover {
-    color: #ef4444;
-    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--color-error);
+    background-color: rgba(220, 38, 38, 0.1);
     border-radius: 0.25rem;
   }
 }
@@ -470,22 +471,22 @@ const closeDialog = () => {
 .expiry-input {
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-light);
   border-radius: 0.375rem;
   font-family: inherit;
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(45, 51, 137, 0.1);
   }
 }
 
 /* ========== NOTE ========== */
 .share-note {
   padding: 0.75rem 1rem;
-  background-color: #fef3c7;
-  border-left: 3px solid #f59e0b;
+  background-color: var(--color-bg-warning);
+  border-left: 3px solid var(--color-warning);
   border-radius: 0.375rem;
 }
 
@@ -493,13 +494,13 @@ const closeDialog = () => {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #854d0e;
+  color: var(--color-warning-dark);
 }
 
 .note-text {
   margin: 0.25rem 0 0 0;
   font-size: 0.8125rem;
-  color: #92400e;
+  color: var(--color-warning-dark);
   line-height: 1.4;
 }
 </style>
