@@ -10,29 +10,43 @@ export const useAuth = () => {
     try {
       console.log('🔐 Starting Google Sign-in...')
       console.log('Auth object:', $firebase.auth)
-      
+
       const provider = new GoogleAuthProvider()
       console.log('🔑 Google Provider created')
-      
+
       const userCredential = await signInWithPopup($firebase.auth, provider)
       console.log('✅ Sign-in successful:', userCredential.user.email)
-      
+
       // Fetch role from mock data
-      const mockUser = getMockUserByUid(userCredential.user.uid)
-      
-      const userData: UserData = {
-        uid: userCredential.user.uid,
-        email: userCredential.user.email,
-        displayName: userCredential.user.displayName,
-        photoURL: userCredential.user.photoURL,
-        role: mockUser?.role || 'user'
+      try {
+        const mockUser = getMockUserByUid(userCredential.user.uid)
+
+        const userData: UserData = {
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName: userCredential.user.displayName,
+          photoURL: userCredential.user.photoURL,
+          role: mockUser.role,
+          company: mockUser.company
+        }
+        authStore.setUser(userData)
+        authStore.setAuthError(null)
+        return { success: true }
+      } catch (userError: any) {
+        // User not found in system
+        console.error('❌ User profile not found:', userError.message)
+        authStore.setUser(null)
+        authStore.setAuthError(userError.message)
+        return {
+          success: false,
+          error: userError.message
+        }
       }
-      authStore.setUser(userData)
-      return { success: true }
     } catch (error: any) {
       console.error('❌ Sign-in error:', error)
       console.error('Error code:', error.code)
       console.error('Error message:', error.message)
+      authStore.setAuthError(error.message)
       return {
         success: false,
         error: error.message
@@ -57,25 +71,35 @@ export const useAuth = () => {
       console.log('📡 Initializing auth listener...')
       onAuthStateChanged($firebase.auth, (user) => {
         console.log('🔍 Auth state changed:', user?.email || 'not logged in')
-        
+
         if (user) {
           // Fetch role from mock data
-          const mockUser = getMockUserByUid(user.uid)
-          console.log(`🔍 [useAuth.initAuth] Got mock user with role: ${mockUser?.role || 'undefined'}`)
-          
-          const userData: UserData = {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            role: mockUser?.role || 'user'
+          try {
+            const mockUser = getMockUserByUid(user.uid)
+            console.log(`🔍 [useAuth.initAuth] Got mock user with role: ${mockUser.role}`)
+
+            const userData: UserData = {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              role: mockUser.role,
+              company: mockUser.company
+            }
+            console.log(`🔍 [useAuth.initAuth] Setting user data:`, userData)
+            authStore.setUser(userData)
+            authStore.setAuthError(null)
+          } catch (userError: any) {
+            // User not found in system
+            console.error('❌ [useAuth.initAuth] User profile not found:', userError.message)
+            authStore.setUser(null)
+            authStore.setAuthError(userError.message)
           }
-          console.log(`🔍 [useAuth.initAuth] Setting user data:`, userData)
-          authStore.setUser(userData)
         } else {
           authStore.setUser(null)
+          authStore.setAuthError(null)
         }
-        
+
         console.log(`🔍 [useAuth.initAuth] Setting loading to false`)
         authStore.setLoading(false)
         resolve(user)

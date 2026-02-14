@@ -12,6 +12,7 @@ export interface UserData {
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserData | null>(null)
   const loading = ref(true)
+  const authError = ref<string | null>(null)
   const isAuthenticated = computed(() => !!user.value)
   const userCompany = computed(() => user.value?.company || null)
 
@@ -29,13 +30,24 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const setAuthError = (error: string | null) => {
+    authError.value = error
+  }
+
+  const clearAuthError = () => {
+    authError.value = null
+  }
+
   return {
     user,
     loading,
+    authError,
     isAuthenticated,
     userCompany,
     setUser,
     setLoading,
-    setCompany
+    setCompany,
+    setAuthError,
+    clearAuthError
   }
 })
