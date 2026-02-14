@@ -109,6 +109,9 @@ import FolderSidebar from '~/components/features/FolderSidebar.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 
+const route = useRoute()
+console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route.path, name: route.name })
+
 // Page metadata
 definePageMeta({
   middleware: 'auth',

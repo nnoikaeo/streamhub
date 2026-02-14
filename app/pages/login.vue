@@ -1,8 +1,20 @@
 <script setup lang="ts">
 const router = useRouter()
+const route = useRoute()
 const { signInWithGoogle } = useAuth()
 const loading = ref(false)
 const errorMessage = ref('')
+
+console.log('📄 [login.vue] Page mounted')
+console.log('📄 [login.vue] Route info:', {
+  path: route.path,
+  name: route.name,
+  params: route.params
+})
+
+definePageMeta({
+  middleware: 'auth'  // Explicitly apply auth middleware
+})
 
 const handleGoogleSignIn = async () => {
   loading.value = true

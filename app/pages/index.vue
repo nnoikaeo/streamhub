@@ -43,8 +43,18 @@
 
 <script setup lang="ts">
 const authStore = useAuthStore()
+const route = useRoute()
+
+console.log('📄 [index.vue] Page mounted')
+console.log('📄 [index.vue] Route info:', {
+  path: route.path,
+  name: route.name,
+  params: route.params,
+  query: route.query
+})
 
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'  // Explicitly apply auth middleware
 })
 </script>
