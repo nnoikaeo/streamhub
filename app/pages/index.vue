@@ -44,6 +44,7 @@
 <script setup lang="ts">
 const authStore = useAuthStore()
 const route = useRoute()
+const router = useRouter()
 
 console.log('📄 [index.vue] Page mounted')
 console.log('📄 [index.vue] Route info:', {
@@ -52,6 +53,23 @@ console.log('📄 [index.vue] Route info:', {
   params: route.params,
   query: route.query
 })
+
+// Watch for auth loading to complete, then redirect if unauthenticated with no error
+watch(
+  () => authStore.loading,
+  async (newLoading) => {
+    console.log('👀 [index.vue] Auth loading state changed:', newLoading)
+    if (!newLoading) {
+      // Auth loading is complete
+      if (!authStore.isAuthenticated && !authStore.authError) {
+        // User is not authenticated and has no error
+        // Redirect to login page
+        console.log('🔄 [index.vue] User not authenticated, redirecting to /login')
+        await router.push('/login')
+      }
+    }
+  }
+)
 
 definePageMeta({
   layout: 'default',
