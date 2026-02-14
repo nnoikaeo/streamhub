@@ -17,6 +17,56 @@ import type {
 } from '~/types/dashboard'
 
 // ============================================================================
+// MOCK COMPANIES
+// ============================================================================
+
+export interface Company {
+  code: string
+  name: string
+  country: string
+  isActive: boolean
+}
+
+export const mockCompanies: Company[] = [
+  {
+    code: 'STTH',
+    name: 'Streamwash Thailand',
+    country: 'Thailand',
+    isActive: true,
+  },
+  {
+    code: 'STTN',
+    name: 'Streamwash Laos',
+    country: 'Laos',
+    isActive: true,
+  },
+  {
+    code: 'STCS',
+    name: 'Streamwash Cambodia',
+    country: 'Cambodia',
+    isActive: true,
+  },
+  {
+    code: 'STNR',
+    name: 'Streamwash Myanmar',
+    country: 'Myanmar',
+    isActive: true,
+  },
+  {
+    code: 'STPT',
+    name: 'Streamwash Pattani',
+    country: 'Thailand',
+    isActive: true,
+  },
+  {
+    code: 'STPK',
+    name: 'Streamwash Phuket',
+    country: 'Thailand',
+    isActive: false,
+  },
+]
+
+// ============================================================================
 // MOCK USERS
 // ============================================================================
 
@@ -751,4 +801,25 @@ export function getAccessibleDashboards(
 
     return false
   })
+}
+
+// ============================================================================
+// COMPANY HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Get company by code
+ * @param code Company code (e.g., 'STTH', 'STTN')
+ * @returns Company object or undefined
+ */
+export function getCompanyByCode(code: string): Company | undefined {
+  return mockCompanies.find(company => company.code === code)
+}
+
+/**
+ * Get all active companies
+ * @returns Array of active companies
+ */
+export function getActiveCompanies(): Company[] {
+  return mockCompanies.filter(company => company.isActive)
 }

@@ -59,6 +59,22 @@ export const useDashboardStore = defineStore('dashboard', () => {
    */
   const isLoadingDashboards = computed(() => isLoading.value && dashboards.value.length === 0)
 
+  /**
+   * Get dashboards filtered by company (company-scoped access)
+   * @param companyCode Company code to filter by (e.g., 'STTH')
+   */
+  const getDashboardsByCompany = (companyCode: string) => {
+    return dashboards.value.filter((d) => d.company === companyCode)
+  }
+
+  /**
+   * Get folders filtered by company (company-scoped access)
+   * @param companyCode Company code to filter by (e.g., 'STTH')
+   */
+  const getFoldersByCompany = (companyCode: string) => {
+    return folders.value.filter((f) => f.company === companyCode)
+  }
+
   // ========== Mutations - Reducers ==========
 
   /**
@@ -250,6 +266,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
     isDashboardsCacheValid,
     isFoldersCacheValid,
     clearCache,
+
+    // Company-scoped filtering (NEW for multi-company support)
+    getDashboardsByCompany,
+    getFoldersByCompany,
 
     // Reset
     reset,
