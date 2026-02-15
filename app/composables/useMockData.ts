@@ -17,14 +17,64 @@ import type {
 } from '~/types/dashboard'
 
 // ============================================================================
+// MOCK COMPANIES
+// ============================================================================
+
+export interface Company {
+  code: string
+  name: string
+  country: string
+  isActive: boolean
+}
+
+export const mockCompanies: Company[] = [
+  {
+    code: 'STTH',
+    name: 'บริษัท สทรีมวอช (ประเทศไทย) จำกัด',
+    country: 'Thailand',
+    isActive: true,
+  },
+  {
+    code: 'STTN',
+    name: 'บริษัท สทรีมวอช เทคโนโลยี จำกัด',
+    country: 'Thailand',
+    isActive: true,
+  },
+  {
+    code: 'STCS',
+    name: 'บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด',
+    country: 'Thailand',
+    isActive: true,
+  },
+  {
+    code: 'STNR',
+    name: 'บริษัท สทรีมวอช (นครราชสีมา) จำกัด',
+    country: 'Thailand',
+    isActive: true,
+  },
+  {
+    code: 'STPT',
+    name: 'บริษัท สทรีมวอช (พัทยา) จำกัด',
+    country: 'Thailand',
+    isActive: true,
+  },
+  {
+    code: 'STPK',
+    name: 'บริษัท สทรีมวอช (ภูเก็ต) จำกัด',
+    country: 'Thailand',
+    isActive: false,
+  },
+]
+
+// ============================================================================
 // MOCK USERS
 // ============================================================================
 
 export const mockUsers: User[] = [
   {
-    uid: 'user_john_admin',
-    email: 'john@streamvoice.com',
-    name: 'John Admin',
+    uid: '61JSdbE674TqRBHHUu9ezdzFul93',
+    email: 'it.streamwash@gmail.com',
+    name: 'IT STTH',
     role: 'admin',
     company: 'STTH',
     groups: [],
@@ -34,7 +84,7 @@ export const mockUsers: User[] = [
   },
   {
     uid: 'user_somchai_mod',
-    email: 'somchai@streamvoice.com',
+    email: 'somchai@streamwash.com',
     name: 'Somchai Moderator',
     role: 'moderator',
     company: 'STTH',
@@ -45,7 +95,7 @@ export const mockUsers: User[] = [
   },
   {
     uid: 'user_nattha_mod',
-    email: 'nattha@streamvoice.com',
+    email: 'nattha@streamwash.com',
     name: 'Nattha Moderator',
     role: 'moderator',
     company: 'STTH',
@@ -56,7 +106,7 @@ export const mockUsers: User[] = [
   },
   {
     uid: 'user_teerak_user',
-    email: 'teerak@streamvoice.com',
+    email: 'teerak@streamwash.com',
     name: 'Teerak User',
     role: 'user',
     company: 'STTH',
@@ -67,7 +117,7 @@ export const mockUsers: User[] = [
   },
   {
     uid: 'user_janine_user',
-    email: 'janine@streamvoice.com',
+    email: 'janine@streamwash.com',
     name: 'Janine User',
     role: 'user',
     company: 'STTH',
@@ -78,7 +128,7 @@ export const mockUsers: User[] = [
   },
   {
     uid: 'user_sombat_user',
-    email: 'sombat@streamvoice.com',
+    email: 'sombat@streamwash.com',
     name: 'Sombat User',
     role: 'user',
     company: 'STTH',
@@ -123,10 +173,10 @@ export const mockFolders: Folder[] = [
     parentId: null,
     company: 'STTH',
     description: 'All sales-related dashboards',
-    createdBy: 'user_john_admin',
+    createdBy: 'user-1',  // Somchai (admin)
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user-1',
   },
   {
     id: 'folder_finance',
@@ -134,10 +184,10 @@ export const mockFolders: Folder[] = [
     parentId: null,
     company: 'STTH',
     description: 'Financial reports and dashboards',
-    createdBy: 'user_john_admin',
+    createdBy: 'user-1',  // Somchai (admin)
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user-1',
   },
   {
     id: 'folder_operations',
@@ -145,10 +195,10 @@ export const mockFolders: Folder[] = [
     parentId: null,
     company: 'STTH',
     description: 'Operational dashboards',
-    createdBy: 'user_john_admin',
+    createdBy: 'user-1',  // Somchai (admin)
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user-1',
   },
   {
     id: 'folder_hr',
@@ -156,23 +206,23 @@ export const mockFolders: Folder[] = [
     parentId: null,
     company: 'STTH',
     description: 'Human resources dashboards',
-    createdBy: 'user_john_admin',
+    createdBy: 'user-1',  // Somchai (admin)
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user-1',
   },
 
   // Level 2: Under Sales
   {
     id: 'folder_sales_reports',
-    name: 'Reports',
+    name: 'Monthly',
     parentId: 'folder_sales',
     company: 'STTH',
     description: 'Sales reports',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-05'),
     updatedAt: new Date('2024-01-05'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
   {
     id: 'folder_sales_regional',
@@ -180,10 +230,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_sales',
     company: 'STTH',
     description: 'Regional sales analysis',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-05'),
     updatedAt: new Date('2024-01-05'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
 
   // Level 3: Under Sales > Reports
@@ -193,10 +243,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_sales_reports',
     company: 'STTH',
     description: 'Eastern region reports',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-10'),
     updatedAt: new Date('2024-01-10'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
   {
     id: 'folder_sales_reports_west',
@@ -204,10 +254,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_sales_reports',
     company: 'STTH',
     description: 'Western region reports',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-10'),
     updatedAt: new Date('2024-01-10'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
 
   // Level 3: Under Sales > Regional
@@ -217,10 +267,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_sales_regional',
     company: 'STTH',
     description: 'Northern region',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-10'),
     updatedAt: new Date('2024-01-10'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
   {
     id: 'folder_sales_regional_south',
@@ -228,10 +278,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_sales_regional',
     company: 'STTH',
     description: 'Southern region',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-10'),
     updatedAt: new Date('2024-01-10'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
 
   // Level 4: Under Sales > Regional > North
@@ -241,10 +291,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_sales_regional_north',
     company: 'STTH',
     description: 'Q1 2024 Northern region',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-15'),
     updatedAt: new Date('2024-01-15'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
 
   // Level 2: Under Finance
@@ -254,10 +304,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_finance',
     company: 'STTH',
     description: 'Budget tracking',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-05'),
     updatedAt: new Date('2024-01-05'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
   {
     id: 'folder_finance_payroll',
@@ -265,10 +315,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_finance',
     company: 'STTH',
     description: 'Payroll reports',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-05'),
     updatedAt: new Date('2024-01-05'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
 
   // Level 3: Under Finance > Budget
@@ -278,10 +328,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_finance_budget',
     company: 'STTH',
     description: '2024 budget',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-10'),
     updatedAt: new Date('2024-01-10'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
   {
     id: 'folder_finance_budget_2025',
@@ -289,10 +339,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_finance_budget',
     company: 'STTH',
     description: '2025 budget',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-10'),
     updatedAt: new Date('2024-01-10'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
 
   // Level 2: Under Operations
@@ -302,10 +352,10 @@ export const mockFolders: Folder[] = [
     parentId: 'folder_operations',
     company: 'STTH',
     description: 'Inventory management',
-    createdBy: 'user_john_admin',
+    createdBy: 'user_it_admin',
     createdAt: new Date('2024-01-05'),
     updatedAt: new Date('2024-01-05'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
   },
 ]
 
@@ -324,10 +374,10 @@ export const mockDashboards: Dashboard[] = [
     description: 'Sales performance for East region',
     lookerDashboardId: 'dashboard_123_east_perf',
     lookerEmbedUrl: 'https://looker.streamvoice.com/dashboards/123',
-    owner: 'user_john_admin',
+    owner: 'user_it_admin',
     createdAt: new Date('2024-01-15'),
     updatedAt: new Date('2024-02-01'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
     isArchived: false,
 
     access: {
@@ -399,10 +449,10 @@ export const mockDashboards: Dashboard[] = [
     description: 'Sensitive employee information',
     lookerDashboardId: 'dashboard_789_hr',
     lookerEmbedUrl: 'https://looker.streamvoice.com/dashboards/789',
-    owner: 'user_john_admin',
+    owner: 'user_it_admin',
     createdAt: new Date('2024-01-10'),
     updatedAt: new Date('2024-02-01'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
     isArchived: false,
 
     access: {
@@ -429,10 +479,10 @@ export const mockDashboards: Dashboard[] = [
     description: '2024 budget tracking dashboard',
     lookerDashboardId: 'dashboard_budget_2024',
     lookerEmbedUrl: 'https://looker.streamvoice.com/dashboards/budget2024',
-    owner: 'user_john_admin',
+    owner: 'user_it_admin',
     createdAt: new Date('2024-01-08'),
     updatedAt: new Date('2024-02-01'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
     isArchived: false,
 
     access: {
@@ -495,10 +545,10 @@ export const mockDashboards: Dashboard[] = [
     description: 'Interactive sales map by region',
     lookerDashboardId: 'dashboard_sales_map',
     lookerEmbedUrl: 'https://looker.streamvoice.com/dashboards/sales_map',
-    owner: 'user_john_admin',
+    owner: 'user_it_admin',
     createdAt: new Date('2024-01-12'),
     updatedAt: new Date('2024-02-01'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
     isArchived: false,
 
     access: {
@@ -562,10 +612,10 @@ export const mockDashboards: Dashboard[] = [
     folderId: 'folder_sales',
     type: 'looker',
     description: 'Old dashboard - no longer maintained',
-    owner: 'user_john_admin',
+    owner: 'user_it_admin',
     createdAt: new Date('2023-01-01'),
     updatedAt: new Date('2024-01-20'),
-    updatedBy: 'user_john_admin',
+    updatedBy: 'user_it_admin',
     isArchived: true,
     archivedAt: new Date('2024-01-20'),
 
@@ -590,28 +640,18 @@ export const mockDashboards: Dashboard[] = [
 
 /**
  * Get user by UID from mock data
- * For testing purposes, if user not found, create a default admin user
+ * Throws error if user not found (safe for production)
+ * @throws Error if user not found in system
  */
-export function getMockUserByUid(uid: string): User | undefined {
-  let user = mockUsers.find((u) => u.uid === uid)
-  
-  // If not found in mock data, create a default test user with admin privileges
-  // This allows any logged-in Firebase user to access the system for testing
+export function getMockUserByUid(uid: string): User {
+  const user = mockUsers.find((u) => u.uid === uid)
+
   if (!user) {
-    console.log('🔍 [useMockData] User not in mock data, creating default admin user for testing')
-    user = {
-      uid: uid,
-      email: 'test@gmail.com', // Will be replaced by actual email from auth
-      name: 'Test User',
-      role: 'admin',
-      company: 'STTH', // DEFAULT COMPANY FOR TESTING
-      groups: ['sales', 'finance', 'operations'],
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
+    const errorMessage = `User with UID "${uid}" not found in system. Please contact administrator to create an account.`
+    console.error('❌ [useMockData]', errorMessage)
+    throw new Error(errorMessage)
   }
-  
+
   return user
 }
 
@@ -751,4 +791,25 @@ export function getAccessibleDashboards(
 
     return false
   })
+}
+
+// ============================================================================
+// COMPANY HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Get company by code
+ * @param code Company code (e.g., 'STTH', 'STTN')
+ * @returns Company object or undefined
+ */
+export function getCompanyByCode(code: string): Company | undefined {
+  return mockCompanies.find(company => company.code === code)
+}
+
+/**
+ * Get all active companies
+ * @returns Array of active companies
+ */
+export function getActiveCompanies(): Company[] {
+  return mockCompanies.filter(company => company.isActive)
 }

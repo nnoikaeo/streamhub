@@ -165,7 +165,7 @@ button:disabled {
 }
 
 /* Default button styles - can be overridden by component classes */
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item) {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
@@ -174,38 +174,13 @@ button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]) 
   font-weight: 500;
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):hover:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):hover:not(:disabled) {
   background-color: var(--color-primary-dark);
   box-shadow: var(--shadow-md);
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):active:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):active:not(:disabled) {
   transform: translateY(1px);
-}
-
-/* ============================================================================
-   BUTTON TEXT & ICON COLOR FIXES - ULTRA HIGH SPECIFICITY
-   Fix for User Menu Button and Create Folder Button
-   ============================================================================ */
-
-/* User Menu Button - Force white text */
-.header-user .user-menu-btn,
-button.user-menu-btn {
-  background-color: var(--color-primary) !important;
-  color: var(--color-text-inverse) !important;
-}
-
-/* User Menu Button - Force white for all children */
-.header-user .user-menu-btn *,
-button.user-menu-btn * {
-  color: inherit !important;
-}
-
-.header-user .user-menu-btn .user-name,
-.header-user .user-menu-btn .user-avatar,
-button.user-menu-btn .user-name,
-button.user-menu-btn .user-avatar {
-  color: var(--color-text-inverse) !important;
 }
 
 /* ============================================================================
@@ -282,17 +257,6 @@ button[data-v-19d67b45].create-folder-btn {
 [data-v-19d67b45].create-folder-btn svg[data-v-19d67b45] *,
 [data-v-19d67b45].create-folder-btn svg line[data-v-19d67b45] {
   stroke: var(--color-text-inverse) !important;
-}
-
-/* User Menu Button with Vue scoped attribute */
-[data-v-efec796d] button.user-menu-btn,
-[data-v-efec796d] .user-menu-btn {
-  color: var(--color-text-inverse) !important;
-}
-
-[data-v-efec796d] button.user-menu-btn *,
-[data-v-efec796d] .user-menu-btn * {
-  color: inherit !important;
 }
 
 /* ============================================================================

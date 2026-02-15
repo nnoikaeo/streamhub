@@ -10,7 +10,7 @@ console.log('🔍 [app.vue] initializing')
 
 onMounted(async () => {
   console.log('🔍 [app.vue] onMounted called', { loading: authStore.loading, authenticated: authStore.isAuthenticated })
-  
+
   // Always initialize auth if not already authenticated or if still loading
   if (authStore.loading) {
     console.log('🔍 [app.vue] calling initAuth because loading is true')
