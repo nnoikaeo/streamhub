@@ -72,8 +72,8 @@ export const mockCompanies: Company[] = [
 
 export const mockUsers: User[] = [
   {
-    uid: 'user_it_admin',
-    email: 'it@streamwash.com',
+    uid: '61JSdbE674TqRBHHUu9ezdzFul93',
+    email: 'it.streamwash@gmail.com',
     name: 'IT STTH',
     role: 'admin',
     company: 'STTH',
@@ -173,10 +173,10 @@ export const mockFolders: Folder[] = [
     parentId: null,
     company: 'STTH',
     description: 'All sales-related dashboards',
-    createdBy: 'user_it_admin',
+    createdBy: 'user-1',  // Somchai (admin)
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
-    updatedBy: 'user_it_admin',
+    updatedBy: 'user-1',
   },
   {
     id: 'folder_finance',
@@ -184,10 +184,10 @@ export const mockFolders: Folder[] = [
     parentId: null,
     company: 'STTH',
     description: 'Financial reports and dashboards',
-    createdBy: 'user_it_admin',
+    createdBy: 'user-1',  // Somchai (admin)
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
-    updatedBy: 'user_it_admin',
+    updatedBy: 'user-1',
   },
   {
     id: 'folder_operations',
@@ -195,10 +195,10 @@ export const mockFolders: Folder[] = [
     parentId: null,
     company: 'STTH',
     description: 'Operational dashboards',
-    createdBy: 'user_it_admin',
+    createdBy: 'user-1',  // Somchai (admin)
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
-    updatedBy: 'user_it_admin',
+    updatedBy: 'user-1',
   },
   {
     id: 'folder_hr',
@@ -206,16 +206,16 @@ export const mockFolders: Folder[] = [
     parentId: null,
     company: 'STTH',
     description: 'Human resources dashboards',
-    createdBy: 'user_it_admin',
+    createdBy: 'user-1',  // Somchai (admin)
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
-    updatedBy: 'user_it_admin',
+    updatedBy: 'user-1',
   },
 
   // Level 2: Under Sales
   {
     id: 'folder_sales_reports',
-    name: 'Reports',
+    name: 'Monthly',
     parentId: 'folder_sales',
     company: 'STTH',
     description: 'Sales reports',

@@ -108,7 +108,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
 
   const breadcrumbItems = computed(() => {
     return [
-      { label: 'Dashboard', to: '/dashboard/discover' },
+      { label: 'รายการแดชบอร์ด', to: '/dashboard/discover' },
       ...(folderPath.value?.map((folder) => ({
         label: folder.name,
         to: `/dashboard/discover?folder=${folder.id}`,
@@ -155,14 +155,8 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       dashboardStore.updateFoldersCacheKey(uid, company)
       log('loadFolders completed', { folderCount: response.folders.length })
 
-      // Set default folder to first one if not specified
-      if (!selectedFolderId.value && response.folders.length > 0) {
-        const firstFolder = response.folders[0]
-        if (firstFolder) {
-          dashboardStore.selectFolder(firstFolder.id)
-          log('loadFolders set default folder', { folderId: firstFolder.id })
-        }
-      }
+      // Note: Do not auto-select folder - let user choose
+      // Only select folder if specified in URL query params
     } catch (err) {
       log('loadFolders error', err)
       dashboardStore.setError(
@@ -406,16 +400,12 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       log('initialize: Calling loadFolders')
       await loadFolders()
 
-      // If no folder selected, use first folder
-      if (!selectedFolderId.value && folders.value.length > 0) {
-        const firstFolder = folders.value[0]
-        if (firstFolder) {
-          dashboardStore.selectFolder(firstFolder.id)
-          log('initialize: Set default folder', { folderId: firstFolder.id })
-        }
-      }
+      // Note: Do not auto-select folder - let user choose
+      // Folder will only be selected if:
+      // 1. Specified in URL query params (handled above)
+      // 2. User clicks on folder in sidebar
 
-      // Load dashboards
+      // Load dashboards (will load ALL dashboards if no folder selected)
       log('initialize: Calling loadDashboards')
       await loadDashboards()
 

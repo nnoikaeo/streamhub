@@ -270,10 +270,41 @@ export class MockDashboardService implements IDashboardService {
       )
     })
 
+    // Build folder tree with children property
+    const folderTree = this.buildFolderTree(accessibleFolders)
+
     return {
-      folders: accessibleFolders,
+      folders: folderTree,
       hierarchy: [],
     }
+  }
+
+  /**
+   * Build hierarchical folder tree structure
+   */
+  private buildFolderTree(folders: Folder[]): Folder[] {
+    // Create a map of folders by ID for easy lookup
+    const folderMap = new Map<string, Folder & { children?: Folder[] }>()
+    folders.forEach(folder => {
+      folderMap.set(folder.id, { ...folder, children: [] })
+    })
+
+    // Build tree structure
+    const rootFolders: Folder[] = []
+    folderMap.forEach(folder => {
+      if (!folder.parentId) {
+        // Root level folder
+        rootFolders.push(folder)
+      } else {
+        // Child folder - add to parent's children
+        const parent = folderMap.get(folder.parentId)
+        if (parent) {
+          parent.children!.push(folder)
+        }
+      }
+    })
+
+    return rootFolders
   }
 
   async getFolder(folderId: string): Promise<Folder | null> {

@@ -7,6 +7,12 @@
           <FolderSidebar
             :folders="folders"
             :selected-folder-id="selectedFolderId"
+            :show-main-menu="true"
+            :main-menu-items="[
+              { label: 'หน้าแรก', icon: '🏠', to: '/dashboard' },
+              { label: 'รายการแดชบอร์ด', icon: '📊', to: '/dashboard/discover' }
+            ]"
+            :show-folders="true"
             :allow-search="true"
             :allow-create="canCreateFolder"
             @select-folder="(folder: Folder) => selectFolder(folder.id)"
@@ -214,8 +220,8 @@ const {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  color: white;
+  gap: var(--spacing-md);
+  color: var(--color-text-inverse);
   text-align: center;
 }
 
@@ -237,16 +243,16 @@ const {
 .discover-main-content {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 0 2rem;
+  gap: var(--spacing-lg);
+  padding: 0 var(--spacing-xl);
 }
 
 /* ========== DASHBOARDS HEADER ========== */
 .dashboards-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
 }
 
 .header-icon {
@@ -272,7 +278,7 @@ const {
 /* Responsive */
 @media (max-width: 768px) {
   .discover-main-content {
-    padding: 0 1rem;
+    padding: 0 var(--spacing-md);
   }
 
   .dashboards-count {

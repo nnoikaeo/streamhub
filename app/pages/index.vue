@@ -43,21 +43,6 @@
 
 <script setup lang="ts">
 const authStore = useAuthStore()
-const router = useRouter()
-
-// Watch for auth loading to complete, then redirect if unauthenticated with no error
-watch(
-  () => authStore.loading,
-  async (newLoading) => {
-    if (!newLoading) {
-      // Auth loading is complete
-      if (!authStore.isAuthenticated && !authStore.authError) {
-        // User is not authenticated and has no error → redirect to login page
-        await router.push('/login')
-      }
-    }
-  }
-)
 
 definePageMeta({
   layout: 'default',
