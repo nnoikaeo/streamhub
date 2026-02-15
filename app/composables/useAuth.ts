@@ -1,10 +1,12 @@
 import { signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
 import { useAuthStore, type UserData } from '~/stores/auth'
+import { usePermissionsStore } from '~/stores/permissions'
 import { getMockUserByUid } from '~/composables/useMockData'
 
 export const useAuth = () => {
   const { $firebase } = useNuxtApp()
   const authStore = useAuthStore()
+  const permissionsStore = usePermissionsStore()
 
   const signInWithGoogle = async () => {
     try {
@@ -31,12 +33,18 @@ export const useAuth = () => {
         }
         authStore.setUser(userData)
         authStore.setAuthError(null)
+        
+        // Initialize permissions
+        permissionsStore.initializePermissions(userData)
+        console.log('✅ Permissions initialized for role:', mockUser.role)
+        
         return { success: true }
       } catch (userError: any) {
         // User not found in system
         console.error('❌ User profile not found:', userError.message)
         authStore.setUser(null)
         authStore.setAuthError(userError.message)
+        permissionsStore.initializePermissions(null)
         return {
           success: false,
           error: userError.message
@@ -59,6 +67,7 @@ export const useAuth = () => {
       console.log('🚪 Logging out...')
       await signOut($firebase.auth)
       authStore.setUser(null)
+      permissionsStore.initializePermissions(null)
       await navigateTo('/login')
       console.log('✅ Logged out successfully')
     } catch (error: any) {
@@ -89,15 +98,21 @@ export const useAuth = () => {
             console.log(`🔍 [useAuth.initAuth] Setting user data:`, userData)
             authStore.setUser(userData)
             authStore.setAuthError(null)
+            
+            // Initialize permissions
+            permissionsStore.initializePermissions(userData)
+            console.log('✅ Permissions initialized for role:', mockUser.role)
           } catch (userError: any) {
             // User not found in system
             console.error('❌ [useAuth.initAuth] User profile not found:', userError.message)
             authStore.setUser(null)
             authStore.setAuthError(userError.message)
+            permissionsStore.initializePermissions(null)
           }
         } else {
           authStore.setUser(null)
           authStore.setAuthError(null)
+          permissionsStore.initializePermissions(null)
         }
 
         console.log(`🔍 [useAuth.initAuth] Setting loading to false`)

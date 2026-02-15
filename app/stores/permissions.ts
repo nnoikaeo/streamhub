@@ -21,6 +21,11 @@ export interface FeaturePermissions {
 /**
  * Role-based permission mappings
  * Defines what permissions each role has
+ * 
+ * Roles:
+ * - admin: Full system access (manage users, system settings)
+ * - moderator: Can manage dashboards and folders
+ * - user: View-only access
  */
 const ROLE_PERMISSIONS: Record<string, Partial<FeaturePermissions>> = {
   admin: {
@@ -35,7 +40,7 @@ const ROLE_PERMISSIONS: Record<string, Partial<FeaturePermissions>> = {
     canAccessAdmin: true,
     canManageUsers: true,
   },
-  editor: {
+  moderator: {
     canViewDashboards: true,
     canCreateDashboard: true,
     canEditDashboard: true,
@@ -43,18 +48,6 @@ const ROLE_PERMISSIONS: Record<string, Partial<FeaturePermissions>> = {
     canShareDashboard: true,
     canCreateFolder: true,
     canEditFolder: true,
-    canDeleteFolder: false,
-    canAccessAdmin: false,
-    canManageUsers: false,
-  },
-  viewer: {
-    canViewDashboards: true,
-    canCreateDashboard: false,
-    canEditDashboard: false,
-    canDeleteDashboard: false,
-    canShareDashboard: false,
-    canCreateFolder: false,
-    canEditFolder: false,
     canDeleteFolder: false,
     canAccessAdmin: false,
     canManageUsers: false,
@@ -134,8 +127,8 @@ export const usePermissionsStore = defineStore('permissions', () => {
     currentUser.value = user
     userRole.value = user.role || 'user'
 
-    // Get permissions for this role
-    const rolePerms = ROLE_PERMISSIONS[userRole.value] || ROLE_PERMISSIONS.user
+    // Get permissions for this role (fallback to 'user' if role not found)
+    const rolePerms: Partial<FeaturePermissions> = (ROLE_PERMISSIONS[userRole.value] || ROLE_PERMISSIONS.user)!
     permissions.value = {
       canViewDashboards: rolePerms.canViewDashboards ?? false,
       canCreateDashboard: rolePerms.canCreateDashboard ?? false,
