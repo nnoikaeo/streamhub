@@ -47,10 +47,17 @@ export default defineNuxtConfig({
       global: true
     },
 
-    // Feature components - prefix 'Feature'
+    // Feature components - NO prefix (for convenience)
     {
       path: '~/components/features',
-      prefix: 'Feature',
+      prefix: '',
+      global: true
+    },
+
+    // Dashboard components - prefix 'Dashboard'
+    {
+      path: '~/components/dashboard',
+      prefix: 'Dashboard',
       global: false
     }
   ],

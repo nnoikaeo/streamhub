@@ -57,7 +57,7 @@ app/composables/useDashboardService.ts
 // 6 mock users with realistic distribution
 mockUsers = [
   {
-    uid: 'user_john_admin',
+    uid: 'user_it_admin',
     role: 'admin',      // Can access everythingพื
     company: 'STTH',
     groups: [],
@@ -145,7 +145,7 @@ STTH Company
   name: 'Regional East Performance',
   folderId: 'folder_sales_reports_east',
   type: 'looker',
-  owner: 'user_john_admin',
+  owner: 'user_it_admin',
   
   access: {
     direct: {
@@ -227,7 +227,7 @@ STTH Company
 {
   id: 'dash_hr_employee_data',
   name: 'Employee Data',
-  owner: 'user_john_admin',
+  owner: 'user_it_admin',
   
   access: {
     direct: {
