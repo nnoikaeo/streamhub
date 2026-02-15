@@ -1,41 +1,62 @@
 <template>
   <div class="folder-sidebar">
-    <!-- Sidebar Header -->
-    <div class="sidebar-header">
-      <h3 class="sidebar-title">Folders</h3>
-      <button
-        v-if="allowCreate"
-        class="create-folder-btn"
-        type="button"
-        @click="$emit('create-folder')"
-        :title="'Create new folder'"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </button>
+    <!-- Main Navigation Menu -->
+    <div v-if="showMainMenu && mainMenuItems.length" class="sidebar-section">
+      <div class="sidebar-header">
+        <h3 class="sidebar-title">เมนูหลัก</h3>
+      </div>
+      <nav class="main-nav">
+        <NuxtLink
+          v-for="item in mainMenuItems"
+          :key="item.to"
+          :to="item.to"
+          class="nav-item"
+          active-class="nav-item--active"
+        >
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </NuxtLink>
+      </nav>
     </div>
 
-    <!-- Search Bar -->
-    <div v-if="allowSearch" class="sidebar-search">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Search folders..."
-        class="search-input"
-      />
-    </div>
+    <!-- Folders Section -->
+    <div v-if="showFolders" class="sidebar-section">
+      <div class="sidebar-header">
+        <h3 class="sidebar-title">โฟลเดอร์</h3>
+        <button
+          v-if="allowCreate"
+          class="create-folder-btn"
+          type="button"
+          @click="$emit('create-folder')"
+          :title="'สร้างโฟลเดอร์ใหม่'"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+      </div>
 
-    <!-- Folder Tree -->
-    <div class="sidebar-content">
-      <FolderTree
-        :folders="filteredFolders"
-        :selected-folder-id="selectedFolderId"
-        :expanded-folders="expandedFolders"
-        @select="handleFolderSelect"
-        @expand="handleFolderExpand"
-      />
+      <!-- Search Bar -->
+      <div v-if="allowSearch" class="sidebar-search">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="ค้นหาโฟลเดอร์..."
+          class="search-input"
+        />
+      </div>
+
+      <!-- Folder Tree -->
+      <div class="sidebar-content">
+        <FolderTree
+          :folders="filteredFolders"
+          :selected-folder-id="selectedFolderId"
+          :expanded-folders="expandedFolders"
+          @select="handleFolderSelect"
+          @expand="handleFolderExpand"
+        />
+      </div>
     </div>
 
     <!-- Sidebar Footer (Optional) -->
@@ -46,14 +67,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, unref } from 'vue'
 import { type Folder } from '~/types/dashboard'
+import { useDashboardStore } from '~/stores/dashboard'
 import FolderTree from './FolderTree.vue'
 
 /**
- * FolderSidebar - Sidebar wrapper for folder tree
+ * FolderSidebar - Sidebar wrapper for folder tree with main navigation
  *
  * Features:
+ * - Main menu navigation (Dashboard, Discover)
  * - Folder tree with search
  * - Create folder button
  * - Expand/collapse management
@@ -67,11 +90,19 @@ import FolderTree from './FolderTree.vue'
  * Usage:
  * <FolderSidebar
  *   :folders="mockFolders"
+ *   :show-main-menu="true"
+ *   :main-menu-items="[{ label: 'หน้าแรก', icon: '🏠', to: '/dashboard' }]"
  *   :selected-folder-id="activeFolderId"
  *   @select-folder="handleSelectFolder"
  *   @create-folder="handleCreateFolder"
  * />
  */
+
+interface MenuItem {
+  label: string
+  icon: string
+  to: string
+}
 
 interface Props {
   /**
@@ -83,6 +114,21 @@ interface Props {
    * Currently selected folder ID
    */
   selectedFolderId?: string | null
+
+  /**
+   * Show main navigation menu
+   */
+  showMainMenu?: boolean
+
+  /**
+   * Main menu items
+   */
+  mainMenuItems?: MenuItem[]
+
+  /**
+   * Show folders section
+   */
+  showFolders?: boolean
 
   /**
    * Allow search functionality
@@ -97,6 +143,9 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   selectedFolderId: null,
+  showMainMenu: false,
+  mainMenuItems: () => [],
+  showFolders: true,
   allowSearch: true,
   allowCreate: false,
 })
@@ -106,8 +155,15 @@ const emit = defineEmits<{
   'create-folder': []
 }>()
 
+const dashboardStore = useDashboardStore()
 const searchQuery = ref('')
-const expandedFolders = ref<Set<string>>(new Set())
+
+/**
+ * Get expandedFolders from store
+ * This persists across component re-mounts
+ * Unwrap Ref to pass actual Set object to FolderTree
+ */
+const expandedFolders = computed(() => unref(dashboardStore.expandedFolders))
 
 /**
  * Filter folders by search query (simple implementation)
@@ -139,9 +195,10 @@ const handleFolderSelect = (folder: Folder) => {
 
 /**
  * Handle folder expand
+ * Toggle expand state in store (persists across component re-mounts)
  */
 const handleFolderExpand = (folderId: string) => {
-  // Expand state managed by local ref
+  dashboardStore.toggleExpandFolder(folderId)
 }
 </script>
 
@@ -150,7 +207,58 @@ const handleFolderExpand = (folderId: string) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #ffffff;
+  background-color: var(--color-bg-primary);
+  border-right: 1px solid var(--color-border-light);
+}
+
+/* ========== SIDEBAR SECTION ========== */
+.sidebar-section {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.sidebar-section:last-child {
+  border-bottom: none;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ========== MAIN NAVIGATION ========== */
+.main-nav {
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-sm) 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.nav-item--active {
+  background-color: var(--color-primary-lightest);
+  color: var(--color-primary);
+  font-weight: 600;
+  border-left: 3px solid var(--color-primary);
+}
+
+.nav-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.nav-label {
+  font-size: 0.9375rem;
 }
 
 /* ========== HEADER ========== */
@@ -231,7 +339,7 @@ const handleFolderExpand = (folderId: string) => {
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
+  /* Remove overflow-x: hidden to allow badge to show */
 
   /* Custom scrollbar */
   scrollbar-width: thin;

@@ -56,6 +56,7 @@
 </template>
 
 <script setup lang="ts">
+// FolderTree component - Badge alignment fix (CSS transform)
 import { type Folder } from '~/types/dashboard'
 import { ref } from 'vue'
 
@@ -128,13 +129,10 @@ const isSelected = (folderId: string): boolean => {
 
 /**
  * Toggle folder expansion
+ * Emit event to let parent (FolderSidebar) handle the state change
+ * This prevents direct mutation of props and ensures state is managed in store
  */
 const toggleExpand = (folderId: string) => {
-  if (expandedFolders.has(folderId)) {
-    expandedFolders.delete(folderId)
-  } else {
-    expandedFolders.add(folderId)
-  }
   emit('expand', folderId)
 }
 
@@ -145,7 +143,7 @@ const selectFolder = (folder: Folder) => {
   emit('select', folder)
   // Auto-expand when selecting a folder
   if (folder.children && folder.children.length > 0 && !expandedFolders.has(folder.id)) {
-    expandedFolders.add(folder.id)
+    emit('expand', folder.id)
   }
 }
 </script>
@@ -153,6 +151,7 @@ const selectFolder = (folder: Folder) => {
 <style scoped>
 .folder-tree {
   width: 100%;
+  overflow: hidden;
 }
 
 /* ========== TREE LIST ========== */
@@ -171,10 +170,13 @@ const selectFolder = (folder: Folder) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
   padding: 0.5rem 0.75rem;
+  padding-right: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  box-sizing: border-box;
 
   &:hover {
     background-color: #f3f4f6;
@@ -197,21 +199,27 @@ const selectFolder = (folder: Folder) => {
   width: 1.5rem;
   height: 1.5rem;
   padding: 0;
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
-  color: inherit;
+  color: var(--color-text-secondary);
   transition: transform 0.2s ease;
   flex-shrink: 0;
+  outline: none;
 
-  svg {
-    width: 1rem;
-    height: 1rem;
+  &:hover {
+    color: var(--color-text-primary);
   }
 
   &.expand-open {
     transform: rotate(90deg);
   }
+}
+
+.expand-btn :deep(svg) {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
 }
 
 /* Empty expand button for items without children */
@@ -229,16 +237,18 @@ const selectFolder = (folder: Folder) => {
   height: 1rem;
   color: #f59e0b;
   flex-shrink: 0;
+}
 
-  svg {
-    width: 100%;
-    height: 100%;
-  }
+.folder-icon :deep(svg) {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
 }
 
 /* ========== FOLDER NAME ========== */
 .folder-name {
   flex: 1;
+  min-width: 0;  /* Allow flex item to shrink below content size */
   font-size: 0.875rem;
   color: inherit;
   overflow: hidden;
@@ -248,9 +258,12 @@ const selectFolder = (folder: Folder) => {
 
 /* ========== ITEM COUNT BADGE ========== */
 .folder-count {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 1.5rem;
-  padding: 0.125rem 0.375rem;
+  height: 1.5rem;
+  padding: 0 0.375rem;
   background-color: #e5e7eb;
   color: #6b7280;
   font-size: 0.7rem;
@@ -259,6 +272,9 @@ const selectFolder = (folder: Folder) => {
   border-radius: 9999px;
   flex-shrink: 0;
   transition: all 0.2s ease;
+  /* Align badge to right edge - margin-left: auto pushes to end */
+  margin-left: auto;
+  margin-right: 0.75rem;
 }
 
 .folder-row:hover .folder-count {
@@ -272,21 +288,26 @@ const selectFolder = (folder: Folder) => {
 
 /* ========== NESTED ITEMS ========== */
 .tree-nested {
-  padding-left: 1rem;
   border-left: 1px solid #e5e7eb;
-  margin-left: 0.5rem;
+  padding-left: 0;
+  margin-left: 1.5rem;
+  max-width: calc(100% - 1.5rem);
+  box-sizing: border-box;
+  /* Use margin-left to indent, this changes actual layout flow */
+  /* ensuring badges align vertically in flex container */
 }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .folder-row {
     padding: 0.375rem 0.5rem;
+    padding-right: 1.75rem;
     font-size: 0.875rem;
   }
 
   .tree-nested {
-    padding-left: 0.75rem;
-    margin-left: 0.25rem;
+    margin-left: 1rem;
+    max-width: calc(100% - 1rem);
   }
 }
 </style>
