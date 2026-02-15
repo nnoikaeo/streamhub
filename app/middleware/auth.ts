@@ -8,24 +8,25 @@
  * 3. If authenticated but NOT in mockUsers → show error (allow on index only)
  */
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   try {
     const authStore = useAuthStore()
+    const { initAuth } = useAuth()
 
     // Wait for auth to initialize if still loading
     if (authStore.loading) {
-      // Auth is still loading, let Suspense handle it
-      return
+      // Auth is still loading, wait for initialization to complete
+      await initAuth()
     }
 
-    // User not authenticated
+    // User not authenticated (after loading completed)
     if (!authStore.isAuthenticated) {
-      // If on public pages (index, login), allow access
-      if (['index', 'login'].includes(to.name as string)) {
+      // If on login page, allow access
+      if (to.name === 'login') {
         return
       }
 
-      // Otherwise redirect to login
+      // Redirect to login for all other pages (including index)
       return navigateTo('/login')
     }
 
