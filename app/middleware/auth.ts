@@ -1,53 +1,53 @@
-import type { RouteLocationNormalized } from 'vue-router'
-import { useAuthStore } from '~/stores/auth'
+/**
+ * Auth Middleware
+ * Handles authentication-based navigation
+ *
+ * Rules:
+ * 1. If not authenticated → redirect to /login
+ * 2. If authenticated + in mockUsers → allow access
+ * 3. If authenticated but NOT in mockUsers → show error (allow on index only)
+ */
 
-console.log('✅ Auth middleware loaded')
+export default defineNuxtRouteMiddleware(async (to) => {
+  try {
+    const authStore = useAuthStore()
+    const { initAuth } = useAuth()
 
-// Manual middleware implementation without defineRouteMiddleware
-export default (to: RouteLocationNormalized, from: RouteLocationNormalized) => {
-  console.log(`📍 Middleware triggered: ${to.path}`)
-  
-  // Skip middleware on server-side for now
-  if (process.server) {
-    console.log('⏭️ Skipping middleware on server')
-    return
-  }
+    // Wait for auth to initialize if still loading
+    if (authStore.loading) {
+      // Auth is still loading, wait for initialization to complete
+      await initAuth()
+    }
 
-  const authStore = useAuthStore()
-  
-  // Don't redirect while auth is still loading
-  if (authStore.loading) {
-    console.log(`⏳ Auth still loading, skipping middleware checks`)
-    return
-  }
-  
-  console.log(`📊 Auth state - Authenticated: ${authStore.isAuthenticated}, User: ${authStore.user?.email || 'none'}, Role: ${authStore.user?.role || 'none'}`)
+    // User not authenticated (after loading completed)
+    if (!authStore.isAuthenticated) {
+      // If on login page, allow access
+      if (to.name === 'login') {
+        return
+      }
 
-  // If user is authenticated and trying to access login, redirect to dashboard
-  if (authStore.isAuthenticated && to.path === '/login') {
-    console.log('✅ Already logged in, redirecting to dashboard')
-    return navigateTo('/dashboard')
-  }
+      // Redirect to login for all other pages (including index)
+      return navigateTo('/login')
+    }
 
-  // Allow access to login and public pages
-  if (to.path === '/login' || to.path === '/') {
-    console.log('✅ Allowing access to public page')
-    return
-  }
+    // Check if user has auth error
+    if (authStore.authError) {
+      // Only allow on index page if there's an error
+      if (to.name === 'index') {
+        return
+      }
 
-  // Redirect to login if not authenticated
-  if (!authStore.isAuthenticated) {
-    console.log('🔐 Not authenticated, redirecting to login')
-    return navigateTo('/login')
-  }
-  
-  // Check admin role for admin routes
-  if (to.path.startsWith('/admin/')) {
-    console.log(`🔐 Admin route detected: ${to.path}, checking admin role. Current role: ${authStore.user?.role}`)
-    if (authStore.user?.role !== 'admin') {
-      console.log(`❌ Not admin (role: ${authStore.user?.role}), redirecting to /dashboard/discover`)
+      // Redirect to index to show error
+      return navigateTo('/')
+    }
+
+    // User authenticated + no errors
+    // Redirect index to dashboard for better UX
+    if (to.name === 'index') {
       return navigateTo('/dashboard/discover')
     }
-    console.log(`✅ Admin access granted`)
+  } catch (error) {
+    console.error('❌ [auth.middleware] ERROR:', error)
+    throw error
   }
-}
+})

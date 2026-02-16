@@ -3,7 +3,7 @@
     <div class="header-container">
       <!-- Logo / Brand -->
       <div class="header-brand">
-        <h1 class="brand-logo">Dashboard Hub</h1>
+        <img src="/logo.png" alt="StreamHub Logo" class="brand-logo" />
       </div>
 
       <!-- Header Content Slot -->
@@ -13,10 +13,7 @@
 
       <!-- User Menu (Right) -->
       <div class="header-user">
-        <button class="user-menu-btn" type="button">
-          <span class="user-avatar">👤</span>
-          <span class="user-name">User</span>
-        </button>
+        <UserMenu />
       </div>
     </div>
   </header>
@@ -26,7 +23,13 @@
 /**
  * AppHeader - Main application header
  * Used by AppLayout component
+ *
+ * Features:
+ * - Brand logo
+ * - Flexible middle slot for breadcrumbs, search, etc.
+ * - User menu dropdown (profile, settings, logout)
  */
+import UserMenu from './UserMenu.vue'
 </script>
 
 <style scoped>
@@ -50,10 +53,9 @@
 }
 
 .brand-logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0;
+  height: 5rem;
+  width: auto;
+  object-fit: contain;
 }
 
 .header-middle {
@@ -64,30 +66,4 @@
   flex-shrink: 0;
 }
 
-.user-menu-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 1rem;
-  background: none;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-
-  &:hover {
-    background-color: var(--color-bg-secondary);
-    border-color: var(--color-border-default);
-  }
-}
-
-.user-avatar {
-  font-size: 1.25rem;
-}
-
-.user-name {
-  font-size: 0.875rem;
-  color: var(--color-text-primary);
-  font-weight: 500;
-}
 </style>

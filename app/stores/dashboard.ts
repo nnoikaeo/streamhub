@@ -21,6 +21,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const selectedDashboardId = ref<string | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const expandedFolders = ref<Set<string>>(new Set())
 
   // Cache keys for invalidation
   const dashboardsCacheKey = ref<string>('')
@@ -58,6 +59,22 @@ export const useDashboardStore = defineStore('dashboard', () => {
    * Check if data is being loaded
    */
   const isLoadingDashboards = computed(() => isLoading.value && dashboards.value.length === 0)
+
+  /**
+   * Get dashboards filtered by company (company-scoped access)
+   * @param companyCode Company code to filter by (e.g., 'STTH')
+   */
+  const getDashboardsByCompany = (companyCode: string) => {
+    return dashboards.value.filter((d) => d.company === companyCode)
+  }
+
+  /**
+   * Get folders filtered by company (company-scoped access)
+   * @param companyCode Company code to filter by (e.g., 'STTH')
+   */
+  const getFoldersByCompany = (companyCode: string) => {
+    return folders.value.filter((f) => f.company === companyCode)
+  }
 
   // ========== Mutations - Reducers ==========
 
@@ -158,6 +175,31 @@ export const useDashboardStore = defineStore('dashboard', () => {
     error.value = null
   }
 
+  /**
+   * Toggle folder expansion state
+   */
+  const toggleExpandFolder = (folderId: string) => {
+    if (expandedFolders.value.has(folderId)) {
+      expandedFolders.value.delete(folderId)
+    } else {
+      expandedFolders.value.add(folderId)
+    }
+  }
+
+  /**
+   * Set expanded folders
+   */
+  const setExpandedFolders = (folderIds: Set<string>) => {
+    expandedFolders.value = folderIds
+  }
+
+  /**
+   * Clear all expanded folders
+   */
+  const clearExpandedFolders = () => {
+    expandedFolders.value.clear()
+  }
+
   // ========== Cache Management ==========
 
   /**
@@ -221,6 +263,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     selectedDashboardId,
     isLoading,
     error,
+    expandedFolders,
 
     // Computed - Selectors
     currentFolder,
@@ -243,6 +286,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     setLoading,
     setError,
     clearError,
+    toggleExpandFolder,
+    setExpandedFolders,
+    clearExpandedFolders,
 
     // Cache Management
     updateDashboardsCacheKey,
@@ -250,6 +296,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
     isDashboardsCacheValid,
     isFoldersCacheValid,
     clearCache,
+
+    // Company-scoped filtering (NEW for multi-company support)
+    getDashboardsByCompany,
+    getFoldersByCompany,
 
     // Reset
     reset,
