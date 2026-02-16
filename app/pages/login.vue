@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import logoImage from '../../assets/images/logo.png'
 import { mapErrorMessage } from '~/utils/errorMessages'
+import ErrorDialog from '~/components/ErrorDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
