@@ -16,6 +16,7 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Company } from '~/composables/useMockData'
 import { mockCompanies, mockFolders } from '~/composables/useMockData'
+import AdminLayout from '~/components/layouts/AdminLayout.vue'
 import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 
 definePageMeta({

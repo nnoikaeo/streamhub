@@ -17,6 +17,7 @@
 import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/types/dashboard'
 import { mockUsers, mockCompanies, mockFolders } from '~/composables/useMockData'
+import AdminLayout from '~/components/layouts/AdminLayout.vue'
 import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 
 // Page meta

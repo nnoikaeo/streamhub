@@ -14,6 +14,7 @@
 
 import { ref, computed, onMounted } from 'vue'
 import { mockUsers, mockFolders, mockDashboards, mockCompanies } from '~/composables/useMockData'
+import AdminLayout from '~/components/layouts/AdminLayout.vue'
 import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 import { useAuthStore } from '~/stores/auth'
 

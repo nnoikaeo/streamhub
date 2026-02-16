@@ -16,6 +16,7 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Dashboard } from '~/types/dashboard'
 import { mockDashboards, mockFolders } from '~/composables/useMockData'
+import AdminLayout from '~/components/layouts/AdminLayout.vue'
 import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 
 definePageMeta({
