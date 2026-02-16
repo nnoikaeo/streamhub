@@ -76,9 +76,22 @@ export const useAuth = () => {
   }
 
   const initAuth = () => {
-    return new Promise((resolve) => {
+    return new Promise<any>((resolve) => {
       console.log('📡 Initializing auth listener...')
+
+      let resolved = false
+      const timeoutId = setTimeout(() => {
+        if (!resolved) {
+          console.warn('⚠️  [useAuth.initAuth] Firebase auth check timeout after 5 seconds, assuming no session')
+          resolved = true
+          authStore.setLoading(false)
+          resolve(null)
+        }
+      }, 5000)
+
       onAuthStateChanged($firebase.auth, (user) => {
+        if (resolved) return
+
         console.log('🔍 Auth state changed:', user?.email || 'not logged in')
 
         if (user) {
@@ -98,7 +111,7 @@ export const useAuth = () => {
             console.log(`🔍 [useAuth.initAuth] Setting user data:`, userData)
             authStore.setUser(userData)
             authStore.setAuthError(null)
-            
+
             // Initialize permissions
             permissionsStore.initializePermissions(userData)
             console.log('✅ Permissions initialized for role:', mockUser.role)
@@ -117,6 +130,8 @@ export const useAuth = () => {
 
         console.log(`🔍 [useAuth.initAuth] Setting loading to false`)
         authStore.setLoading(false)
+        clearTimeout(timeoutId)
+        resolved = true
         resolve(user)
       })
     })

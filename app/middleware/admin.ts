@@ -10,16 +10,20 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const { initAuth } = useAuth()
 
   console.log(`🔐 [admin.middleware] Checking admin access for route: ${to.path}`)
+  console.log(`🔐 [admin.middleware] Current state - loading: ${authStore.loading}, authenticated: ${authStore.isAuthenticated}`)
 
   // Wait for auth to initialize if still loading
   if (authStore.loading) {
-    console.log(`⏳ [admin.middleware] Auth still loading, waiting...`)
-    await initAuth()
+    console.log(`⏳ [admin.middleware] Auth still loading, waiting for initAuth...`)
+    const user = await initAuth()
+    console.log(`⏳ [admin.middleware] initAuth completed, user: ${user?.email || 'none'}`)
   }
 
   // Not authenticated → redirect to login
   if (!authStore.isAuthenticated) {
-    console.log(`❌ [admin.middleware] User not authenticated, redirecting to /login`)
+    console.log(`❌ [admin.middleware] User not authenticated after init check`)
+    console.log(`❌ [admin.middleware] authStore.user = ${authStore.user ? authStore.user.email : 'null'}`)
+    console.log(`❌ [admin.middleware] Redirecting to /login`)
     return navigateTo('/login')
   }
 
@@ -33,5 +37,5 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return navigateTo('/dashboard/discover')
   }
 
-  console.log(`✅ [admin.middleware] Admin access granted for user: ${authStore.user?.email}`)
+  console.log(`✅ [admin.middleware] Admin access granted for user: ${authStore.user?.email} (role: ${authStore.user?.role})`)
 })
