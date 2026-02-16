@@ -701,18 +701,119 @@ let dashboardServiceInstance: IDashboardService | null = null
 
 /**
  * Use Dashboard Service Composable
- * 
+ *
  * Usage in component:
  * const { getDashboards, getDashboard } = useDashboardService()
+ *
+ * @returns IDashboardService instance
  */
-export const useDashboardService = () => {
+export const useDashboardService = (): IDashboardService => {
   if (!dashboardServiceInstance) {
-    // Initialize with mock service for now
-    // Later can swap with real Firebase service
-    dashboardServiceInstance = new MockDashboardService()
+    // Check if we should use JSON Mock Service
+    const config = useRuntimeConfig()
+    const useJsonMock = config.public.useJsonMock ?? true
+
+    if (useJsonMock) {
+      console.log('🔷 [useDashboardService] Using JSON Mock Service')
+      // Import and use JSON Mock Service
+      const { useJSONMockService } = import('~/composables/useJSONMockService')
+
+      // Use dynamic import approach for lazy loading
+      dashboardServiceInstance = new (class implements IDashboardService {
+        private jsonService: any = null
+
+        async initJsonService() {
+          if (!this.jsonService) {
+            const module = await import('~/composables/useJSONMockService')
+            this.jsonService = new module.JSONMockService()
+          }
+          return this.jsonService
+        }
+
+        // Delegate all methods to jsonService
+        async getCurrentUser() {
+          const service = await this.initJsonService()
+          return service.getCurrentUser()
+        }
+
+        async getUser(uid: string) {
+          const service = await this.initJsonService()
+          return service.getUser(uid)
+        }
+
+        async getFolders(userId: string, companyId: string) {
+          const service = await this.initJsonService()
+          return service.getFolders(userId, companyId)
+        }
+
+        async getFolder(folderId: string) {
+          const service = await this.initJsonService()
+          return service.getFolder(folderId)
+        }
+
+        async getChildFolders(parentId: string | null) {
+          const service = await this.initJsonService()
+          return service.getChildFolders(parentId)
+        }
+
+        async getFolderPath(folderId: string) {
+          const service = await this.initJsonService()
+          return service.getFolderPath(folderId)
+        }
+
+        async getDashboards(userId: string, companyId: string, options?: any) {
+          const service = await this.initJsonService()
+          return service.getDashboards(userId, companyId, options)
+        }
+
+        async getDashboard(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.getDashboard(dashboardId)
+        }
+
+        async getDashboardsByFolder(folderId: string, userId: string) {
+          const service = await this.initJsonService()
+          return service.getDashboardsByFolder(folderId, userId)
+        }
+
+        async getDashboardCard(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.getDashboardCard(dashboardId)
+        }
+
+        async saveDashboard(dashboard: Dashboard) {
+          const service = await this.initJsonService()
+          return service.saveDashboard(dashboard)
+        }
+
+        async deleteDashboard(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.deleteDashboard(dashboardId)
+        }
+
+        async saveDashboardPermissions(dashboardId: string, permissions: any) {
+          const service = await this.initJsonService()
+          return service.saveDashboardPermissions(dashboardId, permissions)
+        }
+
+        async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: string) {
+          const service = await this.initJsonService()
+          return service.quickShareDashboard(dashboardId, userIds, expiryDate)
+        }
+
+        async getAuditLog(options?: any) {
+          const service = await this.initJsonService()
+          return service.getAuditLog(options)
+        }
+      })()
+    } else {
+      console.log('🔷 [useDashboardService] Using Mock Data Service')
+      // Fallback to old mock service
+      dashboardServiceInstance = new MockDashboardService()
+    }
   }
 
-  return dashboardServiceInstance
+  return dashboardServiceInstance!
 }
 
 /**
