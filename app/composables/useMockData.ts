@@ -812,4 +812,4 @@ export function getCompanyByCode(code: string): Company | undefined {
  */
 export function getActiveCompanies(): Company[] {
   return mockCompanies.filter(company => company.isActive)
-}
+ }
