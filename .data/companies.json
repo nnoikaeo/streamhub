@@ -1,0 +1,38 @@
+[
+  {
+    "code": "STTH",
+    "name": "บริษัท สทรีมวอช (ประเทศไทย) จำกัด",
+    "country": "Thailand",
+    "isActive": true
+  },
+  {
+    "code": "STTN",
+    "name": "บริษัท สทรีมวอช เทคโนโลยี จำกัด",
+    "country": "Thailand",
+    "isActive": true
+  },
+  {
+    "code": "STCS",
+    "name": "บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด",
+    "country": "Thailand",
+    "isActive": true
+  },
+  {
+    "code": "STNR",
+    "name": "บริษัท สทรีมวอช (นครราชสีมา) จำกัด",
+    "country": "Thailand",
+    "isActive": true
+  },
+  {
+    "code": "STPT",
+    "name": "บริษัท สทรีมวอช (พัทยา) จำกัด",
+    "country": "Thailand",
+    "isActive": true
+  },
+  {
+    "code": "STPK",
+    "name": "บริษัท สทรีมวอช (ภูเก็ต) จำกัด",
+    "country": "Thailand",
+    "isActive": false
+  }
+]

@@ -1,0 +1,178 @@
+[
+  {
+    "id": "folder_sales",
+    "name": "Sales",
+    "parentId": null,
+    "company": "STTH",
+    "description": "All sales-related dashboards",
+    "createdBy": "user-1",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "updatedBy": "user-1"
+  },
+  {
+    "id": "folder_finance",
+    "name": "Finance",
+    "parentId": null,
+    "company": "STTH",
+    "description": "Financial reports and dashboards",
+    "createdBy": "user-1",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "updatedBy": "user-1"
+  },
+  {
+    "id": "folder_operations",
+    "name": "Operations",
+    "parentId": null,
+    "company": "STTH",
+    "description": "Operational dashboards",
+    "createdBy": "user-1",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "updatedBy": "user-1"
+  },
+  {
+    "id": "folder_hr",
+    "name": "HR",
+    "parentId": null,
+    "company": "STTH",
+    "description": "Human resources dashboards",
+    "createdBy": "user-1",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "updatedBy": "user-1"
+  },
+  {
+    "id": "folder_sales_reports",
+    "name": "Monthly",
+    "parentId": "folder_sales",
+    "company": "STTH",
+    "description": "Sales reports",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2024-01-05T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_sales_regional",
+    "name": "Regional",
+    "parentId": "folder_sales",
+    "company": "STTH",
+    "description": "Regional sales analysis",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2024-01-05T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_sales_reports_east",
+    "name": "East",
+    "parentId": "folder_sales_reports",
+    "company": "STTH",
+    "description": "Eastern region reports",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2024-01-10T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_sales_reports_west",
+    "name": "West",
+    "parentId": "folder_sales_reports",
+    "company": "STTH",
+    "description": "Western region reports",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2024-01-10T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_sales_regional_north",
+    "name": "North",
+    "parentId": "folder_sales_regional",
+    "company": "STTH",
+    "description": "Northern region",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2024-01-10T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_sales_regional_south",
+    "name": "South",
+    "parentId": "folder_sales_regional",
+    "company": "STTH",
+    "description": "Southern region",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2024-01-10T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_sales_regional_north_2024",
+    "name": "Q1 2024",
+    "parentId": "folder_sales_regional_north",
+    "company": "STTH",
+    "description": "Q1 2024 Northern region",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-15T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_finance_budget",
+    "name": "Budget",
+    "parentId": "folder_finance",
+    "company": "STTH",
+    "description": "Budget tracking",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2024-01-05T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_finance_payroll",
+    "name": "Payroll",
+    "parentId": "folder_finance",
+    "company": "STTH",
+    "description": "Payroll reports",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2024-01-05T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_finance_budget_2024",
+    "name": "2024",
+    "parentId": "folder_finance_budget",
+    "company": "STTH",
+    "description": "2024 budget",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2024-01-10T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_finance_budget_2025",
+    "name": "2025",
+    "parentId": "folder_finance_budget",
+    "company": "STTH",
+    "description": "2025 budget",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2024-01-10T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  },
+  {
+    "id": "folder_operations_inventory",
+    "name": "Inventory",
+    "parentId": "folder_operations",
+    "company": "STTH",
+    "description": "Inventory management",
+    "createdBy": "user_it_admin",
+    "createdAt": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2024-01-05T00:00:00.000Z",
+    "updatedBy": "user_it_admin"
+  }
+]

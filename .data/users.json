@@ -1,0 +1,68 @@
+[
+  {
+    "uid": "61JSdbE674TqRBHHUu9ezdzFul93",
+    "email": "it.streamwash@gmail.com",
+    "name": "IT STTH",
+    "role": "admin",
+    "company": "STTH",
+    "groups": [],
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "uid": "user_somchai_mod",
+    "email": "somchai@streamwash.com",
+    "name": "Somchai Moderator",
+    "role": "moderator",
+    "company": "STTH",
+    "groups": ["sales", "finance"],
+    "isActive": true,
+    "createdAt": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "uid": "user_nattha_mod",
+    "email": "nattha@streamwash.com",
+    "name": "Nattha Moderator",
+    "role": "moderator",
+    "company": "STTH",
+    "groups": ["finance"],
+    "isActive": true,
+    "createdAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "uid": "user_teerak_user",
+    "email": "teerak@streamwash.com",
+    "name": "Teerak User",
+    "role": "user",
+    "company": "STTH",
+    "groups": ["sales"],
+    "isActive": true,
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "uid": "user_janine_user",
+    "email": "janine@streamwash.com",
+    "name": "Janine User",
+    "role": "user",
+    "company": "STTH",
+    "groups": ["finance", "operations"],
+    "isActive": true,
+    "createdAt": "2024-01-20T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "uid": "user_sombat_user",
+    "email": "sombat@streamwash.com",
+    "name": "Sombat User",
+    "role": "user",
+    "company": "STTH",
+    "groups": ["operations"],
+    "isActive": true,
+    "createdAt": "2024-01-25T00:00:00.000Z",
+    "updatedAt": "2024-02-01T00:00:00.000Z"
+  }
+]
