@@ -169,7 +169,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   }
 
   /**
-   * Load dashboards for current folder
+   * Load dashboards for current folder or all dashboards if no folder selected
    */
   const loadDashboards = async () => {
     try {
@@ -180,16 +180,17 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       dashboardStore.setLoading(true)
       dashboardStore.clearError()
 
-      if (!user?.value || !selectedFolderId.value) {
-        log('loadDashboards skipped: missing user or folderId')
+      if (!user?.value) {
+        log('loadDashboards skipped: missing user')
         return
       }
 
       const uid = user.value.uid
       const company = (user.value as any).company || 'default'
+      const folderId = selectedFolderId.value || 'root' // Use 'root' as cache key when no folder selected
 
       // Check cache
-      if (dashboardStore.isDashboardsCacheValid(uid, selectedFolderId.value, company)) {
+      if (dashboardStore.isDashboardsCacheValid(uid, folderId, company)) {
         log('loadDashboards: Using cached dashboards')
         dashboardStore.setLoading(false)
         return
@@ -197,18 +198,20 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
 
       log('loadDashboards calling service', { uid, company, folderId: selectedFolderId.value })
       const response = await dashboardService.getDashboards(uid, company, {
-        folderId: selectedFolderId.value,
+        folderId: selectedFolderId.value || undefined, // Pass undefined if no folder selected to get all dashboards
       })
 
       dashboardStore.setDashboards(response.dashboards)
-      dashboardStore.updateDashboardsCacheKey(uid, selectedFolderId.value, company)
+      dashboardStore.updateDashboardsCacheKey(uid, folderId, company)
       log('loadDashboards got dashboards', { count: response.dashboards.length })
 
-      // Load folder path for breadcrumbs
-      log('loadDashboards loading folder path')
-      const path = await dashboardService.getFolderPath(selectedFolderId.value)
-      folderPath.value = path || []
-      log('loadDashboards got folder path', { pathLength: folderPath.value.length })
+      // Load folder path for breadcrumbs (only if folder is selected)
+      if (folderId) {
+        log('loadDashboards loading folder path')
+        const path = await dashboardService.getFolderPath(folderId)
+        folderPath.value = path || []
+        log('loadDashboards got folder path', { pathLength: folderPath.value.length })
+      }
     } catch (err) {
       log('loadDashboards error', err)
       dashboardStore.setError(
@@ -322,7 +325,14 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
     (newFolderId) => {
       log('route.query.folder changed', { newFolderId })
       if (newFolderId && typeof newFolderId === 'string') {
+        // User selected a specific folder
         dashboardStore.selectFolder(newFolderId)
+        loadDashboards()
+      } else if (newFolderId === undefined) {
+        // Folder param was removed - clear selection and show root level
+        log('Clearing folder selection', { newFolderId })
+        dashboardStore.selectFolder(null)
+        folderPath.value = []
         loadDashboards()
       }
     }
