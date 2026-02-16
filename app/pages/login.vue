@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import logoImage from '../../assets/images/logo.png'
+import { mapErrorMessage } from '~/utils/errorMessages'
 
 const router = useRouter()
 const route = useRoute()
 const { signInWithGoogle } = useAuth()
 const loading = ref(false)
-const errorMessage = ref('')
+const showErrorDialog = ref(false)
+const errorInfo = ref({
+  title: '',
+  message: '',
+  showRequestAccess: false
+})
 
 console.log('📄 [login.vue] Page mounted')
 console.log('📄 [login.vue] Route info:', {
@@ -21,7 +27,7 @@ definePageMeta({
 
 const handleGoogleSignIn = async () => {
   loading.value = true
-  errorMessage.value = ''
+  showErrorDialog.value = false
 
   try {
     const result = await signInWithGoogle()
@@ -31,14 +37,26 @@ const handleGoogleSignIn = async () => {
       await new Promise(resolve => setTimeout(resolve, 500))
       await router.push('/dashboard')
     } else {
-      errorMessage.value = result.error || 'Sign-in failed'
+      const error = new Error(result.error)
+      errorInfo.value = mapErrorMessage(error)
+      showErrorDialog.value = true
     }
   } catch (error: any) {
     console.error('❌ Unexpected error:', error)
-    errorMessage.value = error.message || 'An unexpected error occurred'
+    errorInfo.value = mapErrorMessage(error)
+    showErrorDialog.value = true
   } finally {
     loading.value = false
   }
+}
+
+const handleCloseErrorDialog = () => {
+  showErrorDialog.value = false
+}
+
+const handleRequestAccess = () => {
+  // Open contact form or email
+  window.location.href = 'mailto:support@streamhub.com?subject=Request%20Access%20to%20Dashboard%20Hub'
 }
 </script>
 
@@ -63,11 +81,6 @@ const handleGoogleSignIn = async () => {
         </p>
 
         <ClientOnly>
-          <!-- Error Message -->
-          <div v-if="errorMessage" key="error-message" class="p-4 bg-red-100 text-red-800 rounded mb-6">
-            {{ errorMessage }}
-          </div>
-
           <!-- Sign In Button -->
           <button
             key="sign-in-button"
@@ -83,6 +96,16 @@ const handleGoogleSignIn = async () => {
             </svg>
             {{ loading ? 'Signing in...' : 'Sign in with Google' }}
           </button>
+
+          <!-- Error Dialog -->
+          <ErrorDialog
+            :is-open="showErrorDialog"
+            :title="errorInfo.title"
+            :message="errorInfo.message"
+            :show-request-access="errorInfo.showRequestAccess"
+            @close="handleCloseErrorDialog"
+            @request-access="handleRequestAccess"
+          />
         </ClientOnly>
     </div>
   </div>
