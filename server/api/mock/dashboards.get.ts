@@ -1,27 +1,28 @@
-import { readJSON, findMany } from '~/server/utils/jsonDatabase'
+import { readJSON, findMany } from '../../utils/jsonDatabase'
 
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
-    console.log('[API] GET /api/mock/dashboards - params:', query)
+    console.log('[API] GET /api/mock/dashboards')
+    console.log('  📥 Query params:', query)
 
     const dashboards = await readJSON('dashboards.json')
+    console.log(`  📊 Total dashboards loaded: ${dashboards.length}`)
 
     // Filter by query parameters
     let filtered = dashboards
 
-    if (query.uid) {
-      filtered = filtered.filter((d: any) => d.uid === query.uid)
-    }
-
     if (query.company) {
-      filtered = filtered.filter((d: any) => d.company === query.company)
+      filtered = filtered.filter((d: any) => d.access?.company?.[query.company as string])
+      console.log(`  🔍 After company filter (${query.company}): ${filtered.length}`)
     }
 
     if (query.folderId) {
       filtered = filtered.filter((d: any) => d.folderId === query.folderId)
+      console.log(`  🔍 After folderId filter: ${filtered.length}`)
     }
 
+    console.log(`  ✅ Returning: ${filtered.length} dashboards`)
     return {
       success: true,
       data: filtered,

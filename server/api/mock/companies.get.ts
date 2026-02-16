@@ -1,4 +1,4 @@
-import { readJSON } from '~/server/utils/jsonDatabase'
+import { readJSON } from '../../utils/jsonDatabase'
 
 export default defineEventHandler(async (event) => {
   try {

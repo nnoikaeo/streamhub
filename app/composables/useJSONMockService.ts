@@ -57,18 +57,19 @@ export class JSONMockService implements IDashboardService {
    */
   async getUser(uid: string): Promise<User | null> {
     try {
-      this.log('getUser:', uid)
+      this.log('getUser called', uid)
 
       const response = await $fetch(`${this.baseURL}/users/${uid}`, {
         method: 'GET',
       })
 
       if (response.success && response.data) {
-        this.log('getUser: User found')
-        return response.data as User
+        const user = response.data as User
+        this.log(`✅ getUser: Found ${user.name} (role: ${user.role})`)
+        return user
       }
 
-      this.log('getUser: User not found')
+      this.log('⚠️ getUser: User not found')
       return null
     } catch (error) {
       console.error('❌ [JSONMockService] getUser error:', error)
@@ -81,7 +82,7 @@ export class JSONMockService implements IDashboardService {
    */
   async getFolders(userId: string, companyId: string): Promise<GetFoldersResponse> {
     try {
-      this.log('getFolders:', { userId, companyId })
+      this.log('getFolders called', { userId, companyId })
 
       const response = await $fetch(`${this.baseURL}/folders`, {
         method: 'GET',
@@ -92,7 +93,7 @@ export class JSONMockService implements IDashboardService {
       })
 
       if (response.success && response.data) {
-        this.log('getFolders: Got folders', { count: response.data.length })
+        this.log(`✅ getFolders: Got ${response.data.length} folders`)
 
         return {
           folders: response.data as Folder[],
@@ -101,6 +102,7 @@ export class JSONMockService implements IDashboardService {
         }
       }
 
+      this.log('⚠️ getFolders: No data in response')
       return { folders: [], total: 0, hasMore: false }
     } catch (error) {
       console.error('❌ [JSONMockService] getFolders error:', error)
@@ -204,7 +206,7 @@ export class JSONMockService implements IDashboardService {
     }
   ): Promise<GetDashboardsResponse> {
     try {
-      this.log('getDashboards:', { userId, companyId, options })
+      this.log('getDashboards called', { userId, companyId, options })
 
       const query: any = {
         uid: userId,
@@ -223,7 +225,7 @@ export class JSONMockService implements IDashboardService {
       if (response.success && response.data) {
         const dashboards = response.data as Dashboard[]
 
-        this.log('getDashboards: Got dashboards', { count: dashboards.length })
+        this.log(`✅ getDashboards: Got ${dashboards.length} dashboards for company ${companyId}`)
 
         return {
           dashboards,
@@ -232,6 +234,7 @@ export class JSONMockService implements IDashboardService {
         }
       }
 
+      this.log('⚠️ getDashboards: No data in response')
       return { dashboards: [], total: 0, hasMore: false }
     } catch (error) {
       console.error('❌ [JSONMockService] getDashboards error:', error)
