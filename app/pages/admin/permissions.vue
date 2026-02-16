@@ -125,6 +125,7 @@
 </template>
 
 <script setup lang="ts">
+import AppLayout from '~/components/layouts/AppLayout.vue'
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
