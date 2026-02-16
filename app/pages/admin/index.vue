@@ -14,7 +14,6 @@
 
 import { ref, computed, onMounted } from 'vue'
 import { mockUsers, mockFolders, mockDashboards, mockCompanies } from '~/composables/useMockData'
-import AdminLayout from '~/components/layouts/AdminLayout.vue'
 import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 import { useAuthStore } from '~/stores/auth'
 
@@ -117,23 +116,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-page">
-    <!-- Admin Layout with Unified Sidebar -->
-    <div class="admin-layout-wrapper">
-      <AdminLayout>
-        <!-- Unified Sidebar (Dashboard + Folders + Admin) -->
-        <template #sidebar>
-          <UnifiedSidebar
-            :folders="mockFolders"
-            show-folders
-            show-admin
-            :allow-search="true"
-            :allow-create="false"
-          />
-        </template>
+  <AppLayout show-sidebar>
+    <!-- Unified Sidebar (Dashboard + Folders + Admin) -->
+    <template #sidebar>
+      <UnifiedSidebar
+        :folders="mockFolders"
+        show-folders
+        show-admin
+        :allow-search="true"
+        :allow-create="false"
+      />
+    </template>
 
-        <!-- Main Content -->
-        <div class="admin-content">
+    <!-- Main Content -->
+    <div class="admin-page">
+      <div class="admin-content">
           <!-- Page Header -->
           <div class="page-header">
             <h1 class="page-title">Admin Dashboard</h1>
@@ -236,21 +233,12 @@ onMounted(() => {
               </ul>
             </div>
           </section>
-        </div>
-      </AdminLayout>
+      </div>
     </div>
-  </div>
+  </AppLayout>
 </template>
 
 <style scoped>
-.admin-page {
-  min-height: 100vh;
-}
-
-.admin-layout-wrapper {
-  min-height: 100vh;
-}
-
 /* Main Content */
 .admin-content {
   padding: var(--spacing-xl, 2rem) var(--spacing-lg, 1.25rem);

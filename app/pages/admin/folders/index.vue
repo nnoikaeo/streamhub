@@ -16,7 +16,6 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Folder } from '~/types/dashboard'
 import { mockFolders, mockCompanies } from '~/composables/useMockData'
-import AdminLayout from '~/components/layouts/AdminLayout.vue'
 import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 
 definePageMeta({
@@ -168,7 +167,7 @@ onMounted(() => {
 
 <template>
   <div class="admin-page">
-    <AdminLayout>
+    <AppLayout show-sidebar>
       <template #sidebar>
         <UnifiedSidebar
           :folders="mockFolders"
@@ -248,7 +247,7 @@ onMounted(() => {
           @cancel="showConfirmDialog = false"
         />
       </div>
-    </AdminLayout>
+    </AppLayout>
   </div>
 </template>
 

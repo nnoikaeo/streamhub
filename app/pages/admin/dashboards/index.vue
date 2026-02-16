@@ -16,7 +16,6 @@
 import { ref, computed, onMounted } from 'vue'
 import type { Dashboard } from '~/types/dashboard'
 import { mockDashboards, mockFolders } from '~/composables/useMockData'
-import AdminLayout from '~/components/layouts/AdminLayout.vue'
 import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 
 definePageMeta({
@@ -217,7 +216,7 @@ onMounted(() => {
 
 <template>
   <div class="admin-page">
-    <AdminLayout>
+    <AppLayout show-sidebar>
       <!-- Unified Sidebar -->
       <template #sidebar>
         <UnifiedSidebar
@@ -317,7 +316,7 @@ onMounted(() => {
           @cancel="showConfirmDialog = false"
         />
       </div>
-    </AdminLayout>
+    </AppLayout>
   </div>
 </template>
 

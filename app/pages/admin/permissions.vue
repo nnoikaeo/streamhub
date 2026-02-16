@@ -1,57 +1,12 @@
 <template>
-  <AdminPanelLayout>
-    <!-- Sidebar: Admin Navigation -->
+  <AppLayout show-sidebar>
+    <!-- Unified Sidebar -->
     <template #sidebar>
-      <nav class="admin-nav">
-        <div class="nav-section">
-          <h4 class="nav-section-title">Management</h4>
-          <ul class="nav-list">
-            <li>
-              <a href="/admin/permissions" class="nav-link active">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-                Permissions
-              </a>
-            </li>
-            <li>
-              <a href="/admin/users" class="nav-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                Users
-              </a>
-            </li>
-            <li>
-              <a href="/admin/dashboards" class="nav-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="3" y1="9" x2="21" y2="9" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-                Dashboards
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <div class="nav-section">
-          <h4 class="nav-section-title">Settings</h4>
-          <ul class="nav-list">
-            <li>
-              <a href="/admin/audit-log" class="nav-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                </svg>
-                Audit Log
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
+      <UnifiedSidebar
+        show-admin
+        :allow-search="false"
+        :allow-create="false"
+      />
     </template>
 
     <!-- Main Content: Permissions Editor -->
@@ -166,7 +121,7 @@
         <p>Choose a dashboard to manage its permissions</p>
       </div>
     </div>
-  </AdminPanelLayout>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
@@ -174,13 +129,14 @@ import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
+import { mockFolders } from '~/composables/useMockData'
 import type { Dashboard, User, AccessControl, AccessRestrictions, Folder } from '~/types/dashboard'
-import AdminPanelLayout from '~/components/compositions/AdminPanelLayout.vue'
+import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 import PermissionEditor from '~/components/features/PermissionEditor.vue'
 
 // Page metadata
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'admin'],
   layout: 'default',
 })
 
