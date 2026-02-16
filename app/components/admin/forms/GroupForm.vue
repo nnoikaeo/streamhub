@@ -1,25 +1,19 @@
 <script setup lang="ts">
 /**
- * GroupForm Component
+ * GroupForm Component (Refactored)
  * Form for creating and editing groups in admin panel
  *
  * Features:
  * - Fields: ID, Name, Description, Members (multi-select)
- * - Validation: Required fields, unique ID
+ * - Validation: Required fields
  * - ID field disabled in edit mode
  * - Multi-select members with search/filter
- *
- * Usage:
- * <GroupForm
- *   :group="selectedGroup"
- *   :members="allUsers"
- *   @submit="handleSubmit"
- * />
+ * - Uses FormField component for consistent styling
  */
 
-import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/types/dashboard'
 import { mockUsers } from '~/composables/useMockData'
+import { createObjectValidator, validators } from '~/utils/formValidators'
 
 interface GroupData {
   id: string
@@ -29,15 +23,7 @@ interface GroupData {
 }
 
 interface Props {
-  /**
-   * Group to edit (null for create mode)
-   * Group data format: { id, name, description, members: [uid1, uid2...] }
-   */
   group?: GroupData | null
-
-  /**
-   * Optional custom members list (defaults to mockUsers)
-   */
   members?: User[]
 }
 
@@ -49,24 +35,34 @@ const emit = defineEmits<{
   submit: [data: Partial<GroupData>]
 }>()
 
-// Form data
-const formData = ref({
-  id: '',
-  name: '',
-  description: '',
-  members: [] as string[],
-})
-
-// Form errors
-const errors = ref({
-  id: '',
-  name: '',
-})
-
-// Search/filter for members
+// Member search
 const memberSearch = ref('')
 
-// Computed available members
+// Form validation
+const validate = createObjectValidator({
+  id: [
+    (value) => validators.required(value, 'รหัสกลุ่ม'),
+    (value) => validators.minLength(2, 'รหัสกลุ่ม')(value),
+  ],
+  name: [(value) => validators.required(value, 'ชื่อกลุ่ม')],
+})
+
+const form = useForm({
+  initialValues: {
+    id: props.group?.id || '',
+    name: props.group?.name || '',
+    description: props.group?.description || '',
+    members: props.group?.members || [],
+  },
+  validate,
+  onSubmit: async (values) => {
+    emit('submit', values)
+  },
+})
+
+// Computed values
+const isEditMode = computed(() => !!props.group)
+
 const availableMembers = computed(() =>
   props.members.filter((user) => {
     if (!memberSearch.value) return true
@@ -78,182 +74,89 @@ const availableMembers = computed(() =>
   })
 )
 
-/**
- * Initialize form with group data (edit mode) or empty values (create mode)
- */
-const initializeForm = () => {
-  if (props.group) {
-    formData.value = {
-      id: props.group.id,
-      name: props.group.name,
-      description: props.group.description || '',
-      members: [...props.group.members],
-    }
-  } else {
-    formData.value = {
-      id: '',
-      name: '',
-      description: '',
-      members: [],
-    }
-  }
-  memberSearch.value = ''
-  errors.value = { id: '', name: '' }
-}
+const selectedMembersCount = computed(() => form.formData.members.length)
 
-/**
- * Validate form
- */
-const validateForm = (): boolean => {
-  errors.value = { id: '', name: '' }
-
-  // Validate ID
-  if (!formData.value.id.trim()) {
-    errors.value.id = 'รหัสกลุ่ม จำเป็นต้องกรอก'
-  } else if (formData.value.id.length < 2) {
-    errors.value.id = 'รหัสกลุ่ม ต้องมีอย่างน้อย 2 ตัวอักษร'
-  }
-
-  // Validate name
-  if (!formData.value.name.trim()) {
-    errors.value.name = 'ชื่อกลุ่ม จำเป็นต้องกรอก'
-  }
-
-  return !errors.value.id && !errors.value.name
-}
-
-/**
- * Handle form submission
- */
-const handleSubmit = (e: Event) => {
-  e.preventDefault()
-
-  if (!validateForm()) {
-    return
-  }
-
-  emit('submit', { ...formData.value })
-}
-
-/**
- * Toggle member selection
- */
+// Member selection helpers
 const toggleMember = (uid: string) => {
-  const index = formData.value.members.indexOf(uid)
+  const members = form.formData.members as string[]
+  const index = members.indexOf(uid)
   if (index === -1) {
-    formData.value.members.push(uid)
+    members.push(uid)
   } else {
-    formData.value.members.splice(index, 1)
+    members.splice(index, 1)
   }
 }
 
-/**
- * Check if member is selected
- */
 const isMemberSelected = (uid: string): boolean => {
-  return formData.value.members.includes(uid)
+  return (form.formData.members as string[]).includes(uid)
 }
 
-/**
- * Get selected members count
- */
-const selectedMembersCount = computed(() => formData.value.members.length)
-
-/**
- * Select all members (filtered)
- */
 const selectAll = () => {
+  const members = form.formData.members as string[]
   for (const user of availableMembers.value) {
-    if (!isMemberSelected(user.uid)) {
-      formData.value.members.push(user.uid)
+    if (!members.includes(user.uid)) {
+      members.push(user.uid)
     }
   }
 }
 
-/**
- * Deselect all members (filtered)
- */
 const deselectAll = () => {
+  const members = form.formData.members as string[]
   for (const user of availableMembers.value) {
-    const index = formData.value.members.indexOf(user.uid)
+    const index = members.indexOf(user.uid)
     if (index !== -1) {
-      formData.value.members.splice(index, 1)
+      members.splice(index, 1)
     }
   }
 }
-
-onMounted(() => {
-  initializeForm()
-})
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="group-form">
-    <!-- ID Field -->
-    <div class="form-group">
-      <label for="id" class="form-label">รหัสกลุ่ม (ID) *</label>
-      <input
-        id="id"
-        v-model="formData.id"
-        type="text"
-        class="form-input"
-        :class="{ 'form-input--error': errors.id }"
-        placeholder="เช่น sales"
-        :disabled="!!group"
-      />
-      <span v-if="errors.id" class="form-error">{{ errors.id }}</span>
-      <p v-if="!group" class="form-hint">รหัสกลุ่ม ไม่สามารถเปลี่ยนแปลงหลังสร้างได้</p>
-    </div>
+  <form @submit.prevent="form.handleSubmit" class="group-form">
+    <FormField
+      v-model="form.formData.id"
+      type="text"
+      label="รหัสกลุ่ม (ID)"
+      placeholder="เช่น sales"
+      :error="form.errors.id"
+      :disabled="isEditMode"
+      :required="true"
+      :description="!isEditMode ? 'รหัสกลุ่ม ไม่สามารถเปลี่ยนแปลงหลังสร้างได้' : undefined"
+      @blur="form.setFieldTouched('id')"
+    />
 
-    <!-- Name Field -->
-    <div class="form-group">
-      <label for="name" class="form-label">ชื่อกลุ่ม (Name) *</label>
-      <input
-        id="name"
-        v-model="formData.name"
-        type="text"
-        class="form-input"
-        :class="{ 'form-input--error': errors.name }"
-        placeholder="เช่น Sales Team"
-      />
-      <span v-if="errors.name" class="form-error">{{ errors.name }}</span>
-    </div>
+    <FormField
+      v-model="form.formData.name"
+      type="text"
+      label="ชื่อกลุ่ม (Name)"
+      placeholder="เช่น Sales Team"
+      :error="form.errors.name"
+      :required="true"
+      @blur="form.setFieldTouched('name')"
+    />
 
-    <!-- Description Field -->
-    <div class="form-group">
-      <label for="description" class="form-label">คำอธิบาย</label>
-      <textarea
-        id="description"
-        v-model="formData.description"
-        class="form-textarea"
-        placeholder="คำอธิบายเกี่ยวกับกลุ่มนี้"
-        rows="3"
-      ></textarea>
-    </div>
+    <FormField
+      v-model="form.formData.description"
+      type="textarea"
+      label="คำอธิบาย"
+      placeholder="คำอธิบายเกี่ยวกับกลุ่มนี้"
+      :rows="3"
+    />
 
     <!-- Members Field -->
-    <div class="form-group">
+    <div class="form-field">
       <div class="members-header">
         <label class="form-label">สมาชิก ({{ selectedMembersCount }})</label>
         <div class="members-actions">
-          <button
-            type="button"
-            class="members-action-btn"
-            @click="selectAll"
-          >
+          <button type="button" class="members-action-btn" @click="selectAll">
             เลือกทั้งหมด
           </button>
-          <button
-            type="button"
-            class="members-action-btn"
-            @click="deselectAll"
-          >
+          <button type="button" class="members-action-btn" @click="deselectAll">
             ยกเลิกทั้งหมด
           </button>
         </div>
       </div>
 
-      <!-- Member Search -->
       <input
         v-model="memberSearch"
         type="text"
@@ -261,13 +164,8 @@ onMounted(() => {
         placeholder="ค้นหาผู้ใช้ (อีเมล หรือ ชื่อ)"
       />
 
-      <!-- Members List -->
       <div class="members-container">
-        <label
-          v-for="user in availableMembers"
-          :key="user.uid"
-          class="member-checkbox"
-        >
+        <label v-for="user in availableMembers" :key="user.uid" class="member-checkbox">
           <input
             type="checkbox"
             :checked="isMemberSelected(user.uid)"
@@ -281,7 +179,6 @@ onMounted(() => {
           </div>
         </label>
 
-        <!-- Empty State -->
         <div v-if="availableMembers.length === 0" class="members-empty">
           ไม่พบผู้ใช้ที่ตรงกับการค้นหา
         </div>
@@ -297,23 +194,19 @@ onMounted(() => {
   gap: var(--spacing-lg, 1.25rem);
 }
 
-/* Form Group */
-.form-group {
+.form-field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm, 0.5rem);
+  gap: var(--spacing-xs, 0.25rem);
 }
 
-/* Label */
 .form-label {
-  font-size: 0.9375rem;
   font-weight: 600;
+  font-size: 0.9375rem;
   color: var(--color-text-primary, #1f2937);
 }
 
-/* Input & Textarea */
-.form-input,
-.form-textarea {
+.form-input {
   padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
   border: 1px solid var(--color-border-light, #e5e7eb);
   border-radius: var(--radius-md, 0.375rem);
@@ -324,39 +217,10 @@ onMounted(() => {
   font-family: inherit;
 }
 
-.form-input:focus,
-.form-textarea:focus {
+.form-input:focus {
   outline: none;
   border-color: var(--color-primary, #3b82f6);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.form-input:disabled {
-  background-color: var(--color-bg-secondary, #f3f4f6);
-  color: var(--color-text-secondary, #6b7280);
-  cursor: not-allowed;
-}
-
-.form-input--error {
-  border-color: var(--color-error, #ef4444);
-}
-
-.form-input--error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-/* Error Message */
-.form-error {
-  font-size: 0.85rem;
-  color: var(--color-error, #ef4444);
-  font-weight: 500;
-}
-
-/* Hint Text */
-.form-hint {
-  font-size: 0.85rem;
-  color: var(--color-text-secondary, #6b7280);
-  margin: 0;
 }
 
 /* Members Header */
