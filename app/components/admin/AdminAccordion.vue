@@ -81,6 +81,26 @@ const handleToggle = () => {
     isOpen.value = !isOpen.value
   }
 }
+
+/**
+ * Smooth expand/collapse animations
+ */
+const onEnter = (el: Element) => {
+  const element = el as HTMLElement
+  element.style.height = '0'
+  element.style.opacity = '0'
+  element.offsetHeight // Trigger reflow
+  element.style.height = element.scrollHeight + 'px'
+  element.style.opacity = '1'
+}
+
+const onLeave = (el: Element) => {
+  const element = el as HTMLElement
+  element.style.height = element.scrollHeight + 'px'
+  element.offsetHeight // Trigger reflow
+  element.style.height = '0'
+  element.style.opacity = '0'
+}
 </script>
 
 <template>
@@ -127,28 +147,6 @@ const handleToggle = () => {
     </Transition>
   </section>
 </template>
-
-<script setup lang="ts">
-/**
- * Smooth expand/collapse animations
- */
-const onEnter = (el: Element) => {
-  const element = el as HTMLElement
-  element.style.height = '0'
-  element.style.opacity = '0'
-  element.offsetHeight // Trigger reflow
-  element.style.height = element.scrollHeight + 'px'
-  element.style.opacity = '1'
-}
-
-const onLeave = (el: Element) => {
-  const element = el as HTMLElement
-  element.style.height = element.scrollHeight + 'px'
-  element.offsetHeight // Trigger reflow
-  element.style.height = '0'
-  element.style.opacity = '0'
-}
-</script>
 
 <style scoped>
 /* ========== ACCORDION SECTION ========== */
