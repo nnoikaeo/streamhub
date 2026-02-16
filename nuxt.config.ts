@@ -64,6 +64,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      // Mock Data Service Configuration
+      useJsonMock: process.env.NUXT_PUBLIC_USE_JSON_MOCK !== 'false',
+
       firebase: {
         apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY || 'YOUR_API_KEY',
         authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'YOUR_AUTH_DOMAIN',
