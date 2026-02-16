@@ -108,7 +108,7 @@ const mainNavItems = [
     icon: '🏠',
   },
   {
-    path: '/discover',
+    path: '/dashboard/discover',
     label: 'Discover',
     icon: '🔍',
   },

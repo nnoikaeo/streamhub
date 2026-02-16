@@ -83,13 +83,13 @@
           title="Folders"
           :count="foldersCount"
           icon="📁"
-          link="/dashboard/folders"
+          link="/admin/folders"
         />
         <DashboardStatCard
-          title="Recent Activity"
-          value="24h"
-          icon="📈"
-          link="/dashboard/activity"
+          title="Companies"
+          :count="companiesCount"
+          icon="🏢"
+          link="/admin/companies"
         />
       </div>
     </section>
@@ -106,16 +106,16 @@
           link="/admin/users"
         />
         <DashboardStatCard
-          title="System Health"
-          value="Healthy"
-          icon="✅"
-          link="/admin/system"
+          title="Groups"
+          :count="groupsCount"
+          icon="👥"
+          link="/admin/groups"
         />
         <DashboardStatCard
-          title="Settings"
-          value="Configure"
-          icon="⚙️"
-          link="/admin/settings"
+          title="Dashboards"
+          :count="dashboardsCount"
+          icon="📊"
+          link="/admin/dashboards"
         />
       </div>
     </section>
@@ -127,7 +127,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { mockDashboards, mockFolders, mockUsers } from '~/composables/useMockData'
+import { mockDashboards, mockFolders, mockUsers, mockCompanies, mockGroups } from '~/composables/useMockData'
 import type { Folder } from '~/types/dashboard'
 import DiscoverPageLayout from '~/components/compositions/DiscoverPageLayout.vue'
 import { usePermissionsStore } from '~/stores/permissions'
@@ -172,6 +172,12 @@ const companyDashboardsCount = computed(() => {
 const foldersCount = computed(() => mockFolders.length)
 
 const totalUsersCount = computed(() => mockUsers.length)
+
+const dashboardsCount = computed(() => mockDashboards.length)
+
+const companiesCount = computed(() => mockCompanies.length)
+
+const groupsCount = computed(() => mockGroups.length)
 
 // Recent dashboards - top 5 most recently updated
 const recentDashboards = computed(() => {
