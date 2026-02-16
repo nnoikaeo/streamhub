@@ -15,8 +15,8 @@
 
 import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/types/dashboard'
-import { mockUsers, mockGroups } from '~/composables/useMockData'
-import AdminSidebar from '~/components/admin/AdminSidebar.vue'
+import { mockUsers, mockGroups, mockFolders } from '~/composables/useMockData'
+import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 
 interface GroupData {
   id: string
@@ -140,7 +140,13 @@ onMounted(() => {
   <div class="admin-page">
     <AdminLayout>
       <template #sidebar>
-        <AdminSidebar />
+        <UnifiedSidebar
+          :folders="mockFolders"
+          show-folders
+          show-admin
+          :allow-search="true"
+          :allow-create="false"
+        />
       </template>
 
       <div class="admin-content">

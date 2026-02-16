@@ -16,8 +16,8 @@
 
 import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/types/dashboard'
-import { mockUsers, mockCompanies } from '~/composables/useMockData'
-import AdminSidebar from '~/components/admin/AdminSidebar.vue'
+import { mockUsers, mockCompanies, mockFolders } from '~/composables/useMockData'
+import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 
 // Page meta
 definePageMeta({
@@ -221,9 +221,15 @@ onMounted(() => {
 <template>
   <div class="admin-page">
     <AdminLayout>
-      <!-- Sidebar Navigation -->
+      <!-- Unified Sidebar -->
       <template #sidebar>
-        <AdminSidebar />
+        <UnifiedSidebar
+          :folders="mockFolders"
+          show-folders
+          show-admin
+          :allow-search="true"
+          :allow-create="false"
+        />
       </template>
 
       <!-- Main Content -->

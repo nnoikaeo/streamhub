@@ -14,7 +14,7 @@
 
 import { ref, computed, onMounted } from 'vue'
 import { mockUsers, mockFolders, mockDashboards, mockCompanies } from '~/composables/useMockData'
-import AdminSidebar from '~/components/admin/AdminSidebar.vue'
+import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
@@ -117,12 +117,18 @@ onMounted(() => {
 
 <template>
   <div class="admin-page">
-    <!-- Admin Layout with Sidebar -->
+    <!-- Admin Layout with Unified Sidebar -->
     <div class="admin-layout-wrapper">
       <AdminLayout>
-        <!-- Sidebar Navigation -->
+        <!-- Unified Sidebar (Dashboard + Folders + Admin) -->
         <template #sidebar>
-          <AdminSidebar />
+          <UnifiedSidebar
+            :folders="mockFolders"
+            show-folders
+            show-admin
+            :allow-search="true"
+            :allow-create="false"
+          />
         </template>
 
         <!-- Main Content -->
