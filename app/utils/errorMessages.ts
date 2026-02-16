@@ -1,6 +1,6 @@
 /**
  * Error Message Mapper
- * Converts technical errors to user-friendly messages
+ * Converts technical errors to user-friendly messages (Thai)
  */
 
 export interface ErrorInfo {
@@ -15,9 +15,9 @@ export const mapErrorMessage = (error: any): ErrorInfo => {
   // User not found in system
   if (errorMessage.includes('not found in system')) {
     return {
-      title: 'Account Not Found',
+      title: 'บัญชีไม่พบในระบบ',
       message:
-        'Your account has not been set up in the system yet. Please contact your administrator to request access.',
+        'บัญชีของคุณยังไม่ได้ตั้งค่าในระบบ โปรดติดต่อผู้ดูแลระบบเพื่อขอสิทธิการเข้าถึง',
       showRequestAccess: true
     }
   }
@@ -25,57 +25,57 @@ export const mapErrorMessage = (error: any): ErrorInfo => {
   // Firebase auth errors
   if (errorMessage.includes('cancelled')) {
     return {
-      title: 'Sign In Cancelled',
-      message: 'You cancelled the sign-in process. Please try again.',
+      title: 'ยกเลิกการลงชื่อเข้า',
+      message: 'คุณยกเลิกการลงชื่อเข้าใช้ โปรดลองอีกครั้ง',
       showRequestAccess: false
     }
   }
 
   if (errorMessage.includes('popup-closed-by-user')) {
     return {
-      title: 'Sign In Cancelled',
-      message: 'The sign-in window was closed. Please try again.',
+      title: 'ยกเลิกการลงชื่อเข้า',
+      message: 'หน้าต่างลงชื่อเข้าถูกปิดแล้ว โปรดลองอีกครั้ง',
       showRequestAccess: false
     }
   }
 
   if (errorMessage.includes('popup-blocked')) {
     return {
-      title: 'Sign In Blocked',
-      message: 'Your browser blocked the sign-in popup. Please allow popups and try again.',
+      title: 'การลงชื่อเข้าถูกบล็อก',
+      message: 'เบราว์เซอร์ของคุณบล็อกหน้าต่างป๊อปอัป โปรดอนุญาตป๊อปอัปและลองอีกครั้ง',
       showRequestAccess: false
     }
   }
 
   if (errorMessage.includes('network')) {
     return {
-      title: 'Network Error',
-      message: 'Unable to connect to the server. Please check your internet connection and try again.',
+      title: 'ข้อผิดพลาดของเครือข่าย',
+      message: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตและลองอีกครั้ง',
       showRequestAccess: false
     }
   }
 
   if (errorMessage.includes('permission')) {
     return {
-      title: 'Permission Denied',
+      title: 'สิทธิ์การเข้าถึงถูกปฏิเสธ',
       message:
-        'You do not have permission to access this system. Please contact your administrator.',
+        'คุณไม่มีสิทธิ์ในการเข้าถึงระบบนี้ โปรดติดต่อผู้ดูแลระบบของคุณ',
       showRequestAccess: true
     }
   }
 
   // Default error
   return {
-    title: 'Sign In Failed',
-    message: 'An unexpected error occurred. Please try again or contact support.',
+    title: 'การลงชื่อเข้าล้มเหลว',
+    message: 'เกิดข้อผิดพลาดที่ไม่คาดคิด โปรดลองอีกครั้งหรือติดต่อฝ่ายสนับสนุน',
     showRequestAccess: true
   }
 }
 
 export const getDefaultErrorMessage = (): ErrorInfo => {
   return {
-    title: 'Error',
-    message: 'An error occurred. Please try again.',
+    title: 'ข้อผิดพลาด',
+    message: 'เกิดข้อผิดพลาด โปรดลองอีกครั้ง',
     showRequestAccess: false
   }
 }

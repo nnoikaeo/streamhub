@@ -55,21 +55,21 @@ const handleRequestAccess = () => {
             @click="onClose"
             class="error-button error-button--primary"
           >
-            Back to Login
+            กลับไปยังหน้าลงชื่อเข้า
           </button>
           <button
             v-if="showRequestAccess"
             @click="handleRequestAccess"
             class="error-button error-button--secondary"
           >
-            Request Access
+            ขอสิทธิ์การเข้าถึง
           </button>
         </div>
 
         <!-- Support Info -->
         <div class="error-support">
           <p class="error-support-text">
-            Need help? Contact <a href="mailto:support@streamhub.com" class="error-support-link">support@streamhub.com</a>
+            ต้องการความช่วยเหลือ? ติดต่อ <a href="mailto:support@streamhub.com" class="error-support-link">support@streamhub.com</a>
           </p>
         </div>
       </div>
