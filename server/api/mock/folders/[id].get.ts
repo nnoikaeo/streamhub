@@ -1,4 +1,4 @@
-import { findById } from '~/server/utils/jsonDatabase'
+import { findById } from '../../../utils/jsonDatabase'
 
 export default defineEventHandler(async (event) => {
   try {

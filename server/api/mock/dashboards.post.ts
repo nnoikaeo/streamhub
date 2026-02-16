@@ -1,4 +1,4 @@
-import { readJSON, createItem, updateItem } from '~/server/utils/jsonDatabase'
+import { readJSON, createItem, updateItem } from '../../utils/jsonDatabase'
 
 export default defineEventHandler(async (event) => {
   try {

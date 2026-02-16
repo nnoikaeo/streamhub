@@ -1,27 +1,28 @@
-import { readJSON } from '~/server/utils/jsonDatabase'
+import { readJSON } from '../../utils/jsonDatabase'
 
 export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
-    console.log('[API] GET /api/mock/folders - params:', query)
+    console.log('[API] GET /api/mock/folders')
+    console.log('  📥 Query params:', query)
 
     const folders = await readJSON('folders.json')
+    console.log(`  📂 Total folders loaded: ${folders.length}`)
 
     // Filter by query parameters
     let filtered = folders
 
-    if (query.uid) {
-      filtered = filtered.filter((f: any) => f.uid === query.uid)
-    }
-
     if (query.company) {
       filtered = filtered.filter((f: any) => f.company === query.company)
+      console.log(`  🔍 After company filter: ${filtered.length}`)
     }
 
     if (query.parentId) {
       filtered = filtered.filter((f: any) => f.parentId === query.parentId)
+      console.log(`  🔍 After parentId filter: ${filtered.length}`)
     }
 
+    console.log(`  ✅ Returning: ${filtered.length} folders`)
     return {
       success: true,
       data: filtered,
