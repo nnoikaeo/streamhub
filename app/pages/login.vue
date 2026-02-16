@@ -57,7 +57,7 @@ const handleCloseErrorDialog = () => {
 
 const handleRequestAccess = () => {
   // Open contact form or email
-  window.location.href = 'mailto:support@streamhub.com?subject=Request%20Access%20to%20Dashboard%20Hub'
+  window.location.href = 'mailto:it@streamwash.com?subject=Request%20Access%20to%20Dashboard%20Hub'
 }
 </script>
 
@@ -78,7 +78,7 @@ const handleRequestAccess = () => {
 
         <!-- Subtitle -->
         <p class="text-center text-xs text-slate-500 mb-8">
-          Dashboard Management System
+          ระบบบริหารจัดการแดชบอร์ด
         </p>
 
         <ClientOnly>

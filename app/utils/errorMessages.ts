@@ -15,9 +15,9 @@ export const mapErrorMessage = (error: any): ErrorInfo => {
   // User not found in system
   if (errorMessage.includes('not found in system')) {
     return {
-      title: 'บัญชีไม่พบในระบบ',
+      title: 'ไม่พบบัญชีในระบบ',
       message:
-        'บัญชีของคุณยังไม่ได้ตั้งค่าในระบบ โปรดติดต่อผู้ดูแลระบบเพื่อขอสิทธิการเข้าถึง',
+        'โปรดติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์เข้าถึง',
       showRequestAccess: true
     }
   }
