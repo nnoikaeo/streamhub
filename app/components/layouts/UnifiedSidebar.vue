@@ -182,6 +182,14 @@ const handleCreateFolder = () => {
       </nav>
     </section>
 
+    <!-- Admin Accordion Section (Collapsible) - Before Folders for priority -->
+    <AdminAccordion
+      v-if="showAdmin"
+      v-model="isAdminOpen"
+      title="Admin Panel"
+      :items="adminMenuItems"
+    />
+
     <!-- Folder Section (Collapsible FolderAccordion) -->
     <FolderAccordion
       v-if="showFolders"
@@ -192,14 +200,6 @@ const handleCreateFolder = () => {
       :allow-create="allowCreate"
       @select-folder="handleSelectFolder"
       @create-folder="handleCreateFolder"
-    />
-
-    <!-- Admin Accordion Section (Collapsible) -->
-    <AdminAccordion
-      v-if="showAdmin"
-      v-model="isAdminOpen"
-      title="Admin Panel"
-      :items="adminMenuItems"
     />
 
     <!-- Footer Slot (Optional) -->
