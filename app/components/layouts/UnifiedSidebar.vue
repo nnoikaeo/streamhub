@@ -129,7 +129,7 @@ watch(() => isFoldersOpen.value, (newVal) => {
 const mainNavItems = [
   {
     path: '/dashboard',
-    label: 'Dashboard',
+    label: 'แดชบอร์ด',
     icon: '🏠',
   },
 ]
@@ -210,7 +210,7 @@ const handleCreateFolder = () => {
     <AdminAccordion
       v-if="showAdmin"
       v-model="isAdminOpen"
-      title="Admin Panel"
+      title="เมนูผู้ดูแล"
       :items="adminMenuItems"
     />
 
