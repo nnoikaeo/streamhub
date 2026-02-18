@@ -40,7 +40,7 @@
  * />
  */
 
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Folder } from '~/types/dashboard'
 import AdminAccordion from '~/components/admin/AdminAccordion.vue'
 import FolderAccordion from '~/components/layouts/FolderAccordion.vue'
@@ -97,9 +97,33 @@ const emit = defineEmits<{
   'create-folder': []
 }>()
 
-// Accordion states
-const isFoldersOpen = ref(true)
-const isAdminOpen = ref(true)
+/**
+ * Initialize accordion states based on page context:
+ * - /admin page (showAdmin=true): Admin Panel open, Folders closed
+ * - /dashboard page (showAdmin=false): Folders open, Admin Panel hidden
+ */
+const isFoldersOpen = ref(!props.showAdmin)  // ← Closed if showAdmin is true
+const isAdminOpen = ref(props.showAdmin)     // ← Open if showAdmin is true
+
+/**
+ * Watchers for mutual exclusive accordion behavior
+ * When one accordion opens, close the other
+ */
+watch(() => isAdminOpen.value, (newVal) => {
+  if (newVal) {
+    // Admin Panel opened → close Folders
+    isFoldersOpen.value = false
+  }
+})
+
+watch(() => isFoldersOpen.value, (newVal) => {
+  if (newVal) {
+    // Folders opened → close Admin Panel (if showAdmin)
+    if (props.showAdmin) {
+      isAdminOpen.value = false
+    }
+  }
+})
 
 // Main navigation items (always visible)
 const mainNavItems = [
