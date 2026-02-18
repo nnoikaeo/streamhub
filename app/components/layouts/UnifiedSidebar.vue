@@ -99,7 +99,7 @@ const emit = defineEmits<{
 
 // Accordion states
 const isFoldersOpen = ref(true)
-const isAdminOpen = ref(false)
+const isAdminOpen = ref(true)
 
 // Main navigation items (always visible)
 const mainNavItems = [
