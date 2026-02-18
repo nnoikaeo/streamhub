@@ -43,7 +43,7 @@
 import { ref, computed } from 'vue'
 import type { Folder } from '~/types/dashboard'
 import AdminAccordion from '~/components/admin/AdminAccordion.vue'
-import FolderSidebar from '~/components/features/FolderSidebar.vue'
+import FolderAccordion from '~/components/layouts/FolderAccordion.vue'
 
 interface MenuItem {
   path: string
@@ -97,7 +97,8 @@ const emit = defineEmits<{
   'create-folder': []
 }>()
 
-// Admin menu state
+// Accordion states
+const isFoldersOpen = ref(true)
 const isAdminOpen = ref(false)
 
 // Main navigation items (always visible)
@@ -106,11 +107,6 @@ const mainNavItems = [
     path: '/dashboard',
     label: 'Dashboard',
     icon: '🏠',
-  },
-  {
-    path: '/dashboard/discover',
-    label: 'Discover',
-    icon: '🔍',
   },
 ]
 
@@ -186,13 +182,12 @@ const handleCreateFolder = () => {
       </nav>
     </section>
 
-    <!-- Folder Section (Reused FolderSidebar) -->
-    <FolderSidebar
-      v-if="showFolders && folders.length > 0"
+    <!-- Folder Section (Collapsible FolderAccordion) -->
+    <FolderAccordion
+      v-if="showFolders"
+      v-model="isFoldersOpen"
       :folders="folders"
       :selected-folder-id="selectedFolderId"
-      :show-main-menu="false"
-      :show-folders="true"
       :allow-search="allowSearch"
       :allow-create="allowCreate"
       @select-folder="handleSelectFolder"
