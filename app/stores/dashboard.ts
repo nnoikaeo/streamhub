@@ -23,6 +23,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const error = ref<string | null>(null)
   const expandedFolders = ref<Set<string>>(new Set())
 
+  // Accordion states - persisted across navigation
+  const isFoldersAccordionOpen = ref<boolean>(true)
+  const isAdminAccordionOpen = ref<boolean>(false)
+
   // Cache keys for invalidation
   const dashboardsCacheKey = ref<string>('')
   const foldersCacheKey = ref<string>('')
@@ -200,6 +204,52 @@ export const useDashboardStore = defineStore('dashboard', () => {
     expandedFolders.value.clear()
   }
 
+  /**
+   * Set folders accordion open/closed state
+   */
+  const setFoldersAccordionOpen = (isOpen: boolean) => {
+    isFoldersAccordionOpen.value = isOpen
+  }
+
+  /**
+   * Set admin accordion open/closed state
+   */
+  const setAdminAccordionOpen = (isOpen: boolean) => {
+    isAdminAccordionOpen.value = isOpen
+  }
+
+  /**
+   * Toggle folders accordion state
+   */
+  const toggleFoldersAccordion = () => {
+    isFoldersAccordionOpen.value = !isFoldersAccordionOpen.value
+  }
+
+  /**
+   * Toggle admin accordion state
+   */
+  const toggleAdminAccordion = () => {
+    isAdminAccordionOpen.value = !isAdminAccordionOpen.value
+  }
+
+  /**
+   * Initialize accordion states based on context
+   * - Dashboard pages: Folders open, Admin closed
+   * - Admin pages: Admin open, Folders closed
+   * - Non-admin users: Folders open, Admin hidden
+   */
+  const initializeAccordionStates = (isAdminPage: boolean, isAdminUser: boolean) => {
+    if (isAdminPage && isAdminUser) {
+      // Admin page: show admin accordion, hide folders
+      isFoldersAccordionOpen.value = false
+      isAdminAccordionOpen.value = true
+    } else {
+      // Dashboard page: show folders accordion, hide admin
+      isFoldersAccordionOpen.value = true
+      isAdminAccordionOpen.value = false
+    }
+  }
+
   // ========== Cache Management ==========
 
   /**
@@ -264,6 +314,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     isLoading,
     error,
     expandedFolders,
+    isFoldersAccordionOpen,
+    isAdminAccordionOpen,
 
     // Computed - Selectors
     currentFolder,
@@ -289,6 +341,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     toggleExpandFolder,
     setExpandedFolders,
     clearExpandedFolders,
+    setFoldersAccordionOpen,
+    setAdminAccordionOpen,
+    toggleFoldersAccordion,
+    toggleAdminAccordion,
+    initializeAccordionStates,
 
     // Cache Management
     updateDashboardsCacheKey,

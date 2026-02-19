@@ -1,59 +1,10 @@
 <template>
-  <AdminPanelLayout>
-    <!-- Sidebar: Admin Navigation -->
-    <template #sidebar>
-      <nav class="admin-nav">
-        <div class="nav-section">
-          <h4 class="nav-section-title">Management</h4>
-          <ul class="nav-list">
-            <li>
-              <a href="/admin/permissions" class="nav-link active">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-                Permissions
-              </a>
-            </li>
-            <li>
-              <a href="/admin/users" class="nav-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                Users
-              </a>
-            </li>
-            <li>
-              <a href="/admin/dashboards" class="nav-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="3" y1="9" x2="21" y2="9" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                </svg>
-                Dashboards
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        <div class="nav-section">
-          <h4 class="nav-section-title">Settings</h4>
-          <ul class="nav-list">
-            <li>
-              <a href="/admin/audit-log" class="nav-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                </svg>
-                Audit Log
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </template>
-
+  <PageLayout
+    :folders="folderTree"
+    :allow-search="false"
+    :allow-create="false"
+    :breadcrumbs="breadcrumbs"
+  >
     <!-- Main Content: Permissions Editor -->
     <div class="permissions-page">
       <!-- Page Header -->
@@ -148,7 +99,7 @@
         <div v-else class="section-content">
           <PermissionEditor
             :dashboard="currentDashboard"
-            :all-users="allUsers"
+            :all-users="allUsersFromComposable"
             :current-permissions="permissionsToEdit"
             @update:permissions="handlePermissionsUpdate"
           />
@@ -166,21 +117,28 @@
         <p>Choose a dashboard to manage its permissions</p>
       </div>
     </div>
-  </AdminPanelLayout>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
+import PageLayout from '~/components/compositions/PageLayout.vue'
+import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
+import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminUsers } from '~/composables/useAdminUsers'
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
 import type { Dashboard, User, AccessControl, AccessRestrictions, Folder } from '~/types/dashboard'
-import AdminPanelLayout from '~/components/compositions/AdminPanelLayout.vue'
 import PermissionEditor from '~/components/features/PermissionEditor.vue'
+
+const { breadcrumbs } = useAdminBreadcrumbs()
+const { folders, fetchFolders } = useAdminFolders()
+const { users: allUsersFromComposable, fetchUsers } = useAdminUsers()
 
 // Page metadata
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'admin'],
   layout: 'default',
 })
 
@@ -212,13 +170,12 @@ onMounted(async () => {
   } else {
     console.log(`✅ [permissions.vue] Admin access granted`)
     // Continue with dashboard loading
-    await loadDashboards()
+    await Promise.all([loadDashboards(), fetchFolders()])
   }
 })
 
 // State
 const dashboards = ref<Dashboard[]>([])
-const allUsers = ref<User[]>([])
 const selectedDashboardId = ref<string>('')
 const currentDashboard = ref<Dashboard | null>(null)
 const currentDashboardFolder = ref<string>('')
@@ -264,11 +221,8 @@ const loadDashboards = async () => {
 
     dashboards.value = response.dashboards
 
-    // Load all users
-    // Note: This would need a service method to get all users
-    // For now using mock data
-    const { mockUsers } = await import('~/composables/useMockData')
-    allUsers.value = mockUsers
+    // Load all users from composable
+    await fetchUsers()
 
     // Check if dashboard is specified in query params
     if (route.query.dashboard) {
@@ -373,6 +327,45 @@ const savePermissions = async () => {
 const resetEditor = () => {
   permissionsToEdit.value = JSON.parse(JSON.stringify(originalPermissions.value))
 }
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
+  const folderMap = new Map<string, Folder & { children: Folder[] }>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: (Folder & { children: Folder[] })[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 
 // Lifecycle - Auth check is in the script above
 

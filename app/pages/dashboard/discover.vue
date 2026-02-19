@@ -1,29 +1,18 @@
 <template>
   <ClientOnly>
-    <div v-if="!isLoading && folders.length > 0" class="discover-page-wrapper">
-      <DiscoverPageLayout>
-        <!-- Sidebar: Folder Tree Navigation -->
-        <template #sidebar>
-          <FolderSidebar
-            :folders="folders"
-            :selected-folder-id="selectedFolderId"
-            :show-main-menu="true"
-            :main-menu-items="[
-              { label: 'หน้าแรก', icon: '🏠', to: '/dashboard' },
-              { label: 'รายการแดชบอร์ด', icon: '📊', to: '/dashboard/discover' }
-            ]"
-            :show-folders="true"
-            :allow-search="true"
-            :allow-create="canCreateFolder"
-            @select-folder="(folder: Folder) => selectFolder(folder.id)"
-            @create-folder="handleCreateFolder"
-          />
-        </template>
-
-        <!-- Main: Dashboard Grid -->
-        <div class="discover-main-content">
-          <!-- Breadcrumbs Navigation -->
-          <Breadcrumbs :items="breadcrumbItems" />
+    <PageLayout
+      v-if="!isLoading && folders.length > 0"
+      :breadcrumbs="breadcrumbItems"
+      :folders="folderTree"
+      :selected-folder-id="selectedFolderId"
+      show-folders
+      :allow-search="true"
+      :allow-create="canCreateFolder"
+      @select-folder="(folder) => selectFolder(folder.id)"
+      @create-folder="handleCreateFolder"
+    >
+      <!-- Main: Dashboard Grid -->
+      <div class="discover-main-content">
 
           <!-- Dashboards Found Header -->
           <div class="dashboards-header">
@@ -75,8 +64,7 @@
             />
           </ClientOnly>
         </div>
-      </DiscoverPageLayout>
-    </div>
+    </PageLayout>
     <div v-else class="loading-wrapper">
       <div class="loading-message">
         <div class="spinner" />
@@ -110,10 +98,10 @@
 
 import type { Folder, Dashboard } from '~/types/dashboard'
 import { useDashboardPage } from '~/composables/useDashboardPage'
-import DiscoverPageLayout from '~/components/compositions/DiscoverPageLayout.vue'
-import FolderSidebar from '~/components/features/FolderSidebar.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
+import { computed } from 'vue'
 
 const route = useRoute()
 console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route.path, name: route.name })
@@ -171,6 +159,45 @@ const {
 
 // OLD: ~70 lines of lifecycle and infinite scroll setup
 // NEW: setupInfiniteScroll is called in composable's onMounted
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
+  const folderMap = new Map<string, Folder & { children: Folder[] }>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: (Folder & { children: Folder[] })[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 
 // ========== Permission-Based UI ==========
 

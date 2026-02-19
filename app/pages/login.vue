@@ -6,6 +6,7 @@ import ErrorDialog from '~/components/ErrorDialog.vue'
 const router = useRouter()
 const route = useRoute()
 const { signInWithGoogle } = useAuth()
+const authStore = useAuthStore()
 const loading = ref(false)
 const showErrorDialog = ref(false)
 const errorInfo = ref({
@@ -34,9 +35,10 @@ const handleGoogleSignIn = async () => {
     const result = await signInWithGoogle()
 
     if (result.success) {
-      console.log('🎉 Redirecting to dashboard...')
+      const targetRoute = '/dashboard'
+      console.log(`🎉 Redirecting to ${targetRoute} (role: ${authStore.user?.role})...`)
       await new Promise(resolve => setTimeout(resolve, 500))
-      await router.push('/dashboard')
+      await router.push(targetRoute)
     } else {
       const error = new Error(result.error)
       errorInfo.value = mapErrorMessage(error)
