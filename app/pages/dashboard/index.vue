@@ -1,26 +1,15 @@
 <template>
-  <DiscoverPageLayout>
-    <!-- Sidebar: Folder Tree Navigation -->
-    <template #sidebar>
-      <FolderSidebar 
-        :folders="mockFolders"
-        :show-main-menu="true"
-        :main-menu-items="[
-          { label: 'หน้าแรก', icon: '🏠', to: '/dashboard' },
-          { label: 'รายการแดชบอร์ด', icon: '📊', to: '/dashboard/discover' }
-        ]"
-        :show-folders="false"
-        :allow-search="true"
-        :allow-create="canCreateFolder"
-        @select-folder="handleSelectFolder"
-        @create-folder="handleCreateFolder"
-      />
-    </template>
-
+  <PageLayout
+    :breadcrumbs="[{ label: 'หน้าแรก' }]"
+    :folders="mockFolders"
+    :allow-search="true"
+    :allow-create="canCreateFolder"
+    @select-folder="handleSelectFolder"
+    @create-folder="handleCreateFolder"
+  >
+    <!-- Note: showFolders & showAdmin now determined by user role (role-based) -->
     <!-- Main Content -->
     <div class="dashboard-main-content">
-      <!-- Breadcrumbs -->
-      <Breadcrumbs :items="[{ label: 'หน้าแรก' }]" />
       
       <!-- Page Content -->
       <div class="dashboard-page">
@@ -121,7 +110,7 @@
     </section>
         </div>
       </div>
-    </DiscoverPageLayout>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
@@ -129,7 +118,7 @@ import { computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { mockDashboards, mockFolders, mockUsers, mockCompanies, mockGroups } from '~/composables/useMockData'
 import type { Folder } from '~/types/dashboard'
-import DiscoverPageLayout from '~/components/compositions/DiscoverPageLayout.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
 import { usePermissionsStore } from '~/stores/permissions'
 
 definePageMeta({

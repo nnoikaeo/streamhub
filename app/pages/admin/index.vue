@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import AppLayout from '~/components/layouts/AppLayout.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
+import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 /**
  * Admin Dashboard Overview Page
  *
@@ -15,10 +16,10 @@ import AppLayout from '~/components/layouts/AppLayout.vue'
 
 import { ref, computed, onMounted } from 'vue'
 import { mockUsers, mockFolders, mockDashboards, mockCompanies } from '~/composables/useMockData'
-import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
+const { breadcrumbs } = useAdminBreadcrumbs()
 
 // Page meta
 definePageMeta({
@@ -117,27 +118,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <AppLayout show-sidebar>
-    <!-- Unified Sidebar (Dashboard + Folders + Admin) -->
-    <template #sidebar>
-      <UnifiedSidebar
-        :folders="mockFolders"
-        show-folders
-        show-admin
-        :allow-search="true"
-        :allow-create="false"
-      />
-    </template>
-
+  <PageLayout
+    :folders="mockFolders"
+    :allow-search="true"
+    :allow-create="false"
+    :breadcrumbs="breadcrumbs"
+  >
+    <!-- Note: showFolders & showAdmin now determined by user role (role-based) -->
     <!-- Main Content -->
     <div class="admin-page">
       <div class="admin-content">
-          <!-- Page Header -->
-          <div class="page-header">
-            <h1 class="page-title">Admin Dashboard</h1>
-            <p class="page-subtitle">สวัสดี {{ authStore.user?.name || 'Admin' }} 👋</p>
-          </div>
-
           <!-- Statistics Grid -->
           <section class="statistics-section">
             <h2 class="section-title">📊 สถิติทั่วไป</h2>
@@ -236,7 +226,7 @@ onMounted(() => {
           </section>
       </div>
     </div>
-  </AppLayout>
+  </PageLayout>
 </template>
 
 <style scoped>

@@ -6,8 +6,8 @@
         <img src="/logo.png" alt="StreamHub Logo" class="brand-logo" />
       </div>
 
-      <!-- Admin Menu (Show only for admin users) -->
-      <nav v-if="isAdmin" class="admin-menu">
+      <!-- Admin Menu (Hidden) -->
+      <nav v-if="false" class="admin-menu">
         <router-link to="/admin" class="admin-menu-link" active-class="active">
           📊 Dashboard
         </router-link>

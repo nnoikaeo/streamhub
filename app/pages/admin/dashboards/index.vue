@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppLayout from '~/components/layouts/AppLayout.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
 /**
  * Admin Dashboards Management Page
  *
@@ -17,12 +17,14 @@ import AppLayout from '~/components/layouts/AppLayout.vue'
 import { ref, computed, onMounted } from 'vue'
 import type { Dashboard } from '~/types/dashboard'
 import { mockDashboards, mockFolders } from '~/composables/useMockData'
-import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
+import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
   layout: 'default',
 })
+
+const { breadcrumbs } = useAdminBreadcrumbs()
 
 console.log('📄 [admin/dashboards/index.vue] Dashboards management page mounted')
 
@@ -216,21 +218,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-page">
-    <AppLayout show-sidebar>
-      <!-- Unified Sidebar -->
-      <template #sidebar>
-        <UnifiedSidebar
-          :folders="mockFolders"
-          show-folders
-          show-admin
-          :allow-search="true"
-          :allow-create="false"
-        />
-      </template>
-
-      <!-- Main Content -->
-      <div class="admin-content">
+  <PageLayout
+    :folders="mockFolders"
+    :allow-search="true"
+    :allow-create="false"
+    :breadcrumbs="breadcrumbs"
+  >
+    <div class="admin-content">
         <!-- Page Header -->
         <div class="page-header">
           <h1 class="page-title">จัดการแดชบอร์ด</h1>
@@ -316,9 +310,8 @@ onMounted(() => {
           @confirm="confirmDeleteDashboard"
           @cancel="showConfirmDialog = false"
         />
-      </div>
-    </AppLayout>
-  </div>
+    </div>
+  </PageLayout>
 </template>
 
 <style scoped>

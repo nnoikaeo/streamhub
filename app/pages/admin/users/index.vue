@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import AppLayout from '~/components/layouts/AppLayout.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
+import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 /**
  * Admin Users Management Page
  *
@@ -18,7 +19,8 @@ import AppLayout from '~/components/layouts/AppLayout.vue'
 import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/types/dashboard'
 import { mockUsers, mockCompanies, mockFolders } from '~/composables/useMockData'
-import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
+
+const { breadcrumbs } = useAdminBreadcrumbs()
 
 // Page meta
 definePageMeta({
@@ -220,21 +222,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-page">
-    <AppLayout show-sidebar>
-      <!-- Unified Sidebar -->
-      <template #sidebar>
-        <UnifiedSidebar
-          :folders="mockFolders"
-          show-folders
-          show-admin
-          :allow-search="true"
-          :allow-create="false"
-        />
-      </template>
-
-      <!-- Main Content -->
-      <div class="admin-content">
+  <PageLayout
+    :folders="mockFolders"
+    :allow-search="true"
+    :allow-create="false"
+    :breadcrumbs="breadcrumbs"
+  >
+    <!-- Main Content -->
+    <div class="admin-content">
         <!-- Page Header -->
         <div class="page-header">
           <h1 class="page-title">จัดการผู้ใช้</h1>
@@ -331,8 +326,7 @@ onMounted(() => {
           @cancel="showConfirmDialog = false"
         />
       </div>
-    </AppLayout>
-  </div>
+  </PageLayout>
 </template>
 
 <style scoped>

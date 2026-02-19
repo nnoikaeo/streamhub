@@ -210,7 +210,7 @@ const handleCreateFolder = () => {
     <AdminAccordion
       v-if="showAdmin"
       v-model="isAdminOpen"
-      title="เมนูผู้ดูแล"
+      title="ผู้ดูแลระบบ"
       :items="adminMenuItems"
     />
 

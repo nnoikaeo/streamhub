@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppLayout from '~/components/layouts/AppLayout.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
 /**
  * Admin Folders Management Page
  *
@@ -17,12 +17,14 @@ import AppLayout from '~/components/layouts/AppLayout.vue'
 import { ref, computed, onMounted } from 'vue'
 import type { Folder } from '~/types/dashboard'
 import { mockFolders, mockCompanies } from '~/composables/useMockData'
-import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
+import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
   layout: 'default',
 })
+
+const { breadcrumbs } = useAdminBreadcrumbs()
 
 console.log('📄 [admin/folders/index.vue] Folders management page mounted')
 
@@ -167,19 +169,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-page">
-    <AppLayout show-sidebar>
-      <template #sidebar>
-        <UnifiedSidebar
-          :folders="mockFolders"
-          show-folders
-          show-admin
-          :allow-search="true"
-          :allow-create="false"
-        />
-      </template>
-
-      <div class="admin-content">
+  <PageLayout
+    :folders="mockFolders"
+    :allow-search="true"
+    :allow-create="false"
+    :breadcrumbs="breadcrumbs"
+  >
+    <div class="admin-content">
         <div class="page-header">
           <h1 class="page-title">จัดการโฟลเดอร์</h1>
           <button @click="handleAddFolder" class="btn btn--primary">
@@ -247,9 +243,8 @@ onMounted(() => {
           @confirm="confirmDeleteFolder"
           @cancel="showConfirmDialog = false"
         />
-      </div>
-    </AppLayout>
-  </div>
+    </div>
+  </PageLayout>
 </template>
 
 <style scoped>

@@ -1,14 +1,10 @@
 <template>
-  <AppLayout show-sidebar>
-    <!-- Unified Sidebar -->
-    <template #sidebar>
-      <UnifiedSidebar
-        show-admin
-        :allow-search="false"
-        :allow-create="false"
-      />
-    </template>
-
+  <PageLayout
+    :folders="mockFolders"
+    :allow-search="false"
+    :allow-create="false"
+    :breadcrumbs="breadcrumbs"
+  >
     <!-- Main Content: Permissions Editor -->
     <div class="permissions-page">
       <!-- Page Header -->
@@ -121,19 +117,21 @@
         <p>Choose a dashboard to manage its permissions</p>
       </div>
     </div>
-  </AppLayout>
+  </PageLayout>
 </template>
 
 <script setup lang="ts">
-import AppLayout from '~/components/layouts/AppLayout.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
+import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
+import { mockFolders } from '~/composables/useMockData'
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
-import { mockFolders } from '~/composables/useMockData'
 import type { Dashboard, User, AccessControl, AccessRestrictions, Folder } from '~/types/dashboard'
-import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
 import PermissionEditor from '~/components/features/PermissionEditor.vue'
+
+const { breadcrumbs } = useAdminBreadcrumbs()
 
 // Page metadata
 definePageMeta({

@@ -1,29 +1,18 @@
 <template>
   <ClientOnly>
-    <div v-if="!isLoading && folders.length > 0" class="discover-page-wrapper">
-      <DiscoverPageLayout>
-        <!-- Sidebar: Folder Tree Navigation -->
-        <template #sidebar>
-          <FolderSidebar
-            :folders="folders"
-            :selected-folder-id="selectedFolderId"
-            :show-main-menu="true"
-            :main-menu-items="[
-              { label: 'หน้าแรก', icon: '🏠', to: '/dashboard' },
-              { label: 'รายการแดชบอร์ด', icon: '📊', to: '/dashboard/discover' }
-            ]"
-            :show-folders="true"
-            :allow-search="true"
-            :allow-create="canCreateFolder"
-            @select-folder="(folder: Folder) => selectFolder(folder.id)"
-            @create-folder="handleCreateFolder"
-          />
-        </template>
-
-        <!-- Main: Dashboard Grid -->
-        <div class="discover-main-content">
-          <!-- Breadcrumbs Navigation -->
-          <Breadcrumbs :items="breadcrumbItems" />
+    <PageLayout
+      v-if="!isLoading && folders.length > 0"
+      :breadcrumbs="breadcrumbItems"
+      :folders="folders"
+      :selected-folder-id="selectedFolderId"
+      show-folders
+      :allow-search="true"
+      :allow-create="canCreateFolder"
+      @select-folder="(folder) => selectFolder(folder.id)"
+      @create-folder="handleCreateFolder"
+    >
+      <!-- Main: Dashboard Grid -->
+      <div class="discover-main-content">
 
           <!-- Dashboards Found Header -->
           <div class="dashboards-header">
@@ -75,8 +64,7 @@
             />
           </ClientOnly>
         </div>
-      </DiscoverPageLayout>
-    </div>
+    </PageLayout>
     <div v-else class="loading-wrapper">
       <div class="loading-message">
         <div class="spinner" />
@@ -110,8 +98,7 @@
 
 import type { Folder, Dashboard } from '~/types/dashboard'
 import { useDashboardPage } from '~/composables/useDashboardPage'
-import DiscoverPageLayout from '~/components/compositions/DiscoverPageLayout.vue'
-import FolderSidebar from '~/components/features/FolderSidebar.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 

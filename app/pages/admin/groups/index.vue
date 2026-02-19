@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppLayout from '~/components/layouts/AppLayout.vue'
+import PageLayout from '~/components/compositions/PageLayout.vue'
 /**
  * Admin Groups Management Page
  *
@@ -17,7 +17,7 @@ import AppLayout from '~/components/layouts/AppLayout.vue'
 import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/types/dashboard'
 import { mockUsers, mockGroups, mockFolders } from '~/composables/useMockData'
-import UnifiedSidebar from '~/components/layouts/UnifiedSidebar.vue'
+import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 
 interface GroupData {
   id: string
@@ -30,6 +30,8 @@ definePageMeta({
   middleware: ['auth', 'admin'],
   layout: 'default',
 })
+
+const { breadcrumbs } = useAdminBreadcrumbs()
 
 const groups = ref<GroupData[]>(
   Object.entries(mockGroups).map(([id, group]) => ({
@@ -138,19 +140,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-page">
-    <AppLayout show-sidebar>
-      <template #sidebar>
-        <UnifiedSidebar
-          :folders="mockFolders"
-          show-folders
-          show-admin
-          :allow-search="true"
-          :allow-create="false"
-        />
-      </template>
-
-      <div class="admin-content">
+  <PageLayout
+    :folders="mockFolders"
+    :allow-search="true"
+    :allow-create="false"
+    :breadcrumbs="breadcrumbs"
+  >
+    <div class="admin-content">
         <div class="page-header">
           <h1 class="page-title">จัดการกลุ่ม</h1>
           <button @click="handleAddGroup" class="btn btn--primary">
@@ -209,9 +205,8 @@ onMounted(() => {
           @confirm="confirmDeleteGroup"
           @cancel="showConfirmDialog = false"
         />
-      </div>
-    </AppLayout>
-  </div>
+    </div>
+  </PageLayout>
 </template>
 
 <style scoped>
