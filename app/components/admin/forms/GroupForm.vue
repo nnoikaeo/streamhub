@@ -12,8 +12,9 @@
  */
 
 import type { User } from '~/types/dashboard'
-import { mockUsers } from '~/composables/useMockData'
+import { useAdminUsers } from '~/composables/useAdminUsers'
 import { createObjectValidator, validators } from '~/utils/formValidators'
+import { onMounted } from 'vue'
 
 interface GroupData {
   id: string
@@ -27,13 +28,17 @@ interface Props {
   members?: User[]
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  members: () => mockUsers,
-})
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   submit: [data: Partial<GroupData>]
 }>()
+
+// Composables
+const { users, fetchUsers } = useAdminUsers()
+
+// Use passed members or fetch from composable
+const memberList = computed(() => props.members || users.value)
 
 // Member search
 const memberSearch = ref('')
@@ -64,7 +69,7 @@ const form = useForm({
 const isEditMode = computed(() => !!props.group)
 
 const availableMembers = computed(() =>
-  props.members.filter((user) => {
+  memberList.value.filter((user) => {
     if (!memberSearch.value) return true
     const search = memberSearch.value.toLowerCase()
     return (
@@ -109,6 +114,13 @@ const deselectAll = () => {
     }
   }
 }
+
+// Fetch users on mount if no members prop passed
+onMounted(async () => {
+  if (!props.members) {
+    await fetchUsers()
+  }
+})
 </script>
 
 <template>

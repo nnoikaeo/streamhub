@@ -15,9 +15,10 @@ import PageLayout from '~/components/compositions/PageLayout.vue'
  */
 
 import { ref, computed, onMounted } from 'vue'
-import type { Company } from '~/composables/useMockData'
-import { mockCompanies, mockFolders } from '~/composables/useMockData'
+import type { Company } from '~/types/dashboard'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminFolders } from '~/composables/useAdminFolders'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -25,9 +26,9 @@ definePageMeta({
 })
 
 const { breadcrumbs } = useAdminBreadcrumbs()
+const { companies, loading, fetchCompanies, updateCompany, deleteCompany } = useAdminCompanies()
+const { folders } = useAdminFolders()
 
-const companies = ref<Company[]>([...mockCompanies])
-const loading = ref(false)
 const showCompanyModal = ref(false)
 const showConfirmDialog = ref(false)
 const selectedCompany = ref<Company | null>(null)
@@ -76,51 +77,35 @@ const handleDeleteCompany = (company: Company) => {
 }
 
 const handleToggleActive = async (company: Company) => {
-  loading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 300))
-    const index = companies.value.findIndex(c => c.code === company.code)
-    if (index !== -1) {
-      companies.value[index].isActive = !companies.value[index].isActive
-    }
-  } finally {
-    loading.value = false
+    await updateCompany(company.code, { isActive: !company.isActive })
+  } catch (error) {
+    console.error('Error toggling company status:', error)
   }
 }
 
 const handleSaveCompany = async (formData: any) => {
-  loading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     if (selectedCompany.value) {
-      const index = companies.value.findIndex(c => c.code === selectedCompany.value!.code)
-      if (index !== -1) {
-        companies.value[index] = { ...companies.value[index], ...formData }
-      }
+      await updateCompany(selectedCompany.value.code, formData)
     } else {
-      companies.value.push(formData)
+      // Note: createCompany is not shown in current code, but would be called here
+      console.warn('Create company not yet implemented')
     }
-
     showCompanyModal.value = false
-  } finally {
-    loading.value = false
+  } catch (error) {
+    console.error('Error saving company:', error)
   }
 }
 
 const confirmDeleteCompany = async () => {
   if (!companyToDelete.value) return
-  loading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-    const index = companies.value.findIndex(c => c.code === companyToDelete.value!.code)
-    if (index !== -1) {
-      companies.value.splice(index, 1)
-    }
+    await deleteCompany(companyToDelete.value.code)
     showConfirmDialog.value = false
     companyToDelete.value = null
-  } finally {
-    loading.value = false
+  } catch (error) {
+    console.error('Error deleting company:', error)
   }
 }
 
@@ -134,14 +119,57 @@ const actions = [
   { label: 'ลบ', icon: '🗑️', onClick: handleDeleteCompany, variant: 'danger' as const },
 ]
 
-onMounted(() => {
-  console.log('📊 Loaded', companies.value.length, 'companies')
+onMounted(async () => {
+  try {
+    await fetchCompanies()
+  } catch (error) {
+    console.error('Error loading companies:', error)
+  }
 })
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: any[]): any[] => {
+  const folderMap = new Map<string, any>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: any[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <template>
   <PageLayout
-    :folders="mockFolders"
+    :folders="folderTree"
     :allow-search="true"
     :allow-create="false"
     :breadcrumbs="breadcrumbs"

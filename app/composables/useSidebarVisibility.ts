@@ -27,11 +27,11 @@ export function useSidebarVisibility() {
 
   /**
    * Folders accordion visibility
-   * Admin & Moderator can see and manage folders
+   * Admin, Moderator & regular users can see folders
    */
   const showFolders = computed(() => {
     const role = authStore.user?.role
-    return role === 'admin' || role === 'moderator'
+    return ['admin', 'moderator', 'user'].includes(role)
   })
 
   return {

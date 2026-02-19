@@ -3,7 +3,7 @@
     <PageLayout
       v-if="!isLoading && folders.length > 0"
       :breadcrumbs="breadcrumbItems"
-      :folders="folders"
+      :folders="folderTree"
       :selected-folder-id="selectedFolderId"
       show-folders
       :allow-search="true"
@@ -101,6 +101,7 @@ import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
+import { computed } from 'vue'
 
 const route = useRoute()
 console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route.path, name: route.name })
@@ -158,6 +159,45 @@ const {
 
 // OLD: ~70 lines of lifecycle and infinite scroll setup
 // NEW: setupInfiniteScroll is called in composable's onMounted
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
+  const folderMap = new Map<string, Folder & { children: Folder[] }>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: (Folder & { children: Folder[] })[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 
 // ========== Permission-Based UI ==========
 

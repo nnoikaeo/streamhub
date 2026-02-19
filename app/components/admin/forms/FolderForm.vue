@@ -10,25 +10,32 @@
  */
 
 import type { Folder } from '~/types/dashboard'
-import { mockFolders, mockCompanies } from '~/composables/useMockData'
+import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { createObjectValidator, validators } from '~/utils/formValidators'
+import { onMounted } from 'vue'
 
 interface Props {
   folder?: Folder | null
   allFolders?: Folder[]
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  allFolders: () => mockFolders,
-})
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   submit: [data: Partial<Folder>]
 }>()
 
+// Composables
+const { folders, fetchFolders } = useAdminFolders()
+const { companies, fetchCompanies } = useAdminCompanies()
+
+// Use passed folders or fetch from composable
+const folderList = computed(() => props.allFolders || folders.value)
+
 // Company options
 const companyOptions = computed(() =>
-  mockCompanies.filter(c => c.isActive).map(c => ({
+  companies.value.filter(c => c.isActive).map(c => ({
     label: `${c.code} - ${c.name}`,
     value: c.code,
   }))
@@ -64,27 +71,7 @@ const getDescendants = (folderId: string): Set<string> => {
 
   while (queue.length > 0) {
     const current = queue.shift()!
-    for (const folder of props.allFolders) {
-      if (folder.parentId === current) {
-        descendants.add(folder.id)
-        queue.push(folder.id)
-      }
-    }
-  }
-
-  return descendants
-}
-
-/**
- * Get all descendants of a folder (to exclude from parent selection)
- */
-const getDescendants = (folderId: string): Set<string> => {
-  const descendants = new Set<string>()
-  const queue = [folderId]
-
-  while (queue.length > 0) {
-    const current = queue.shift()!
-    for (const folder of props.allFolders) {
+    for (const folder of folderList.value) {
       if (folder.parentId === current) {
         descendants.add(folder.id)
         queue.push(folder.id)
@@ -99,14 +86,14 @@ const getDescendants = (folderId: string): Set<string> => {
  * Build folder path (e.g., "Sales > Monthly > East")
  */
 const buildFolderPath = (folderId: string): string => {
-  const folder = props.allFolders.find(f => f.id === folderId)
+  const folder = folderList.value.find(f => f.id === folderId)
   if (!folder) return ''
 
   const path: string[] = [folder.name]
   let currentId = folder.parentId
 
   while (currentId) {
-    const parent = props.allFolders.find(f => f.id === currentId)
+    const parent = folderList.value.find(f => f.id === currentId)
     if (!parent) break
     path.unshift(parent.name)
     currentId = parent.parentId
@@ -132,7 +119,7 @@ const parentFolderOptions = computed(() => {
 
   return [
     { label: 'Root', value: null },
-    ...props.allFolders
+    ...folderList.value
       .filter(folder => {
         // Exclude self and descendants
         if (excludeIds.has(folder.id)) return false
@@ -152,12 +139,21 @@ const parentFolderOptions = computed(() => {
  */
 const handleCompanyChange = () => {
   if (form.formData.parentId) {
-    const parent = props.allFolders.find(f => f.id === form.formData.parentId)
+    const parent = folderList.value.find(f => f.id === form.formData.parentId)
     if (parent && parent.company !== form.formData.company) {
       form.formData.parentId = null
     }
   }
 }
+
+// Fetch companies and folders on mount if not passed
+onMounted(async () => {
+  if (!props.allFolders) {
+    await Promise.all([fetchFolders(), fetchCompanies()])
+  } else {
+    await fetchCompanies()
+  }
+})
 </script>
 
 <template>

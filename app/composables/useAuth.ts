@@ -1,7 +1,6 @@
 import { signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
 import { useAuthStore, type UserData } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
-import { getMockUserByUid } from '~/composables/useMockData'
 
 export const useAuth = () => {
   const { $firebase } = useNuxtApp()
@@ -19,9 +18,15 @@ export const useAuth = () => {
       const userCredential = await signInWithPopup($firebase.auth, provider)
       console.log('✅ Sign-in successful:', userCredential.user.email)
 
-      // Fetch role from mock data
+      // Fetch user role and company from API
       try {
-        const mockUser = getMockUserByUid(userCredential.user.uid)
+        const response = await fetch('/api/mock/users')
+        const data = await response.json()
+        const mockUser = data.data?.find((u: any) => u.uid === userCredential.user.uid)
+
+        if (!mockUser) {
+          throw new Error(`User with UID "${userCredential.user.uid}" not found in system. Please contact administrator to create an account.`)
+        }
 
         const userData: UserData = {
           uid: userCredential.user.uid,
@@ -33,11 +38,11 @@ export const useAuth = () => {
         }
         authStore.setUser(userData)
         authStore.setAuthError(null)
-        
+
         // Initialize permissions
         permissionsStore.initializePermissions(userData)
         console.log('✅ Permissions initialized for role:', mockUser.role)
-        
+
         return { success: true }
       } catch (userError: any) {
         // User not found in system

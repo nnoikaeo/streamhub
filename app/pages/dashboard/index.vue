@@ -1,7 +1,7 @@
 <template>
   <PageLayout
     :breadcrumbs="[{ label: 'หน้าแรก' }]"
-    :folders="mockFolders"
+    :folders="folderTree"
     :allow-search="true"
     :allow-create="canCreateFolder"
     @select-folder="handleSelectFolder"
@@ -48,11 +48,10 @@
         <DashboardQuickActions
           :can-create="isModerator || isAdmin"
           :can-share="isModerator || isAdmin"
-          :can-invite="isAdmin"
+          :can-invite="false"
           @view-dashboards="navigateTo('/dashboard/discover')"
           @create-dashboard="navigateTo('/dashboard/create')"
           @share-dashboard="handleShare"
-          @invite-user="navigateTo('/admin/users?action=invite')"
         />
       </div>
     </section>
@@ -60,7 +59,7 @@
     <!-- Moderator + Admin Section -->
     <section v-if="isModerator || isAdmin" class="dashboard-section">
       <h2 class="section-title">Company Overview</h2>
-      
+
       <div class="stats-grid">
         <DashboardStatCard
           title="Company Dashboards"
@@ -82,41 +81,19 @@
         />
       </div>
     </section>
-
-    <!-- Admin Only Section -->
-    <section v-if="isAdmin" class="dashboard-section">
-      <h2 class="section-title">Administration</h2>
-      
-      <div class="stats-grid">
-        <DashboardStatCard
-          title="Total Users"
-          :count="totalUsersCount"
-          icon="👥"
-          link="/admin/users"
-        />
-        <DashboardStatCard
-          title="Groups"
-          :count="groupsCount"
-          icon="👥"
-          link="/admin/groups"
-        />
-        <DashboardStatCard
-          title="Dashboards"
-          :count="dashboardsCount"
-          icon="📊"
-          link="/admin/dashboards"
-        />
-      </div>
-    </section>
         </div>
       </div>
   </PageLayout>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { mockDashboards, mockFolders, mockUsers, mockCompanies, mockGroups } from '~/composables/useMockData'
+import { useAdminDashboards } from '~/composables/useAdminDashboards'
+import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminUsers } from '~/composables/useAdminUsers'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminGroups } from '~/composables/useAdminGroups'
 import type { Folder } from '~/types/dashboard'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import { usePermissionsStore } from '~/stores/permissions'
@@ -128,6 +105,11 @@ definePageMeta({
 
 const { user } = useAuth()
 const permissionsStore = usePermissionsStore()
+const { dashboards, fetchDashboards } = useAdminDashboards()
+const { folders, fetchFolders } = useAdminFolders()
+const { users, fetchUsers } = useAdminUsers()
+const { companies, fetchCompanies } = useAdminCompanies()
+const { groups, fetchGroups } = useAdminGroups()
 
 // Permissions
 const canCreateFolder = computed(() => permissionsStore.can('canCreateFolder'))
@@ -136,14 +118,53 @@ const canCreateFolder = computed(() => permissionsStore.can('canCreateFolder'))
 const isAdmin = computed(() => user.value?.role === 'admin')
 const isModerator = computed(() => user.value?.role === 'moderator')
 
-// Stats - using mock data for now
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
+  const folderMap = new Map<string, Folder & { children: Folder[] }>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: (Folder & { children: Folder[] })[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
+
+// Stats - using composables
 const myDashboardsCount = computed(() => {
-  return mockDashboards.filter(d => d.owner === user.value?.uid).length
+  return dashboards.value.filter(d => d.owner === user.value?.uid).length
 })
 
 const sharedDashboardsCount = computed(() => {
-  return mockDashboards.filter(d => 
-    d.owner !== user.value?.uid && 
+  return dashboards.value.filter(d =>
+    d.owner !== user.value?.uid &&
     d.access?.direct?.users?.includes(user.value?.uid || '')
   ).length
 })
@@ -155,22 +176,22 @@ const favoritesCount = computed(() => {
 
 const companyDashboardsCount = computed(() => {
   // All dashboards in same company
-  return mockDashboards.length
+  return dashboards.value.length
 })
 
-const foldersCount = computed(() => mockFolders.length)
+const foldersCount = computed(() => folders.value.length)
 
-const totalUsersCount = computed(() => mockUsers.length)
+const totalUsersCount = computed(() => users.value.length)
 
-const dashboardsCount = computed(() => mockDashboards.length)
+const dashboardsCount = computed(() => dashboards.value.length)
 
-const companiesCount = computed(() => mockCompanies.length)
+const companiesCount = computed(() => companies.value.length)
 
-const groupsCount = computed(() => mockGroups.length)
+const groupsCount = computed(() => groups.value.length)
 
 // Recent dashboards - top 5 most recently updated
 const recentDashboards = computed(() => {
-  return mockDashboards
+  return dashboards.value
     .slice()
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 5)
@@ -196,6 +217,17 @@ const handleShare = () => {
   // TODO: Implement share functionality
   alert('Share functionality coming soon!')
 }
+
+// Fetch all data on mount
+onMounted(async () => {
+  await Promise.all([
+    fetchDashboards(),
+    fetchFolders(),
+    fetchUsers(),
+    fetchCompanies(),
+    fetchGroups()
+  ])
+})
 </script>
 
 <style scoped>

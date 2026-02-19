@@ -16,7 +16,8 @@ import PageLayout from '~/components/compositions/PageLayout.vue'
 
 import { ref, computed, onMounted } from 'vue'
 import type { Dashboard } from '~/types/dashboard'
-import { mockDashboards, mockFolders } from '~/composables/useMockData'
+import { useAdminDashboards } from '~/composables/useAdminDashboards'
+import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 
 definePageMeta({
@@ -25,12 +26,10 @@ definePageMeta({
 })
 
 const { breadcrumbs } = useAdminBreadcrumbs()
+const { dashboards, loading, fetchDashboards, createDashboard, updateDashboard, deleteDashboard } = useAdminDashboards()
+const { folders, fetchFolders } = useAdminFolders()
 
 console.log('📄 [admin/dashboards/index.vue] Dashboards management page mounted')
-
-// States
-const dashboards = ref<Dashboard[]>([...mockDashboards])
-const loading = ref(false)
 const showDashboardModal = ref(false)
 const showConfirmDialog = ref(false)
 const selectedDashboard = ref<Dashboard | null>(null)
@@ -57,7 +56,7 @@ const columns = [
  * Get folder name by ID
  */
 const getFolderName = (folderId: string): string => {
-  const folder = mockFolders.find(f => f.id === folderId)
+  const folder = folders.value.find(f => f.id === folderId)
   return folder ? folder.name : '-'
 }
 
@@ -105,89 +104,45 @@ const handleDeleteDashboard = (dashboard: Dashboard) => {
 }
 
 const handleToggleArchive = async (dashboard: Dashboard) => {
-  loading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 300))
-
-    const index = dashboards.value.findIndex(d => d.id === dashboard.id)
-    if (index !== -1) {
-      dashboards.value[index].isArchived = !dashboards.value[index].isArchived
-      if (dashboards.value[index].isArchived) {
-        dashboards.value[index].archivedAt = new Date()
-      }
-    }
+    await updateDashboard(dashboard.id, {
+      isArchived: !dashboard.isArchived,
+      archivedAt: !dashboard.isArchived ? new Date() : undefined
+    })
 
     console.log(`✅ Dashboard ${dashboard.name} archived status toggled`)
   } catch (error) {
     console.error('❌ Error toggling dashboard:', error)
-  } finally {
-    loading.value = false
   }
 }
 
 const handleSaveDashboard = async (formData: any) => {
-  loading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     if (selectedDashboard.value) {
-      const index = dashboards.value.findIndex(d => d.id === selectedDashboard.value!.id)
-      if (index !== -1) {
-        dashboards.value[index] = {
-          ...dashboards.value[index],
-          ...formData,
-          updatedAt: new Date(),
-        }
-      }
+      await updateDashboard(selectedDashboard.value.id, formData)
       console.log(`✅ Dashboard updated: ${formData.name}`)
     } else {
-      const newDashboard: Dashboard = {
-        id: formData.id,
-        name: formData.name,
-        description: formData.description,
-        type: formData.type,
-        folderId: formData.folderId,
-        lookerDashboardId: formData.lookerDashboardId,
-        lookerEmbedUrl: formData.lookerEmbedUrl,
-        owner: formData.owner,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        updatedBy: formData.owner,
-        isArchived: formData.isArchived,
-        access: { direct: { users: [], roles: [], groups: [] }, company: {} },
-        restrictions: { revoke: [], expiry: {} },
-      }
-      dashboards.value.push(newDashboard)
+      await createDashboard(formData)
       console.log(`✅ Dashboard created: ${formData.name}`)
     }
 
     showDashboardModal.value = false
   } catch (error) {
     console.error('❌ Error saving dashboard:', error)
-  } finally {
-    loading.value = false
   }
 }
 
 const confirmDeleteDashboard = async () => {
   if (!dashboardToDelete.value) return
 
-  loading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const index = dashboards.value.findIndex(d => d.id === dashboardToDelete.value!.id)
-    if (index !== -1) {
-      const deletedDashboard = dashboards.value.splice(index, 1)[0]
-      console.log(`✅ Dashboard deleted: ${deletedDashboard.name}`)
-    }
+    await deleteDashboard(dashboardToDelete.value.id)
+    console.log(`✅ Dashboard deleted: ${dashboardToDelete.value.name}`)
 
     showConfirmDialog.value = false
     dashboardToDelete.value = null
   } catch (error) {
     console.error('❌ Error deleting dashboard:', error)
-  } finally {
-    loading.value = false
   }
 }
 
@@ -212,14 +167,57 @@ const actions = [
   },
 ]
 
-onMounted(() => {
-  console.log('📊 Loaded', dashboards.value.length, 'dashboards')
+onMounted(async () => {
+  try {
+    await Promise.all([fetchDashboards(), fetchFolders()])
+  } catch (error) {
+    console.error('Error loading dashboards:', error)
+  }
 })
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: any[]): any[] => {
+  const folderMap = new Map<string, any>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: any[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <template>
   <PageLayout
-    :folders="mockFolders"
+    :folders="folderTree"
     :allow-search="true"
     :allow-create="false"
     :breadcrumbs="breadcrumbs"

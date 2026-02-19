@@ -11,9 +11,10 @@
  */
 
 import type { Dashboard } from '~/types/dashboard'
-import { mockFolders } from '~/composables/useMockData'
+import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAuthStore } from '~/stores/auth'
 import { createObjectValidator, validators } from '~/utils/formValidators'
+import { onMounted } from 'vue'
 
 interface Props {
   dashboard?: Dashboard | null
@@ -25,6 +26,7 @@ const emit = defineEmits<{
 }>()
 
 const authStore = useAuthStore()
+const { folders, fetchFolders } = useAdminFolders()
 
 // Dashboard type options
 const typeOptions = [
@@ -35,7 +37,7 @@ const typeOptions = [
 
 // Folder options
 const folderOptions = computed(() =>
-  mockFolders.map(folder => ({
+  folders.value.map(folder => ({
     label: buildFolderPath(folder.id),
     value: folder.id,
   }))
@@ -45,14 +47,14 @@ const folderOptions = computed(() =>
  * Build folder path (e.g., "Sales > Monthly > East")
  */
 const buildFolderPath = (folderId: string): string => {
-  const folder = mockFolders.find(f => f.id === folderId)
+  const folder = folders.value.find(f => f.id === folderId)
   if (!folder) return ''
 
   const path: string[] = [folder.name]
   let currentId = folder.parentId
 
   while (currentId) {
-    const parent = mockFolders.find(f => f.id === currentId)
+    const parent = folders.value.find(f => f.id === currentId)
     if (!parent) break
     path.unshift(parent.name)
     currentId = parent.parentId
@@ -116,6 +118,11 @@ const formatDate = (date: Date | undefined): string => {
     minute: '2-digit',
   })
 }
+
+// Fetch folders on mount
+onMounted(async () => {
+  await fetchFolders()
+})
 </script>
 
 <template>

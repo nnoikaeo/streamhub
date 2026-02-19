@@ -18,7 +18,9 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 
 import { ref, computed, onMounted } from 'vue'
 import type { User } from '~/types/dashboard'
-import { mockUsers, mockCompanies, mockFolders } from '~/composables/useMockData'
+import { useAdminUsers } from '~/composables/useAdminUsers'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminFolders } from '~/composables/useAdminFolders'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 
@@ -31,8 +33,9 @@ definePageMeta({
 console.log('📄 [admin/users/index.vue] Users management page mounted')
 
 // States
-const users = ref<User[]>([...mockUsers])
-const loading = ref(false)
+const { users, loading, fetchUsers, updateUser, deleteUser } = useAdminUsers()
+const { companies } = useAdminCompanies()
+const { folders } = useAdminFolders()
 const showUserModal = ref(false)
 const showConfirmDialog = ref(false)
 const selectedUser = ref<User | null>(null)
@@ -108,86 +111,37 @@ const handleDeleteUser = (user: User) => {
 }
 
 const handleToggleActive = async (user: User) => {
-  loading.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 300))
-
-    const index = users.value.findIndex(u => u.uid === user.uid)
-    if (index !== -1) {
-      users.value[index].isActive = !users.value[index].isActive
-    }
-
+    await updateUser(user.uid, { isActive: !user.isActive })
     console.log(`✅ User ${user.email} status toggled`)
   } catch (error) {
     console.error('❌ Error toggling user status:', error)
-  } finally {
-    loading.value = false
   }
 }
 
 const handleSaveUser = async (formData: any) => {
-  loading.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     if (selectedUser.value) {
-      // Update existing user
-      const index = users.value.findIndex(u => u.uid === selectedUser.value!.uid)
-      if (index !== -1) {
-        users.value[index] = {
-          ...users.value[index],
-          ...formData,
-          updatedAt: new Date(),
-        }
-      }
+      await updateUser(selectedUser.value.uid, formData)
       console.log(`✅ User updated: ${formData.email}`)
     } else {
-      // Create new user
-      const newUser: User = {
-        uid: formData.uid,
-        email: formData.email,
-        name: formData.name,
-        role: formData.role,
-        company: formData.company,
-        groups: formData.groups,
-        isActive: formData.isActive,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }
-      users.value.push(newUser)
-      console.log(`✅ User created: ${formData.email}`)
+      console.warn('Create user not yet implemented')
     }
-
     showUserModal.value = false
   } catch (error) {
     console.error('❌ Error saving user:', error)
-  } finally {
-    loading.value = false
   }
 }
 
 const confirmDeleteUser = async () => {
   if (!userToDelete.value) return
-
-  loading.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    const index = users.value.findIndex(u => u.uid === userToDelete.value!.uid)
-    if (index !== -1) {
-      const deletedUser = users.value.splice(index, 1)[0]
-      console.log(`✅ User deleted: ${deletedUser.email}`)
-    }
-
+    await deleteUser(userToDelete.value.uid)
+    console.log(`✅ User deleted: ${userToDelete.value.email}`)
     showConfirmDialog.value = false
     userToDelete.value = null
   } catch (error) {
     console.error('❌ Error deleting user:', error)
-  } finally {
-    loading.value = false
   }
 }
 
@@ -216,14 +170,57 @@ const actions = [
   },
 ]
 
-onMounted(() => {
-  console.log('📊 Loaded', users.value.length, 'users')
+onMounted(async () => {
+  try {
+    await fetchUsers()
+  } catch (error) {
+    console.error('Error loading users:', error)
+  }
 })
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: any[]): any[] => {
+  const folderMap = new Map<string, any>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: any[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <template>
   <PageLayout
-    :folders="mockFolders"
+    :folders="folderTree"
     :allow-search="true"
     :allow-create="false"
     :breadcrumbs="breadcrumbs"
@@ -265,7 +262,7 @@ onMounted(() => {
             <div class="filter-group">
               <select v-model="filterCompany" class="filter-select">
                 <option :value="null">-- บริษัททั้งหมด --</option>
-                <option v-for="c in mockCompanies" :key="c.code" :value="c.code">
+                <option v-for="c in companies" :key="c.code" :value="c.code">
                   {{ c.code }}
                 </option>
               </select>

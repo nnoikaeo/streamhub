@@ -119,6 +119,12 @@ const onEnter = (el: Element) => {
   element.style.opacity = '1'
 }
 
+const onAfterEnter = (el: Element) => {
+  const element = el as HTMLElement
+  // Remove height constraint after animation so content can grow naturally
+  element.style.height = 'auto'
+}
+
 const onLeave = (el: Element) => {
   const element = el as HTMLElement
   element.style.height = element.scrollHeight + 'px'
@@ -149,6 +155,7 @@ const onLeave = (el: Element) => {
     <Transition
       name="accordion-expand"
       @enter="onEnter"
+      @after-enter="onAfterEnter"
       @leave="onLeave"
     >
       <div v-if="isOpen" class="accordion-content">
@@ -210,9 +217,11 @@ const onLeave = (el: Element) => {
 }
 
 .accordion-header--open:not(.accordion-header--disabled) {
-  background-color: rgba(59, 130, 246, 0.08);
-  color: var(--color-primary, #3b82f6);
+  background-color: var(--color-bg-primary);
+  color: var(--color-info-light, #3b82f6);
+  border-left: 3px solid var(--color-primary, #3b82f6);
   border-radius: var(--radius-md, 0.375rem);
+  padding-left: calc(var(--spacing-md, 1rem) - 3px);
 }
 
 .accordion-header--disabled {
@@ -257,7 +266,11 @@ const onLeave = (el: Element) => {
 /* ========== ACCORDION CONTENT ========== */
 .accordion-content {
   background-color: var(--color-bg-secondary, #f3f4f6);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Allow content to expand without height constraint */
+  /* Height is controlled by animation, then set to auto after */
+  min-height: auto;
 }
 
 /* ========== TRANSITIONS ========== */

@@ -15,11 +15,18 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
  */
 
 import { ref, computed, onMounted } from 'vue'
-import { mockUsers, mockFolders, mockDashboards, mockCompanies } from '~/composables/useMockData'
+import { useAdminUsers } from '~/composables/useAdminUsers'
+import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminDashboards } from '~/composables/useAdminDashboards'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
 const { breadcrumbs } = useAdminBreadcrumbs()
+const { users, fetchUsers } = useAdminUsers()
+const { folders, fetchFolders } = useAdminFolders()
+const { dashboards, fetchDashboards } = useAdminDashboards()
+const { companies, fetchCompanies } = useAdminCompanies()
 
 // Page meta
 definePageMeta({
@@ -43,25 +50,25 @@ const statistics = ref({
 })
 
 /**
- * Load statistics from mock data
+ * Load statistics from composables
  */
 const loadStatistics = () => {
   // Users statistics
-  statistics.value.totalUsers = mockUsers.length
-  statistics.value.adminCount = mockUsers.filter(u => u.role === 'admin').length
-  statistics.value.moderatorCount = mockUsers.filter(u => u.role === 'moderator').length
-  statistics.value.userCount = mockUsers.filter(u => u.role === 'user').length
+  statistics.value.totalUsers = users.value.length
+  statistics.value.adminCount = users.value.filter(u => u.role === 'admin').length
+  statistics.value.moderatorCount = users.value.filter(u => u.role === 'moderator').length
+  statistics.value.userCount = users.value.filter(u => u.role === 'user').length
 
   // Dashboards statistics
-  statistics.value.totalDashboards = mockDashboards.length
-  statistics.value.archivedDashboards = mockDashboards.filter(d => d.isArchived).length
+  statistics.value.totalDashboards = dashboards.value.length
+  statistics.value.archivedDashboards = dashboards.value.filter(d => d.isArchived).length
 
   // Folders statistics
-  statistics.value.totalFolders = mockFolders.length
+  statistics.value.totalFolders = folders.value.length
 
   // Companies statistics
-  statistics.value.totalCompanies = mockCompanies.length
-  statistics.value.activeCompanies = mockCompanies.filter(c => c.isActive).length
+  statistics.value.totalCompanies = companies.value.length
+  statistics.value.activeCompanies = companies.value.filter(c => c.isActive).length
 }
 
 /**
@@ -112,14 +119,54 @@ const quickActions = [
   },
 ]
 
-onMounted(() => {
+onMounted(async () => {
+  await Promise.all([fetchUsers(), fetchFolders(), fetchDashboards(), fetchCompanies()])
   loadStatistics()
 })
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
+  const folderMap = new Map<string, Folder & { children: Folder[] }>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: (Folder & { children: Folder[] })[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <template>
   <PageLayout
-    :folders="mockFolders"
+    :folders="folderTree"
     :allow-search="true"
     :allow-create="false"
     :breadcrumbs="breadcrumbs"

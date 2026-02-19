@@ -1,6 +1,6 @@
 <template>
   <PageLayout
-    :folders="mockFolders"
+    :folders="folderTree"
     :allow-search="false"
     :allow-create="false"
     :breadcrumbs="breadcrumbs"
@@ -99,7 +99,7 @@
         <div v-else class="section-content">
           <PermissionEditor
             :dashboard="currentDashboard"
-            :all-users="allUsers"
+            :all-users="allUsersFromComposable"
             :current-permissions="permissionsToEdit"
             @update:permissions="handlePermissionsUpdate"
           />
@@ -123,7 +123,8 @@
 <script setup lang="ts">
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
-import { mockFolders } from '~/composables/useMockData'
+import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminUsers } from '~/composables/useAdminUsers'
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
@@ -132,6 +133,8 @@ import type { Dashboard, User, AccessControl, AccessRestrictions, Folder } from 
 import PermissionEditor from '~/components/features/PermissionEditor.vue'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
+const { folders, fetchFolders } = useAdminFolders()
+const { users: allUsersFromComposable, fetchUsers } = useAdminUsers()
 
 // Page metadata
 definePageMeta({
@@ -167,13 +170,12 @@ onMounted(async () => {
   } else {
     console.log(`✅ [permissions.vue] Admin access granted`)
     // Continue with dashboard loading
-    await loadDashboards()
+    await Promise.all([loadDashboards(), fetchFolders()])
   }
 })
 
 // State
 const dashboards = ref<Dashboard[]>([])
-const allUsers = ref<User[]>([])
 const selectedDashboardId = ref<string>('')
 const currentDashboard = ref<Dashboard | null>(null)
 const currentDashboardFolder = ref<string>('')
@@ -219,11 +221,8 @@ const loadDashboards = async () => {
 
     dashboards.value = response.dashboards
 
-    // Load all users
-    // Note: This would need a service method to get all users
-    // For now using mock data
-    const { mockUsers } = await import('~/composables/useMockData')
-    allUsers.value = mockUsers
+    // Load all users from composable
+    await fetchUsers()
 
     // Check if dashboard is specified in query params
     if (route.query.dashboard) {
@@ -328,6 +327,45 @@ const savePermissions = async () => {
 const resetEditor = () => {
   permissionsToEdit.value = JSON.parse(JSON.stringify(originalPermissions.value))
 }
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
+  const folderMap = new Map<string, Folder & { children: Folder[] }>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: (Folder & { children: Folder[] })[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 
 // Lifecycle - Auth check is in the script above
 

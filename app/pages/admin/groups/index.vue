@@ -15,9 +15,9 @@ import PageLayout from '~/components/compositions/PageLayout.vue'
  */
 
 import { ref, computed, onMounted } from 'vue'
-import type { User } from '~/types/dashboard'
-import { mockUsers, mockGroups, mockFolders } from '~/composables/useMockData'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
+import { useAdminGroups } from '~/composables/useAdminGroups'
+import { useAdminFolders } from '~/composables/useAdminFolders'
 
 interface GroupData {
   id: string
@@ -32,16 +32,8 @@ definePageMeta({
 })
 
 const { breadcrumbs } = useAdminBreadcrumbs()
-
-const groups = ref<GroupData[]>(
-  Object.entries(mockGroups).map(([id, group]) => ({
-    id,
-    name: group.name,
-    description: group.description,
-    members: [...group.members],
-  }))
-)
-const loading = ref(false)
+const { groups, loading, fetchGroups, updateGroup, deleteGroup } = useAdminGroups()
+const { folders } = useAdminFolders()
 const showGroupModal = ref(false)
 const showConfirmDialog = ref(false)
 const selectedGroup = ref<GroupData | null>(null)
@@ -82,38 +74,27 @@ const handleDeleteGroup = (group: GroupData) => {
 }
 
 const handleSaveGroup = async (formData: any) => {
-  loading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     if (selectedGroup.value) {
-      const index = groups.value.findIndex(g => g.id === selectedGroup.value!.id)
-      if (index !== -1) {
-        groups.value[index] = { ...groups.value[index], ...formData }
-      }
+      await updateGroup(selectedGroup.value.id, formData)
     } else {
-      groups.value.push(formData)
+      // Note: createGroup would be called here
+      console.warn('Create group not yet implemented')
     }
-
     showGroupModal.value = false
-  } finally {
-    loading.value = false
+  } catch (error) {
+    console.error('Error saving group:', error)
   }
 }
 
 const confirmDeleteGroup = async () => {
   if (!groupToDelete.value) return
-  loading.value = true
   try {
-    await new Promise(resolve => setTimeout(resolve, 500))
-    const index = groups.value.findIndex(g => g.id === groupToDelete.value!.id)
-    if (index !== -1) {
-      groups.value.splice(index, 1)
-    }
+    await deleteGroup(groupToDelete.value.id)
     showConfirmDialog.value = false
     groupToDelete.value = null
-  } finally {
-    loading.value = false
+  } catch (error) {
+    console.error('Error deleting group:', error)
   }
 }
 
@@ -134,14 +115,57 @@ const displayGroups = computed(() => {
   }))
 })
 
-onMounted(() => {
-  console.log('📊 Loaded', groups.value.length, 'groups')
+onMounted(async () => {
+  try {
+    await fetchGroups()
+  } catch (error) {
+    console.error('Error loading groups:', error)
+  }
 })
+
+/**
+ * Build folder tree hierarchy with children from flat folders array
+ * Converts flat folders to tree structure for FolderTree component
+ */
+const buildFolderTree = (flatFolders: any[]): any[] => {
+  const folderMap = new Map<string, any>()
+
+  // First pass: create enhanced folder objects with empty children arrays
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, {
+      ...folder,
+      children: []
+    })
+  }
+
+  // Second pass: build parent-child relationships
+  const rootFolders: any[] = []
+  for (const folder of flatFolders) {
+    const enhancedFolder = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      // This folder has a parent
+      const parentFolder = folderMap.get(folder.parentId)
+      if (parentFolder) {
+        parentFolder.children.push(enhancedFolder)
+      }
+    } else {
+      // Root folder (no parent)
+      rootFolders.push(enhancedFolder)
+    }
+  }
+
+  return rootFolders
+}
+
+/**
+ * Folder tree with hierarchy built from flat folders array
+ */
+const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <template>
   <PageLayout
-    :folders="mockFolders"
+    :folders="folderTree"
     :allow-search="true"
     :allow-create="false"
     :breadcrumbs="breadcrumbs"
@@ -194,7 +218,7 @@ onMounted(() => {
           @save="handleSaveGroup"
           @cancel="showGroupModal = false"
         >
-          <GroupForm :group="selectedGroup" :members="mockUsers" @submit="handleSaveGroup" />
+          <GroupForm :group="selectedGroup" @submit="handleSaveGroup" />
         </FormModal>
 
         <ConfirmDialog

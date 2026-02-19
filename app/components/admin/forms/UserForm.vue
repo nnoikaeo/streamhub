@@ -10,8 +10,10 @@
  */
 
 import type { User } from '~/types/dashboard'
-import { mockCompanies, mockGroups } from '~/composables/useMockData'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminGroups } from '~/composables/useAdminGroups'
 import { createObjectValidator, validators, composeValidators } from '~/utils/formValidators'
+import { onMounted } from 'vue'
 
 interface Props {
   user?: User | null
@@ -22,6 +24,10 @@ const emit = defineEmits<{
   submit: [data: Partial<User>]
 }>()
 
+// Composables
+const { companies, fetchCompanies } = useAdminCompanies()
+const { groups, fetchGroups } = useAdminGroups()
+
 // Role options
 const roleOptions = [
   { label: 'Admin', value: 'admin' },
@@ -31,7 +37,7 @@ const roleOptions = [
 
 // Company options
 const companyOptions = computed(() =>
-  mockCompanies.filter(c => c.isActive).map(c => ({
+  companies.value.filter(c => c.isActive).map(c => ({
     label: `${c.code} - ${c.name}`,
     value: c.code,
   }))
@@ -39,9 +45,9 @@ const companyOptions = computed(() =>
 
 // Group options
 const groupOptions = computed(() =>
-  Object.entries(mockGroups).map(([id, group]) => ({
-    label: group.name,
-    value: id,
+  groups.value.map(g => ({
+    label: g.name,
+    value: g.id,
   }))
 )
 
@@ -75,6 +81,11 @@ const form = useForm({
 })
 
 const isEditMode = computed(() => !!props.user)
+
+// Fetch companies and groups on mount
+onMounted(async () => {
+  await Promise.all([fetchCompanies(), fetchGroups()])
+})
 
 // Group selection helpers
 const toggleGroup = (groupId: string) => {

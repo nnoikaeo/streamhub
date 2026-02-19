@@ -40,10 +40,13 @@
  * />
  */
 
-import { ref, computed, watch } from 'vue'
+import { computed, watch, onMounted } from 'vue'
 import type { Folder } from '~/types/dashboard'
 import AdminAccordion from '~/components/admin/AdminAccordion.vue'
 import FolderAccordion from '~/components/layouts/FolderAccordion.vue'
+import { useDashboardStore } from '~/stores/dashboard'
+import { useRoute } from 'vue-router'
+import { useAuth } from '~/composables/useAuth'
 
 interface MenuItem {
   path: string
@@ -97,13 +100,34 @@ const emit = defineEmits<{
   'create-folder': []
 }>()
 
+// Store and composables
+const dashboardStore = useDashboardStore()
+const route = useRoute()
+const { user } = useAuth()
+
 /**
- * Initialize accordion states based on page context:
- * - /admin page (showAdmin=true): Admin Panel open, Folders closed
- * - /dashboard page (showAdmin=false): Folders open, Admin Panel hidden
+ * Use store's accordion states - persisted across navigation
  */
-const isFoldersOpen = ref(!props.showAdmin)  // ← Closed if showAdmin is true
-const isAdminOpen = ref(props.showAdmin)     // ← Open if showAdmin is true
+const isFoldersOpen = computed({
+  get: () => dashboardStore.isFoldersAccordionOpen,
+  set: (value) => dashboardStore.setFoldersAccordionOpen(value)
+})
+
+const isAdminOpen = computed({
+  get: () => dashboardStore.isAdminAccordionOpen,
+  set: (value) => dashboardStore.setAdminAccordionOpen(value)
+})
+
+/**
+ * Initialize accordion states on mount based on current page
+ * - /admin pages: Admin open, Folders closed
+ * - /dashboard pages: Folders open, Admin closed
+ */
+onMounted(() => {
+  const isAdminPage = route.path.startsWith('/admin')
+  const isAdminUser = user.value?.role === 'admin'
+  dashboardStore.initializeAccordionStates(isAdminPage, isAdminUser)
+})
 
 /**
  * Watchers for mutual exclusive accordion behavior

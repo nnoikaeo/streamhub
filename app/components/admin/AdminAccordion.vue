@@ -237,7 +237,8 @@ const onLeave = (el: Element) => {
   gap: 0;
   background-color: var(--color-bg-secondary, #f3f4f6);
   padding: var(--spacing-sm, 0.5rem) 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* ========== ACCORDION ITEMS ========== */

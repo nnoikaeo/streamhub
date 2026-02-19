@@ -35,7 +35,7 @@ const handleGoogleSignIn = async () => {
     const result = await signInWithGoogle()
 
     if (result.success) {
-      const targetRoute = authStore.user?.role === 'admin' ? '/admin' : '/dashboard/discover'
+      const targetRoute = '/dashboard'
       console.log(`🎉 Redirecting to ${targetRoute} (role: ${authStore.user?.role})...`)
       await new Promise(resolve => setTimeout(resolve, 500))
       await router.push(targetRoute)
