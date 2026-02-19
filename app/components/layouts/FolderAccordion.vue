@@ -179,7 +179,7 @@ const onLeave = (el: Element) => {
             title="View all dashboards without folder filter"
           >
             <span class="view-all-icon">📊</span>
-            <span class="view-all-label">View All Dashboards</span>
+            <span class="view-all-label">ดูแดชบอร์ดทั้งหมด</span>
           </button>
         </div>
       </div>
