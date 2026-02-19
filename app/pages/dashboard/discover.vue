@@ -24,7 +24,7 @@
               <line x1="3" y1="12" x2="3.01" y2="12" />
               <line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
-            <h2 class="dashboards-count">{{ dashboards.length }} Dashboards Found</h2>
+            <h2 class="dashboards-count">พบ {{ dashboards.length }} แดชบอร์ด</h2>
           </div>
 
           <!-- Error Message -->
