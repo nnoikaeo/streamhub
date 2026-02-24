@@ -1,188 +1,70 @@
 /**
  * Admin Dashboards Management Composable
- * Provides CRUD operations for dashboards resource
- * Handles complex permission structures
+ *
+ * Wrapper around the generic useAdminResource composable for managing dashboards
+ * Handles complex permission structures and dashboard-specific operations
  *
  * Usage:
- * const { dashboards, loading, fetchDashboards, createDashboard, updateDashboard, deleteDashboard } = useAdminDashboards()
+ * const { items: dashboards, loading, fetch, create, update, delete, getDashboardsByFolder, toggleArchive } = useAdminDashboards()
  */
 
+import { useAdminResource } from './useAdminResource'
 import type { Dashboard } from '~/types/dashboard'
 
 export function useAdminDashboards() {
-  const dashboards = ref<Dashboard[]>([])
-  const loading = ref(false)
-  const error = ref<Error | null>(null)
-
-  /**
-   * Fetch all dashboards
-   */
-  const fetchDashboards = async () => {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await $fetch<{
-        success: boolean
-        data: Dashboard[]
-        total: number
-      }>('/api/mock/dashboards')
-
-      if (response.success) {
-        dashboards.value = response.data || []
-        console.log(`✅ Loaded ${dashboards.value.length} dashboards`)
+  const resource = useAdminResource<Dashboard>({
+    resourceName: 'dashboards',
+    idKey: 'id',
+    displayKey: 'name',
+    idPrefix: 'dash_',
+    defaults: {
+      type: 'looker',
+      isArchived: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      access: {
+        direct: { users: [], roles: [], groups: [] },
+        company: {}
+      },
+      restrictions: {
+        revoke: [],
+        expiry: {}
       }
-    } catch (e: any) {
-      error.value = e
-      console.error('❌ Error fetching dashboards:', e.message)
-      throw e
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * Create new dashboard
-   */
-  const createDashboard = async (dashboardData: Partial<Dashboard>) => {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await $fetch<{
-        success: boolean
-        data: Dashboard
-        action: string
-      }>('/api/mock/dashboards', {
-        method: 'POST',
-        body: {
-          id: dashboardData.id || `dash_${Date.now()}`,
-          name: dashboardData.name,
-          folderId: dashboardData.folderId,
-          type: dashboardData.type || 'looker',
-          description: dashboardData.description,
-          owner: dashboardData.owner,
-          lookerDashboardId: dashboardData.lookerDashboardId,
-          lookerEmbedUrl: dashboardData.lookerEmbedUrl,
-          isArchived: dashboardData.isArchived ?? false,
-          createdAt: dashboardData.createdAt || new Date().toISOString(),
-          updatedAt: dashboardData.updatedAt || new Date().toISOString(),
-          updatedBy: dashboardData.updatedBy,
-          access: dashboardData.access || {
-            direct: { users: [], roles: [], groups: [] },
-            company: {}
-          },
-          restrictions: dashboardData.restrictions || {
-            revoke: [],
-            expiry: {}
-          },
-          ...dashboardData
-        }
-      })
-
-      if (response.success) {
-        console.log(`✅ Dashboard "${dashboardData.name}" created`)
-        await fetchDashboards() // Refresh list
-        return response.data
+    },
+    extensions: {
+      /**
+       * Get dashboards in a specific folder
+       */
+      getDashboardsByFolder: (dashboards, folderId: string) => {
+        return dashboards.value.filter((d: Dashboard) => d.folderId === folderId)
       }
-    } catch (e: any) {
-      error.value = e
-      console.error('❌ Error creating dashboard:', e.message)
-      throw e
-    } finally {
-      loading.value = false
     }
-  }
-
-  /**
-   * Update existing dashboard
-   */
-  const updateDashboard = async (id: string, updates: Partial<Dashboard>) => {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await $fetch<{
-        success: boolean
-        data: Dashboard
-        action: string
-      }>('/api/mock/dashboards', {
-        method: 'POST',
-        body: {
-          id,
-          ...updates
-        }
-      })
-
-      if (response.success) {
-        console.log(`✅ Dashboard "${id}" updated`)
-        await fetchDashboards() // Refresh list
-        return response.data
-      }
-    } catch (e: any) {
-      error.value = e
-      console.error('❌ Error updating dashboard:', e.message)
-      throw e
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * Delete dashboard by id
-   */
-  const deleteDashboard = async (id: string) => {
-    loading.value = true
-    error.value = null
-    try {
-      const response = await $fetch<{
-        success: boolean
-        deleted: boolean
-        message: string
-      }>(`/api/mock/dashboards/${id}`, {
-        method: 'DELETE'
-      })
-
-      if (response.success) {
-        console.log(`✅ Dashboard "${id}" deleted`)
-        await fetchDashboards() // Refresh list
-        return true
-      }
-    } catch (e: any) {
-      error.value = e
-      console.error('❌ Error deleting dashboard:', e.message)
-      throw e
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * Get dashboards in a specific folder
-   */
-  const getDashboardsByFolder = (folderId: string) => {
-    return dashboards.value.filter(d => d.folderId === folderId)
-  }
+  })
 
   /**
    * Toggle archive status
+   * Extended method that uses base update operation
    */
   const toggleArchive = async (id: string, isArchived: boolean) => {
-    return updateDashboard(id, {
+    return resource.update(id, {
       isArchived,
       archivedAt: isArchived ? new Date() : undefined
-    })
+    } as Partial<Dashboard>)
   }
 
+  // Create backward-compatible aliases for existing page code
   return {
-    // State (readonly)
-    dashboards: readonly(dashboards),
-    loading: readonly(loading),
-    error: readonly(error),
-
-    // Actions
-    fetchDashboards,
-    createDashboard,
-    updateDashboard,
-    deleteDashboard,
-    getDashboardsByFolder,
+    dashboards: resource.items,
+    loading: resource.loading,
+    error: resource.error,
+    fetchDashboards: resource.fetch,
+    createDashboard: resource.create,
+    updateDashboard: resource.update,
+    deleteDashboard: resource.delete,
+    getDashboardsByFolder: resource.getDashboardsByFolder,
     toggleArchive,
+
+    // Also expose generic API for flexibility
+    ...resource
   }
 }
