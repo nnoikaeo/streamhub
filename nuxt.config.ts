@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     fileURLToPath(new URL('./assets/css/main.css', import.meta.url)),
     fileURLToPath(new URL('./assets/css/theme.css', import.meta.url))
   ],
-  
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/image',

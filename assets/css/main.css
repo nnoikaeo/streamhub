@@ -101,41 +101,63 @@ body {
    ============================================================================ */
 
 /* Critical: Use !important to override Vue scoped styles */
-h1, h2, h3, h4, h5, h6,
-.h1, .h2, .h3, .h4, .h5, .h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
   color: var(--color-primary) !important;
   font-weight: 600;
   line-height: 1.2;
   margin-top: 0;
 }
 
-h1, .h1 {
-  font-size: 2.25rem; /* 36px */
+h1,
+.h1 {
+  font-size: 2.25rem;
+  /* 36px */
   margin-bottom: 1rem;
 }
 
-h2, .h2 {
-  font-size: 1.875rem; /* 30px */
+h2,
+.h2 {
+  font-size: 1.875rem;
+  /* 30px */
   margin-bottom: 0.875rem;
 }
 
-h3, .h3 {
-  font-size: 1.5rem; /* 24px */
+h3,
+.h3 {
+  font-size: 1.5rem;
+  /* 24px */
   margin-bottom: 0.75rem;
 }
 
-h4, .h4 {
-  font-size: 1.25rem; /* 20px */
+h4,
+.h4 {
+  font-size: 1.25rem;
+  /* 20px */
   margin-bottom: 0.625rem;
 }
 
-h5, .h5 {
-  font-size: 1.125rem; /* 18px */
+h5,
+.h5 {
+  font-size: 1.125rem;
+  /* 18px */
   margin-bottom: 0.5rem;
 }
 
-h6, .h6 {
-  font-size: 1rem; /* 16px */
+h6,
+.h6 {
+  font-size: 1rem;
+  /* 16px */
   margin-bottom: 0.5rem;
 }
 
