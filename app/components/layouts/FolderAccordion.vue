@@ -145,9 +145,14 @@ const onLeave = (el: Element) => {
       :aria-expanded="isOpen"
       :aria-label="`${title} menu`"
     >
-      <span class="accordion-icon">
-        {{ isOpen ? '▼' : '▸' }}
-      </span>
+      <svg
+        class="accordion-icon"
+        :class="{ 'accordion-icon--open': isOpen }"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+      >
+        <path d="M8.59 16.58L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
+      </svg>
       <span class="accordion-title">{{ title }}</span>
     </button>
 
@@ -241,17 +246,14 @@ const onLeave = (el: Element) => {
 
 /* ========== ACCORDION ICON ========== */
 .accordion-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1rem;
-  height: 1rem;
-  font-size: 0.8rem;
+  width: 1.25rem;
+  height: 1.25rem;
   flex-shrink: 0;
   transition: transform var(--transition-base, 0.2s ease);
+  transform: rotate(-90deg);
 }
 
-.accordion-header--open .accordion-icon {
+.accordion-icon--open {
   transform: rotate(0deg);
 }
 
