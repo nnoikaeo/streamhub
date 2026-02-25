@@ -56,7 +56,7 @@ const filteredGroups = computed(() => {
   })
 })
 
-const getMembersCount = (members: string[]): number => members.length
+const getMembersCount = (members: string[] | undefined | null): number => members?.length ?? 0
 
 const handleAddGroup = () => {
   selectedGroup.value = null
