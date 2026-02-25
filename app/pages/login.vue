@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import logoImage from '../../assets/images/logo.png'
+import { mapErrorMessage } from '~/utils/errorMessages'
+import ErrorDialog from '~/components/ErrorDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
 const { signInWithGoogle } = useAuth()
+const authStore = useAuthStore()
 const loading = ref(false)
-const errorMessage = ref('')
+const showErrorDialog = ref(false)
+const errorInfo = ref({
+  title: '',
+  message: '',
+  showRequestAccess: false
+})
 
 console.log('📄 [login.vue] Page mounted')
 console.log('📄 [login.vue] Route info:', {
@@ -21,24 +29,37 @@ definePageMeta({
 
 const handleGoogleSignIn = async () => {
   loading.value = true
-  errorMessage.value = ''
+  showErrorDialog.value = false
 
   try {
     const result = await signInWithGoogle()
 
     if (result.success) {
-      console.log('🎉 Redirecting to dashboard...')
+      const targetRoute = '/dashboard'
+      console.log(`🎉 Redirecting to ${targetRoute} (role: ${authStore.user?.role})...`)
       await new Promise(resolve => setTimeout(resolve, 500))
-      await router.push('/dashboard')
+      await router.push(targetRoute)
     } else {
-      errorMessage.value = result.error || 'Sign-in failed'
+      const error = new Error(result.error)
+      errorInfo.value = mapErrorMessage(error)
+      showErrorDialog.value = true
     }
   } catch (error: any) {
     console.error('❌ Unexpected error:', error)
-    errorMessage.value = error.message || 'An unexpected error occurred'
+    errorInfo.value = mapErrorMessage(error)
+    showErrorDialog.value = true
   } finally {
     loading.value = false
   }
+}
+
+const handleCloseErrorDialog = () => {
+  showErrorDialog.value = false
+}
+
+const handleRequestAccess = () => {
+  // Open contact form or email
+  window.location.href = 'mailto:it@streamwash.com?subject=Request%20Access%20to%20Dashboard%20Hub'
 }
 </script>
 
@@ -59,15 +80,10 @@ const handleGoogleSignIn = async () => {
 
         <!-- Subtitle -->
         <p class="text-center text-xs text-slate-500 mb-8">
-          Dashboard Management System
+          ระบบบริหารจัดการแดชบอร์ด
         </p>
 
         <ClientOnly>
-          <!-- Error Message -->
-          <div v-if="errorMessage" key="error-message" class="p-4 bg-red-100 text-red-800 rounded mb-6">
-            {{ errorMessage }}
-          </div>
-
           <!-- Sign In Button -->
           <button
             key="sign-in-button"
@@ -81,8 +97,18 @@ const handleGoogleSignIn = async () => {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#ffffff"/>
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#ffffff"/>
             </svg>
-            {{ loading ? 'Signing in...' : 'Sign in with Google' }}
+            {{ loading ? 'กำลังลงชื่อเข้า...' : 'ลงชื่อเข้าด้วย Google' }}
           </button>
+
+          <!-- Error Dialog -->
+          <ErrorDialog
+            :is-open="showErrorDialog"
+            :title="errorInfo.title"
+            :message="errorInfo.message"
+            :show-request-access="errorInfo.showRequestAccess"
+            @close="handleCloseErrorDialog"
+            @request-access="handleRequestAccess"
+          />
         </ClientOnly>
     </div>
   </div>

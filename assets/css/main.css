@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /**
  * StreamHub Theme Variables
@@ -101,41 +99,63 @@ body {
    ============================================================================ */
 
 /* Critical: Use !important to override Vue scoped styles */
-h1, h2, h3, h4, h5, h6,
-.h1, .h2, .h3, .h4, .h5, .h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
   color: var(--color-primary) !important;
   font-weight: 600;
   line-height: 1.2;
   margin-top: 0;
 }
 
-h1, .h1 {
-  font-size: 2.25rem; /* 36px */
+h1,
+.h1 {
+  font-size: 2.25rem;
+  /* 36px */
   margin-bottom: 1rem;
 }
 
-h2, .h2 {
-  font-size: 1.875rem; /* 30px */
+h2,
+.h2 {
+  font-size: 1.875rem;
+  /* 30px */
   margin-bottom: 0.875rem;
 }
 
-h3, .h3 {
-  font-size: 1.5rem; /* 24px */
+h3,
+.h3 {
+  font-size: 1.5rem;
+  /* 24px */
   margin-bottom: 0.75rem;
 }
 
-h4, .h4 {
-  font-size: 1.25rem; /* 20px */
+h4,
+.h4 {
+  font-size: 1.25rem;
+  /* 20px */
   margin-bottom: 0.625rem;
 }
 
-h5, .h5 {
-  font-size: 1.125rem; /* 18px */
+h5,
+.h5 {
+  font-size: 1.125rem;
+  /* 18px */
   margin-bottom: 0.5rem;
 }
 
-h6, .h6 {
-  font-size: 1rem; /* 16px */
+h6,
+.h6 {
+  font-size: 1rem;
+  /* 16px */
   margin-bottom: 0.5rem;
 }
 
@@ -165,7 +185,7 @@ button:disabled {
 }
 
 /* Default button styles - can be overridden by component classes */
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page) {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
@@ -174,12 +194,12 @@ button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):
   font-weight: 500;
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):hover:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):hover:not(:disabled) {
   background-color: var(--color-primary-dark);
   box-shadow: var(--shadow-md);
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):active:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):active:not(:disabled) {
   transform: translateY(1px);
 }
 
@@ -360,9 +380,13 @@ a:hover {
 }
 
 /* Section Titles */
-.section-title,
-.page-header__title {
+.section-title {
   color: var(--color-primary) !important;
+}
+
+/* Page Header Title - uses inverse color on gradient background */
+.page-header__title {
+  /* Inherits white text from theme.css for visibility on gradient background */
 }
 
 /* Ensure primary color works even with data attributes (Vue scoped) */

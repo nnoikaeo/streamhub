@@ -220,10 +220,6 @@ export interface IDashboardService {
 // ============================================================================
 
 import {
-  mockUsers,
-  mockFolders,
-  mockDashboards,
-  getMockUserByUid,
   getMockFoldersByParent,
   getMockDashboardById,
   getMockDashboardsByFolder,
@@ -233,19 +229,41 @@ import {
 
 export class MockDashboardService implements IDashboardService {
   private currentUserId: string | null = null
+  private users: User[] = []
+  private folders: Folder[] = []
+  private dashboards: Dashboard[] = []
 
   // For demo: set current user
   setCurrentUser(userId: string) {
     this.currentUserId = userId
   }
 
+  // Load data from API
+  private async loadData() {
+    try {
+      const { $fetch } = useNuxtApp()
+      const [usersResp, foldersResp, dashboardsResp] = await Promise.all([
+        $fetch('/api/mock/users'),
+        $fetch('/api/mock/folders'),
+        $fetch('/api/mock/dashboards'),
+      ])
+      this.users = usersResp.data || []
+      this.folders = foldersResp.data || []
+      this.dashboards = dashboardsResp.data || []
+    } catch (error) {
+      console.error('Error loading data:', error)
+    }
+  }
+
   async getCurrentUser(): Promise<User | null> {
     if (!this.currentUserId) return null
-    return getMockUserByUid(this.currentUserId) || null
+    await this.loadData()
+    return this.users.find(u => u.uid === this.currentUserId) || null
   }
 
   async getUser(uid: string): Promise<User | null> {
-    return getMockUserByUid(uid) || null
+    await this.loadData()
+    return this.users.find(u => u.uid === uid) || null
   }
 
   async getFolders(userId: string): Promise<GetFoldersResponse> {
@@ -255,18 +273,18 @@ export class MockDashboardService implements IDashboardService {
     }
 
     // Get accessible dashboards
-    const accessible = getAccessibleDashboards(user, mockDashboards)
+    const accessible = getAccessibleDashboards(user, this.dashboards)
     const accessibleFolderIds = new Set(
       accessible.map((d) => d.folderId)
     )
 
     // Filter folders that have accessible dashboards
-    const accessibleFolders = mockFolders.filter((folder) => {
+    const accessibleFolders = this.folders.filter((folder) => {
       // Check if this folder or any descendant has accessible dashboards
       return hasFolderAccessibleDashboards(
         folder.id,
         accessibleFolderIds,
-        mockFolders
+        this.folders
       )
     })
 
@@ -308,15 +326,18 @@ export class MockDashboardService implements IDashboardService {
   }
 
   async getFolder(folderId: string): Promise<Folder | null> {
-    return mockFolders.find((f) => f.id === folderId) || null
+    await this.loadData()
+    return this.folders.find((f) => f.id === folderId) || null
   }
 
   async getChildFolders(parentId: string | null): Promise<Folder[]> {
-    return getMockFoldersByParent(parentId)
+    await this.loadData()
+    return getMockFoldersByParent(parentId, this.folders)
   }
 
   async getFolderPath(folderId: string): Promise<Folder[]> {
-    return getMockFolderPath(folderId, mockFolders)
+    await this.loadData()
+    return getMockFolderPath(folderId, this.folders)
   }
 
   async getDashboards(
@@ -329,7 +350,7 @@ export class MockDashboardService implements IDashboardService {
       return { dashboards: [], total: 0, hasMore: false }
     }
 
-    let accessible = getAccessibleDashboards(user, mockDashboards)
+    let accessible = getAccessibleDashboards(user, this.dashboards)
 
     // Filter by folder if specified
     if (options?.folderId) {
@@ -361,7 +382,8 @@ export class MockDashboardService implements IDashboardService {
   }
 
   async getDashboard(dashboardId: string): Promise<Dashboard | null> {
-    return getMockDashboardById(dashboardId) || null
+    await this.loadData()
+    return getMockDashboardById(dashboardId, this.dashboards) || null
   }
 
   async getDashboardsByFolder(
@@ -371,7 +393,7 @@ export class MockDashboardService implements IDashboardService {
     const user = await this.getUser(userId)
     if (!user) return []
 
-    const allInFolder = getMockDashboardsByFolder(folderId)
+    const allInFolder = getMockDashboardsByFolder(folderId, this.dashboards)
     return getAccessibleDashboards(user, allInFolder)
   }
 
@@ -552,21 +574,21 @@ export class MockDashboardService implements IDashboardService {
     access.direct.users.forEach((u) => result.add(u))
 
     // Direct roles
-    mockUsers.forEach((user) => {
+    this.users.forEach((user) => {
       if (access.direct.roles.includes(user.role)) {
         result.add(user.uid)
       }
     })
 
     // Direct groups
-    mockUsers.forEach((user) => {
+    this.users.forEach((user) => {
       if (user.groups.some((g) => access.direct.groups.includes(g))) {
         result.add(user.uid)
       }
     })
 
     // Company-scoped
-    mockUsers.forEach((user) => {
+    this.users.forEach((user) => {
       const compAccess3 = access.company[user.company]
       if (compAccess3) {
         if (compAccess3.roles.includes(user.role)) {
@@ -578,7 +600,7 @@ export class MockDashboardService implements IDashboardService {
       }
     })
 
-    return mockUsers.filter((u) => result.has(u.uid))
+    return this.users.filter((u) => result.has(u.uid))
   }
 
   async quickShareDashboard(
@@ -613,7 +635,8 @@ export class MockDashboardService implements IDashboardService {
     const dashboard = await this.getDashboard(dashboardId)
     if (!dashboard) return []
 
-    return mockUsers.filter((u) =>
+    await this.loadData()
+    return this.users.filter((u) =>
       dashboard.access.direct.users.includes(u.uid)
     )
   }
@@ -701,18 +724,119 @@ let dashboardServiceInstance: IDashboardService | null = null
 
 /**
  * Use Dashboard Service Composable
- * 
+ *
  * Usage in component:
  * const { getDashboards, getDashboard } = useDashboardService()
+ *
+ * @returns IDashboardService instance
  */
-export const useDashboardService = () => {
+export const useDashboardService = (): IDashboardService => {
   if (!dashboardServiceInstance) {
-    // Initialize with mock service for now
-    // Later can swap with real Firebase service
-    dashboardServiceInstance = new MockDashboardService()
+    // Check if we should use JSON Mock Service
+    const config = useRuntimeConfig()
+    const useJsonMock = config.public.useJsonMock ?? true
+
+    if (useJsonMock) {
+      console.log('🔷 [useDashboardService] Using JSON Mock Service')
+      // Import and use JSON Mock Service
+      const { useJSONMockService } = import('~/composables/useJSONMockService')
+
+      // Use dynamic import approach for lazy loading
+      dashboardServiceInstance = new (class implements IDashboardService {
+        private jsonService: any = null
+
+        async initJsonService() {
+          if (!this.jsonService) {
+            const module = await import('~/composables/useJSONMockService')
+            this.jsonService = new module.JSONMockService()
+          }
+          return this.jsonService
+        }
+
+        // Delegate all methods to jsonService
+        async getCurrentUser() {
+          const service = await this.initJsonService()
+          return service.getCurrentUser()
+        }
+
+        async getUser(uid: string) {
+          const service = await this.initJsonService()
+          return service.getUser(uid)
+        }
+
+        async getFolders(userId: string, companyId: string) {
+          const service = await this.initJsonService()
+          return service.getFolders(userId, companyId)
+        }
+
+        async getFolder(folderId: string) {
+          const service = await this.initJsonService()
+          return service.getFolder(folderId)
+        }
+
+        async getChildFolders(parentId: string | null) {
+          const service = await this.initJsonService()
+          return service.getChildFolders(parentId)
+        }
+
+        async getFolderPath(folderId: string) {
+          const service = await this.initJsonService()
+          return service.getFolderPath(folderId)
+        }
+
+        async getDashboards(userId: string, companyId: string, options?: any) {
+          const service = await this.initJsonService()
+          return service.getDashboards(userId, companyId, options)
+        }
+
+        async getDashboard(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.getDashboard(dashboardId)
+        }
+
+        async getDashboardsByFolder(folderId: string, userId: string) {
+          const service = await this.initJsonService()
+          return service.getDashboardsByFolder(folderId, userId)
+        }
+
+        async getDashboardCard(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.getDashboardCard(dashboardId)
+        }
+
+        async saveDashboard(dashboard: Dashboard) {
+          const service = await this.initJsonService()
+          return service.saveDashboard(dashboard)
+        }
+
+        async deleteDashboard(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.deleteDashboard(dashboardId)
+        }
+
+        async saveDashboardPermissions(dashboardId: string, permissions: any) {
+          const service = await this.initJsonService()
+          return service.saveDashboardPermissions(dashboardId, permissions)
+        }
+
+        async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: string) {
+          const service = await this.initJsonService()
+          return service.quickShareDashboard(dashboardId, userIds, expiryDate)
+        }
+
+        async getAuditLog(options?: any) {
+          const service = await this.initJsonService()
+          return service.getAuditLog(options)
+        }
+      })()
+    } else {
+      console.log('🔷 [useDashboardService] Using Mock Data Service')
+      // Fallback to old mock service
+      dashboardServiceInstance = new MockDashboardService()
+    }
   }
 
-  return dashboardServiceInstance
+  return dashboardServiceInstance!
 }
 
 /**

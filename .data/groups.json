@@ -1,0 +1,17 @@
+{
+  "sales": {
+    "name": "Sales",
+    "members": ["user_somchai_mod", "user_teerak_user"],
+    "description": "Sales team members"
+  },
+  "finance": {
+    "name": "Finance",
+    "members": ["user_somchai_mod", "user_nattha_mod", "user_janine_user"],
+    "description": "Finance team members"
+  },
+  "operations": {
+    "name": "Operations",
+    "members": ["user_janine_user", "user_sombat_user"],
+    "description": "Operations team members"
+  }
+}

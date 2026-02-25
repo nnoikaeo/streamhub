@@ -12,13 +12,15 @@
   color: var(--color-text-inverse);
   padding: var(--spacing-lg) var(--spacing-xl);
   border-bottom: 1px solid var(--color-primary-dark);
+  border-radius: var(--radius-lg);
 }
 
 .page-header__title {
   font-size: 1.875rem;
   font-weight: 600;
   margin: 0;
-  color: var(--color-text-inverse);
+  color: var(--color-text-inverse) !important;
+  /* White color for contrast on gradient background */
 }
 
 .page-header__subtitle {
@@ -616,4 +618,30 @@ footer.app-footer,
 
 .border-light {
   border-color: var(--color-border-light);
+}
+
+/* ============================================================================
+   PAGE HEADER ACTION BUTTON - White button for contrast on gradient background
+   ============================================================================ */
+.page-header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  background-color: white;
+  color: var(--color-primary);
+  border: 2px solid white;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.page-header-action-btn:hover {
+  background-color: var(--color-primary-lightest);
+  border-color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }

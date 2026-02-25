@@ -206,7 +206,8 @@ const handleFolderExpand = (folderId: string) => {
 .folder-sidebar {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* Allow natural height growth based on content */
+  min-height: auto;
   background-color: var(--color-bg-primary);
   border-right: 1px solid var(--color-border-light);
 }
@@ -337,7 +338,10 @@ const handleFolderExpand = (folderId: string) => {
 
 /* ========== CONTENT ========== */
 .sidebar-content {
-  flex: 1;
+  /* In accordion context: flex: 1 won't work (parent has no height)
+     So use min-height instead to let content grow naturally */
+  flex: 0 1 auto;
+  min-height: auto;
   overflow-y: auto;
   /* Remove overflow-x: hidden to allow badge to show */
 
