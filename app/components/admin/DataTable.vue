@@ -7,9 +7,13 @@ export interface Column {
   sortable?: boolean
   width?: string
   align?: 'left' | 'center' | 'right'
+  isNameColumn?: boolean
+  isStatusColumn?: boolean
+  isRoleColumn?: boolean
+  isGroupsColumn?: boolean
 }
 
-export interface Action {
+export interface Action<T extends Record<string, any> = Record<string, any>> {
   label: string
   icon?: string
   onClick: (item: T) => void
@@ -21,7 +25,7 @@ interface Props {
   data: T[]
   loading?: boolean
   emptyMessage?: string
-  actions?: Action[]
+  actions?: Action<T>[]
   selectable?: boolean
   hoverable?: boolean
   striped?: boolean
@@ -30,6 +34,7 @@ interface Props {
 interface Emits {
   select: [items: T[]]
   rowClick: [item: T]
+  toggleActive: [item: T]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -170,24 +175,42 @@ const isRowSelected = (index: number): boolean => {
 const isAllSelected = computed(() => {
   return selectedRows.value.size === paginatedData.value.length && paginatedData.value.length > 0
 })
+
+// Handle toggle active status
+const handleToggleActive = (item: T) => {
+  emit('toggleActive', item)
+}
+
+// Get badge class for group (color-coded by group name)
+const getGroupBadgeClass = (groupName: string): string => {
+  const groupColors: Record<string, string> = {
+    'sales': 'badge--group-sales',
+    'finance': 'badge--group-finance',
+    'operations': 'badge--group-operations',
+    'marketing': 'badge--group-marketing',
+    'it': 'badge--group-it',
+    'hr': 'badge--group-hr',
+  }
+  return groupColors[groupName.toLowerCase()] || 'badge--group'
+}
 </script>
 
 <template>
-  <div class="data-table">
+  <div class="flex flex-col gap-4 w-full">
     <!-- Loading state -->
-    <div v-if="loading" class="table-loading">
+    <div v-if="loading" class="flex flex-col items-center justify-center gap-4 p-8" style="color: var(--color-text-secondary)">
       <div class="spinner"></div>
       <p>กำลังโหลด...</p>
     </div>
 
     <!-- Table -->
-    <div v-else class="table-wrapper">
-      <table class="table" :class="{ striped, hoverable }">
+    <div v-else class="overflow-x-auto rounded-md" style="border: 1px solid var(--color-border-light)">
+      <table class="w-full border-collapse text-sm" :class="{ striped, hoverable }">
         <!-- Table header -->
-        <thead>
+        <thead style="background-color: var(--color-bg-secondary); border-bottom: 2px solid var(--color-border-light)">
           <tr>
             <!-- Select all checkbox -->
-            <th v-if="selectable" class="table-th--select">
+            <th v-if="selectable" class="w-12 p-4 text-center" style="user-select: none">
               <input
                 type="checkbox"
                 :checked="isAllSelected"
@@ -201,19 +224,23 @@ const isAllSelected = computed(() => {
               v-for="column in columns"
               :key="column.key"
               :style="{ width: column.width }"
-              :class="[`table-th--${getColumnAlign(column)}`, { sortable: column.sortable }]"
+              :class="[
+                'p-4 font-semibold text-center',
+                column.sortable ? 'cursor-pointer hover:bg-gray-200 transition-colors' : ''
+              ]"
+              style="color: var(--color-text-primary); user-select: none"
               @click="handleSort(column)"
             >
-              <div class="table-header-content">
+              <div class="flex items-center justify-center gap-2">
                 <span>{{ column.label }}</span>
-                <span v-if="column.sortable && sortKey === column.key" class="sort-icon">
+                <span v-if="column.sortable && sortKey === column.key" style="color: var(--color-primary); font-size: 0.8rem">
                   {{ sortOrder === 'asc' ? '↑' : '↓' }}
                 </span>
               </div>
             </th>
 
             <!-- Actions header -->
-            <th v-if="actions" class="table-th--actions">
+            <th v-if="actions" class="w-44 p-4 text-center" style="color: var(--color-text-primary)">
               <span>จัดการ</span>
             </th>
           </tr>
@@ -226,11 +253,15 @@ const isAllSelected = computed(() => {
             <tr
               v-for="(item, index) in paginatedData"
               :key="index"
-              class="table-row"
-              :class="{ selected: isRowSelected((currentPage - 1) * itemsPerPage + index) }"
+              :class="[
+                isRowSelected((currentPage - 1) * itemsPerPage + index) ? 'selected-row' : '',
+                hoverable ? 'hover:bg-gray-100 transition-colors' : '',
+                striped && index % 2 === 0 ? 'bg-gray-50' : ''
+              ]"
+              style="border-bottom: 1px solid var(--color-border-light)"
             >
               <!-- Row select checkbox -->
-              <td v-if="selectable" class="table-td--select">
+              <td v-if="selectable" class="w-12 p-4 text-center">
                 <input
                   type="checkbox"
                   :checked="isRowSelected((currentPage - 1) * itemsPerPage + index)"
@@ -243,15 +274,55 @@ const isAllSelected = computed(() => {
               <td
                 v-for="column in columns"
                 :key="column.key"
-                :style="{ width: column.width }"
-                :class="`table-td--${getColumnAlign(column)}`"
+                :style="{ width: column.width, color: 'var(--color-text-primary)' }"
+                :class="[
+                  'px-4 py-3',
+                  getColumnAlign(column) === 'left' ? 'text-left' :
+                  getColumnAlign(column) === 'right' ? 'text-right' : 'text-center'
+                ]"
               >
-                {{ getCellValue(item, column.key) }}
+                <!-- Name + Email combined display -->
+                <div v-if="column.isNameColumn" class="flex flex-col">
+                  <span class="font-semibold">{{ item.name }}</span>
+                  <span class="text-sm" style="color: var(--color-text-secondary)">{{ item.email }}</span>
+                </div>
+
+                <!-- Status toggle switch -->
+                <div v-else-if="column.isStatusColumn" class="flex justify-center items-center">
+                  <label class="ios-toggle">
+                    <input
+                      type="checkbox"
+                      :checked="item.isActive"
+                      @change="handleToggleActive(item)"
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <!-- Role badge -->
+                <div v-else-if="column.isRoleColumn" class="flex justify-center">
+                  <span class="badge" :class="`badge--${item.role}`">{{ item.role }}</span>
+                </div>
+
+                <!-- Groups badges (comma-separated to individual badges) -->
+                <div v-else-if="column.isGroupsColumn" class="flex gap-2 flex-wrap justify-center">
+                  <span
+                    v-for="group in (typeof item.groups === 'string' ? item.groups.split(',').map(g => g.trim()) : item.groups)"
+                    :key="group"
+                    class="badge"
+                    :class="getGroupBadgeClass(group)"
+                  >
+                    {{ group }}
+                  </span>
+                </div>
+
+                <!-- Regular cell display -->
+                <span v-else>{{ getCellValue(item, column.key) }}</span>
               </td>
 
               <!-- Action buttons -->
-              <td v-if="actions" class="table-td--actions">
-                <div class="action-buttons">
+              <td v-if="actions" class="px-4 py-3 text-center" style="width: 120px; flex-shrink: 0;">
+                <div class="flex gap-2 justify-center flex-wrap">
                   <button
                     v-for="(action, actionIndex) in actions"
                     :key="actionIndex"
@@ -260,7 +331,7 @@ const isAllSelected = computed(() => {
                     :title="action.label"
                     @click="action.onClick(item)"
                   >
-                    <span v-if="action.icon" class="action-icon">{{ action.icon }}</span>
+                    <span v-if="action.icon" class="text-lg">{{ action.icon }}</span>
                     <span class="action-label">{{ action.label }}</span>
                   </button>
                 </div>
@@ -269,11 +340,11 @@ const isAllSelected = computed(() => {
           </template>
 
           <!-- Empty state -->
-          <tr v-else class="table-row--empty">
-            <td :colspan="(selectable ? 1 : 0) + columns.length + (actions ? 1 : 0)" class="empty-cell">
-              <div class="empty-state">
-                <p class="empty-icon">📭</p>
-                <p class="empty-message">{{ emptyMessage }}</p>
+          <tr v-else>
+            <td :colspan="(selectable ? 1 : 0) + columns.length + (actions ? 1 : 0)" class="p-12 text-center">
+              <div class="flex flex-col items-center gap-4" style="color: var(--color-text-secondary)">
+                <p class="text-3xl m-0">📭</p>
+                <p class="m-0 text-base">{{ emptyMessage }}</p>
               </div>
             </td>
           </tr>
@@ -282,14 +353,14 @@ const isAllSelected = computed(() => {
     </div>
 
     <!-- Pagination -->
-    <div v-if="!loading && totalPages > 1" class="table-pagination">
-      <div class="pagination-info">
+    <div v-if="!loading && totalPages > 1" class="flex flex-col md:flex-row gap-4 items-center p-4 rounded-md" style="background-color: var(--color-bg-secondary); color: var(--color-text-secondary); font-size: 0.9rem">
+      <div class="flex-shrink-0">
         แสดง {{ (currentPage - 1) * itemsPerPage + 1 }} ถึง
         {{ Math.min(currentPage * itemsPerPage, sortedData.length) }} จาก {{ sortedData.length }}
         รายการ
       </div>
 
-      <div class="pagination-controls">
+      <div class="flex gap-2 items-center ml-auto">
         <button
           class="pagination-button"
           :disabled="currentPage === 1"
@@ -298,7 +369,7 @@ const isAllSelected = computed(() => {
           ← ก่อนหน้า
         </button>
 
-        <div class="pagination-pages">
+        <div class="flex gap-1">
           <button
             v-for="page in totalPages"
             :key="page"
@@ -323,24 +394,7 @@ const isAllSelected = computed(() => {
 </template>
 
 <style scoped>
-.data-table {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  width: 100%;
-}
-
-/* Loading state */
-.table-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-2xl);
-  color: var(--color-text-secondary);
-}
-
+/* Spinner animation */
 .spinner {
   width: 40px;
   height: 40px;
@@ -356,270 +410,215 @@ const isAllSelected = computed(() => {
   }
 }
 
-/* Table wrapper */
-.table-wrapper {
-  overflow-x: auto;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md);
-}
-
-/* Table styles */
-.table {
+/* Table styling for improved row spacing */
+table {
+  border-spacing: 0;
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
 }
 
-/* Table header */
-.table thead {
-  background-color: var(--color-bg-secondary);
-  border-bottom: 2px solid var(--color-border-light);
+/* Enhanced row styling with better visual separation */
+tbody tr {
+  transition: background-color 150ms ease-in-out;
 }
 
-.table-th {
-  padding: var(--spacing-md);
-  text-align: left;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  user-select: none;
+tbody tr:last-child td {
+  border-bottom: none;
 }
 
-.table-th--left {
-  text-align: left;
-}
-
-.table-th--center {
-  text-align: center;
-}
-
-.table-th--right {
-  text-align: right;
-}
-
-.table-th--select {
-  width: 50px;
-  padding: var(--spacing-md);
-  text-align: center;
-}
-
-.table-th--actions {
-  width: 180px;
-  padding: var(--spacing-md);
-  text-align: center;
-}
-
-.table-th.sortable {
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
-}
-
-.table-th.sortable:hover {
-  background-color: var(--color-border-light);
-}
-
-.table-header-content {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.sort-icon {
-  font-size: 0.8rem;
-  color: var(--color-primary);
-}
-
-/* Table body */
-.table tbody tr {
-  border-bottom: 1px solid var(--color-border-light);
-  transition: background-color var(--transition-fast);
-}
-
-.table.hoverable tbody tr:hover {
-  background-color: var(--color-bg-secondary);
-}
-
-.table.striped tbody tr:nth-child(odd) {
-  background-color: var(--color-bg-secondary);
-}
-
-.table-row.selected {
-  background-color: rgba(59, 130, 246, 0.1);
-}
-
-/* Table cells */
-.table-td {
-  padding: var(--spacing-md);
-  color: var(--color-text-primary);
-}
-
-.table-td--left {
-  text-align: left;
-}
-
-.table-td--center {
-  text-align: center;
-}
-
-.table-td--right {
-  text-align: right;
-}
-
-.table-td--select {
-  width: 50px;
-  text-align: center;
-}
-
-.table-td--actions {
-  width: 180px;
-  text-align: center;
-}
-
+/* Table checkbox */
 .table-checkbox {
   cursor: pointer;
   width: 18px;
   height: 18px;
+}
+.table-checkbox {
   accent-color: var(--color-primary);
 }
 
-/* Empty state */
-.table-row--empty .empty-cell {
-  padding: var(--spacing-3xl) var(--spacing-md) !important;
-  text-align: center;
+/* Selected row highlight */
+.selected-row {
+  background-color: rgba(45, 51, 137, 0.1);
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-md);
-  color: var(--color-text-secondary);
-}
-
-.empty-icon {
-  font-size: 2.5rem;
-  margin: 0;
-}
-
-.empty-message {
-  margin: 0;
-  font-size: 1rem;
-}
-
-/* Action buttons */
-.action-buttons {
-  display: flex;
-  gap: var(--spacing-xs);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
+/* Action buttons - Icon only style */
 .action-button {
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: 0.85rem;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  font-size: 1.25rem;
   font-weight: 500;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border: none;
+  border-radius: 0.375rem;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 150ms ease-in-out;
   white-space: nowrap;
+  background-color: transparent;
+  min-width: 36px;
+  min-height: 36px;
 }
 
 .action-button--primary {
-  background-color: var(--color-primary);
-  color: white;
+  color: var(--color-primary);
 }
 
 .action-button--primary:hover {
-  background-color: var(--color-primary-dark);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--color-primary-lightest);
+  transform: scale(1.1);
 }
 
 .action-button--secondary {
-  background-color: transparent;
   color: var(--color-primary);
-  border-color: var(--color-primary);
 }
 
 .action-button--secondary:hover {
-  background-color: var(--color-primary);
-  color: white;
+  background-color: var(--color-primary-lightest);
+  transform: scale(1.1);
 }
 
 .action-button--danger {
-  background-color: var(--color-error);
-  color: white;
+  color: var(--color-error);
 }
 
 .action-button--danger:hover {
-  background-color: #dc2626;
-  box-shadow: var(--shadow-sm);
+  background-color: #fee2e2;
+  transform: scale(1.1);
 }
 
 .action-button--ghost {
-  background-color: transparent;
   color: var(--color-text-secondary);
-  border-color: var(--color-border-light);
 }
 
 .action-button--ghost:hover {
   background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
+  transform: scale(1.1);
 }
 
-.action-icon {
-  font-size: 0.9rem;
-}
-
+/* Hide action labels (show icon only) */
 .action-label {
   display: none;
 }
 
-@media (min-width: 768px) {
-  .action-label {
-    display: inline;
-  }
+/* iOS Toggle Switch */
+.ios-toggle {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+  cursor: pointer;
 }
 
-/* Pagination */
-.table-pagination {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  align-items: center;
-  padding: var(--spacing-md);
-  color: var(--color-text-secondary);
-  font-size: 0.9rem;
+.ios-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-@media (min-width: 768px) {
-  .table-pagination {
-    flex-direction: row;
-    justify-content: space-between;
-  }
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 28px;
 }
 
-.pagination-info {
-  flex-shrink: 0;
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
 }
 
-.pagination-controls {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
+.ios-toggle input:checked + .toggle-slider {
+  background-color: #10b981;
 }
 
+.ios-toggle input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge--admin {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.badge--moderator {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge--user {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge--group {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+/* Group-specific badge colors */
+.badge--group-sales {
+  background-color: #fecaca;
+  color: #991b1b;
+}
+
+.badge--group-finance {
+  background-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.badge--group-operations {
+  background-color: #bbf7d0;
+  color: #065f46;
+}
+
+.badge--group-marketing {
+  background-color: #fed7aa;
+  color: #92400e;
+}
+
+.badge--group-it {
+  background-color: #e9d5ff;
+  color: #6b21a8;
+}
+
+.badge--group-hr {
+  background-color: #fce7f3;
+  color: #be185d;
+}
+
+/* Pagination buttons */
 .pagination-button {
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: 0.25rem 0.5rem;
   border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-sm);
+  border-radius: 0.375rem;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   cursor: pointer;
   font-weight: 500;
-  transition: all var(--transition-fast);
+  transition: all 150ms ease-in-out;
 }
 
 .pagination-button:hover:not(:disabled) {
@@ -633,22 +632,17 @@ const isAllSelected = computed(() => {
   cursor: not-allowed;
 }
 
-.pagination-pages {
-  display: flex;
-  gap: var(--spacing-xs);
-}
-
 .pagination-page {
   min-width: 32px;
   height: 32px;
   padding: 0;
   border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-sm);
+  border-radius: 0.375rem;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   cursor: pointer;
   font-weight: 500;
-  transition: all var(--transition-fast);
+  transition: all 150ms ease-in-out;
 }
 
 .pagination-page:hover {
@@ -660,30 +654,5 @@ const isAllSelected = computed(() => {
   background-color: var(--color-primary);
   color: white;
   border-color: var(--color-primary);
-}
-
-/* Responsive design */
-@media (max-width: 640px) {
-  .table {
-    font-size: 0.85rem;
-  }
-
-  .table-th,
-  .table-td {
-    padding: var(--spacing-sm);
-  }
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .action-button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .pagination-pages {
-    display: none;
-  }
 }
 </style>

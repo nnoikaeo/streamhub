@@ -59,6 +59,14 @@ export default defineNuxtConfig({
       path: '~/components/dashboard',
       prefix: 'Dashboard',
       global: false
+    },
+
+    // Admin components - NO prefix (for convenience)
+    {
+      path: '~/components/admin',
+      prefix: '',
+      pathPrefix: false,
+      global: true
     }
   ],
 

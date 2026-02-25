@@ -144,7 +144,7 @@ export function useAdminResource<T extends Record<string, any>>(
     idPrefix,
     defaults = {},
     extensions = {},
-    pluralName = `${resourceName}s`
+    pluralName = resourceName.endsWith('s') ? resourceName : `${resourceName}s`
   } = config
 
   /**

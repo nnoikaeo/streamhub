@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /**
  * StreamHub Theme Variables
@@ -187,7 +185,7 @@ button:disabled {
 }
 
 /* Default button styles - can be overridden by component classes */
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page) {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
@@ -196,12 +194,12 @@ button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):
   font-weight: 500;
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):hover:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):hover:not(:disabled) {
   background-color: var(--color-primary-dark);
   box-shadow: var(--shadow-md);
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):active:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):active:not(:disabled) {
   transform: translateY(1px);
 }
 
@@ -382,9 +380,13 @@ a:hover {
 }
 
 /* Section Titles */
-.section-title,
-.page-header__title {
+.section-title {
   color: var(--color-primary) !important;
+}
+
+/* Page Header Title - uses inverse color on gradient background */
+.page-header__title {
+  /* Inherits white text from theme.css for visibility on gradient background */
 }
 
 /* Ensure primary color works even with data attributes (Vue scoped) */
