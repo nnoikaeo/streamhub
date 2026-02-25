@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PageLayout from '~/components/compositions/PageLayout.vue'
+import UserForm from '~/components/admin/forms/UserForm.vue'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 /**
  * Admin Users Management Page
@@ -14,9 +15,33 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
  *
  * Route: /admin/users
  * Middleware: auth, admin
+ *
+ * WORKFLOW:
+ * 1. Page loads → auth & admin middleware checks
+ * 2. onMounted → fetchUsers() loads all users from useAdminUsers composable
+ * 3. DataTable renders users with columns (email, name, role, company, groups, isActive)
+ * 4. User actions:
+ *    - Click "เพิ่มผู้ใช้ใหม่" → handleAddUser → showUserModal
+ *    - Click "แก้ไข" → handleEditUser → showUserModal with selectedUser
+ *    - Click "ลบ" → handleDeleteUser → showConfirmDialog with userToDelete
+ * 5. FormModal with UserForm → handleSaveUser → updateUser API call
+ * 6. ConfirmDialog → confirmDeleteUser → deleteUser API call
+ * 7. Filters: search, role, company, active status → filteredUsers computed property
+ *
+ * COMPONENTS USED:
+ * - DataTable: Generic table component (auto-imported from ~/components/admin)
+ * - FormModal: Modal wrapper for user form (auto-imported from ~/components/admin)
+ * - UserForm: Form component for editing user data (explicitly imported - nested in ~/components/admin/forms/)
+ * - ConfirmDialog: Confirmation dialog for delete action (auto-imported from ~/components/admin)
+ *
+ * COMPOSABLES USED:
+ * - useAdminUsers: Fetch, update, delete users
+ * - useAdminCompanies: Fetch companies for filter dropdown
+ * - useAdminFolders: Fetch folders for breadcrumb
+ * - useAdminBreadcrumbs: Generate breadcrumb navigation
  */
 
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { User } from '~/types/dashboard'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
@@ -30,7 +55,7 @@ definePageMeta({
   layout: 'default',
 })
 
-console.log('📄 [admin/users/index.vue] Users management page mounted')
+console.log('📄 [admin/users/index.vue] Users management page initialized')
 
 // States
 const { users, loading, fetchUsers, updateUser, deleteUser } = useAdminUsers()
@@ -41,6 +66,23 @@ const showConfirmDialog = ref(false)
 const selectedUser = ref<User | null>(null)
 const userToDelete = ref<User | null>(null)
 
+// Debug: Log state changes
+watch(() => showUserModal.value, (newVal) => {
+  console.log(`🪟 [UserModal] ${newVal ? 'OPENED' : 'CLOSED'}`, selectedUser.value)
+})
+
+watch(() => showConfirmDialog.value, (newVal) => {
+  console.log(`⚠️ [ConfirmDialog] ${newVal ? 'OPENED' : 'CLOSED'}`, userToDelete.value)
+})
+
+watch(() => loading.value, (newVal) => {
+  console.log(`⏳ [Loading] ${newVal ? 'STARTED' : 'FINISHED'}`)
+})
+
+watch(() => users.value.length, (newLen) => {
+  console.log(`👥 [Users] Loaded ${newLen} users`)
+})
+
 // Filters
 const searchQuery = ref('')
 const filterRole = ref<string | null>(null)
@@ -48,15 +90,20 @@ const filterCompany = ref<string | null>(null)
 const filterActive = ref<boolean | null>(null)
 
 /**
- * Column definitions for DataTable
+ * Column definitions for DataTable (Reordered)
+ * - Name+Email combined display
+ * - Role badge (styled by role: admin, moderator, user)
+ * - Company
+ * - Groups badges (comma-separated to individual badges)
+ * - Status toggle switch (green when enabled)
+ * - Actions (icons only)
  */
 const columns = [
-  { key: 'email', label: 'อีเมล', sortable: true, width: '200px' },
-  { key: 'name', label: 'ชื่อ', sortable: true, width: '180px' },
-  { key: 'role', label: 'บทบาท', sortable: true, width: '120px' },
-  { key: 'company', label: 'บริษัท', sortable: true, width: '120px' },
-  { key: 'groups', label: 'กลุ่ม', width: '150px' },
-  { key: 'isActive', label: 'สถานะ', sortable: true, width: '100px' },
+  { key: 'name', label: 'ชื่อ', sortable: true, width: '180px', isNameColumn: true },
+  { key: 'role', label: 'บทบาท', sortable: true, width: '95px', isRoleColumn: true },
+  { key: 'company', label: 'บริษัท', sortable: true, width: '105px', align: 'center' as const },
+  { key: 'groups', label: 'กลุ่ม', width: '130px', isGroupsColumn: true },
+  { key: 'isActive', label: 'สถานะ', sortable: true, width: '85px', isStatusColumn: true },
 ]
 
 /**
@@ -96,16 +143,19 @@ const filteredUsers = computed(() => {
  * Action handlers
  */
 const handleAddUser = () => {
+  console.log('➕ [Action] Add new user')
   selectedUser.value = null
   showUserModal.value = true
 }
 
 const handleEditUser = (user: User) => {
+  console.log('✏️ [Action] Edit user:', user.email)
   selectedUser.value = user
   showUserModal.value = true
 }
 
 const handleDeleteUser = (user: User) => {
+  console.log('🗑️ [Action] Delete user:', user.email)
   userToDelete.value = user
   showConfirmDialog.value = true
 }
@@ -121,35 +171,45 @@ const handleToggleActive = async (user: User) => {
 
 const handleSaveUser = async (formData: any) => {
   try {
+    console.log('💾 [Save] Saving user data:', formData)
     if (selectedUser.value) {
+      console.log(`📤 [Save] Updating user: ${selectedUser.value.email}`)
       await updateUser(selectedUser.value.uid, formData)
-      console.log(`✅ User updated: ${formData.email}`)
+      console.log(`✅ [Save] User updated: ${formData.email}`)
     } else {
-      console.warn('Create user not yet implemented')
+      console.warn('⚠️ [Save] Create user not yet implemented')
     }
     showUserModal.value = false
+    console.log('🔚 [Save] Modal closed')
   } catch (error) {
-    console.error('❌ Error saving user:', error)
+    console.error('❌ [Save] Error saving user:', error)
   }
 }
 
 const confirmDeleteUser = async () => {
-  if (!userToDelete.value) return
+  if (!userToDelete.value) {
+    console.warn('⚠️ [Delete] No user selected for deletion')
+    return
+  }
   try {
+    console.log(`🗑️ [Delete] Deleting user: ${userToDelete.value.email}`)
     await deleteUser(userToDelete.value.uid)
-    console.log(`✅ User deleted: ${userToDelete.value.email}`)
+    console.log(`✅ [Delete] User deleted: ${userToDelete.value.email}`)
     showConfirmDialog.value = false
     userToDelete.value = null
+    console.log('🔚 [Delete] Dialog closed')
   } catch (error) {
-    console.error('❌ Error deleting user:', error)
+    console.error('❌ [Delete] Error deleting user:', error)
   }
 }
 
 const clearFilters = () => {
+  console.log('🔄 [Filters] Clearing all filters')
   searchQuery.value = ''
   filterRole.value = null
   filterCompany.value = null
   filterActive.value = null
+  console.log('✅ [Filters] All filters cleared')
 }
 
 /**
@@ -172,9 +232,11 @@ const actions = [
 
 onMounted(async () => {
   try {
+    console.log('🚀 [Lifecycle] onMounted - Starting to fetch users...')
     await fetchUsers()
+    console.log('✅ [Lifecycle] onMounted - Users fetched successfully')
   } catch (error) {
-    console.error('Error loading users:', error)
+    console.error('❌ [Lifecycle] Error loading users:', error)
   }
 })
 
@@ -229,8 +291,8 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     <div class="admin-content">
         <!-- Page Header -->
         <div class="page-header">
-          <h1 class="page-title">จัดการผู้ใช้</h1>
-          <button @click="handleAddUser" class="btn btn--primary">
+          <h1 class="page-header__title">จัดการผู้ใช้</h1>
+          <button @click="handleAddUser" class="page-header-action-btn">
             ➕ เพิ่มผู้ใช้ใหม่
           </button>
         </div>
@@ -243,14 +305,14 @@ const folderTree = computed(() => buildFolderTree(folders.value))
               <input
                 v-model="searchQuery"
                 type="text"
-                class="filter-input"
+                class="theme-form-input"
                 placeholder="ค้นหาตามอีเมล หรือ ชื่อ..."
               />
             </div>
 
             <!-- Role Filter -->
             <div class="filter-group">
-              <select v-model="filterRole" class="filter-select">
+              <select v-model="filterRole" class="theme-form-select">
                 <option :value="null">-- บทบาททั้งหมด --</option>
                 <option value="admin">Admin</option>
                 <option value="moderator">Moderator</option>
@@ -260,7 +322,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 
             <!-- Company Filter -->
             <div class="filter-group">
-              <select v-model="filterCompany" class="filter-select">
+              <select v-model="filterCompany" class="theme-form-select">
                 <option :value="null">-- บริษัททั้งหมด --</option>
                 <option v-for="c in companies" :key="c.code" :value="c.code">
                   {{ c.code }}
@@ -270,7 +332,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 
             <!-- Active Filter -->
             <div class="filter-group">
-              <select v-model="filterActive" class="filter-select">
+              <select v-model="filterActive" class="theme-form-select">
                 <option :value="null">-- สถานะทั้งหมด --</option>
                 <option :value="true">เปิดใช้งาน</option>
                 <option :value="false">ปิดใช้งาน</option>
@@ -278,7 +340,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             </div>
 
             <!-- Clear Filters -->
-            <button @click="clearFilters" class="btn btn--ghost">
+            <button @click="clearFilters" class="theme-btn theme-btn--ghost">
               🔄 ล้างตัวกรอง
             </button>
           </div>
@@ -333,72 +395,34 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 
 /* Main Content */
 .admin-content {
-  padding: var(--spacing-xl, 2rem) var(--spacing-lg, 1.25rem);
+  padding: var(--spacing-xl) var(--spacing-lg);
   max-width: 1400px;
 }
 
-/* Page Header */
+/* Page Header - using theme.css styles with gradient background */
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-xl, 2rem);
-  gap: var(--spacing-md, 1rem);
-}
-
-.page-title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-text-primary, #1f2937);
-}
-
-/* Button */
-.btn {
-  padding: var(--spacing-sm, 0.5rem) var(--spacing-lg, 1rem);
-  border-radius: var(--radius-md, 0.375rem);
-  font-size: 0.95rem;
-  font-weight: 600;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all var(--transition-base, 0.2s ease);
-}
-
-.btn--primary {
-  background-color: var(--color-primary, #3b82f6);
-  color: white;
-}
-
-.btn--primary:hover {
-  background-color: #2563eb;
-  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
-}
-
-.btn--ghost {
-  background-color: transparent;
-  color: var(--color-text-secondary, #6b7280);
-  border-color: var(--color-border-light, #e5e7eb);
-}
-
-.btn--ghost:hover {
-  background-color: var(--color-bg-secondary, #f3f4f6);
-  color: var(--color-text-primary, #1f2937);
+  margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-md);
+  /* Background gradient from theme.css is inherited */
 }
 
 /* Filters Section */
 .filters-section {
-  background-color: var(--color-bg-primary, #ffffff);
-  padding: var(--spacing-lg, 1.25rem);
-  border-radius: var(--radius-lg, 0.5rem);
-  margin-bottom: var(--spacing-lg, 1.25rem);
-  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  background-color: var(--color-bg-primary);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .filters-row {
   display: flex;
-  gap: var(--spacing-md, 1rem);
+  gap: var(--spacing-md);
   flex-wrap: wrap;
-  margin-bottom: var(--spacing-md, 1rem);
+  margin-bottom: var(--spacing-md);
 }
 
 .filter-group {
@@ -406,31 +430,12 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   min-width: 200px;
 }
 
-.filter-input,
-.filter-select {
-  width: 100%;
-  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
-  border: 1px solid var(--color-border-light, #e5e7eb);
-  border-radius: var(--radius-md, 0.375rem);
-  font-size: 0.95rem;
-  background-color: var(--color-bg-primary, #ffffff);
-  color: var(--color-text-primary, #1f2937);
-  transition: all var(--transition-base, 0.2s ease);
-}
-
-.filter-input:focus,
-.filter-select:focus {
-  outline: none;
-  border-color: var(--color-primary, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
 .filter-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.9rem;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
 }
 
 .results-count {
@@ -439,16 +444,23 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 
 /* Table Section */
 .table-section {
-  background-color: var(--color-bg-primary, #ffffff);
-  border-radius: var(--radius-lg, 0.5rem);
-  box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
+  background-color: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
 /* Responsive */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .filters-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .admin-content {
-    padding: var(--spacing-lg, 1.25rem) var(--spacing-md, 1rem);
+    padding: var(--spacing-lg) var(--spacing-md);
   }
 
   .page-header {

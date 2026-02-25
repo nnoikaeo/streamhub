@@ -225,8 +225,8 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     <div class="admin-content">
         <!-- Page Header -->
         <div class="page-header">
-          <h1 class="page-title">จัดการแดชบอร์ด</h1>
-          <button @click="handleAddDashboard" class="btn btn--primary">
+          <h1 class="page-header__title">จัดการแดชบอร์ด</h1>
+          <button @click="handleAddDashboard" class="page-header-action-btn">
             ➕ เพิ่มแดชบอร์ดใหม่
           </button>
         </div>
@@ -264,7 +264,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             </div>
 
             <!-- Clear Filters -->
-            <button @click="clearFilters" class="btn btn--ghost">
+            <button @click="clearFilters" class="theme-btn theme-btn--ghost">
               🔄 ล้างตัวกรอง
             </button>
           </div>
@@ -330,47 +330,9 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   gap: var(--spacing-md, 1rem);
 }
 
-.page-title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-text-primary, #1f2937);
-}
-
-.btn {
-  padding: var(--spacing-sm, 0.5rem) var(--spacing-lg, 1rem);
-  border-radius: var(--radius-md, 0.375rem);
-  font-size: 0.95rem;
-  font-weight: 600;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all var(--transition-base, 0.2s ease);
-}
-
-.btn--primary {
-  background-color: var(--color-primary, #3b82f6);
-  color: white;
-}
-
-.btn--primary:hover {
-  background-color: #2563eb;
-  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.1));
-}
-
-.btn--ghost {
-  background-color: transparent;
-  color: var(--color-text-secondary, #6b7280);
-  border-color: var(--color-border-light, #e5e7eb);
-}
-
-.btn--ghost:hover {
-  background-color: var(--color-bg-secondary, #f3f4f6);
-  color: var(--color-text-primary, #1f2937);
-}
-
 .filters-section {
   background-color: var(--color-bg-primary, #ffffff);
-  padding: var(--spacing-lg, 1.25rem);
+  padding: var(--spacing-xs);
   border-radius: var(--radius-lg, 0.5rem);
   margin-bottom: var(--spacing-lg, 1.25rem);
   box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));

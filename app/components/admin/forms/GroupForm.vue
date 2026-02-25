@@ -19,7 +19,7 @@ import { onMounted } from 'vue'
 interface GroupData {
   id: string
   name: string
-  description: string
+  description?: string
   members: string[]
 }
 
