@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import PageLayout from '~/components/compositions/PageLayout.vue'
+import DashboardForm from '~/components/admin/forms/DashboardForm.vue'
 /**
  * Admin Dashboards Management Page
  *
  * Features:
  * - Display all dashboards in DataTable
  * - CRUD operations
- * - Filter by type, folder, owner, archived status
+ * - Filter by folder, owner, archived status
  * - Search by name
  * - Protected by admin middleware
  *
@@ -18,6 +19,7 @@ import { ref, computed, onMounted } from 'vue'
 import type { Dashboard } from '~/types/dashboard'
 import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 
 definePageMeta({
@@ -28,6 +30,7 @@ definePageMeta({
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { dashboards, loading, fetchDashboards, createDashboard, updateDashboard, deleteDashboard } = useAdminDashboards()
 const { folders, fetchFolders } = useAdminFolders()
+const { users, fetchUsers } = useAdminUsers()
 
 console.log('📄 [admin/dashboards/index.vue] Dashboards management page mounted')
 const showDashboardModal = ref(false)
@@ -37,19 +40,17 @@ const dashboardToDelete = ref<Dashboard | null>(null)
 
 // Filters
 const searchQuery = ref('')
-const filterType = ref<string | null>(null)
 const filterArchived = ref<boolean | null>(null)
 
 /**
  * Column definitions for DataTable
  */
 const columns = [
-  { key: 'name', label: 'ชื่อแดชบอร์ด', sortable: true, width: '200px' },
-  { key: 'type', label: 'ประเภท', sortable: true, width: '120px' },
-  { key: 'folderId', label: 'โฟลเดอร์', width: '150px' },
-  { key: 'owner', label: 'เจ้าของ', sortable: true, width: '150px' },
+  { key: 'name', label: 'ชื่อแดชบอร์ด', sortable: true, width: '200px', isNameColumn: true },
+  { key: 'folderName', label: 'โฟลเดอร์', width: '180px' },
+  { key: 'ownerName', label: 'เจ้าของ', sortable: true, width: '150px' },
   { key: 'createdAt', label: 'สร้างเมื่อ', sortable: true, width: '150px' },
-  { key: 'isArchived', label: 'สถานะ', sortable: true, width: '100px' },
+  { key: 'isArchived', label: 'สถานะ', sortable: true, width: '100px', isStatusColumn: true },
 ]
 
 /**
@@ -57,7 +58,15 @@ const columns = [
  */
 const getFolderName = (folderId: string): string => {
   const folder = folders.value.find(f => f.id === folderId)
-  return folder ? folder.name : '-'
+  return folder ? folder.name : folderId
+}
+
+/**
+ * Get owner display name by UID
+ */
+const getOwnerName = (uid: string): string => {
+  const user = users.value.find(u => u.uid === uid)
+  return user ? user.name : uid
 }
 
 /**
@@ -71,11 +80,6 @@ const filteredDashboards = computed(() => {
       if (!dashboard.name.toLowerCase().includes(query)) return false
     }
 
-    // Type filter
-    if (filterType.value && dashboard.type !== filterType.value) {
-      return false
-    }
-
     // Archived filter
     if (filterArchived.value !== null && dashboard.isArchived !== filterArchived.value) {
       return false
@@ -84,6 +88,18 @@ const filteredDashboards = computed(() => {
     return true
   })
 })
+
+/**
+ * Enrich filtered dashboards with resolved folder name and owner name
+ * for display in DataTable
+ */
+const displayDashboards = computed(() =>
+  filteredDashboards.value.map(dashboard => ({
+    ...dashboard,
+    folderName: getFolderName(dashboard.folderId),
+    ownerName: getOwnerName(dashboard.owner),
+  }))
+)
 
 /**
  * Action handlers
@@ -148,7 +164,6 @@ const confirmDeleteDashboard = async () => {
 
 const clearFilters = () => {
   searchQuery.value = ''
-  filterType.value = null
   filterArchived.value = null
 }
 
@@ -169,7 +184,7 @@ const actions = [
 
 onMounted(async () => {
   try {
-    await Promise.all([fetchDashboards(), fetchFolders()])
+    await Promise.all([fetchDashboards(), fetchFolders(), fetchUsers()])
   } catch (error) {
     console.error('Error loading dashboards:', error)
   }
@@ -239,24 +254,14 @@ const folderTree = computed(() => buildFolderTree(folders.value))
               <input
                 v-model="searchQuery"
                 type="text"
-                class="filter-input"
+                class="theme-form-input"
                 placeholder="ค้นหาตามชื่อแดชบอร์ด..."
               />
             </div>
 
-            <!-- Type Filter -->
-            <div class="filter-group">
-              <select v-model="filterType" class="filter-select">
-                <option :value="null">-- ประเภททั้งหมด --</option>
-                <option value="looker">Looker</option>
-                <option value="custom">Custom</option>
-                <option value="external">External</option>
-              </select>
-            </div>
-
             <!-- Archive Filter -->
             <div class="filter-group">
-              <select v-model="filterArchived" class="filter-select">
+              <select v-model="filterArchived" class="theme-form-select">
                 <option :value="null">-- สถานะทั้งหมด --</option>
                 <option :value="false">ใช้งานอยู่</option>
                 <option :value="true">เก็บถาวร</option>
@@ -281,7 +286,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         <div class="table-section">
           <DataTable
             :columns="columns"
-            :data="filteredDashboards"
+            :data="displayDashboards"
             :loading="loading"
             :actions="actions"
             empty-message="ไม่พบแดชบอร์ด"
@@ -350,25 +355,6 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   min-width: 200px;
 }
 
-.filter-input,
-.filter-select {
-  width: 100%;
-  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
-  border: 1px solid var(--color-border-light, #e5e7eb);
-  border-radius: var(--radius-md, 0.375rem);
-  font-size: 0.95rem;
-  background-color: var(--color-bg-primary, #ffffff);
-  color: var(--color-text-primary, #1f2937);
-  transition: all var(--transition-base, 0.2s ease);
-}
-
-.filter-input:focus,
-.filter-select:focus {
-  outline: none;
-  border-color: var(--color-primary, #3b82f6);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
 .filter-info {
   display: flex;
   justify-content: space-between;
@@ -386,6 +372,13 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   border-radius: var(--radius-lg, 0.5rem);
   box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05));
   overflow: hidden;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .filters-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
