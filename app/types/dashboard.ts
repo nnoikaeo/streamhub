@@ -60,7 +60,7 @@ export interface Dashboard {
   id: string
   name: string
   folderId: string // Which folder this dashboard belongs to
-  type: 'looker' | 'custom' | 'external'
+  type: 'looker' // Only Looker dashboards are supported
   description?: string
   
   // Looker-specific fields

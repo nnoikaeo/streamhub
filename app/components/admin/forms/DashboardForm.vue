@@ -1,12 +1,11 @@
 <script setup lang="ts">
 /**
- * DashboardForm Component (Refactored)
+ * DashboardForm Component
  * Form for creating and editing dashboards in admin panel
  *
  * Features:
- * - Fields: Name, Description, Type, Folder, Looker ID, Looker Embed URL, Archived
- * - Type dropdown: looker, custom, external
- * - Conditional fields based on type
+ * - Fields: Name, Description, Folder, Looker Dashboard ID, Looker Embed URL, Archived
+ * - All dashboards are Looker type
  * - Uses FormField component for consistent styling
  */
 
@@ -27,13 +26,6 @@ const emit = defineEmits<{
 
 const authStore = useAuthStore()
 const { folders, fetchFolders } = useAdminFolders()
-
-// Dashboard type options
-const typeOptions = [
-  { label: 'Looker Dashboard', value: 'looker' },
-  { label: 'Custom Dashboard', value: 'custom' },
-  { label: 'External Link', value: 'external' },
-]
 
 // Folder options
 const folderOptions = computed(() =>
@@ -63,18 +55,9 @@ const buildFolderPath = (folderId: string): string => {
   return path.join(' > ')
 }
 
-// Custom validator for looker ID (required when type is 'looker')
-const validateLookerId = (value: any, formData: any) => {
-  if (formData.type === 'looker' && !value?.trim()) {
-    return 'Looker Dashboard ID จำเป็นต้องกรอก'
-  }
-  return undefined
-}
-
 // Form validation
 const baseValidate = createObjectValidator({
   name: [(value) => validators.required(value, 'ชื่อแดชบอร์ด')],
-  type: [(value) => validators.required(value, 'ประเภทแดชบอร์ด')],
   folderId: [(value) => validators.required(value, 'โฟลเดอร์')],
 })
 
@@ -83,7 +66,7 @@ const form = useForm({
     id: props.dashboard?.id || `dash_${Date.now()}`,
     name: props.dashboard?.name || '',
     description: props.dashboard?.description || '',
-    type: props.dashboard?.type || 'looker',
+    type: 'looker' as const,
     folderId: props.dashboard?.folderId || '',
     lookerDashboardId: props.dashboard?.lookerDashboardId || '',
     lookerEmbedUrl: props.dashboard?.lookerEmbedUrl || '',
@@ -92,8 +75,7 @@ const form = useForm({
   },
   validate: (values) => {
     const errors = baseValidate(values)
-    // Validate looker ID conditionally
-    if (values.type === 'looker' && !values.lookerDashboardId?.trim()) {
+    if (!values.lookerDashboardId?.trim()) {
       errors.lookerDashboardId = 'Looker Dashboard ID จำเป็นต้องกรอก'
     }
     return errors
@@ -146,16 +128,6 @@ onMounted(async () => {
     />
 
     <FormField
-      v-model="form.formData.type"
-      type="select"
-      label="ประเภท"
-      :options="typeOptions"
-      :error="form.errors.type"
-      :required="true"
-      @blur="form.setFieldTouched('type')"
-    />
-
-    <FormField
       v-model="form.formData.folderId"
       type="select"
       label="โฟลเดอร์"
@@ -165,25 +137,22 @@ onMounted(async () => {
       @blur="form.setFieldTouched('folderId')"
     />
 
-    <!-- Looker Fields (conditional) -->
-    <template v-if="form.formData.type === 'looker'">
-      <FormField
-        v-model="form.formData.lookerDashboardId"
-        type="text"
-        label="Looker Dashboard ID"
-        placeholder="เช่น dashboard_123"
-        :error="form.errors.lookerDashboardId"
-        :required="true"
-        @blur="form.setFieldTouched('lookerDashboardId')"
-      />
+    <FormField
+      v-model="form.formData.lookerDashboardId"
+      type="text"
+      label="Looker Dashboard ID"
+      placeholder="เช่น dashboard_123"
+      :error="form.errors.lookerDashboardId"
+      :required="true"
+      @blur="form.setFieldTouched('lookerDashboardId')"
+    />
 
-      <FormField
-        v-model="form.formData.lookerEmbedUrl"
-        type="text"
-        label="Looker Embed URL"
-        placeholder="https://looker.example.com/dashboards/123"
-      />
-    </template>
+    <FormField
+      v-model="form.formData.lookerEmbedUrl"
+      type="text"
+      label="Looker Embed URL"
+      placeholder="https://looker.example.com/dashboards/123"
+    />
 
     <FormField
       v-model="form.formData.isArchived"
