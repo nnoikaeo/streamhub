@@ -23,29 +23,29 @@ export function useAdminBreadcrumbs() {
    * Each route returns an array of breadcrumb items
    */
   const routeMap: Record<string, BreadcrumbItem[]> = {
-    '/admin': [{ label: 'ภาพรวม' }],
+    '/admin/overview': [{ label: 'ภาพรวม' }],
     '/admin/users': [
-      { label: 'ผู้ดูแลระบบ', to: '/admin' },
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'ผู้ใช้' },
     ],
     '/admin/dashboards': [
-      { label: 'ผู้ดูแลระบบ', to: '/admin' },
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'แดชบอร์ด' },
     ],
     '/admin/folders': [
-      { label: 'ผู้ดูแลระบบ', to: '/admin' },
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'โฟลเดอร์' },
     ],
     '/admin/companies': [
-      { label: 'ผู้ดูแลระบบ', to: '/admin' },
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'บริษัท' },
     ],
     '/admin/groups': [
-      { label: 'ผู้ดูแลระบบ', to: '/admin' },
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'กลุ่ม' },
     ],
     '/admin/permissions': [
-      { label: 'ผู้ดูแลระบบ', to: '/admin' },
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'สิทธิ์' },
     ],
   }
