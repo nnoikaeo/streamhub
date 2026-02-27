@@ -18,7 +18,6 @@ import { ref, computed, onMounted } from 'vue'
 import type { Folder } from '~/types/dashboard'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminFolders } from '~/composables/useAdminFolders'
-import { useAdminCompanies } from '~/composables/useAdminCompanies'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -27,7 +26,6 @@ definePageMeta({
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { folders, loading, fetchFolders, updateFolder, deleteFolder } = useAdminFolders()
-const { companies } = useAdminCompanies()
 
 console.log('📄 [admin/folders/index.vue] Folders management page mounted')
 const showFolderModal = ref(false)
@@ -36,12 +34,10 @@ const selectedFolder = ref<Folder | null>(null)
 const folderToDelete = ref<Folder | null>(null)
 
 const searchQuery = ref('')
-const filterCompany = ref<string | null>(null)
 
 const columns = [
   { key: 'name', label: 'ชื่อโฟลเดอร์', sortable: true, width: '200px' },
-  { key: 'company', label: 'บริษัท', sortable: true, width: '120px' },
-  { key: 'parentId', label: 'โฟลเดอร์หลัก', width: '180px' },
+  { key: 'parentName', label: 'โฟลเดอร์หลัก', width: '180px' },
   { key: 'description', label: 'คำอธิบาย', width: '250px' },
   { key: 'createdAt', label: 'สร้างเมื่อ', sortable: true, width: '150px' },
 ]
@@ -52,15 +48,18 @@ const getParentFolderName = (parentId: string | null): string => {
   return parent ? parent.name : '-'
 }
 
+const displayFolders = computed(() =>
+  filteredFolders.value.map(folder => ({
+    ...folder,
+    parentName: getParentFolderName(folder.parentId ?? null),
+  }))
+)
+
 const filteredFolders = computed(() => {
   return folders.value.filter(folder => {
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
       if (!folder.name.toLowerCase().includes(query)) return false
-    }
-
-    if (filterCompany.value && folder.company !== filterCompany.value) {
-      return false
     }
 
     return true
@@ -110,7 +109,6 @@ const confirmDeleteFolder = async () => {
 
 const clearFilters = () => {
   searchQuery.value = ''
-  filterCompany.value = null
 }
 
 const actions = [
@@ -202,15 +200,6 @@ const folderTree = computed(() => buildFolderTree(folders.value))
               />
             </div>
 
-            <div class="filter-group">
-              <select v-model="filterCompany" class="theme-form-select">
-                <option :value="null">-- บริษัททั้งหมด --</option>
-                <option v-for="c in companies" :key="c.code" :value="c.code">
-                  {{ c.code }}
-                </option>
-              </select>
-            </div>
-
             <button @click="clearFilters" class="theme-btn theme-btn--ghost">
               🔄 ล้างตัวกรอง
             </button>
@@ -226,7 +215,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         <div class="table-section">
           <DataTable
             :columns="columns"
-            :data="filteredFolders"
+            :data="displayFolders"
             :loading="loading"
             :actions="actions"
             empty-message="ไม่พบโฟลเดอร์"

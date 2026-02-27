@@ -11,7 +11,6 @@
 
 import type { Folder } from '~/types/dashboard'
 import { useAdminFolders } from '~/composables/useAdminFolders'
-import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { createObjectValidator, validators } from '~/utils/formValidators'
 import { onMounted } from 'vue'
 
@@ -28,18 +27,9 @@ const emit = defineEmits<{
 
 // Composables
 const { folders, fetchFolders } = useAdminFolders()
-const { companies, fetchCompanies } = useAdminCompanies()
 
 // Use passed folders or fetch from composable
 const folderList = computed(() => props.allFolders || folders.value)
-
-// Company options
-const companyOptions = computed(() =>
-  companies.value.filter(c => c.isActive).map(c => ({
-    label: `${c.code} - ${c.name}`,
-    value: c.code,
-  }))
-)
 
 // Form validation
 const validate = createObjectValidator({
@@ -51,7 +41,6 @@ const form = useForm({
     id: props.folder?.id || `folder_${Date.now()}`,
     name: props.folder?.name || '',
     description: props.folder?.description || '',
-    company: props.folder?.company || 'STTH',
     parentId: props.folder?.parentId || null,
   },
   validate,
@@ -104,7 +93,7 @@ const buildFolderPath = (folderId: string): string => {
 
 /**
  * Available parent folders
- * Excludes: self, current descendants, and other companies
+ * Excludes: self and current descendants
  */
 const parentFolderOptions = computed(() => {
   const excludeIds = new Set<string>()
@@ -120,13 +109,7 @@ const parentFolderOptions = computed(() => {
   return [
     { label: 'Root', value: null },
     ...folderList.value
-      .filter(folder => {
-        // Exclude self and descendants
-        if (excludeIds.has(folder.id)) return false
-        // Only show folders from same company
-        if (folder.company !== form.formData.company) return false
-        return true
-      })
+      .filter(folder => !excludeIds.has(folder.id))
       .map(folder => ({
         label: buildFolderPath(folder.id),
         value: folder.id,
@@ -134,24 +117,10 @@ const parentFolderOptions = computed(() => {
   ]
 })
 
-/**
- * Handle company change - reset parent if not valid for new company
- */
-const handleCompanyChange = () => {
-  if (form.formData.parentId) {
-    const parent = folderList.value.find(f => f.id === form.formData.parentId)
-    if (parent && parent.company !== form.formData.company) {
-      form.formData.parentId = null
-    }
-  }
-}
-
-// Fetch companies and folders on mount if not passed
+// Fetch folders on mount if not passed
 onMounted(async () => {
   if (!props.allFolders) {
-    await Promise.all([fetchFolders(), fetchCompanies()])
-  } else {
-    await fetchCompanies()
+    await fetchFolders()
   }
 })
 </script>
@@ -177,29 +146,12 @@ onMounted(async () => {
     />
 
     <FormField
-      v-model="form.formData.company"
-      type="select"
-      label="บริษัท"
-      :options="companyOptions"
-      :disabled="isEditMode"
-      @change="handleCompanyChange"
-      :description="!isEditMode ? 'บริษัท ไม่สามารถเปลี่ยนแปลงหลังสร้างได้' : undefined"
-    />
-
-    <FormField
       v-model="form.formData.parentId"
       type="select"
       label="โฟลเดอร์หลัก"
       :options="parentFolderOptions"
       :description="'เลือกโฟลเดอร์หลักสำหรับสร้างลำดับชั้น'"
     />
-
-    <div
-      v-if="form.formData.parentId !== null && parentFolderOptions.length <= 1"
-      class="form-info form-info--warning"
-    >
-      ⚠️ ไม่มีโฟลเดอร์หลักในบริษัท {{ form.formData.company }} ที่เหมาะสม
-    </div>
   </form>
 </template>
 
