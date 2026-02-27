@@ -33,12 +33,12 @@ export interface Folder {
   id: string
   name: string
   parentId?: string | null // null = root folder
-  company: string
   description?: string
   createdBy: string // uid
   createdAt: Date
   updatedAt: Date
   updatedBy: string // uid
+  assignedModerators?: string[] // UIDs of moderators who can manage this folder
 
   // Optional: for client-side hierarchy rendering
   children?: Folder[]
@@ -285,8 +285,7 @@ export function isFolder(obj: any): obj is Folder {
   return (
     obj &&
     typeof obj.id === 'string' &&
-    typeof obj.name === 'string' &&
-    typeof obj.company === 'string'
+    typeof obj.name === 'string'
   )
 }
 
