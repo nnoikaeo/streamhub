@@ -186,7 +186,7 @@ onMounted(async () => {
 .dashboard-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg, 1.25rem);
+  gap: var(--spacing-lg, 1.5rem);
 }
 
 .form-warning {
