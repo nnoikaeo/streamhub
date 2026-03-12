@@ -4,6 +4,7 @@
     "name": "Sales",
     "parentId": null,
     "description": "All sales-related dashboards",
+    "isActive": true,
     "assignedModerators": [],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
@@ -15,6 +16,7 @@
     "name": "Finance",
     "parentId": null,
     "description": "Financial reports and dashboards",
+    "isActive": true,
     "assignedModerators": [],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
@@ -26,6 +28,7 @@
     "name": "Operations",
     "parentId": null,
     "description": "Operational dashboards",
+    "isActive": true,
     "assignedModerators": [],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
@@ -37,6 +40,7 @@
     "name": "HR",
     "parentId": null,
     "description": "Human resources dashboards",
+    "isActive": true,
     "assignedModerators": [],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
@@ -48,7 +52,10 @@
     "name": "Monthly",
     "parentId": "folder_sales",
     "description": "Sales reports",
-    "assignedModerators": ["user_it_admin"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_it_admin"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
@@ -59,7 +66,10 @@
     "name": "Regional",
     "parentId": "folder_sales",
     "description": "Regional sales analysis",
-    "assignedModerators": ["user_it_admin"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_it_admin"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
@@ -70,7 +80,10 @@
     "name": "East",
     "parentId": "folder_sales_reports",
     "description": "Eastern region reports",
-    "assignedModerators": ["user_somchai_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_somchai_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z",
@@ -81,10 +94,13 @@
     "name": "West",
     "parentId": "folder_sales_reports",
     "description": "Western region reports",
-    "assignedModerators": ["user_somchai_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_somchai_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-10T00:00:00.000Z",
-    "updatedAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2026-03-06T01:43:51.391Z",
     "updatedBy": "user_it_admin"
   },
   {
@@ -92,7 +108,10 @@
     "name": "North",
     "parentId": "folder_sales_regional",
     "description": "Northern region",
-    "assignedModerators": ["user_somchai_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_somchai_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z",
@@ -103,10 +122,13 @@
     "name": "South",
     "parentId": "folder_sales_regional",
     "description": "Southern region",
-    "assignedModerators": ["user_somchai_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_somchai_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-10T00:00:00.000Z",
-    "updatedAt": "2024-01-10T00:00:00.000Z",
+    "updatedAt": "2026-03-06T01:37:31.193Z",
     "updatedBy": "user_it_admin"
   },
   {
@@ -114,7 +136,10 @@
     "name": "Q1 2024",
     "parentId": "folder_sales_regional_north",
     "description": "Q1 2024 Northern region",
-    "assignedModerators": ["user_somchai_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_somchai_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-15T00:00:00.000Z",
     "updatedAt": "2024-01-15T00:00:00.000Z",
@@ -125,7 +150,10 @@
     "name": "Budget",
     "parentId": "folder_finance",
     "description": "Budget tracking",
-    "assignedModerators": ["user_nattha_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_nattha_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
@@ -136,7 +164,10 @@
     "name": "Payroll",
     "parentId": "folder_finance",
     "description": "Payroll reports",
-    "assignedModerators": ["user_nattha_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_nattha_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
@@ -147,7 +178,10 @@
     "name": "2024",
     "parentId": "folder_finance_budget",
     "description": "2024 budget",
-    "assignedModerators": ["user_nattha_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_nattha_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z",
@@ -158,7 +192,10 @@
     "name": "2025",
     "parentId": "folder_finance_budget",
     "description": "2025 budget",
-    "assignedModerators": ["user_nattha_mod"],
+    "isActive": true,
+    "assignedModerators": [
+      "user_nattha_mod"
+    ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z",
@@ -169,6 +206,7 @@
     "name": "Inventory",
     "parentId": "folder_operations",
     "description": "Inventory management",
+    "isActive": true,
     "assignedModerators": [],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",

@@ -9,6 +9,7 @@
 export interface Company {
   code: string
   name: string
+  description?: string
   country: string
   isActive: boolean
   createdAt?: string
@@ -23,6 +24,7 @@ export interface AdminGroup {
   name: string
   description?: string
   members: string[]
+  isActive: boolean
   createdAt?: string
   updatedAt?: string
 }

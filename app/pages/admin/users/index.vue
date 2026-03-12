@@ -24,7 +24,7 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
  *    - Click "เพิ่มผู้ใช้ใหม่" → handleAddUser → showUserModal
  *    - Click "แก้ไข" → handleEditUser → showUserModal with selectedUser
  *    - Click "ลบ" → handleDeleteUser → showConfirmDialog with userToDelete
- * 5. FormModal with UserForm → handleSaveUser → updateUser API call
+ * 5. FormModal with UserForm → userFormRef.submit() → validates → handleSaveUser
  * 6. ConfirmDialog → confirmDeleteUser → deleteUser API call
  * 7. Filters: search, role, company, active status → filteredUsers computed property
  *
@@ -58,13 +58,16 @@ definePageMeta({
 console.log('📄 [admin/users/index.vue] Users management page initialized')
 
 // States
-const { users, loading, fetchUsers, updateUser, deleteUser } = useAdminUsers()
+const { users, loading, fetchUsers, createUser, updateUser, deleteUser } = useAdminUsers()
 const { companies } = useAdminCompanies()
 const { folders } = useAdminFolders()
 const showUserModal = ref(false)
 const showConfirmDialog = ref(false)
 const selectedUser = ref<User | null>(null)
 const userToDelete = ref<User | null>(null)
+
+// Ref to UserForm — triggers its internal useForm validation + submission via defineExpose
+const userFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 
 // Debug: Log state changes
 watch(() => showUserModal.value, (newVal) => {
@@ -177,7 +180,9 @@ const handleSaveUser = async (formData: any) => {
       await updateUser(selectedUser.value.uid, formData)
       console.log(`✅ [Save] User updated: ${formData.email}`)
     } else {
-      console.warn('⚠️ [Save] Create user not yet implemented')
+      console.log('➕ [Save] Creating new user:', formData.uid)
+      await createUser(formData)
+      console.log(`✅ [Save] User created: ${formData.uid}`)
     }
     showUserModal.value = false
     console.log('🔚 [Save] Modal closed')
@@ -369,10 +374,10 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           v-model="showUserModal"
           :title="selectedUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'"
           :loading="loading"
-          @save="handleSaveUser"
+          @save="userFormRef?.submit()"
           @cancel="showUserModal = false"
         >
-          <UserForm :user="selectedUser" @submit="handleSaveUser" />
+          <UserForm ref="userFormRef" :user="selectedUser" @submit="handleSaveUser" />
         </FormModal>
 
         <!-- Delete Confirmation Dialog -->

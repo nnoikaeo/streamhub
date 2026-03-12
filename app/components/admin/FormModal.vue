@@ -44,7 +44,7 @@ interface Props {
   /**
    * Modal size (sm, md, lg)
    */
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 
   /**
    * Submit button text (default: 'บันทึก')

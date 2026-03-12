@@ -5,11 +5,41 @@
  * Handles hierarchical folder structure with extension methods
  *
  * Usage:
- * const { items: folders, loading, fetch, create, update, delete, getChildFolders, getFolderPath } = useAdminFolders()
+ * const { folders, loading, fetchFolders, createFolder, updateFolder, deleteFolder, getChildFolders, getFolderPath, buildFolderTree } = useAdminFolders()
  */
 
 import { useAdminResource } from './useAdminResource'
 import type { Folder } from '~/types/dashboard'
+
+type FolderWithChildren = Folder & { children: FolderWithChildren[] }
+
+/**
+ * Converts a flat folder array into a nested tree structure.
+ * Shared by all pages that need a folder tree (sidebar, admin pages, etc.)
+ */
+export function buildFolderTree(flatFolders: Folder[]): FolderWithChildren[] {
+  const folderMap = new Map<string, FolderWithChildren>()
+
+  for (const folder of flatFolders) {
+    folderMap.set(folder.id, { ...folder, children: [] })
+  }
+
+  const rootFolders: FolderWithChildren[] = []
+
+  for (const folder of flatFolders) {
+    const node = folderMap.get(folder.id)!
+    if (folder.parentId) {
+      const parent = folderMap.get(folder.parentId)
+      if (parent) {
+        parent.children.push(node)
+      }
+    } else {
+      rootFolders.push(node)
+    }
+  }
+
+  return rootFolders
+}
 
 export function useAdminFolders() {
   const resource = useAdminResource<Folder>({
@@ -19,6 +49,7 @@ export function useAdminFolders() {
     idPrefix: 'folder_',
     defaults: {
       parentId: null,
+      isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -53,16 +84,15 @@ export function useAdminFolders() {
   // Create backward-compatible aliases for existing page code
   return {
     folders: resource.items,
-    loading: resource.loading,
-    error: resource.error,
     fetchFolders: resource.fetch,
     createFolder: resource.create,
     updateFolder: resource.update,
     deleteFolder: resource.delete,
     getChildFolders: resource.getChildFolders,
     getFolderPath: resource.getFolderPath,
+    buildFolderTree,
 
-    // Also expose generic API for flexibility
+    // Also expose generic API for flexibility (includes loading, error, items, fetch, etc.)
     ...resource
   }
 }

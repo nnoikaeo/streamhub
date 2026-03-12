@@ -34,6 +34,7 @@ export interface Folder {
   name: string
   parentId?: string | null // null = root folder
   description?: string
+  isActive: boolean
   createdBy: string // uid
   createdAt: Date
   updatedAt: Date

@@ -16,21 +16,20 @@ export function useAdminGroups() {
     idKey: 'id',
     displayKey: 'name',
     defaults: {
-      members: []
+      members: [],
+      isActive: true
     }
   })
 
   // Create backward-compatible aliases for existing page code
   return {
     groups: resource.items,
-    loading: resource.loading,
-    error: resource.error,
     fetchGroups: resource.fetch,
     createGroup: resource.create,
     updateGroup: resource.update,
     deleteGroup: resource.delete,
 
-    // Also expose generic API for flexibility
+    // Also expose generic API for flexibility (includes loading, error, items, fetch, etc.)
     ...resource
   }
 }
