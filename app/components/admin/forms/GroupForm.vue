@@ -274,7 +274,11 @@ defineExpose({ submit: handleSubmit })
 .group-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm, 0.5rem);
+  gap: var(--spacing-md, 1rem);
+}
+
+.group-form :deep(.form-textarea) {
+  min-height: 56px;
 }
 
 .group-form__row {
@@ -287,7 +291,7 @@ defineExpose({ submit: handleSubmit })
 .member-selector {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs, 0.5rem);
+  gap: var(--spacing-xs, 0.25rem);
 }
 
 .member-selector__label {
