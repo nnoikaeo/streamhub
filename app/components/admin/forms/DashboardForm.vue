@@ -61,7 +61,7 @@ const baseValidate = createObjectValidator({
   folderId: [(value) => validators.required(value, 'โฟลเดอร์')],
 })
 
-const form = useForm({
+const { formData, errors, handleSubmit, setFieldTouched } = useForm({
   initialValues: {
     id: props.dashboard?.id || `dash_${Date.now()}`,
     name: props.dashboard?.name || '',
@@ -74,11 +74,11 @@ const form = useForm({
     owner: props.dashboard?.owner || authStore.user?.uid || '',
   },
   validate: (values) => {
-    const errors = baseValidate(values)
+    const validationErrors = baseValidate(values)
     if (!values.lookerDashboardId?.trim()) {
-      errors.lookerDashboardId = 'Looker Dashboard ID จำเป็นต้องกรอก'
+      validationErrors.lookerDashboardId = 'Looker Dashboard ID จำเป็นต้องกรอก'
     }
-    return errors
+    return validationErrors
   },
   onSubmit: async (values) => {
     emit('submit', values)
@@ -108,19 +108,19 @@ onMounted(async () => {
 </script>
 
 <template>
-  <form @submit.prevent="form.handleSubmit" class="dashboard-form">
+  <form @submit.prevent="handleSubmit" class="dashboard-form">
     <FormField
-      v-model="form.formData.name"
+      v-model="formData.name"
       type="text"
       label="ชื่อแดชบอร์ด"
       placeholder="เช่น Regional Sales Performance"
-      :error="form.errors.name"
+      :error="errors.name"
       :required="true"
-      @blur="form.setFieldTouched('name')"
+      @blur="setFieldTouched('name')"
     />
 
     <FormField
-      v-model="form.formData.description"
+      v-model="formData.description"
       type="textarea"
       label="คำอธิบาย"
       placeholder="คำอธิบายเกี่ยวกับแดชบอร์ด"
@@ -128,39 +128,39 @@ onMounted(async () => {
     />
 
     <FormField
-      v-model="form.formData.folderId"
+      v-model="formData.folderId"
       type="select"
       label="โฟลเดอร์"
       :options="folderOptions"
-      :error="form.errors.folderId"
+      :error="errors.folderId"
       :required="true"
-      @blur="form.setFieldTouched('folderId')"
+      @blur="setFieldTouched('folderId')"
     />
 
     <FormField
-      v-model="form.formData.lookerDashboardId"
+      v-model="formData.lookerDashboardId"
       type="text"
       label="Looker Dashboard ID"
       placeholder="เช่น dashboard_123"
-      :error="form.errors.lookerDashboardId"
+      :error="errors.lookerDashboardId"
       :required="true"
-      @blur="form.setFieldTouched('lookerDashboardId')"
+      @blur="setFieldTouched('lookerDashboardId')"
     />
 
     <FormField
-      v-model="form.formData.lookerEmbedUrl"
+      v-model="formData.lookerEmbedUrl"
       type="text"
       label="Looker Embed URL"
       placeholder="https://looker.example.com/dashboards/123"
     />
 
     <FormField
-      v-model="form.formData.isArchived"
+      v-model="formData.isArchived"
       type="checkbox"
       label="เก็บถาวร (Archived)"
     />
 
-    <p v-if="form.formData.isArchived" class="form-warning">
+    <p v-if="formData.isArchived" class="form-warning">
       แดชบอร์ดที่ถูกเก็บถาวรจะถูกซ่อนจากผู้ใช้ทั่วไป
     </p>
 
@@ -168,7 +168,7 @@ onMounted(async () => {
     <div v-if="isEditMode" class="form-info">
       <div class="info-row">
         <span class="info-label">เจ้าของ:</span>
-        <span class="info-value">{{ form.formData.owner }}</span>
+        <span class="info-value">{{ formData.owner }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">สร้างเมื่อ:</span>
@@ -186,7 +186,7 @@ onMounted(async () => {
 .dashboard-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg, 1.25rem);
+  gap: var(--spacing-lg, 1.5rem);
 }
 
 .form-warning {

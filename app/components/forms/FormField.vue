@@ -161,8 +161,8 @@ const fieldId = computed(() => `field-${Math.random().toString(36).substr(2, 9)}
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs, 0.25rem);
-  margin-bottom: var(--spacing-lg, 1.25rem);
 }
+
 
 .form-label {
   font-weight: 600;
@@ -236,7 +236,6 @@ const fieldId = computed(() => `field-${Math.random().toString(36).substr(2, 9)}
   display: flex;
   align-items: center;
   gap: var(--spacing-sm, 0.5rem);
-  margin-bottom: var(--spacing-lg, 1.25rem);
 }
 
 .form-checkbox {
