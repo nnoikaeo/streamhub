@@ -1,11 +1,11 @@
 <script setup lang="ts">
 /**
- * CompanyForm Component (Refactored)
+ * CompanyForm Component
  * Form for creating and editing companies in admin panel
  *
  * Features:
- * - Fields: Code, Name, Country, Is Active
- * - Validation: Required fields
+ * - Fields: Code, Name, Description, Country, Is Active
+ * - Validation: Required fields (code, name)
  * - Code field disabled in edit mode
  * - Uses generic FormField component
  *
@@ -16,7 +16,7 @@
  * />
  */
 
-import type { Company } from '~/composables/useMockData'
+import type { Company } from '~/types/admin'
 import { createObjectValidator, validators } from '~/utils/formValidators'
 
 interface Props {
@@ -28,15 +28,15 @@ const emit = defineEmits<{
   submit: [data: Partial<Company>]
 }>()
 
-// Country options
+// Country options — value ต้องตรงกับที่เก็บใน .data/companies.json
 const countryOptions = [
-  { label: 'ประเทศไทย', value: 'Thailand' },
-  { label: 'ประเทศลาว', value: 'Laos' },
-  { label: 'ประเทศเวียดนาม', value: 'Vietnam' },
-  { label: 'ประเทศกัมพูชา', value: 'Cambodia' },
-  { label: 'ประเทศพม่า', value: 'Myanmar' },
-  { label: 'สิงคโปร์', value: 'Singapore' },
-  { label: 'มาเลเซีย', value: 'Malaysia' },
+  { label: 'ประเทศไทย', value: 'ประเทศไทย' },
+  { label: 'ประเทศลาว', value: 'ประเทศลาว' },
+  { label: 'ประเทศเวียดนาม', value: 'ประเทศเวียดนาม' },
+  { label: 'ประเทศกัมพูชา', value: 'ประเทศกัมพูชา' },
+  { label: 'ประเทศพม่า', value: 'ประเทศพม่า' },
+  { label: 'สิงคโปร์', value: 'สิงคโปร์' },
+  { label: 'มาเลเซีย', value: 'มาเลเซีย' },
 ]
 
 // Form validation
@@ -49,12 +49,13 @@ const validate = createObjectValidator({
   name: [(value) => validators.required(value, 'ชื่อบริษัท')],
 })
 
-const form = useForm({
+// Destructure to top-level refs so Volar auto-unwraps them in templates correctly
+const { formData, errors, handleSubmit, setFieldTouched } = useForm({
   initialValues: {
-    code: props.company?.code || '',
-    name: props.company?.name || '',
-    country: props.company?.country || 'Thailand',
-    isActive: props.company?.isActive ?? true,
+    code: props.company?.code ?? '',
+    name: props.company?.name ?? '',
+    description: props.company?.description ?? '',
+    country: props.company?.country ?? 'ประเทศไทย',
   },
   validate,
   onSubmit: async (values) => {
@@ -63,49 +64,51 @@ const form = useForm({
 })
 
 const isEditMode = computed(() => !!props.company)
+
+// Expose submit so parent (via ref) can trigger validation + submission
+// This avoids nested <form> (invalid HTML) and DOM FormData issues
+defineExpose({ submit: handleSubmit })
 </script>
 
 <template>
-  <form @submit.prevent="form.handleSubmit" class="company-form">
+  <div class="company-form">
     <FormField
-      v-model="form.formData.code"
+      v-model="formData.code"
       type="text"
       label="รหัสบริษัท (Code)"
       placeholder="เช่น STTH"
-      :error="form.errors.code"
+      :error="errors.code"
       :disabled="isEditMode"
       :required="true"
       :description="!isEditMode ? 'รหัสบริษัท ไม่สามารถเปลี่ยนแปลงหลังสร้างได้' : undefined"
-      @blur="form.setFieldTouched('code')"
+      @blur="setFieldTouched('code')"
     />
 
     <FormField
-      v-model="form.formData.name"
+      v-model="formData.name"
       type="text"
       label="ชื่อบริษัท (Name)"
       placeholder="เช่น บริษัท สทรีมวอช (ประเทศไทย) จำกัด"
-      :error="form.errors.name"
+      :error="errors.name"
       :required="true"
-      @blur="form.setFieldTouched('name')"
+      @blur="setFieldTouched('name')"
     />
 
     <FormField
-      v-model="form.formData.country"
+      v-model="formData.description"
+      type="textarea"
+      label="คำอธิบาย (Description)"
+      placeholder="อธิบายเกี่ยวกับบริษัทนี้..."
+    />
+
+    <FormField
+      v-model="formData.country"
       type="select"
       label="ประเทศ"
       :options="countryOptions"
     />
 
-    <FormField
-      v-model="form.formData.isActive"
-      type="checkbox"
-      label="เปิดใช้งาน (Active)"
-    />
-
-    <p v-if="!form.formData.isActive" class="form-warning">
-      บริษัทที่ปิดใช้งานจะไม่สามารถจัดสรรให้ผู้ใช้ใหม่ได้
-    </p>
-  </form>
+  </div>
 </template>
 
 <style scoped>

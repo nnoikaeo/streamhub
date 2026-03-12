@@ -23,14 +23,12 @@ export function useAdminCompanies() {
   // Create backward-compatible aliases for existing page code
   return {
     companies: resource.items,
-    loading: resource.loading,
-    error: resource.error,
     fetchCompanies: resource.fetch,
     createCompany: resource.create,
     updateCompany: resource.update,
     deleteCompany: resource.delete,
 
-    // Also expose generic API for flexibility
+    // Also expose generic API for flexibility (includes loading, error, items, fetch, etc.)
     ...resource
   }
 }

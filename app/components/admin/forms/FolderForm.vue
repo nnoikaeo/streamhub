@@ -36,16 +36,17 @@ const validate = createObjectValidator({
   name: [(value) => validators.required(value, 'ชื่อโฟลเดอร์')],
 })
 
-const form = useForm({
+// Destructure to top-level refs so Volar auto-unwraps them in templates correctly
+const { formData, errors, handleSubmit, setFieldTouched } = useForm({
   initialValues: {
     id: props.folder?.id || `folder_${Date.now()}`,
     name: props.folder?.name || '',
     description: props.folder?.description || '',
-    parentId: props.folder?.parentId || null,
+    parentId: props.folder?.parentId ?? '',
   },
   validate,
   onSubmit: async (values) => {
-    emit('submit', values)
+    emit('submit', { ...values, parentId: values.parentId || null })
   },
 })
 
@@ -107,7 +108,7 @@ const parentFolderOptions = computed(() => {
   }
 
   return [
-    { label: 'Root', value: null },
+    { label: 'Root', value: '' },
     ...folderList.value
       .filter(folder => !excludeIds.has(folder.id))
       .map(folder => ({
@@ -123,22 +124,25 @@ onMounted(async () => {
     await fetchFolders()
   }
 })
+
+// Allow parent to trigger validation + submission via template ref (same pattern as CompanyForm)
+defineExpose({ submit: handleSubmit })
 </script>
 
 <template>
-  <form @submit.prevent="form.handleSubmit" class="folder-form">
+  <form @submit.prevent="handleSubmit" class="folder-form">
     <FormField
-      v-model="form.formData.name"
+      v-model="formData.name"
       type="text"
       label="ชื่อโฟลเดอร์"
       placeholder="เช่น Sales Reports"
-      :error="form.errors.name"
+      :error="errors.name"
       :required="true"
-      @blur="form.setFieldTouched('name')"
+      @blur="setFieldTouched('name')"
     />
 
     <FormField
-      v-model="form.formData.description"
+      v-model="formData.description"
       type="textarea"
       label="คำอธิบาย"
       placeholder="คำอธิบายเกี่ยวกับโฟลเดอร์นี้"
@@ -146,7 +150,7 @@ onMounted(async () => {
     />
 
     <FormField
-      v-model="form.formData.parentId"
+      v-model="formData.parentId"
       type="select"
       label="โฟลเดอร์หลัก"
       :options="parentFolderOptions"

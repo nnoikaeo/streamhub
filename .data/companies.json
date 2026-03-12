@@ -2,37 +2,48 @@
   {
     "code": "STTH",
     "name": "บริษัท สทรีมวอช (ประเทศไทย) จำกัด",
-    "country": "Thailand",
-    "isActive": true
+    "description": "สำนักงานใหญ่ประเทศไทย ดูแลการดำเนินงานภาพรวมของกลุ่มบริษัท",
+    "country": "ประเทศไทย",
+    "isActive": true,
+    "updatedAt": "2026-03-05T10:28:27.845Z"
   },
   {
     "code": "STTN",
     "name": "บริษัท สทรีมวอช เทคโนโลยี จำกัด",
-    "country": "Thailand",
-    "isActive": true
+    "description": "ให้บริการงานด้านวิศวกรรมที่เกี่ยวข้องกับเครื่องล้างจานและเครื่องทำน้ำแข็ง",
+    "country": "ประเทศไทย",
+    "isActive": true,
+    "updatedAt": "2026-03-05T14:30:13.372Z"
   },
   {
     "code": "STCS",
     "name": "บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด",
-    "country": "Thailand",
-    "isActive": true
+    "description": "ผลิตและจำหน่ายเคมีภัณฑ์ครบวงจร",
+    "country": "ประเทศไทย",
+    "isActive": true,
+    "updatedAt": "2026-03-05T14:16:16.416Z"
   },
   {
     "code": "STNR",
     "name": "บริษัท สทรีมวอช (นครราชสีมา) จำกัด",
-    "country": "Thailand",
+    "description": "สาขาภาคตะวันออกเฉียงเหนือ ดูแลพื้นที่นครราชสีมาและจังหวัดใกล้เคียง",
+    "country": "ประเทศไทย",
     "isActive": true
   },
   {
     "code": "STPT",
     "name": "บริษัท สทรีมวอช (พัทยา) จำกัด",
-    "country": "Thailand",
-    "isActive": true
+    "description": "สาขาภาคตะวันออก ดูแลพื้นที่พัทยาและใกล้เคียง",
+    "country": "ประเทศไทย",
+    "isActive": true,
+    "updatedAt": "2026-03-05T14:16:38.513Z"
   },
   {
     "code": "STPK",
     "name": "บริษัท สทรีมวอช (ภูเก็ต) จำกัด",
-    "country": "Thailand",
-    "isActive": false
+    "description": "สาขาภาคใต้ ดูแลพื้นที่ภูเก็ตและจังหวัดใกล้เคียง",
+    "country": "ประเทศไทย",
+    "isActive": true,
+    "updatedAt": "2026-03-05T22:44:57.478Z"
   }
 ]

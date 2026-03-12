@@ -20,20 +20,14 @@ import type {
   User,
   Folder,
   Dashboard,
-  AccessControl,
-  AccessRestrictions,
 } from '~/types/dashboard'
 
-// ============================================================================
-// COMPANY INTERFACE & HELPERS
-// ============================================================================
+// Company type is defined in ~/types/admin (single source of truth)
+export type { Company } from '~/types/admin'
 
-export interface Company {
-  code: string
-  name: string
-  country: string
-  isActive: boolean
-}
+// ============================================================================
+// COMPANY HELPERS
+// ============================================================================
 
 /**
  * Get company by code

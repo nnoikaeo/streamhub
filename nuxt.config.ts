@@ -61,6 +61,13 @@ export default defineNuxtConfig({
       global: false
     },
 
+    // Form field components - NO prefix (for convenience)
+    {
+      path: '~/components/forms',
+      prefix: '',
+      global: true
+    },
+
     // Admin components - NO prefix (for convenience)
     {
       path: '~/components/admin',

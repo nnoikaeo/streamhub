@@ -102,9 +102,9 @@ const props = defineProps({
    * Modal size
    */
   size: {
-    type: String as () => 'sm' | 'md' | 'lg',
+    type: String as () => 'sm' | 'md' | 'lg' | 'xl',
     default: 'md',
-    validator: (v: string) => ['sm', 'md', 'lg'].includes(v),
+    validator: (v: string) => ['sm', 'md', 'lg', 'xl'].includes(v),
   },
 
   /**
@@ -206,6 +206,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
 .modal-lg {
   width: 100%;
   max-width: 48rem;
+}
+
+.modal-xl {
+  width: 100%;
+  max-width: 64rem;
 }
 
 /* ========== MODAL HEADER ========== */

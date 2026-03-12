@@ -7,6 +7,7 @@ export interface Column {
   sortable?: boolean
   width?: string
   align?: 'left' | 'center' | 'right'
+  subtitleKey?: string
   isNameColumn?: boolean
   isStatusColumn?: boolean
   isRoleColumn?: boolean
@@ -293,7 +294,7 @@ const getGroupBadgeClass = (groupName: string): string => {
                     <input
                       type="checkbox"
                       :checked="item.isActive"
-                      @change="handleToggleActive(item)"
+                      @click.prevent="handleToggleActive(item)"
                     />
                     <span class="toggle-slider"></span>
                   </label>
@@ -313,6 +314,14 @@ const getGroupBadgeClass = (groupName: string): string => {
                     :class="getGroupBadgeClass(group)"
                   >
                     {{ group }}
+                  </span>
+                </div>
+
+                <!-- Main value + subtitle display (when subtitleKey is set) -->
+                <div v-else-if="column.subtitleKey" class="flex flex-col">
+                  <span>{{ getCellValue(item, column.key) }}</span>
+                  <span v-if="item[column.subtitleKey]" class="text-sm" style="color: var(--color-text-secondary)">
+                    {{ item[column.subtitleKey] }}
                   </span>
                 </div>
 
