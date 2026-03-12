@@ -25,8 +25,8 @@ const navCategories = [
     label: 'ภาพรวม',
     items: [
       {
-        path: '/admin',
-        label: 'แดชบอร์ด',
+        path: '/admin/overview',
+        label: 'ภาพรวม',
         icon: '📊',
         exact: true,
       },

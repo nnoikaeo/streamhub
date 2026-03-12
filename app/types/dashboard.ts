@@ -33,12 +33,13 @@ export interface Folder {
   id: string
   name: string
   parentId?: string | null // null = root folder
-  company: string
   description?: string
+  isActive: boolean
   createdBy: string // uid
   createdAt: Date
   updatedAt: Date
   updatedBy: string // uid
+  assignedModerators?: string[] // UIDs of moderators who can manage this folder
 
   // Optional: for client-side hierarchy rendering
   children?: Folder[]
@@ -60,7 +61,7 @@ export interface Dashboard {
   id: string
   name: string
   folderId: string // Which folder this dashboard belongs to
-  type: 'looker' | 'custom' | 'external'
+  type: 'looker' // Only Looker dashboards are supported
   description?: string
   
   // Looker-specific fields
@@ -285,8 +286,7 @@ export function isFolder(obj: any): obj is Folder {
   return (
     obj &&
     typeof obj.id === 'string' &&
-    typeof obj.name === 'string' &&
-    typeof obj.company === 'string'
+    typeof obj.name === 'string'
   )
 }
 

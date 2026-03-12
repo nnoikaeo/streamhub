@@ -12,11 +12,6 @@ export default defineEventHandler(async (event) => {
     // Filter by query parameters
     let filtered = folders
 
-    if (query.company) {
-      filtered = filtered.filter((f: any) => f.company === query.company)
-      console.log(`  🔍 After company filter: ${filtered.length}`)
-    }
-
     if (query.parentId) {
       filtered = filtered.filter((f: any) => f.parentId === query.parentId)
       console.log(`  🔍 After parentId filter: ${filtered.length}`)

@@ -11,7 +11,6 @@
 
 import type { Folder } from '~/types/dashboard'
 import { useAdminFolders } from '~/composables/useAdminFolders'
-import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { createObjectValidator, validators } from '~/utils/formValidators'
 import { onMounted } from 'vue'
 
@@ -28,35 +27,26 @@ const emit = defineEmits<{
 
 // Composables
 const { folders, fetchFolders } = useAdminFolders()
-const { companies, fetchCompanies } = useAdminCompanies()
 
 // Use passed folders or fetch from composable
 const folderList = computed(() => props.allFolders || folders.value)
-
-// Company options
-const companyOptions = computed(() =>
-  companies.value.filter(c => c.isActive).map(c => ({
-    label: `${c.code} - ${c.name}`,
-    value: c.code,
-  }))
-)
 
 // Form validation
 const validate = createObjectValidator({
   name: [(value) => validators.required(value, 'ชื่อโฟลเดอร์')],
 })
 
-const form = useForm({
+// Destructure to top-level refs so Volar auto-unwraps them in templates correctly
+const { formData, errors, handleSubmit, setFieldTouched } = useForm({
   initialValues: {
     id: props.folder?.id || `folder_${Date.now()}`,
     name: props.folder?.name || '',
     description: props.folder?.description || '',
-    company: props.folder?.company || 'STTH',
-    parentId: props.folder?.parentId || null,
+    parentId: props.folder?.parentId ?? '',
   },
   validate,
   onSubmit: async (values) => {
-    emit('submit', values)
+    emit('submit', { ...values, parentId: values.parentId || null })
   },
 })
 
@@ -104,7 +94,7 @@ const buildFolderPath = (folderId: string): string => {
 
 /**
  * Available parent folders
- * Excludes: self, current descendants, and other companies
+ * Excludes: self and current descendants
  */
 const parentFolderOptions = computed(() => {
   const excludeIds = new Set<string>()
@@ -118,15 +108,9 @@ const parentFolderOptions = computed(() => {
   }
 
   return [
-    { label: 'Root', value: null },
+    { label: 'Root', value: '' },
     ...folderList.value
-      .filter(folder => {
-        // Exclude self and descendants
-        if (excludeIds.has(folder.id)) return false
-        // Only show folders from same company
-        if (folder.company !== form.formData.company) return false
-        return true
-      })
+      .filter(folder => !excludeIds.has(folder.id))
       .map(folder => ({
         label: buildFolderPath(folder.id),
         value: folder.id,
@@ -134,42 +118,31 @@ const parentFolderOptions = computed(() => {
   ]
 })
 
-/**
- * Handle company change - reset parent if not valid for new company
- */
-const handleCompanyChange = () => {
-  if (form.formData.parentId) {
-    const parent = folderList.value.find(f => f.id === form.formData.parentId)
-    if (parent && parent.company !== form.formData.company) {
-      form.formData.parentId = null
-    }
-  }
-}
-
-// Fetch companies and folders on mount if not passed
+// Fetch folders on mount if not passed
 onMounted(async () => {
   if (!props.allFolders) {
-    await Promise.all([fetchFolders(), fetchCompanies()])
-  } else {
-    await fetchCompanies()
+    await fetchFolders()
   }
 })
+
+// Allow parent to trigger validation + submission via template ref (same pattern as CompanyForm)
+defineExpose({ submit: handleSubmit })
 </script>
 
 <template>
-  <form @submit.prevent="form.handleSubmit" class="folder-form">
+  <form @submit.prevent="handleSubmit" class="folder-form">
     <FormField
-      v-model="form.formData.name"
+      v-model="formData.name"
       type="text"
       label="ชื่อโฟลเดอร์"
       placeholder="เช่น Sales Reports"
-      :error="form.errors.name"
+      :error="errors.name"
       :required="true"
-      @blur="form.setFieldTouched('name')"
+      @blur="setFieldTouched('name')"
     />
 
     <FormField
-      v-model="form.formData.description"
+      v-model="formData.description"
       type="textarea"
       label="คำอธิบาย"
       placeholder="คำอธิบายเกี่ยวกับโฟลเดอร์นี้"
@@ -177,29 +150,12 @@ onMounted(async () => {
     />
 
     <FormField
-      v-model="form.formData.company"
-      type="select"
-      label="บริษัท"
-      :options="companyOptions"
-      :disabled="isEditMode"
-      @change="handleCompanyChange"
-      :description="!isEditMode ? 'บริษัท ไม่สามารถเปลี่ยนแปลงหลังสร้างได้' : undefined"
-    />
-
-    <FormField
-      v-model="form.formData.parentId"
+      v-model="formData.parentId"
       type="select"
       label="โฟลเดอร์หลัก"
       :options="parentFolderOptions"
       :description="'เลือกโฟลเดอร์หลักสำหรับสร้างลำดับชั้น'"
     />
-
-    <div
-      v-if="form.formData.parentId !== null && parentFolderOptions.length <= 1"
-      class="form-info form-info--warning"
-    >
-      ⚠️ ไม่มีโฟลเดอร์หลักในบริษัท {{ form.formData.company }} ที่เหมาะสม
-    </div>
   </form>
 </template>
 
@@ -207,7 +163,7 @@ onMounted(async () => {
 .folder-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg, 1.25rem);
+  gap: var(--spacing-lg, 1.5rem);
 }
 
 /* Form Group */

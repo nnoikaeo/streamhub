@@ -12,7 +12,7 @@ interface FormConfig<T> {
 }
 
 export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
-  const formData = ref<T>({ ...config.initialValues })
+  const formData = reactive({ ...config.initialValues }) as T
   const errors = ref<Record<keyof T, string | undefined>>({} as any)
   const loading = ref(false)
   const touched = ref<Record<keyof T, boolean>>({} as any)
@@ -21,7 +21,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
    * Update form field value
    */
   const setFieldValue = (field: keyof T, value: any) => {
-    formData.value[field] = value
+    formData[field] = value
     // Clear error on field change
     if (errors.value[field]) {
       errors.value[field] = undefined
@@ -35,7 +35,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
     touched.value[field] = value
     // Re-validate on blur if custom validator provided
     if (config.validate && value) {
-      const fieldErrors = config.validate(formData.value)
+      const fieldErrors = config.validate(formData as T)
       errors.value[field] = fieldErrors[field]
     }
   }
@@ -46,11 +46,11 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
   const validateForm = (): boolean => {
     if (!config.validate) return true
 
-    const fieldErrors = config.validate(formData.value)
+    const fieldErrors = config.validate(formData as T)
     errors.value = fieldErrors
 
     // Mark all fields as touched
-    Object.keys(formData.value).forEach((key) => {
+    Object.keys(formData).forEach((key) => {
       touched.value[key as keyof T] = true
     })
 
@@ -61,7 +61,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
    * Reset form to initial values
    */
   const resetForm = () => {
-    formData.value = { ...config.initialValues }
+    Object.assign(formData, { ...config.initialValues })
     errors.value = {} as any
     touched.value = {} as any
   }
@@ -70,7 +70,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
    * Update form data (for populating with existing data)
    */
   const setFormData = (data: Partial<T>) => {
-    formData.value = { ...formData.value, ...data }
+    Object.assign(formData, data)
   }
 
   /**
@@ -83,7 +83,7 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
 
     loading.value = true
     try {
-      await config.onSubmit(formData.value)
+      await config.onSubmit(formData as T)
     } finally {
       loading.value = false
     }

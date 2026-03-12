@@ -161,7 +161,7 @@ const mainNavItems = [
 // Admin menu items (in accordion)
 const adminMenuItems: MenuItem[] = [
   {
-    path: '/admin',
+    path: '/admin/overview',
     label: 'ภาพรวม',
     icon: '📊',
   },

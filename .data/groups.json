@@ -1,17 +1,102 @@
-{
-  "sales": {
+[
+  {
+    "id": "sales",
     "name": "Sales",
-    "members": ["user_somchai_mod", "user_teerak_user"],
-    "description": "Sales team members"
+    "description": "ทีมขายและพัฒนาธุรกิจ ดูแลลูกค้าและเป้าหมายรายได้",
+    "members": [
+      "user_teerak_user",
+      "user_janine_user"
+    ],
+    "isActive": true,
+    "createdAt": "2024-01-10T08:00:00.000Z",
+    "updatedAt": "2026-03-12T09:50:20.230Z"
   },
-  "finance": {
+  {
+    "id": "finance",
     "name": "Finance",
-    "members": ["user_somchai_mod", "user_nattha_mod", "user_janine_user"],
-    "description": "Finance team members"
+    "description": "ทีมการเงินและบัญชี ดูแลงบประมาณและรายงานทางการเงิน",
+    "members": [
+      "user_somchai_mod",
+      "user_nattha_mod",
+      "user_janine_user"
+    ],
+    "isActive": true,
+    "createdAt": "2024-01-10T08:00:00.000Z",
+    "updatedAt": "2024-06-01T10:00:00.000Z"
   },
-  "operations": {
+  {
+    "id": "operations",
     "name": "Operations",
-    "members": ["user_janine_user", "user_sombat_user"],
-    "description": "Operations team members"
+    "description": "ทีมปฏิบัติการ ดูแลกระบวนการทำงานและประสิทธิภาพองค์กร",
+    "members": [
+      "user_janine_user",
+      "user_sombat_user"
+    ],
+    "isActive": true,
+    "createdAt": "2024-01-15T08:00:00.000Z",
+    "updatedAt": "2024-06-01T10:00:00.000Z"
+  },
+  {
+    "id": "hr",
+    "name": "Human Resources",
+    "description": "ทีมทรัพยากรบุคคล ดูแลการสรรหา พัฒนา และสวัสดิการพนักงาน",
+    "members": [
+      "user_somchai_mod",
+      "user_janine_user",
+      "user_teerak_user"
+    ],
+    "isActive": true,
+    "createdAt": "2024-02-01T08:00:00.000Z",
+    "updatedAt": "2026-03-12T09:47:38.134Z"
+  },
+  {
+    "id": "it",
+    "name": "IT",
+    "description": "ทีมเทคโนโลยีสารสนเทศ ดูแลโครงสร้างพื้นฐานและระบบสารสนเทศ",
+    "members": [
+      "61JSdbE674TqRBHHUu9ezdzFul93",
+      "user_somchai_mod"
+    ],
+    "isActive": true,
+    "createdAt": "2024-02-01T08:00:00.000Z",
+    "updatedAt": "2024-07-15T10:00:00.000Z"
+  },
+  {
+    "id": "marketing",
+    "name": "Marketing",
+    "description": "ทีมการตลาด ดูแลแบรนด์และกลยุทธ์สื่อสารการตลาด",
+    "members": [
+      "user_teerak_user",
+      "user_janine_user",
+      "user_nattha_mod"
+    ],
+    "isActive": true,
+    "createdAt": "2024-03-01T08:00:00.000Z",
+    "updatedAt": "2024-08-01T10:00:00.000Z"
+  },
+  {
+    "id": "management",
+    "name": "Management",
+    "description": "ทีมผู้บริหาร ดูแลกลยุทธ์และทิศทางการดำเนินธุรกิจ",
+    "members": [
+      "user_somchai_mod",
+      "user_nattha_mod"
+    ],
+    "isActive": true,
+    "createdAt": "2024-01-01T08:00:00.000Z",
+    "updatedAt": "2024-09-01T10:00:00.000Z"
+  },
+  {
+    "id": "analytics",
+    "name": "Analytics",
+    "description": "ทีมวิเคราะห์ข้อมูล ดูแลการรายงานและ Business Intelligence",
+    "members": [
+      "61JSdbE674TqRBHHUu9ezdzFul93",
+      "user_teerak_user",
+      "user_sombat_user"
+    ],
+    "isActive": true,
+    "createdAt": "2024-04-01T08:00:00.000Z",
+    "updatedAt": "2026-03-10T07:23:35.985Z"
   }
-}
+]

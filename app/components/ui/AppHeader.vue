@@ -8,7 +8,7 @@
 
       <!-- Admin Menu (Hidden) -->
       <nav v-if="false" class="admin-menu">
-        <router-link to="/admin" class="admin-menu-link" active-class="active">
+        <router-link to="/admin/overview" class="admin-menu-link" active-class="active">
           📊 Dashboard
         </router-link>
         <router-link to="/admin/users" class="admin-menu-link" active-class="active">

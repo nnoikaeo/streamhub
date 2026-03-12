@@ -5,45 +5,80 @@ import PageLayout from '~/components/compositions/PageLayout.vue'
  *
  * Features:
  * - Display all folders in DataTable
- * - CRUD operations
- * - Filter by company
+ * - CRUD operations (Create, Read, Update, Delete)
+ * - Toggle active status inline via DataTable toggle switch
  * - Search by name
  * - Protected by admin middleware
  *
  * Route: /admin/folders
  * Middleware: auth, admin
+ *
+ * WORKFLOW:
+ * 1. Page loads → auth & admin middleware checks
+ * 2. onMounted → fetchFolders() loads all folders from useAdminFolders composable
+ * 3. DataTable renders folders with columns (name+description, parentName, isActive toggle)
+ * 4. User actions:
+ *    - Click "เพิ่มโฟลเดอร์ใหม่" → handleAddFolder → showFolderModal
+ *    - Click "แก้ไข" → handleEditFolder → showFolderModal with selectedFolder
+ *    - Click "ลบ" → handleDeleteFolder → showConfirmDialog with folderToDelete
+ *    - Toggle status → handleToggleActive → updateFolder API call
+ * 5. FormModal with FolderForm → folderFormRef.submit() → validates → handleSaveFolder
+ * 6. ConfirmDialog (delete) → confirmDeleteFolder → deleteFolder API call
+ * 7. ConfirmDialog (toggle) → confirmToggleActive → updateFolder API call
+ *
+ * COMPONENTS USED:
+ * - AdminPageContent: Shared layout wrapper (header, filters, table structure + styles)
+ * - DataTable: Generic table component
+ * - FormModal: Modal wrapper for folder form
+ * - FolderForm: Form component for editing folder data
+ * - ConfirmDialog: Confirmation dialog for delete action
+ *
+ * COMPOSABLES USED:
+ * - useAdminFolders: Fetch, create, update, delete folders + buildFolderTree
+ * - useAdminBreadcrumbs: Generate breadcrumb navigation
  */
 
 import { ref, computed, onMounted } from 'vue'
-import type { Folder } from '~/types/dashboard'
+import type { Folder } from '~/types/admin'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminFolders } from '~/composables/useAdminFolders'
-import { useAdminCompanies } from '~/composables/useAdminCompanies'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
   layout: 'default',
 })
 
-const { breadcrumbs } = useAdminBreadcrumbs()
-const { folders, loading, fetchFolders, updateFolder, deleteFolder } = useAdminFolders()
-const { companies } = useAdminCompanies()
+console.log('📄 [admin/folders/index.vue] Folders management page initialized')
 
-console.log('📄 [admin/folders/index.vue] Folders management page mounted')
+const { breadcrumbs } = useAdminBreadcrumbs()
+const { folders, loading, fetchFolders, createFolder, updateFolder, deleteFolder, buildFolderTree } = useAdminFolders()
+
+// Modal & dialog state
 const showFolderModal = ref(false)
 const showConfirmDialog = ref(false)
+const showToggleDialog = ref(false)
 const selectedFolder = ref<Folder | null>(null)
 const folderToDelete = ref<Folder | null>(null)
+const folderToToggle = ref<Folder | null>(null)
 
+// Ref to FolderForm — triggers its internal useForm validation + submission via defineExpose
+const folderFormRef = ref<{ submit: () => Promise<void> } | null>(null)
+
+// Filters
 const searchQuery = ref('')
-const filterCompany = ref<string | null>(null)
+const filterActive = ref<boolean | null>(null)
 
+/**
+ * Column definitions for DataTable
+ * - Name: folder name with description as subtitle
+ * - Parent: parent folder name
+ * - Status toggle switch (green when enabled, uses isStatusColumn)
+ * - Actions (icons only)
+ */
 const columns = [
-  { key: 'name', label: 'ชื่อโฟลเดอร์', sortable: true, width: '200px' },
-  { key: 'company', label: 'บริษัท', sortable: true, width: '120px' },
-  { key: 'parentId', label: 'โฟลเดอร์หลัก', width: '180px' },
-  { key: 'description', label: 'คำอธิบาย', width: '250px' },
-  { key: 'createdAt', label: 'สร้างเมื่อ', sortable: true, width: '150px' },
+  { key: 'name', label: 'ชื่อโฟลเดอร์', sortable: true, width: '280px', subtitleKey: 'description' },
+  { key: 'parentName', label: 'โฟลเดอร์หลัก', width: '180px' },
+  { key: 'isActive', label: 'สถานะ', sortable: true, width: '100px', isStatusColumn: true },
 ]
 
 const getParentFolderName = (parentId: string | null): string => {
@@ -52,6 +87,9 @@ const getParentFolderName = (parentId: string | null): string => {
   return parent ? parent.name : '-'
 }
 
+/**
+ * Filter and search folders
+ */
 const filteredFolders = computed(() => {
   return folders.value.filter(folder => {
     if (searchQuery.value) {
@@ -59,7 +97,7 @@ const filteredFolders = computed(() => {
       if (!folder.name.toLowerCase().includes(query)) return false
     }
 
-    if (filterCompany.value && folder.company !== filterCompany.value) {
+    if (filterActive.value !== null && folder.isActive !== filterActive.value) {
       return false
     }
 
@@ -67,52 +105,96 @@ const filteredFolders = computed(() => {
   })
 })
 
+/**
+ * Add parentName field for DataTable display
+ */
+const displayFolders = computed(() =>
+  filteredFolders.value.map(folder => ({
+    ...folder,
+    parentName: getParentFolderName(folder.parentId ?? null),
+  }))
+)
+
+/**
+ * Action handlers
+ */
 const handleAddFolder = () => {
+  console.log('➕ [Action] Add new folder')
   selectedFolder.value = null
   showFolderModal.value = true
 }
 
 const handleEditFolder = (folder: Folder) => {
+  console.log('✏️ [Action] Edit folder:', folder.id)
   selectedFolder.value = folder
   showFolderModal.value = true
 }
 
 const handleDeleteFolder = (folder: Folder) => {
+  console.log('🗑️ [Action] Delete folder:', folder.id)
   folderToDelete.value = folder
   showConfirmDialog.value = true
 }
 
-const handleSaveFolder = async (formData: any) => {
+const handleToggleActive = (folder: Folder) => {
+  console.log(`🔄 [Action] Toggle active for folder: ${folder.id} (current: ${folder.isActive})`)
+  folderToToggle.value = folder
+  showToggleDialog.value = true
+}
+
+const confirmToggleActive = async () => {
+  if (!folderToToggle.value) return
   try {
+    const newStatus = !folderToToggle.value.isActive
+    console.log(`🔄 [Toggle] Updating folder ${folderToToggle.value.id} isActive → ${newStatus}`)
+    await updateFolder(folderToToggle.value.id, { isActive: newStatus })
+    console.log(`✅ [Toggle] Folder ${folderToToggle.value.name} status updated to ${newStatus}`)
+    showToggleDialog.value = false
+    folderToToggle.value = null
+  } catch (error) {
+    console.error('❌ [Toggle] Error updating folder status:', error)
+  }
+}
+
+const handleSaveFolder = async (formData: Partial<Folder>) => {
+  try {
+    console.log('💾 [Save] Saving folder data:', formData)
     if (selectedFolder.value) {
+      console.log(`📤 [Save] Updating folder: ${selectedFolder.value.id}`)
       await updateFolder(selectedFolder.value.id, formData)
-      console.log(`✅ Folder updated: ${formData.name}`)
+      console.log(`✅ [Save] Folder updated: ${selectedFolder.value.id}`)
     } else {
-      console.warn('Create folder not yet implemented')
+      console.log('➕ [Save] Creating new folder:', formData.name)
+      await createFolder(formData)
+      console.log(`✅ [Save] Folder created: ${formData.name}`)
     }
     showFolderModal.value = false
   } catch (error) {
-    console.error('❌ Error saving folder:', error)
+    console.error('❌ [Save] Error saving folder:', error)
   }
 }
 
 const confirmDeleteFolder = async () => {
   if (!folderToDelete.value) return
   try {
+    console.log(`🗑️ [Delete] Deleting folder: ${folderToDelete.value.id}`)
     await deleteFolder(folderToDelete.value.id)
-    console.log(`✅ Folder deleted: ${folderToDelete.value.name}`)
+    console.log(`✅ [Delete] Folder deleted: ${folderToDelete.value.name}`)
     showConfirmDialog.value = false
     folderToDelete.value = null
   } catch (error) {
-    console.error('❌ Error deleting folder:', error)
+    console.error('❌ [Delete] Error deleting folder:', error)
   }
 }
 
 const clearFilters = () => {
   searchQuery.value = ''
-  filterCompany.value = null
+  filterActive.value = null
 }
 
+/**
+ * Action buttons for table rows
+ */
 const actions = [
   {
     label: 'แก้ไข',
@@ -130,48 +212,16 @@ const actions = [
 
 onMounted(async () => {
   try {
+    console.log('🚀 [Lifecycle] onMounted - Starting to fetch folders...')
     await fetchFolders()
+    console.log('✅ [Lifecycle] onMounted - Folders fetched successfully')
   } catch (error) {
-    console.error('Error loading folders:', error)
+    console.error('❌ [Lifecycle] Error loading folders:', error)
   }
 })
 
 /**
- * Build folder tree hierarchy with children from flat folders array
- * Converts flat folders to tree structure for FolderTree component
- */
-const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
-  const folderMap = new Map<string, Folder & { children: Folder[] }>()
-
-  // First pass: create enhanced folder objects with empty children arrays
-  for (const folder of flatFolders) {
-    folderMap.set(folder.id, {
-      ...folder,
-      children: []
-    })
-  }
-
-  // Second pass: build parent-child relationships
-  const rootFolders: (Folder & { children: Folder[] })[] = []
-  for (const folder of flatFolders) {
-    const enhancedFolder = folderMap.get(folder.id)!
-    if (folder.parentId) {
-      // This folder has a parent
-      const parentFolder = folderMap.get(folder.parentId)
-      if (parentFolder) {
-        parentFolder.children.push(enhancedFolder)
-      }
-    } else {
-      // Root folder (no parent)
-      rootFolders.push(enhancedFolder)
-    }
-  }
-
-  return rootFolders
-}
-
-/**
- * Folder tree with hierarchy built from flat folders array
+ * Folder tree for sidebar — built via shared buildFolderTree from useAdminFolders
  */
 const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
@@ -183,86 +233,82 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     :allow-create="false"
     :breadcrumbs="breadcrumbs"
   >
-    <div class="admin-content">
-        <div class="page-header">
-          <h1 class="page-header__title">จัดการโฟลเดอร์</h1>
-          <button @click="handleAddFolder" class="page-header-action-btn">
-            ➕ เพิ่มโฟลเดอร์ใหม่
-          </button>
-        </div>
+    <AdminPageContent>
+      <template #header>
+        <h1 class="page-header__title">จัดการโฟลเดอร์</h1>
+        <button @click="handleAddFolder" class="page-header-action-btn">
+          ➕ เพิ่มโฟลเดอร์ใหม่
+        </button>
+      </template>
 
-        <div class="filters-section">
-          <div class="filters-row">
-            <div class="filter-group">
-              <input
-                v-model="searchQuery"
-                type="text"
-                class="theme-form-input"
-                placeholder="ค้นหาตามชื่อโฟลเดอร์..."
-              />
-            </div>
-
-            <div class="filter-group">
-              <select v-model="filterCompany" class="theme-form-select">
-                <option :value="null">-- บริษัททั้งหมด --</option>
-                <option v-for="c in companies" :key="c.code" :value="c.code">
-                  {{ c.code }}
-                </option>
-              </select>
-            </div>
-
-            <button @click="clearFilters" class="theme-btn theme-btn--ghost">
-              🔄 ล้างตัวกรอง
-            </button>
-          </div>
-
-          <div class="filter-info">
-            <span class="results-count">
-              แสดง {{ filteredFolders.length }} จาก {{ folders.length }} โฟลเดอร์
-            </span>
-          </div>
-        </div>
-
-        <div class="table-section">
-          <DataTable
-            :columns="columns"
-            :data="filteredFolders"
-            :loading="loading"
-            :actions="actions"
-            empty-message="ไม่พบโฟลเดอร์"
+      <template #filters>
+        <div class="filter-group">
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="theme-form-input"
+            placeholder="ค้นหาตามชื่อโฟลเดอร์..."
           />
         </div>
 
-        <FormModal
-          v-model="showFolderModal"
-          :title="selectedFolder ? 'แก้ไขโฟลเดอร์' : 'เพิ่มโฟลเดอร์ใหม่'"
-          :loading="loading"
-          @save="handleSaveFolder"
-          @cancel="showFolderModal = false"
-        >
-          <FolderForm :folder="selectedFolder" :all-folders="folders" @submit="handleSaveFolder" />
-        </FormModal>
+        <div class="filter-group">
+          <select v-model="filterActive" class="theme-form-select">
+            <option :value="null">-- สถานะทั้งหมด --</option>
+            <option :value="true">เปิดใช้งาน</option>
+            <option :value="false">ปิดใช้งาน</option>
+          </select>
+        </div>
 
-        <ConfirmDialog
-          :is-open="showConfirmDialog"
-          title="ลบโฟลเดอร์"
-          :message="`คุณแน่ใจว่าต้องการลบโฟลเดอร์ '${folderToDelete?.name}' หรือไม่?`"
+        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+          🔄 ล้างตัวกรอง
+        </button>
+      </template>
+
+      <template #table>
+        <DataTable
+          :columns="columns"
+          :data="displayFolders"
           :loading="loading"
-          @confirm="confirmDeleteFolder"
-          @cancel="showConfirmDialog = false"
+          :actions="actions"
+          empty-message="ไม่พบโฟลเดอร์"
+          @toggleActive="handleToggleActive"
         />
-    </div>
+      </template>
+
+      <!-- Folder Form Modal -->
+      <FormModal
+        v-model="showFolderModal"
+        :title="selectedFolder ? 'แก้ไขโฟลเดอร์' : 'เพิ่มโฟลเดอร์ใหม่'"
+        :loading="loading"
+        @save="folderFormRef?.submit()"
+        @cancel="showFolderModal = false"
+      >
+        <FolderForm ref="folderFormRef" :folder="selectedFolder" :all-folders="folders" @submit="handleSaveFolder" />
+      </FormModal>
+
+      <!-- Delete Confirmation Dialog -->
+      <ConfirmDialog
+        :is-open="showConfirmDialog"
+        title="ลบโฟลเดอร์"
+        :message="`คุณแน่ใจว่าต้องการลบโฟลเดอร์ '${folderToDelete?.name}' หรือไม่?`"
+        :loading="loading"
+        @confirm="confirmDeleteFolder"
+        @cancel="showConfirmDialog = false"
+      />
+
+      <!-- Toggle Active Confirmation Dialog -->
+      <ConfirmDialog
+        :is-open="showToggleDialog"
+        :title="folderToToggle?.isActive ? 'ปิดใช้งานโฟลเดอร์' : 'เปิดใช้งานโฟลเดอร์'"
+        :message="folderToToggle?.isActive
+          ? `คุณต้องการปิดใช้งานโฟลเดอร์ '${folderToToggle?.name}' หรือไม่?`
+          : `คุณต้องการเปิดใช้งานโฟลเดอร์ '${folderToToggle?.name}' หรือไม่?`"
+        :confirm-text="folderToToggle?.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน'"
+        :is-danger="folderToToggle?.isActive"
+        :loading="loading"
+        @confirm="confirmToggleActive"
+        @cancel="showToggleDialog = false; folderToToggle = null"
+      />
+    </AdminPageContent>
   </PageLayout>
 </template>
-
-<style scoped>
-.admin-content { padding: var(--spacing-xl, 2rem) var(--spacing-lg, 1.25rem); max-width: 1400px; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xl, 2rem); gap: var(--spacing-md, 1rem); }
-.filters-section { background-color: var(--color-bg-primary, #ffffff); padding: var(--spacing-xs); border-radius: var(--radius-lg, 0.5rem); margin-bottom: var(--spacing-lg, 1.25rem); box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05)); }
-.filters-row { display: flex; gap: var(--spacing-md, 1rem); flex-wrap: wrap; margin-bottom: var(--spacing-md, 1rem); }
-.filter-group { flex: 1; min-width: 200px; }
-.filter-info { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--color-text-secondary, #6b7280); }
-.results-count { font-weight: 500; }
-.table-section { background-color: var(--color-bg-primary, #ffffff); border-radius: var(--radius-lg, 0.5rem); box-shadow: var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05)); overflow: hidden; }
-@media (max-width: 768px) { .admin-content { padding: var(--spacing-lg, 1.25rem) var(--spacing-md, 1rem); } .page-header { flex-direction: column; align-items: flex-start; } .filters-row { flex-direction: column; } .filter-group { min-width: auto; } }
-</style>

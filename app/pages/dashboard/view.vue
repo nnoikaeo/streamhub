@@ -113,8 +113,8 @@
 
           <!-- Right Pane: Looker Dashboard Embed -->
           <div class="dashboard-main">
-            <!-- Looker Embed Placeholder -->
-            <div v-if="dashboard.type === 'looker' && dashboard.lookerEmbedUrl" class="looker-embed">
+            <!-- Looker Embed -->
+            <div v-if="dashboard.lookerEmbedUrl" class="looker-embed">
               <iframe
                 :src="dashboard.lookerEmbedUrl"
                 class="embed-iframe"
@@ -124,21 +124,15 @@
               />
             </div>
 
-            <!-- Custom/External Dashboard Placeholder -->
+            <!-- No Embed URL Configured -->
             <div v-else class="dashboard-placeholder">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                 <line x1="3" y1="9" x2="21" y2="9" />
                 <line x1="9" y1="3" x2="9" y2="21" />
               </svg>
-              <h2>{{ dashboard.type === 'custom' ? 'Custom Dashboard' : 'External Dashboard' }}</h2>
-              <p>
-                {{
-                  dashboard.type === 'looker'
-                    ? 'Looker dashboard embed URL not configured'
-                    : 'Dashboard content will be displayed here'
-                }}
-              </p>
+              <h2>Looker Dashboard</h2>
+              <p>Looker dashboard embed URL not configured</p>
               <div class="placeholder-info">
                 <strong>Dashboard ID:</strong> {{ dashboard.id }}
               </div>
