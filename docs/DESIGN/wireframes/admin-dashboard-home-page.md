@@ -78,9 +78,13 @@
 
 **Buttons:**
 - Add User → Navigate to `/admin/users/new`
-- Add Dashboard → Navigate to `/admin/dashboards/new`
+- Add Dashboard → Navigate to `/admin/explorer` (เปิด explorer ที่ root แล้วกด New Dashboard)
 - Add Company → Navigate to `/admin/companies/new`
-- Add Folder → Navigate to `/admin/folders/new`
+- Add Folder → Navigate to `/admin/explorer` (เปิด explorer ที่ root แล้วกด New Folder)
+
+> **หมายเหตุ (2026-03-12):** Add Dashboard และ Add Folder เปลี่ยน destination จาก dedicated pages
+> ไปที่ `/admin/explorer` เนื่องจากใช้ Full File Explorer Style แล้ว
+> ดูรายละเอียดที่ [admin-explorer-page.md](./admin-explorer-page.md)
 
 ---
 
@@ -154,7 +158,8 @@
 |----------|---------|------|
 | **Admin Permissions** | Permission management UI | [admin-permission-management-page.md](./admin-permission-management-page.md) |
 | **User Management** | User CRUD page | [admin-user-management-page.md](./admin-user-management-page.md) |
-| **Folder Management** | Folder CRUD page | [admin-folder-management-page.md](./admin-folder-management-page.md) |
+| **Explorer** | Full File Explorer (folder + dashboard management) | [admin-explorer-page.md](./admin-explorer-page.md) |
+| **Folder Management** | _(Deprecated)_ ถูกแทนที่โดย Explorer | [admin-folder-management-page.md](./admin-folder-management-page.md) |
 | **Company Management** | Company CRUD page | [admin-company-management-page.md](./admin-company-management-page.md) |
 | **Design System** | Colors, typography, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
 

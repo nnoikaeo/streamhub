@@ -105,7 +105,6 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   selectedFolderId: null,
-  expandedFolders: () => new Set(),
 })
 
 const emit = defineEmits<{
@@ -113,12 +112,15 @@ const emit = defineEmits<{
   expand: [folderId: string]
 }>()
 
-// Local expanded state if not provided
-const localExpandedFolders = ref<Set<string>>(
-  props.expandedFolders instanceof Set ? props.expandedFolders : new Set(),
-)
+// Local expanded state — used when parent does not provide expandedFolders (uncontrolled mode)
+const localExpandedFolders = ref<Set<string>>(new Set())
 
-const expandedFolders = props.expandedFolders instanceof Set ? props.expandedFolders : localExpandedFolders.value
+/**
+ * Reactive expanded state:
+ * - Controlled mode  : parent passes :expanded-folders → react to prop changes
+ * - Uncontrolled mode: no prop → use localExpandedFolders (managed internally)
+ */
+const expandedFolders = computed(() => props.expandedFolders ?? localExpandedFolders.value)
 
 /**
  * Check if folder is selected
@@ -129,11 +131,18 @@ const isSelected = (folderId: string): boolean => {
 
 /**
  * Toggle folder expansion
- * Emit event to let parent (FolderSidebar) handle the state change
- * This prevents direct mutation of props and ensures state is managed in store
+ * - Always emits 'expand' for parent (controlled mode) to handle
+ * - Also updates localExpandedFolders (uncontrolled mode fallback)
  */
 const toggleExpand = (folderId: string) => {
   emit('expand', folderId)
+  const newSet = new Set(localExpandedFolders.value)
+  if (newSet.has(folderId)) {
+    newSet.delete(folderId)
+  } else {
+    newSet.add(folderId)
+  }
+  localExpandedFolders.value = newSet
 }
 
 /**
@@ -142,7 +151,7 @@ const toggleExpand = (folderId: string) => {
 const selectFolder = (folder: Folder) => {
   emit('select', folder)
   // Auto-expand when selecting a folder
-  if (folder.children && folder.children.length > 0 && !expandedFolders.has(folder.id)) {
+  if (folder.children && folder.children.length > 0 && !expandedFolders.value.has(folder.id)) {
     emit('expand', folder.id)
   }
 }
