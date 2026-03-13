@@ -185,7 +185,7 @@ button:disabled {
 }
 
 /* Default button styles - can be overridden by component classes */
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn) {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
@@ -194,12 +194,12 @@ button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):
   font-weight: 500;
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):hover:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):hover:not(:disabled) {
   background-color: var(--color-primary-dark);
   box-shadow: var(--shadow-md);
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):active:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):active:not(:disabled) {
   transform: translateY(1px);
 }
 

@@ -171,14 +171,9 @@ const adminMenuItems: MenuItem[] = [
     icon: '👥',
   },
   {
-    path: '/admin/dashboards',
-    label: 'แดชบอร์ด',
-    icon: '📈',
-  },
-  {
-    path: '/admin/folders',
-    label: 'โฟลเดอร์',
-    icon: '📁',
+    path: '/admin/explorer',
+    label: 'Explorer',
+    icon: '🗂️',
   },
   {
     path: '/admin/companies',
