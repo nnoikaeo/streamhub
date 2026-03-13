@@ -1,10 +1,15 @@
 # Admin Folder Management Page
 
+> ⚠️ **DEPRECATED — Version 1.0**
+> เอกสารนี้ถูกแทนที่โดย [admin-explorer-page.md](./admin-explorer-page.md) (v2.0)
+> การออกแบบเปลี่ยนจาก Two-pane Folder+Detail มาเป็น **Full File Explorer Style**
+> ดูรายละเอียดการตัดสินใจได้ที่ [admin-explorer-page.md](./admin-explorer-page.md)
+
 > **Purpose:** Manage folder hierarchy across companies (create, edit, delete, assign moderators)
 > **Users:** Admin role only
 > **Current Implementation:** `app/pages/admin/folders/index.vue` (to be created)
-> **Last Updated:** 2026-02-14
-> **Version:** 1.0
+> **Last Updated:** 2026-02-14 (Deprecated: 2026-03-12)
+> **Version:** 1.0 (Deprecated)
 
 ---
 

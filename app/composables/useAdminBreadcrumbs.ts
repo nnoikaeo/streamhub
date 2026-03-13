@@ -23,7 +23,10 @@ export function useAdminBreadcrumbs() {
    * Each route returns an array of breadcrumb items
    */
   const routeMap: Record<string, BreadcrumbItem[]> = {
-    '/admin/overview': [{ label: 'ภาพรวม' }],
+    '/admin/overview': [
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
+      { label: 'ภาพรวม' },
+    ],
     '/admin/users': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'ผู้ใช้' },
@@ -32,9 +35,9 @@ export function useAdminBreadcrumbs() {
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'แดชบอร์ด' },
     ],
-    '/admin/folders': [
+    '/admin/explorer': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
-      { label: 'โฟลเดอร์' },
+      { label: 'Explorer' },
     ],
     '/admin/companies': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
@@ -51,11 +54,15 @@ export function useAdminBreadcrumbs() {
   }
 
   /**
-   * Computed breadcrumbs based on current route
-   * Falls back to a simple 'Admin' breadcrumb if route not found
+   * Computed breadcrumbs based on current route.
+   * Explorer sub-routes (/admin/explorer/:folderId) match by prefix.
    */
   const breadcrumbs = computed<BreadcrumbItem[]>(() => {
-    return routeMap[route.path] ?? [{ label: 'Admin' }]
+    if (route.path in routeMap) return routeMap[route.path]!
+    if (route.path.startsWith('/admin/explorer/')) return routeMap['/admin/explorer']
+    return [
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
+    ]
   })
 
   return { breadcrumbs }

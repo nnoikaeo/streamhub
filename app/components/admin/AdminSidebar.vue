@@ -14,7 +14,6 @@
  * <AdminSidebar />
  */
 
-import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -41,14 +40,14 @@ const navCategories = [
         icon: '👥',
       },
       {
+        path: '/admin/explorer',
+        label: 'Explorer',
+        icon: '🗂️',
+      },
+      {
         path: '/admin/dashboards',
         label: 'แดชบอร์ด',
         icon: '📈',
-      },
-      {
-        path: '/admin/folders',
-        label: 'โฟลเดอร์',
-        icon: '📁',
       },
       {
         path: '/admin/companies',
@@ -113,7 +112,7 @@ const getLinkClass = (path: string, exact: boolean = false): string => {
             v-for="item in category.items"
             :key="item.path"
             :to="item.path"
-            :class="['nav-link', getLinkClass(item.path, item.exact)]"
+            :class="['nav-link', getLinkClass(item.path, (item as any).exact)]"
             exact-active-class="nav-link--active"
           >
             <span class="nav-link__icon">{{ item.icon }}</span>

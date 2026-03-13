@@ -87,6 +87,9 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
 
 const isEditMode = computed(() => !!props.dashboard)
 
+// Allow parent to trigger validation + submission via template ref (same pattern as FolderForm)
+defineExpose({ submit: handleSubmit })
+
 /**
  * Format date for display
  */
