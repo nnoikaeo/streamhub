@@ -13,11 +13,14 @@
 
 import { computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
+import { useModeratorFolders } from './useModeratorFolders'
 
 export interface SidebarMenuItem {
   path: string
   label: string
   icon: string
+  badge?: number
+  children?: SidebarMenuItem[]
 }
 
 export interface SidebarMenuGroup {
@@ -28,8 +31,21 @@ export interface SidebarMenuGroup {
 
 export function useRoleNavigation() {
   const authStore = useAuthStore()
+  const { assignedFolderTree, getDashboardCount } = useModeratorFolders()
 
   const role = computed(() => authStore.user?.role ?? 'user')
+
+  type FolderNode = { id: string; name: string; children: FolderNode[] }
+
+  const mapFolderToMenuItem = (folder: FolderNode): SidebarMenuItem => ({
+    label: folder.name,
+    icon: '📁',
+    path: `/manage/folders/${folder.id}`,
+    badge: getDashboardCount(folder.id),
+    children: folder.children.length > 0
+      ? folder.children.map(mapFolderToMenuItem)
+      : undefined,
+  })
 
   /**
    * Dashboard menu group — visible to ALL roles
@@ -51,7 +67,7 @@ export function useRoleNavigation() {
   const manageFoldersMenuGroup = computed<SidebarMenuGroup>(() => ({
     id: 'manage-folders',
     label: 'จัดการโฟลเดอร์',
-    items: [],
+    items: assignedFolderTree.value.map(mapFolderToMenuItem),
   }))
 
   /**
