@@ -69,7 +69,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
    * @param companyCode Company code to filter by (e.g., 'STTH')
    */
   const getDashboardsByCompany = (companyCode: string) => {
-    return dashboards.value.filter((d) => d.company === companyCode)
+    return dashboards.value.filter((d) => (d as any).company === companyCode)
   }
 
   /**
@@ -77,7 +77,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
    * @param companyCode Company code to filter by (e.g., 'STTH')
    */
   const getFoldersByCompany = (companyCode: string) => {
-    return folders.value.filter((f) => f.company === companyCode)
+    return folders.value.filter((f) => (f as any).company === companyCode)
   }
 
   // ========== Mutations - Reducers ==========
@@ -102,7 +102,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const updateDashboard = (id: string, updates: Partial<Dashboard>) => {
     const index = dashboards.value.findIndex((d) => d.id === id)
     if (index !== -1) {
-      dashboards.value[index] = { ...dashboards.value[index], ...updates }
+      dashboards.value[index] = Object.assign({}, dashboards.value[index], updates)
     }
   }
 
@@ -133,7 +133,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const updateFolder = (id: string, updates: Partial<Folder>) => {
     const index = folders.value.findIndex((f) => f.id === id)
     if (index !== -1) {
-      folders.value[index] = { ...folders.value[index], ...updates }
+      folders.value[index] = Object.assign({}, folders.value[index], updates)
     }
   }
 
