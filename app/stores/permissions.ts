@@ -16,6 +16,8 @@ export interface FeaturePermissions {
   canDeleteFolder: boolean
   canAccessAdmin: boolean
   canManageUsers: boolean
+  canManageTags: boolean
+  canAssignTags: boolean
 }
 
 /**
@@ -39,6 +41,8 @@ const ROLE_PERMISSIONS: Record<string, Partial<FeaturePermissions>> = {
     canDeleteFolder: true,
     canAccessAdmin: true,
     canManageUsers: true,
+    canManageTags: true,
+    canAssignTags: true,
   },
   moderator: {
     canViewDashboards: true,
@@ -51,6 +55,8 @@ const ROLE_PERMISSIONS: Record<string, Partial<FeaturePermissions>> = {
     canDeleteFolder: false,
     canAccessAdmin: false,
     canManageUsers: false,
+    canManageTags: false,
+    canAssignTags: true,
   },
   user: {
     canViewDashboards: true,
@@ -63,6 +69,8 @@ const ROLE_PERMISSIONS: Record<string, Partial<FeaturePermissions>> = {
     canDeleteFolder: false,
     canAccessAdmin: false,
     canManageUsers: false,
+    canManageTags: false,
+    canAssignTags: false,
   },
 }
 
@@ -98,6 +106,8 @@ export const usePermissionsStore = defineStore('permissions', () => {
     canDeleteFolder: false,
     canAccessAdmin: false,
     canManageUsers: false,
+    canManageTags: false,
+    canAssignTags: false,
   })
 
   /**
@@ -120,6 +130,8 @@ export const usePermissionsStore = defineStore('permissions', () => {
         canDeleteFolder: false,
         canAccessAdmin: false,
         canManageUsers: false,
+        canManageTags: false,
+        canAssignTags: false,
       }
       return
     }
@@ -140,6 +152,8 @@ export const usePermissionsStore = defineStore('permissions', () => {
       canDeleteFolder: rolePerms.canDeleteFolder ?? false,
       canAccessAdmin: rolePerms.canAccessAdmin ?? false,
       canManageUsers: rolePerms.canManageUsers ?? false,
+      canManageTags: rolePerms.canManageTags ?? false,
+      canAssignTags: rolePerms.canAssignTags ?? false,
     }
   }
 
