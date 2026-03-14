@@ -59,6 +59,11 @@ const navCategories = [
         label: 'กลุ่ม',
         icon: '👫',
       },
+      {
+        path: '/admin/tags',
+        label: 'แท็ก',
+        icon: '🏷️',
+      },
     ],
   },
   {
