@@ -14,6 +14,14 @@
       <!-- Main: Dashboard Grid -->
       <div class="discover-main-content">
 
+          <!-- Tag Filter -->
+          <TagFilter
+            v-if="tagStore.activeTags.length > 0"
+            :tags="tagStore.activeTags"
+            :selected-tag-ids="tagStore.selectedTagIds"
+            @update:selected-tag-ids="handleTagFilterUpdate"
+          />
+
           <!-- Dashboards Found Header -->
           <div class="dashboards-header">
             <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,7 +32,7 @@
               <line x1="3" y1="12" x2="3.01" y2="12" />
               <line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
-            <h2 class="dashboards-count">พบ {{ dashboards.length }} แดชบอร์ด</h2>
+            <h2 class="dashboards-count">{{ dashboardCountText }}</h2>
           </div>
 
           <!-- Error Message -->
@@ -42,7 +50,7 @@
 
           <!-- Dashboard Grid with Loading State -->
           <DashboardGrid
-            :dashboards="dashboards"
+            :dashboards="filteredDashboards"
             :loading="isLoading"
             empty-message="No dashboards in this folder. Create one to get started!"
             @view-dashboard="handleViewDashboard"
@@ -101,7 +109,10 @@ import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
-import { computed } from 'vue'
+import TagFilter from '~/components/features/TagFilter.vue'
+import { computed, onMounted } from 'vue'
+import { useTagStore } from '~/stores/tags'
+import { useAdminTags } from '~/composables/useAdminTags'
 
 const route = useRoute()
 console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route.path, name: route.name })
@@ -198,6 +209,47 @@ const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
  * Folder tree with hierarchy built from flat folders array
  */
 const folderTree = computed(() => buildFolderTree(folders.value))
+
+// ========== Tag Store & Filter ==========
+const tagStore = useTagStore()
+const { fetchTags } = useAdminTags()
+
+onMounted(async () => {
+  try {
+    await fetchTags()
+  } catch (e) {
+    console.warn('[discover] Failed to load tags:', e)
+  }
+})
+
+const handleTagFilterUpdate = (ids: string[]) => {
+  tagStore.clearTagFilter()
+  ids.forEach((id) => tagStore.toggleTagFilter(id))
+}
+
+/**
+ * Filtered dashboards by selected tags (AND logic)
+ * If no tags selected → show all dashboards
+ */
+const filteredDashboards = computed<Dashboard[]>(() => {
+  const selected = tagStore.selectedTagIds
+  if (selected.length === 0) return dashboards.value
+  return dashboards.value.filter((d) => {
+    const dTags = d.tags ?? []
+    return selected.every((tagId) => dTags.includes(tagId))
+  })
+})
+
+/**
+ * Status text showing count + active tag names
+ */
+const dashboardCountText = computed(() => {
+  const count = filteredDashboards.value.length
+  const selected = tagStore.selectedTagIds
+  if (selected.length === 0) return `พบ ${count} แดชบอร์ด`
+  const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
+  return `แสดง ${count} แดชบอร์ด · แท็ก: ${tagNames}`
+})
 
 // ========== Permission-Based UI ==========
 

@@ -8,6 +8,17 @@
       </div>
     </div>
 
+    <!-- Tags -->
+    <div v-if="visibleTags.length > 0" class="card-tags">
+      <TagBadge
+        v-for="tag in visibleTags"
+        :key="tag.id"
+        :tag="tag"
+        size="sm"
+      />
+      <span v-if="hiddenCount > 0" class="card-tags__more">+{{ hiddenCount }}</span>
+    </div>
+
     <!-- Open Button - Using Primary Brand Color -->
     <button class="open-button" @click="$emit('view')">
       <span>เปิด</span>
@@ -22,6 +33,9 @@
 <script setup lang="ts">
 import { computed, h } from 'vue'
 import type { Dashboard } from '../../types/dashboard'
+import type { Tag } from '../../types/tag'
+import { useTagStore } from '~/stores/tags'
+import TagBadge from './TagBadge.vue'
 
 /**
  * DashboardCard - Individual dashboard card component
@@ -30,13 +44,29 @@ import type { Dashboard } from '../../types/dashboard'
 
 interface Props {
   dashboard: Dashboard
+  tags?: Tag[]
 }
+
+const MAX_VISIBLE_TAGS = 3
 
 const props = defineProps<Props>()
 
 defineEmits<{
   view: []
 }>()
+
+const tagStore = useTagStore()
+
+// Resolve tags: use prop if provided, otherwise resolve from store via dashboard.tags (string[])
+const resolvedTags = computed<Tag[]>(() => {
+  if (props.tags && props.tags.length > 0) return props.tags
+  const tagIds = props.dashboard.tags
+  if (!tagIds || tagIds.length === 0) return []
+  return tagStore.getTagsByIds(tagIds)
+})
+
+const visibleTags = computed(() => resolvedTags.value.slice(0, MAX_VISIBLE_TAGS))
+const hiddenCount = computed(() => Math.max(0, resolvedTags.value.length - MAX_VISIBLE_TAGS))
 
 // Dashboard icon for card header
 const dashboardIcon = computed(() => {
@@ -81,7 +111,7 @@ const dashboardIcon = computed(() => {
       h('rect', { x: '3', y: '14', width: '7', height: '7' })
     ]),
   }
-  
+
   return iconMap[props.dashboard.type] || iconMap.analysis
 })
 </script>
@@ -139,6 +169,24 @@ const dashboardIcon = computed(() => {
 .card-icon svg {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+/* ========== TAGS ========== */
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.card-tags__more {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  padding: 2px 6px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
 }
 
 /* ========== OPEN BUTTON ========== */
