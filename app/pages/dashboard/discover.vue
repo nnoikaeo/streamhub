@@ -14,13 +14,22 @@
       <!-- Main: Dashboard Grid -->
       <div class="discover-main-content">
 
-          <!-- Tag Filter -->
-          <TagFilter
-            v-if="tagStore.activeTags.length > 0"
-            :tags="tagStore.activeTags"
-            :selected-tag-ids="tagStore.selectedTagIds"
-            @update:selected-tag-ids="handleTagFilterUpdate"
-          />
+          <!-- Filters: Tag + Folder -->
+          <div class="discover-filters">
+            <TagFilter
+              v-if="tagStore.activeTags.length > 0"
+              :tags="tagStore.activeTags"
+              :selected-tag-ids="tagStore.selectedTagIds"
+              @update:selected-tag-ids="handleTagFilterUpdate"
+            />
+            <FolderDropdownFilter
+              v-if="flattenedFolders.length > 0"
+              v-model="dropdownFolderId"
+              :folders="flattenedFolders"
+              :dashboard-counts="dashboardCountByFolder"
+              @update:model-value="handleDropdownChange"
+            />
+          </div>
 
           <!-- Dashboards Found Header -->
           <div class="dashboards-header">
@@ -48,11 +57,23 @@
             </button>
           </div>
 
-          <!-- Dashboard Grid with Loading State -->
+          <!-- Grouped View (when showing all folders) -->
+          <GroupedDashboardGrid
+            v-if="isGroupedView"
+            :groups="groupedDashboards"
+            :loading="isLoading"
+            empty-message="ไม่พบแดชบอร์ด"
+            @view-dashboard="handleViewDashboard"
+            @share-dashboard="handleShareDashboard"
+            @menu-dashboard="handleMenuDashboard"
+          />
+
+          <!-- Flat View (when specific folder selected) -->
           <DashboardGrid
+            v-else
             :dashboards="filteredDashboards"
             :loading="isLoading"
-            empty-message="No dashboards in this folder. Create one to get started!"
+            empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
             @menu-dashboard="handleMenuDashboard"
@@ -108,9 +129,11 @@ import type { Folder, Dashboard } from '~/types/dashboard'
 import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
+import GroupedDashboardGrid from '~/components/features/GroupedDashboardGrid.vue'
+import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
-import { computed, onMounted } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
 
@@ -240,12 +263,90 @@ const filteredDashboards = computed<Dashboard[]>(() => {
   })
 })
 
+// ========== Folder Dropdown Filter ==========
+const router = useRouter()
+
+/**
+ * Flatten folder tree in display order (for dropdown hierarchy)
+ */
+const flattenedFolders = computed(() => {
+  const result: (Folder & { level: number })[] = []
+  const walk = (nodes: (Folder & { children?: Folder[] })[], level: number) => {
+    for (const node of nodes) {
+      result.push({ ...node, level })
+      if (node.children?.length) walk(node.children, level + 1)
+    }
+  }
+  walk(folderTree.value, 0)
+  return result
+})
+
+/**
+ * Dashboard count per folder (respects tag filter)
+ */
+const dashboardCountByFolder = computed(() => {
+  const counts: Record<string, number> = {}
+  for (const d of filteredDashboards.value) {
+    counts[d.folderId] = (counts[d.folderId] || 0) + 1
+  }
+  return counts
+})
+
+/**
+ * Folder dropdown state — synced with sidebar selectedFolderId
+ */
+const dropdownFolderId = ref<string | null>(selectedFolderId.value || null)
+
+watch(selectedFolderId, (id) => {
+  dropdownFolderId.value = id
+})
+
+const handleDropdownChange = (folderId: string | null) => {
+  if (folderId) {
+    selectFolder(folderId)
+  } else {
+    router.push('/dashboard/discover')
+  }
+}
+
+/**
+ * Grouped view — active when no folder is selected
+ */
+const isGroupedView = computed(() => !selectedFolderId.value)
+
+/**
+ * Group filtered dashboards by folder (hide empty groups)
+ */
+const groupedDashboards = computed(() => {
+  if (!isGroupedView.value) return []
+  const folderMap = new Map<string, { folder: Folder; dashboards: Dashboard[] }>()
+  for (const folder of folders.value) {
+    folderMap.set(folder.id, { folder, dashboards: [] })
+  }
+  for (const d of filteredDashboards.value) {
+    const group = folderMap.get(d.folderId)
+    if (group) group.dashboards.push(d)
+  }
+  return Array.from(folderMap.values())
+    .filter((g) => g.dashboards.length > 0)
+    .sort((a, b) => a.folder.name.localeCompare(b.folder.name, 'th'))
+})
+
 /**
  * Status text showing count + active tag names
  */
 const dashboardCountText = computed(() => {
   const count = filteredDashboards.value.length
   const selected = tagStore.selectedTagIds
+  if (isGroupedView.value) {
+    const groupCount = groupedDashboards.value.length
+    const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
+    if (selected.length > 0) {
+      const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
+      return `${base} · แท็ก: ${tagNames}`
+    }
+    return base
+  }
   if (selected.length === 0) return `พบ ${count} แดชบอร์ด`
   const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
   return `แสดง ${count} แดชบอร์ด · แท็ก: ${tagNames}`
@@ -324,6 +425,14 @@ const dashboardCountText = computed(() => {
   flex-direction: column;
   gap: var(--spacing-lg);
   padding: 0 var(--spacing-xl);
+}
+
+/* ========== FILTERS ========== */
+.discover-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
 }
 
 /* ========== DASHBOARDS HEADER ========== */
