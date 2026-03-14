@@ -133,6 +133,6 @@ defineExpose({ submit: handleSubmit })
 .user-form {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg, 1.5rem);
+  gap: var(--spacing-lg, 1.25rem);
 }
 </style>

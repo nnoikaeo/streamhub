@@ -3,7 +3,7 @@
 > **Document Status:** Technical Reference for Firestore Data Model  
 > **Last Updated:** 2024-01  
 > **Document Owner:** Development Team  
-> **Version:** 2.0 (Multi-Company Architecture)
+> **Version:** 3.0 (Multi-Company Architecture + Tag System)
 
 ---
 
@@ -15,7 +15,8 @@ Firestore Database (Multi-Company)
 ├── users/              (👥 User accounts - company-scoped)
 ├── folders/            (📁 Dashboard folders - company-scoped)
 ├── dashboards/         (📊 Dashboard documents - company-scoped)
-└── invitations/        (📧 User invitations - company-scoped)
+├── invitations/        (📧 User invitations - company-scoped)
+└── tags/               (🏷️ Dashboard tags - cross-company)
 ```
 
 ---
@@ -230,6 +231,7 @@ match /users/{userId} {
   updatedAt: Timestamp           // Last update
   isActive: boolean              // Active/inactive
   views: number                  // View count
+  tags: string[]                 // Tag IDs (e.g., ["tag_sales", "tag_kpi"])
   access: {                      // ← See roles-and-permissions.md for details
     direct: {[key: string]: string[]}        // Direct access (no restrictions)
     company: {[company: string]: {[key: string]: string[]}}  // Company-scoped
@@ -253,6 +255,7 @@ match /users/{userId} {
   "createdAt": Timestamp(2024-01-20),
   "isActive": true,
   "views": 143,
+  "tags": ["tag_sales", "tag_monthly", "tag_kpi"],
   "permissions": {
     "role:user": ["view"],
     "role:moderator": ["view"],
@@ -326,6 +329,63 @@ match /dashboards/{dashboardId} {
 
 ---
 
+## 6. Tags Collection
+
+**Path:** `/tags/{tagId}`
+**Purpose:** Dashboard categorization tags for filtering and discovery (cross-company)
+
+**Document Structure:**
+
+```typescript
+{
+  name: string                   // Tag display name (e.g., "Sales")
+  slug: string                   // URL-safe identifier (e.g., "sales") - unique
+  color: string                  // Hex color for UI display (e.g., "#F59E0B")
+  description: string            // Brief description of tag purpose
+  createdBy: string              // Admin user ID who created this tag
+  createdAt: Timestamp           // Creation date
+  updatedAt: Timestamp           // Last update date
+  isActive: boolean              // Active/inactive status
+}
+```
+
+**Example:**
+```json
+{
+  "name": "Sales",
+  "slug": "sales",
+  "color": "#F59E0B",
+  "description": "Sales-related dashboards and reports",
+  "createdBy": "admin_uid",
+  "createdAt": "Timestamp(2024-01-20)",
+  "updatedAt": "Timestamp(2024-01-20)",
+  "isActive": true
+}
+```
+
+**Access Rules:**
+- **Admin:** Full CRUD (create, read, update, delete)
+- **Moderator:** Read all tags + assign/unassign tags to dashboards in `assignedFolders`
+- **User:** Read only (for filtering)
+
+**Firestore Rules:**
+```firestore
+match /tags/{tagId} {
+  allow read: if request.auth != null;
+  allow write: if isAdmin();
+}
+```
+
+**Relationship with Dashboards:**
+```
+Tag (1) ←──── tagged by ────→ (many) Dashboards
+  - Dashboard.tags[] stores tag IDs
+  - One dashboard can have multiple tags (many-to-many)
+  - Tags are cross-company (shared across all companies)
+```
+
+---
+
 ## Composite Indexes
 
 **Folders Index:**
@@ -344,6 +404,18 @@ match /dashboards/{dashboardId} {
 - Collection: `invitations`
 - Fields: `company` (Asc), `status` (Asc), `sentAt` (Desc)
 
+**Dashboards by Tag Index:**
+- Collection: `dashboards`
+- Fields: `tags` (Array Contains), `createdAt` (Desc)
+
+**Dashboards by Tag + Company Index:**
+- Collection: `dashboards`
+- Fields: `tags` (Array Contains), `company` (Asc), `createdAt` (Desc)
+
+**Tags Index:**
+- Collection: `tags`
+- Fields: `isActive` (Asc), `name` (Asc)
+
 ---
 
 ## Data Relationships
@@ -360,10 +432,15 @@ Company (1)
   │
   ├─ has (many) Dashboards
   │   ├─ in Folder
-  │   └─ has Permissions
+  │   ├─ has Permissions
+  │   └─ tagged with (many) Tags
   │
   └─ has (many) Invitations
       └─ pending/accepted/rejected
+
+Tags (cross-company, shared)
+  └─ tagged by (many) Dashboards
+      └─ Dashboard.tags[] stores tag IDs (many-to-many)
 ```
 
 ---
@@ -399,6 +476,31 @@ const folders = await db.collection('folders')
 const mods = await db.collection('users')
   .where('company', '==', 'STTH')
   .where('role', '==', 'moderator')
+  .get()
+```
+
+### Get all active tags
+```typescript
+const tags = await db.collection('tags')
+  .where('isActive', '==', true)
+  .orderBy('name')
+  .get()
+```
+
+### Get dashboards by tag
+```typescript
+const dashboards = await db.collection('dashboards')
+  .where('tags', 'array-contains', 'tag_sales')
+  .orderBy('createdAt', 'desc')
+  .get()
+```
+
+### Get dashboards by tag + company
+```typescript
+const dashboards = await db.collection('dashboards')
+  .where('tags', 'array-contains', 'tag_sales')
+  .where('company', '==', 'STTH')
+  .orderBy('createdAt', 'desc')
   .get()
 ```
 
