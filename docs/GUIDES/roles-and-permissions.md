@@ -3,7 +3,7 @@
 > **Document Status:** Single Source of Truth for Roles & Access Control  
 > **Last Updated:** 2024-01-27  
 > **Document Owner:** Development Team  
-> **Version:** 3.0 (Contextual INTERSECT Architecture)
+> **Version:** 4.0 (Contextual INTERSECT Architecture + Tag System + Moderator Dual-View)
 
 **StreamHub Role-Based Access Control (RBAC) with Structured Permissions (Direct + Company-Scoped)**
 
@@ -13,11 +13,13 @@
 
 1. [Overview](#overview)
 2. [Role Definitions](#role-definitions)
-3. [Permission Structure](#permission-structure)
-4. [Access Logic](#access-logic)
-5. [Firestore Security Rules](#firestore-security-rules)
-6. [Use Cases & Examples](#use-cases--examples)
-7. [Implementation Checklist](#implementation-checklist)
+3. [Moderator Dual-View Model](#moderator-dual-view-model)
+4. [Tag Permissions](#tag-permissions)
+5. [Permission Structure](#permission-structure)
+6. [Access Logic](#access-logic)
+7. [Firestore Security Rules](#firestore-security-rules)
+8. [Use Cases & Examples](#use-cases--examples)
+9. [Implementation Checklist](#implementation-checklist)
 
 ---
 
@@ -63,8 +65,11 @@
 - ✅ View dashboards (with access rights)
 - ✅ View own profile
 - ✅ Update own profile (limited)
+- ✅ Search and filter dashboards (by tag, by folder)
+- ✅ View tags on dashboards (read-only)
 - ❌ Create/Edit/Delete dashboards
 - ❌ Create/Manage folders
+- ❌ Assign/Manage tags
 - ❌ Invite users
 - ❌ Manage permissions
 
@@ -97,17 +102,27 @@ User: สมชาย (STTH)
 
 ---
 
-### 2️⃣ MODERATOR (中级权限)
+### 2️⃣ MODERATOR (Dual-View Model)
 
-**Definition:** Team lead or manager who can manage dashboards and subfolders within assigned folders
+**Definition:** Team lead or manager with **2 views**: Viewer mode (like User) and Manager mode (like limited Admin)
 
-**Permissions:**
-- ✅ View all dashboards (in company scope)
+**View 1 — Viewer Mode (via "Dashboard" menu):**
+- ✅ View dashboards (with access rights) — same as User
+- ✅ Search and filter dashboards (by tag, by folder)
+- ✅ View tags on dashboards (read-only)
+- ❌ Create/Edit/Delete dashboards
+- ❌ Assign tags
+
+**View 2 — Manager Mode (via "Manage Folders" menu):**
 - ✅ Create/Edit/Delete subfolders (in assigned folders)
 - ✅ Set subfolder permissions (in assigned folders)
 - ✅ Create/Edit/Delete dashboards (in assigned folders)
 - ✅ Set dashboard permissions (in assigned folders)
+- ✅ Assign/unassign tags to dashboards (select from existing tags)
+- ✅ Move dashboards between assigned folders
 - ✅ View activity logs (in company)
+- ❌ Create new tags (Admin only)
+- ❌ Edit/Delete tags (Admin only)
 - ❌ Invite users
 - ❌ Manage users (remove, role change)
 - ❌ Create company-level folders
@@ -118,6 +133,7 @@ User: สมชาย (STTH)
 - **Assigned Folders:** Only folders explicitly assigned
 - **Other Companies:** No access
 - **Cross-Company:** No cross-company dashboard creation
+- **Tags:** Read all tags, assign only in assigned folders
 
 **Example:**
 ```
@@ -125,15 +141,25 @@ Moderator: นายหา (STTH)
 ├── Company: STTH
 ├── Role: Moderator
 ├── Assigned Folders: ["Operations", "Reports"]
-├── Can:
-│   ├── ✅ View all dashboards in STTH
+│
+├── View 1 (Viewer Mode):
+│   ├── ✅ View all accessible dashboards in STTH
+│   ├── ✅ Search dashboards
+│   ├── ✅ Filter by tags
+│   └── ❌ No edit/create/delete actions
+│
+├── View 2 (Manager Mode):
 │   ├── ✅ Create subfolder in Operations
 │   ├── ✅ Create dashboard in assigned folders
 │   ├── ✅ Edit/Delete own dashboards
-│   └── ✅ Set permissions for dashboards
+│   ├── ✅ Set permissions for dashboards
+│   ├── ✅ Assign tags: [Sales, KPI, Monthly] to dashboards
+│   └── ✅ Move dashboard from Operations → Reports
+│
 └── Cannot:
     ├── Access STTN, STCS folders
     ├── Create top-level folders
+    ├── Create/Edit/Delete tags
     ├── Invite new users
     └── Manage other moderators
 ```
@@ -156,6 +182,8 @@ Moderator: นายหา (STTH)
 - ✅ Set dashboard permissions (all companies)
 - ✅ Create/Edit/Delete folders (all companies)
 - ✅ Assign folders to moderators
+- ✅ Create/Edit/Delete tags (global tag management)
+- ✅ Assign tags to any dashboard
 - ✅ Invite users (all companies)
 - ✅ Edit user profiles (all companies)
 - ✅ Change user roles (all companies)
@@ -168,6 +196,148 @@ Moderator: นายหา (STTH)
 - **Global:** All companies, all folders, all dashboards
 - **No Restrictions:** Company field doesn't restrict admin access
 - **Full Control:** Can manage everything in the system
+
+---
+
+## 🔀 Moderator Dual-View Model
+
+Moderators operate in **2 distinct views**, switching via sidebar navigation:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      MODERATOR                              │
+│                                                             │
+│    ┌─────────────────────┐     ┌─────────────────────────┐ │
+│    │  View 1: Viewer     │     │  View 2: Manager        │ │
+│    │  (Dashboard menu)   │     │  (Manage Folders menu)   │ │
+│    │                     │     │                          │ │
+│    │  Same as User:      │     │  Limited Admin:          │ │
+│    │  - View dashboards  │     │  - CRUD dashboards      │ │
+│    │  - Search           │     │  - CRUD subfolders      │ │
+│    │  - Filter by tag    │     │  - Assign tags          │ │
+│    │  - Read-only        │     │  - Set permissions      │ │
+│    │                     │     │  - Move dashboards      │ │
+│    │  No edit/create     │     │  Only in assignedFolders│ │
+│    └─────────────────────┘     └─────────────────────────┘ │
+│                                                             │
+│    Sidebar:                                                 │
+│    ▾ Dashboard        ← View 1 (Viewer)                    │
+│      ├ View All                                             │
+│      └ Search                                               │
+│    ▾ Manage Folders   ← View 2 (Manager)                   │
+│      ├ 📁 Sales (assigned)                                  │
+│      └ 📁 Finance (assigned)                                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Permission check flow:**
+```
+Moderator clicks item
+    │
+    ▼
+Is item in assignedFolders?
+    │
+   YES → Which view?
+    │     │
+    │    View 1 (Dashboard) → Read-only (view, search, filter)
+    │    View 2 (Manage)    → Full CRUD + tag assign
+    │
+   NO → View 1 behavior only (read-only, if has access permission)
+```
+
+---
+
+## 🏷️ Tag Permissions
+
+Tags use a separate permission model from dashboards:
+
+### Tag Permission Matrix
+
+| Action | User | Moderator (View 1) | Moderator (View 2) | Admin |
+|---|---|---|---|---|
+| **View tags on dashboards** | ✅ | ✅ | ✅ | ✅ |
+| **Filter by tags** | ✅ | ✅ | ✅ | ✅ |
+| **Assign tags to dashboard** | ❌ | ❌ | ✅ (assigned folders) | ✅ (all) |
+| **Unassign tags from dashboard** | ❌ | ❌ | ✅ (assigned folders) | ✅ (all) |
+| **Create new tags** | ❌ | ❌ | ❌ | ✅ |
+| **Edit tags** | ❌ | ❌ | ❌ | ✅ |
+| **Delete tags** | ❌ | ❌ | ❌ | ✅ |
+
+### Feature Permissions (Updated)
+
+```typescript
+interface FeaturePermissions {
+  // Dashboard permissions
+  canViewDashboards: boolean
+  canCreateDashboard: boolean
+  canEditDashboard: boolean
+  canDeleteDashboard: boolean
+  canShareDashboard: boolean
+
+  // Folder permissions
+  canCreateFolder: boolean
+  canEditFolder: boolean
+  canDeleteFolder: boolean
+
+  // Tag permissions (NEW)
+  canManageTags: boolean        // Create/Edit/Delete tags (Admin only)
+  canAssignTags: boolean        // Assign/unassign tags to dashboards
+
+  // Admin permissions
+  canAccessAdmin: boolean
+  canManageUsers: boolean
+}
+```
+
+### Role → Permission Mapping (Updated)
+
+```typescript
+const ROLE_PERMISSIONS = {
+  admin: {
+    canViewDashboards: true,
+    canCreateDashboard: true,
+    canEditDashboard: true,
+    canDeleteDashboard: true,
+    canShareDashboard: true,
+    canCreateFolder: true,
+    canEditFolder: true,
+    canDeleteFolder: true,
+    canManageTags: true,         // ✅ Admin only
+    canAssignTags: true,         // ✅
+    canAccessAdmin: true,
+    canManageUsers: true,
+  },
+  moderator: {
+    canViewDashboards: true,
+    canCreateDashboard: true,    // In assigned folders only
+    canEditDashboard: true,      // In assigned folders only
+    canDeleteDashboard: true,    // In assigned folders only
+    canShareDashboard: true,
+    canCreateFolder: true,       // Subfolders in assigned folders
+    canEditFolder: true,         // In assigned folders only
+    canDeleteFolder: false,      // Cannot delete root folders
+    canManageTags: false,        // ❌ Cannot create/edit/delete tags
+    canAssignTags: true,         // ✅ In assigned folders only
+    canAccessAdmin: false,
+    canManageUsers: false,
+  },
+  user: {
+    canViewDashboards: true,
+    canCreateDashboard: false,
+    canEditDashboard: false,
+    canDeleteDashboard: false,
+    canShareDashboard: false,
+    canCreateFolder: false,
+    canEditFolder: false,
+    canDeleteFolder: false,
+    canManageTags: false,        // ❌
+    canAssignTags: false,        // ❌
+    canAccessAdmin: false,
+    canManageUsers: false,
+  }
+}
+```
 
 ---
 
@@ -503,22 +673,30 @@ Access Results:
 - [ ] Add `restrictions` to dashboards
 - [ ] Create `groups` collection
 - [ ] Add `groups` array to users
+- [ ] Create `tags` collection
+- [ ] Add `tags: string[]` to dashboards
 
 ### Phase 2: Firestore Rules
 - [ ] Implement Layer 1 rules (direct)
 - [ ] Implement Layer 2 rules (company-scoped)
 - [ ] Implement Layer 3 rules (restrictions)
+- [ ] Implement tag collection rules (read: all auth, write: admin only)
 - [ ] Test all scenarios
 
 ### Phase 3: Pinia Stores
 - [ ] Create `stores/permissions.ts`
+- [ ] Add `canManageTags` and `canAssignTags` to permissions
+- [ ] Create `stores/tags.ts` (tag CRUD + filtering)
 - [ ] Implement permission checking functions
 - [ ] Load user groups on login
 
 ### Phase 4: UI Components
 - [ ] Create permission guard components
-- [ ] Update dashboard list filtering
+- [ ] Update dashboard list filtering (add tag filter)
 - [ ] Add permission indicators
+- [ ] Create TagBadge, TagSelector, TagFilter, TagManager components
+- [ ] Restructure sidebar navigation (role-based menus)
+- [ ] Implement Moderator dual-view switching (Viewer/Manager)
 
 ---
 

@@ -1,7 +1,7 @@
 # User Flow Diagrams
 
 > **Document Status:** UI/UX Design Document  
-> **Last Updated:** 2024-01  
+> **Last Updated:** 2026-03
 > **Document Owner:** Development Team
 
 ---
@@ -32,6 +32,10 @@ This document outlines the user flows for StreamHub Dashboard Management System 
 - Admins have global cross-company access
 - Users see dashboards based on **3-layer permission model** (see [Roles & Permissions Guide > Permission Structure](../GUIDES/roles-and-permissions.md#-permission-structure))
 - Moderators manage folders via `assignedFolders` array
+- **Moderators have 2 views:** Viewer mode (like User) and Manager mode (like limited Admin) — see [Moderator Dual-View Model](../GUIDES/roles-and-permissions.md#-moderator-dual-view-model)
+- **Tag system** provides cross-cutting dashboard categorization — Folder = physical location, Tag = logical grouping
+- All roles can **filter dashboards by tags** via the "View All" page
+- Sidebar navigation is **role-based** — see [Sidebar Navigation Wireframe](wireframes/sidebar-navigation.md)
 
 **📌 Note:** For complete permission structure details, access logic, and Firestore security rules, refer to [Roles & Permissions Guide](../GUIDES/roles-and-permissions.md) - the single source of truth for all role and permission definitions.
 
@@ -82,37 +86,65 @@ A regular user (Employee) can view dashboards within their company and those sha
 └──────┬───────────────────┘
        │
        ▼
-┌────────────────────────────────┐
-│  Dashboard Discover Page       │
-│  (app/pages/dashboard/index)   │
-│                                │
-│  Show dashboards where user    │
-│  has access permission.        │
-│                                │
-│  (For permission logic, see    │
-│  Roles & Permissions Guide >   │
-│  Access Logic section)         │
-└──────┬───────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│  Sidebar Navigation (User)                              │
+│                                                         │
+│  ▾ Dashboard                                            │
+│    ├ View All   → /dashboard/discover?view=all          │
+│    └ Search     → /dashboard/discover?mode=search       │
+│                                                         │
+│  (No Admin menu, No Folder Tree in sidebar)             │
+└──────┬──────────────────────────────────────────────────┘
        │
-       ├─────────────────────────────────────┐
-       │                                     │
-       ▼                                     ▼
-┌──────────────────────┐            ┌─────────────────┐
-│  View Dashboard      │            │  Folder View    │
-│  (embedded Looker)   │            │  (Browse only)  │
-│                      │            │                 │
-│  - Visualizations    │            │ Can see folder  │
-│  - Reports           │            │ structure but   │
-│  - Metrics           │            │ cannot edit     │
-└──────┬───────────────┘            └────────┬────────┘
-       │                                     │
-       │    ┌────────────────────────────────┘
-       │    │
-       ▼    ▼
+       ├──── "View All" ────────────────────────────────┐
+       │                                                │
+       ▼                                                │
+┌─────────────────────────────────────────┐             │
+│  Dashboard View All Page                │             │
+│  (app/pages/dashboard/discover)         │             │
+│                                         │             │
+│  🔍 Search dashboards...                │             │
+│                                         │             │
+│  Tag Filter:                            │             │
+│  [Sales] [Finance] [KPI] [Monthly]      │             │
+│                                         │             │
+│  Folder Filter:                         │             │
+│  [All Folders ▾]                        │             │
+│                                         │             │
+│  Dashboard list (grouped by folder):    │             │
+│  ┌─ Sales ───────────────────┐          │             │
+│  │ 📊 Sales Report           │          │             │
+│  │ 📊 Revenue Monthly        │          │             │
+│  └───────────────────────────┘          │             │
+│  ┌─ Finance ─────────────────┐          │             │
+│  │ 📊 Expense Report         │          │             │
+│  └───────────────────────────┘          │             │
+│                                         │             │
+│  Lazy Load: loads 12 items at a time    │             │
+│  Intersection Observer triggers next    │             │
+│  batch when user scrolls to bottom      │             │
+└──────┬──────────────────────────────────┘             │
+       │                                                │
+       │  "Search" ─────────────────────────────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│  View Dashboard      │
+│  (embedded Looker)   │
+│                      │
+│  - Visualizations    │
+│  - Reports           │
+│  - Metrics           │
+│  - Tags displayed    │
+│    [Sales] [KPI]     │
+└──────┬───────────────┘
+       │
+       ▼
 ┌──────────────────────────┐
 │  View Dashboard Details  │
 │  - Title                 │
 │  - Description           │
+│  - Tags (read-only)      │
 │  - Created by            │
 │  - Last updated          │
 │  - Refresh data          │
@@ -158,6 +190,12 @@ A regular user (Employee) can view dashboards within their company and those sha
 | | ❌ No | Show Google Sign-In button |
 | **Has View Permission?** | ✅ Yes | Display dashboard in list |
 | | ❌ No | Hide dashboard from list |
+| **Tag filter selected?** | ✅ Yes | Show only dashboards with matching tags |
+| | ❌ No (All) | Show all accessible dashboards |
+| **Folder filter selected?** | ✅ Yes | Show only dashboards in selected folder |
+| | ❌ No (All) | Show dashboards from all folders |
+| **More dashboards to load?** | ✅ Yes | Lazy load next 12 items on scroll |
+| | ❌ No | Show "all loaded" indicator |
 | **Expired Session?** | ✅ Yes | Refresh token / Re-authenticate |
 | | ❌ No | Continue using app |
 
@@ -165,9 +203,10 @@ A regular user (Employee) can view dashboards within their company and those sha
 
 ---
 
-## 👨‍💼 MODERATOR Role Flow
+## 👨‍💼 MODERATOR Role Flow (Dual-View Model)
 
-A moderator (Team Lead) manages folders and dashboards within their assigned folders.
+A moderator (Team Lead) has **2 views**: Viewer mode and Manager mode.
+See [Moderator Dual-View Model](../GUIDES/roles-and-permissions.md#-moderator-dual-view-model) for permission details.
 
 ```
 ┌──────────────────────┐
@@ -184,102 +223,139 @@ A moderator (Team Lead) manages folders and dashboards within their assigned fol
 └──────┬─────────────────────┘
        │
        ▼
-┌─────────────────────────────────┐
-│  Moderator Dashboard Page       │
-│  (app/pages/dashboard/index)    │
-│                                 │
-│  Load:                          │
-│  - Assigned folders             │
-│  - Manageable dashboards        │
-│  - My creations                 │
-└──────┬──────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│  Sidebar Navigation (Moderator)                      │
+│                                                      │
+│  ▾ Dashboard           ← View 1 (Viewer)            │
+│    ├ View All                                        │
+│    └ Search                                          │
+│                                                      │
+│  ▾ Manage Folders      ← View 2 (Manager)           │
+│    ├ 📁 Sales (assigned)                             │
+│    └ 📁 Finance (assigned)                           │
+│                                                      │
+│  (No Admin menu)                                     │
+└──────┬─────────────────────┬─────────────────────────┘
+       │                     │
+  Click "Dashboard"     Click "Manage Folders"
+       │                     │
+       ▼                     ▼
+
+═══════════════════════════════════════════════════════
+  VIEW 1: VIEWER MODE (Same as User)
+═══════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────┐
+│  Dashboard View All Page                │
+│  (app/pages/dashboard/discover)         │
+│                                         │
+│  🔍 Search dashboards...                │
+│                                         │
+│  Tag Filter:                            │
+│  [Sales] [Finance] [KPI] [Monthly]      │
+│                                         │
+│  Folder Filter:                         │
+│  [All Folders ▾]                        │
+│                                         │
+│  Dashboard list (read-only):            │
+│  - View dashboards with access          │
+│  - Filter by tag (multi-select)         │
+│  - Filter by folder (dropdown)          │
+│  - Lazy load (12 items per batch)       │
+│  - NO edit/create/delete buttons        │
+│                                         │
+│  Tags displayed on each card:           │
+│  [Sales] [Monthly] [KPI]               │
+└──────┬──────────────────────────────────┘
        │
-       ├─────────────────────────────────────┐
-       │                                     │
-       ▼                                     ▼
-┌──────────────────────────┐      ┌───────────────────┐
-│  View Assigned Folders   │      │ Create New Folder │
-│                          │      │ (Admin approval?) │
-│  For each folder in      │      │                   │
-│  assignedFolders:        │      │ - Folder Name     │
-│  - Folder name           │      │ - Description     │
-│  - Sub-folders           │      │ - Assign mods     │
-│  - Dashboards (count)    │      │ - Permissions     │
-│  - Created by            │      └────────┬──────────┘
-└──────┬───────────────────┘               │
-       │                                   │
-       ▼                                   │
-┌──────────────────────────────┐           │
-│  Select Folder to Manage     │           │
-└──────┬───────────────────────┘           │
-       │                                   │
-       ├─────────────────────────┐         │
-       │                         │         │
-       ▼                         ▼         │
-┌────────────────┐      ┌──────────────┐  │
-│ View Folder    │      │ Create New   │  │
-│ Details        │      │ Subfolder    │  │
-│                │      │              │  │
-│ - Dashboard    │      └──────┬───────┘  │
-│   list (in     │             │          │
-│   folder)      │             │          │
-│ - Subfolders   │             │          │
-│ - Permissions  │             │          │
-└────┬───────────┘             │          │
-     │                         │          │
-     ├─────────────────────────┼──────────┤
-     │                         │          │
-     ▼                         ▼          ▼
-┌──────────────────┐  ┌──────────────┐
-│ Create Dashboard │  │ Edit Folder  │
-│ in Folder        │  │ Settings     │
-│                  │  │              │
-│ - Title          │  │ - Name       │
-│ - Description    │  │ - Desc       │
-│ - Looker URL     │  │ - Assign mods│
-│ - Permissions    │  │ - Perms      │
-│ - Metadata       │  └──────┬───────┘
-└────────┬─────────┘         │
-         │                   │
-         ├──────────────┬────┤
-         │              │    │
-         ▼              ▼    ▼
-      ┌────────────────────────────┐
-      │ Edit/Delete Dashboard      │
-      │ (if created by moderator)  │
-      │                            │
-      │ - Edit metadata            │
-      │ - Update Looker URL        │
-      │ - Change permissions       │
-      │ - View analytics           │
-      │ - Delete (with confirm)    │
-      └────────┬───────────────────┘
-               │
-               ├──────────────────────────┐
-               │                          │
-               ▼                          ▼
-      ┌────────────────┐        ┌──────────────┐
-      │ Save Changes   │        │ Cancel/Exit  │
-      │ (Update DB)    │        │              │
-      └────────┬───────┘        └──────┬───────┘
-               │                       │
-               └──────────┬────────────┘
-                          │
-                          ▼
-                  ┌───────────────────┐
-                  │ Dashboard Manage  │
-                  │ Page Updated      │
-                  └───────┬───────────┘
+       ▼
+┌──────────────────────┐
+│  View Dashboard      │
+│  (embedded Looker)   │
+│  - Read-only         │
+│  - Tags shown        │
+│  - No edit actions   │
+└──────────────────────┘
+
+═══════════════════════════════════════════════════════
+  VIEW 2: MANAGER MODE (Limited Admin)
+═══════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────┐
+│  Check: Is folder in assignedFolders?   │
+│                                         │
+│  assignedFolders = ["Sales", "Finance"] │
+└──────┬───────────────┬──────────────────┘
+       │               │
+      YES              NO
+       │               │
+       ▼               ▼
+┌──────────────┐  ┌──────────────────┐
+│ Show Manager │  │ Show View-Only   │
+│ UI (CRUD)    │  │ (like View 1)    │
+└──────┬───────┘  │ 🔒 Not assigned  │
+       │          └──────────────────┘
+       ▼
+┌─────────────────────────────────────────┐
+│  Folder Management Page                 │
+│  (app/pages/manage/folders/:id)         │
+│                                         │
+│  📁 Sales > Dashboard List              │
+│                                         │
+│  ┌────────────────────────────────────┐ │
+│  │ + New Dashboard   + New Subfolder  │ │
+│  └────────────────────────────────────┘ │
+│                                         │
+│  Subfolders:                            │
+│  📁 Q1 Report  [✏️ Edit] [🗑️ Delete]   │
+│  📁 Q2 Report  [✏️ Edit] [🗑️ Delete]   │
+│                                         │
+│  Dashboards:                            │
+│  📊 Sales Report                        │
+│     Tags: [Sales][Monthly][KPI]         │
+│     [✏️ Edit] [🗑️ Delete] [👁️ View]    │
+│                                         │
+│  📊 Revenue Monthly                     │
+│     Tags: [Sales][Finance]              │
+│     [✏️ Edit] [🗑️ Delete] [👁️ View]    │
+└──────┬──────────────────────────────────┘
+       │
+       ├───── Create/Edit Dashboard ──────────────┐
+       │                                          │
+       ▼                                          │
+┌─────────────────────────────────────────┐       │
+│  Dashboard Form (Create/Edit)           │       │
+│                                         │       │
+│  Title:       [                    ]    │       │
+│  Description: [                    ]    │       │
+│  Looker URL:  [https://...         ]    │       │
+│                                         │       │
+│  Tags:                                  │       │
+│  [Sales ✕] [Monthly ✕] [+ Add tag]     │       │
+│  ┌─────────────────────────────┐        │       │
+│  │ Select from existing tags:  │        │       │
+│  │  ○ Finance                  │        │       │
+│  │  ○ KPI                      │        │       │
+│  │  ○ Quarterly                │        │       │
+│  │  ──────────────             │        │       │
+│  │  ⚠️ Need new tag?           │        │       │
+│  │  Contact Admin              │        │       │
+│  └─────────────────────────────┘        │       │
+│                                         │       │
+│  Move to folder:                        │       │
+│  [Sales ▾] (only assignedFolders)       │       │
+│                                         │       │
+│  Permissions: [Edit permissions...]     │       │
+│                                         │       │
+│  [💾 Save]  [Cancel]                    │       │
+└──────┬──────────────────────────────────┘       │
+       │                                          │
+       └──────────────────────────────────────────┘
                           │
                           ▼
                   ┌───────────────────┐
                   │ View Profile /    │
-                  │ Settings          │
-                  └───────┬───────────┘
-                          │
-                          ▼
-                  ┌───────────────────┐
-                  │ Logout            │
+                  │ Settings / Logout │
                   │ (END)             │
                   └───────────────────┘
 ```
@@ -288,14 +364,18 @@ A moderator (Team Lead) manages folders and dashboards within their assigned fol
 
 | Decision Point | Outcome | Next Step |
 |---|---|---|
-| **User assigned to folder?** | ✅ Yes | Show folder and dashboards |
-| | ❌ No | Hide folder from list |
-| **Can create new folder?** | ✅ Yes (if admin) | Allow creation form |
-| | ❌ No | Show "Request folder" button |
-| **Can edit dashboard?** | ✅ Yes (created by me) | Show edit/delete buttons |
+| **Which sidebar menu clicked?** | Dashboard | Enter View 1 (Viewer mode) |
+| | Manage Folders | Enter View 2 (Manager mode) |
+| **Folder in assignedFolders?** | ✅ Yes | Show full CRUD UI |
+| | ❌ No | Show read-only (View 1 behavior) |
+| **Tag filter selected? (View 1)** | ✅ Yes | Filter dashboards by tags |
+| | ❌ No | Show all accessible dashboards |
+| **Can edit dashboard? (View 2)** | ✅ Yes (in assigned) | Show edit/delete/tag-assign buttons |
 | | ❌ No | Show view-only mode |
-| **Permission changed?** | ✅ Yes | Update DB and refresh UI |
-| | ❌ No | Discard changes |
+| **Need new tag?** | Tag exists | Select from existing tags |
+| | Tag missing | Contact Admin (cannot create) |
+| **Move dashboard?** | Target in assigned | Allow move |
+| | Target not assigned | Block move (🔒) |
 
 **📝 Note:** Dashboard permissions are checked using 3-layer model. See [Roles & Permissions Guide > Permission Structure](../GUIDES/roles-and-permissions.md#-dashboard-access-structure) for details.
 
@@ -342,8 +422,9 @@ An admin (System Administrator) has full control over companies, users, folders,
 │ 2. Users Management         │                │
 │ 3. Folders Management       │                │
 │ 4. Dashboards Management    │                │
-│ 5. Audit & Activity Logs    │                │
-│ 6. System Settings          │                │
+│ 5. Tags Management (NEW)    │                │
+│ 6. Audit & Activity Logs    │                │
+│ 7. System Settings          │                │
 └──────┬──────────────────────┘                │
        │                                       │
        ├──────────────────────────────────────┤
@@ -513,7 +594,50 @@ An admin (System Administrator) has full control over companies, users, folders,
                                    │
                                    │
    ┌────────────────────────────────────────────────────────────┐
-   │ 5. AUDIT & ACTIVITY LOGS                                   │
+   │ 5. TAGS MANAGEMENT (NEW)                                   │
+   │    (app/pages/admin/tags)                                  │
+   └────────────────────────────────────────────────────────────┘
+                               │
+                               ▼
+                        ┌──────────────────────────┐
+                        │ View All Tags            │
+                        │                          │
+                        │ - Tag Name               │
+                        │ - Color                  │
+                        │ - Description            │
+                        │ - Dashboard count        │
+                        │ - Status (active/inactive)
+                        │ - Actions (edit/delete)  │
+                        └────────┬─────────────────┘
+                                 │
+                                 ├──────┬──────┬────────┐
+                                 │      │      │        │
+                                 ▼      ▼      ▼        ▼
+                           ┌────────┐ ┌────────┐ ┌──────────┐
+                           │ Create │ │ Edit   │ │ Delete   │
+                           │ Tag    │ │ Tag    │ │ Tag      │
+                           │        │ │        │ │          │
+                           │ - Name │ │ - Name │ │ - Confirm│
+                           │ - Color│ │ - Color│ │ - Warn:  │
+                           │ - Desc │ │ - Desc │ │   N dash-│
+                           │        │ │        │ │   boards │
+                           │        │ │        │ │   will   │
+                           │        │ │        │ │   lose   │
+                           │        │ │        │ │   this   │
+                           │        │ │        │ │   tag    │
+                           └───┬────┘ └───┬────┘ └────┬─────┘
+                               │          │           │
+                               └──────────┴───────────┘
+                                          │
+                                          ▼
+                              ┌──────────────────────────┐
+                              │ Back to Tags List        │
+                              │ (Changes applied)        │
+                              └──────┬───────────────────┘
+                                     │
+                                     │
+   ┌────────────────────────────────────────────────────────────┐
+   │ 6. AUDIT & ACTIVITY LOGS                                   │
    │    (app/pages/admin/audit-logs)                            │
    └────────────────────────────────────────────────────────────┘
                                    │
@@ -532,7 +656,7 @@ An admin (System Administrator) has full control over companies, users, folders,
                                    │
                                    │
    ┌────────────────────────────────────────────────────────────┐
-   │ 6. SYSTEM SETTINGS                                         │
+   │ 7. SYSTEM SETTINGS                                         │
    │    (app/pages/admin/settings)                              │
    └────────────────────────────────────────────────────────────┘
                                    │
@@ -571,6 +695,10 @@ An admin (System Administrator) has full control over companies, users, folders,
 | | ❌ Cancelled | Stay on company list |
 | **Modify user role?** | ✅ Yes | Update DB + re-authenticate |
 | | ❌ No (Permission denied) | Show error message |
+| **Delete tag?** | ✅ Confirmed | Remove tag from all dashboards + delete tag |
+| | ❌ Cancelled | Stay on tags list |
+| **Tag in use by dashboards?** | ✅ Yes (N dashboards) | Show warning with count before delete |
+| | ❌ No | Allow immediate delete |
 
 ---
 
@@ -844,11 +972,12 @@ For MODERATOR and ADMIN users who work across companies:
 
 ## 📊 Flow Summary Table
 
-| Role | Entry Point | Main Actions | Key Checks | Restrictions |
-|---|---|---|---|---|
-| **USER** | `/dashboard` | View dashboards, Filters | `dashboard.permissions` | View-only, no management |
-| **MODERATOR** | `/dashboard` or `/admin/folders` | Create/edit dashboards in folders, manage subfolders | `assignedFolders` array | Only assigned folders |
-| **ADMIN** | `/admin` | Full CRUD on all entities | Role check | None (global access) |
+| Role | Entry Point | Sidebar Menus | Main Actions | Tag Actions | Key Checks | Restrictions |
+|---|---|---|---|---|---|---|
+| **USER** | `/dashboard` | Dashboard (View All, Search) | View dashboards, Filter by tag/folder | View tags, Filter | `dashboard.permissions` | View-only, no management |
+| **MODERATOR (View 1)** | `/dashboard` | Dashboard (View All, Search) | Same as User | View tags, Filter | `dashboard.permissions` | Read-only |
+| **MODERATOR (View 2)** | `/manage/folders/:id` | Manage Folders (assigned) | CRUD dashboards/subfolders in assigned folders | Assign/unassign tags | `assignedFolders` | Only assigned folders, cannot create tags |
+| **ADMIN** | `/admin` | Dashboard + Admin (all menus) | Full CRUD on all entities + Tag management | Full CRUD tags, Assign to any | Role check | None (global access) |
 
 ---
 
@@ -856,17 +985,20 @@ For MODERATOR and ADMIN users who work across companies:
 
 1. **Create Wireframes** for key pages
    - ✅ [Dashboard Discover Page](./wireframes/dashboard-discover-page.md) - USER role
-   - [ ] Folder Management Page
+   - ✅ [Sidebar Navigation](./wireframes/sidebar-navigation.md) - Role-based sidebar
+   - ✅ [Tag Management Page](./wireframes/tag-management-page.md) - Admin tag CRUD + Tag filter UI
+   - [ ] Folder Management Page (Moderator Manager mode)
    - [ ] User Management Page (ADMIN)
    - [ ] Company Selector
    - [ ] Permission Modal
 
 2. **Design Navigation** structure
-   - Sidebar layout for each role
+   - ✅ Sidebar layout for each role — see [Sidebar Navigation](./wireframes/sidebar-navigation.md)
    - Breadcrumb patterns
    - Menu visibility by role
 
 3. **Create Component Breakdown**
+   - ✅ Tag components (TagBadge, TagSelector, TagFilter, TagManager)
    - Identify reusable components
    - Plan component hierarchy
 
