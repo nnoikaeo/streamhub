@@ -168,7 +168,60 @@
 
 ---
 
-### Phase 5: Polish & Deployment (Week 7-8)
+### Phase 5: Tag System & Sidebar Restructure (Week 7-8)
+**Goal:** Implement tag-based dashboard categorization, role-based sidebar, and Moderator dual-view
+
+- [ ] **Tag Data Model** (feat/tag-system)
+  - Create `tags` Firestore collection
+  - Add `tags: string[]` field to dashboards
+  - Create composite indexes for tag queries
+  - Implement Firestore security rules (read: all auth, write: admin only)
+
+- [ ] **Tag Store & Composables** (feat/tag-store)
+  - Create `stores/tags.ts` (Pinia store for tag CRUD + caching)
+  - Create `composables/useTags.ts` (tag logic)
+  - Add `canManageTags` and `canAssignTags` to permissions store
+  - Update `stores/permissions.ts` role mapping
+
+- [ ] **Tag UI Components** (feat/tag-ui)
+  - `TagBadge.vue` — display tag chips on dashboard cards
+  - `TagFilter.vue` — tag chip multi-select filter on "View All" page
+  - `TagSelector.vue` — add/remove tags in dashboard edit form
+  - `TagManager.vue` — admin-only CRUD page at `/admin/tags`
+
+- [ ] **Sidebar Restructure** (feat/sidebar-restructure)
+  - Refactor `UnifiedSidebar.vue` to use role-based navigation config
+  - Create `composables/useRoleNavigation.ts`
+  - User sidebar: Dashboard (View All, Search) only
+  - Moderator sidebar: Dashboard + Manage Folders (assigned only)
+  - Admin sidebar: Dashboard + Admin menu (with Tags page)
+  - Remove Folder Tree from sidebar for User/Moderator
+
+- [ ] **Moderator Dual-View** (feat/moderator-dual-view)
+  - Implement View 1 (Viewer mode) — read-only dashboard browsing
+  - Implement View 2 (Manager mode) — CRUD in assigned folders
+  - Sidebar accordion switching between views
+  - Permission checks based on `assignedFolders`
+
+- [ ] **Dashboard "View All" Page Enhancement** (feat/dashboard-view-all)
+  - Add tag filter chips to discover page
+  - Add folder dropdown filter
+  - Implement lazy load (Intersection Observer, 12 items per batch)
+  - Group dashboards by folder with folder headers
+  - Filter reset when changing tag/folder selections
+
+**Estimated Time:** 10-14 days
+
+**Related Documentation:**
+- [Sidebar Navigation Wireframe](../DESIGN/wireframes/sidebar-navigation.md)
+- [Tag Management Wireframe](../DESIGN/wireframes/tag-management-page.md)
+- [Moderator Dual-View Model](../GUIDES/roles-and-permissions.md#-moderator-dual-view-model)
+- [Tag Permissions](../GUIDES/roles-and-permissions.md#-tag-permissions)
+- [Database Schema — Tags Collection](../GUIDES/database-schema.md#6-tags-collection)
+
+---
+
+### Phase 6: Polish & Deployment (Week 9-10)
 **Goal:** Testing, optimization, deploy to production
 
 - [ ] **Testing & QA**
@@ -250,12 +303,23 @@
   │   ├── createdBy: uid
   │   ├── createdAt: timestamp
   │   ├── updatedAt: timestamp
+  │   ├── tags: array                 // NEW: ["tag_sales", "tag_kpi"]
   │   └── permissions: {
   │       "company:STTH": ["view"],
   │       "role:moderator": ["view"],
   │       "role:admin": ["view", "edit", "delete"],
   │       "uid:xxx": ["view", "edit"]
   │     }
+
+/tags                                  // NEW: Tag system
+  ├── tagId
+  │   ├── name: string               // "Sales"
+  │   ├── slug: string               // "sales"
+  │   ├── color: string              // "#F59E0B"
+  │   ├── description: string
+  │   ├── createdBy: uid
+  │   ├── createdAt: timestamp
+  │   └── isActive: boolean
 
 /invitations
   ├── invitationId
@@ -277,7 +341,8 @@ stores/
 ├── users.ts                   // CRUD + invitations (company-scoped)
 ├── dashboards.ts              // CRUD + permissions (company-scoped)
 ├── folders.ts                 // NEW: Manage folders (company-scoped)
-├── permissions.ts             // NEW: Check user permissions
+├── permissions.ts             // Enhanced: Add canManageTags, canAssignTags
+├── tags.ts                    // NEW: Tag CRUD + filtering (cross-company)
 └── ui.ts                      // Modals, notifications
 ```
 
@@ -343,6 +408,10 @@ git branch -d feat/feature-name
 - [ ] Dashboard Management working (CRUD + permissions)
 - [ ] Looker Studio embeds display correctly
 - [ ] Role-based access control working properly
+- [ ] Tag system: Admin can CRUD tags, Moderator can assign, User can filter
+- [ ] Sidebar navigation: role-based menus (User / Moderator / Admin)
+- [ ] Moderator dual-view: Viewer mode + Manager mode working
+- [ ] Dashboard "View All" page: tag filter + folder filter + lazy load
 - [ ] Performance: Page load < 2 seconds
 - [ ] Mobile responsive
 - [ ] 95%+ test coverage on critical paths

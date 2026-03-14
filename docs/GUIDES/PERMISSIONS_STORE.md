@@ -56,30 +56,36 @@ Full access to all features and settings
   canCreateFolder: true,
   canEditFolder: true,
   canDeleteFolder: true,
+  canManageTags: true,         // ✅ Create/Edit/Delete tags
+  canAssignTags: true,         // ✅ Assign/unassign tags to any dashboard
   canAccessAdmin: true,
   canManageUsers: true,
 }
 ```
 
-#### 2. Editor
-Can create and edit content, but cannot manage users
+#### 2. Moderator (formerly Editor)
+Can create and edit content in assigned folders, assign tags, but cannot manage users or create tags.
+Has **dual-view model**: Viewer mode (read-only) and Manager mode (CRUD in assigned folders).
+See [Moderator Dual-View Model](GUIDES/roles-and-permissions.md#-moderator-dual-view-model).
 ```typescript
 {
   canViewDashboards: true,
-  canCreateDashboard: true,
-  canEditDashboard: true,
-  canDeleteDashboard: true,
+  canCreateDashboard: true,    // In assigned folders only
+  canEditDashboard: true,      // In assigned folders only
+  canDeleteDashboard: true,    // In assigned folders only
   canShareDashboard: true,
-  canCreateFolder: true,
-  canEditFolder: true,
-  canDeleteFolder: false,    // ← Cannot delete
-  canAccessAdmin: false,     // ← No admin access
-  canManageUsers: false,     // ← Cannot manage users
+  canCreateFolder: true,       // Subfolders in assigned folders
+  canEditFolder: true,         // In assigned folders only
+  canDeleteFolder: false,      // ← Cannot delete root folders
+  canManageTags: false,        // ❌ Cannot create/edit/delete tags
+  canAssignTags: true,         // ✅ Assign/unassign tags in assigned folders
+  canAccessAdmin: false,       // ← No admin access
+  canManageUsers: false,       // ← Cannot manage users
 }
 ```
 
-#### 3. Viewer
-Read-only access
+#### 3. User (Default)
+Read-only access. Can view dashboards and filter by tags, but cannot modify anything.
 ```typescript
 {
   canViewDashboards: true,
@@ -90,19 +96,10 @@ Read-only access
   canCreateFolder: false,
   canEditFolder: false,
   canDeleteFolder: false,
+  canManageTags: false,        // ❌
+  canAssignTags: false,        // ❌
   canAccessAdmin: false,
   canManageUsers: false,
-}
-```
-
-#### 4. User (Default)
-Same as Viewer for new/default users
-```typescript
-{
-  // Same as Viewer
-  canViewDashboards: true,
-  canCreateDashboard: false,
-  // ...
 }
 ```
 
@@ -487,6 +484,32 @@ const permissions = usePermissionsStore()
 
 ## Advanced Usage
 
+### Tag Permission Checks
+
+**Check tag-related permissions:**
+
+```typescript
+const permissions = usePermissionsStore()
+
+// Show tag filter (all roles can filter)
+// No permission check needed — tag filter is always visible
+
+// Show "Assign Tag" button on dashboard edit form
+if (permissions.can('canAssignTags')) {
+  showTagSelector()
+}
+
+// Show "Create Tag" button (admin only)
+if (permissions.can('canManageTags')) {
+  showCreateTagButton()
+}
+
+// Show "Admin > Tags" menu item
+if (permissions.can('canManageTags')) {
+  showTagManagementPage()
+}
+```
+
 ### Custom Permission Checks
 
 **Extend with custom logic:**
@@ -659,6 +682,28 @@ describe('Permissions Store', () => {
 
     expect(store.hasAny(['canCreateDashboard', 'canViewDashboards'])).toBe(true)
     expect(store.hasAny(['canCreateDashboard', 'canDeleteDashboard'])).toBe(false)
+  })
+
+  it('initializes moderator tag permissions correctly', () => {
+    const store = usePermissionsStore()
+    const modUser = { uid: '111', email: 'mod@example.com', role: 'moderator' }
+
+    store.initializePermissions(modUser)
+
+    expect(store.can('canAssignTags')).toBe(true)     // Can assign tags
+    expect(store.can('canManageTags')).toBe(false)     // Cannot create/delete tags
+    expect(store.can('canAccessAdmin')).toBe(false)
+  })
+
+  it('initializes user tag permissions correctly', () => {
+    const store = usePermissionsStore()
+    const user = { uid: '222', email: 'user@example.com', role: 'user' }
+
+    store.initializePermissions(user)
+
+    expect(store.can('canAssignTags')).toBe(false)     // Cannot assign tags
+    expect(store.can('canManageTags')).toBe(false)     // Cannot manage tags
+    expect(store.can('canViewDashboards')).toBe(true)  // Can view (and filter by tags)
   })
 
   it('resets permissions on logout', () => {
