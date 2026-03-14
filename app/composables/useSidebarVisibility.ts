@@ -1,41 +1,27 @@
 /**
  * useSidebarVisibility Composable
- * Determines sidebar section visibility based on user role
+ * @deprecated Use useRoleNavigation() instead — it provides full menu group structure.
  *
- * Role-based approach ensures consistent sidebar across all pages
- * - Admin: sees Admin Panel + Folders accordion
- * - Moderator: sees Folders accordion only
- * - User: sees neither (basic dashboard)
+ * Kept for backward compatibility. Delegates to useRoleNavigation.
  *
  * Usage:
  * const { showAdmin, showFolders } = useSidebarVisibility()
  */
 
 import { computed } from 'vue'
-import { useAuthStore } from '~/stores/auth'
+import { useRoleNavigation } from '~/composables/useRoleNavigation'
 
 export function useSidebarVisibility() {
-  const authStore = useAuthStore()
+  const { showAdmin } = useRoleNavigation()
 
   /**
-   * Admin Panel visibility
-   * Only admin users can see admin menu (Users, Dashboards, Folders, etc.)
+   * Folders accordion is removed from sidebar per Phase 5 redesign.
+   * Folders are now used as filters on the discover page instead.
    */
-  const showAdmin = computed(() => {
-    return authStore.user?.role === 'admin'
-  })
-
-  /**
-   * Folders accordion visibility
-   * Admin, Moderator & regular users can see folders
-   */
-  const showFolders = computed(() => {
-    const role = authStore.user?.role
-    return ['admin', 'moderator', 'user'].includes(role)
-  })
+  const showFolders = computed(() => false)
 
   return {
     showAdmin,
-    showFolders
+    showFolders,
   }
 }
