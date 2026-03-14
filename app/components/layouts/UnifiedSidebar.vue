@@ -186,6 +186,11 @@ const adminMenuItems: MenuItem[] = [
     icon: '👫',
   },
   {
+    path: '/admin/tags',
+    label: 'แท็ก',
+    icon: '🏷️',
+  },
+  {
     path: '/admin/permissions',
     label: 'สิทธิ์',
     icon: '🔐',
