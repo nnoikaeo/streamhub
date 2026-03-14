@@ -74,6 +74,9 @@ export interface Dashboard {
   updatedAt: Date
   updatedBy: string // uid
   
+  // Tags
+  tags: string[]
+
   // Status
   isArchived: boolean
   archivedAt?: Date
