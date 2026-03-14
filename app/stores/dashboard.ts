@@ -26,6 +26,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   // Accordion states - persisted across navigation
   const isFoldersAccordionOpen = ref<boolean>(true)
   const isAdminAccordionOpen = ref<boolean>(false)
+  const isManageFoldersAccordionOpen = ref<boolean>(false)
 
   // Cache keys for invalidation
   const dashboardsCacheKey = ref<string>('')
@@ -233,20 +234,38 @@ export const useDashboardStore = defineStore('dashboard', () => {
   }
 
   /**
-   * Initialize accordion states based on context
-   * - Dashboard pages: Folders open, Admin closed
-   * - Admin pages: Admin open, Folders closed
-   * - Non-admin users: Folders open, Admin hidden
+   * Set manage folders accordion open/closed state
    */
-  const initializeAccordionStates = (isAdminPage: boolean, isAdminUser: boolean) => {
-    if (isAdminPage && isAdminUser) {
-      // Admin page: show admin accordion, hide folders
+  const setManageFoldersAccordionOpen = (isOpen: boolean) => {
+    isManageFoldersAccordionOpen.value = isOpen
+  }
+
+  /**
+   * Toggle manage folders accordion state
+   */
+  const toggleManageFoldersAccordion = () => {
+    isManageFoldersAccordionOpen.value = !isManageFoldersAccordionOpen.value
+  }
+
+  /**
+   * Initialize accordion states based on context
+   * - /manage/* pages: Manage Folders open, Dashboard + Admin closed
+   * - /admin/* pages: Admin open, Dashboard + Manage Folders closed
+   * - /dashboard/* pages: Dashboard open, Admin + Manage Folders closed
+   */
+  const initializeAccordionStates = (isAdminPage: boolean, isAdminUser: boolean, isManagePage: boolean = false) => {
+    if (isManagePage) {
+      isFoldersAccordionOpen.value = false
+      isAdminAccordionOpen.value = false
+      isManageFoldersAccordionOpen.value = true
+    } else if (isAdminPage && isAdminUser) {
       isFoldersAccordionOpen.value = false
       isAdminAccordionOpen.value = true
+      isManageFoldersAccordionOpen.value = false
     } else {
-      // Dashboard page: show folders accordion, hide admin
       isFoldersAccordionOpen.value = true
       isAdminAccordionOpen.value = false
+      isManageFoldersAccordionOpen.value = false
     }
   }
 
@@ -316,6 +335,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     expandedFolders,
     isFoldersAccordionOpen,
     isAdminAccordionOpen,
+    isManageFoldersAccordionOpen,
 
     // Computed - Selectors
     currentFolder,
@@ -343,8 +363,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
     clearExpandedFolders,
     setFoldersAccordionOpen,
     setAdminAccordionOpen,
+    setManageFoldersAccordionOpen,
     toggleFoldersAccordion,
     toggleAdminAccordion,
+    toggleManageFoldersAccordion,
     initializeAccordionStates,
 
     // Cache Management
