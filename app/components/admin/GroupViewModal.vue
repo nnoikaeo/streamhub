@@ -31,6 +31,10 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
+const close = () => {
+  isOpen.value = false
+}
+
 // Fetch users to resolve member UIDs → names/emails
 const { users, fetchUsers } = useAdminUsers()
 
@@ -89,10 +93,11 @@ const formatDate = (dateStr?: string): string => {
 </script>
 
 <template>
-  <ViewModal
+  <Modal
     v-model="isOpen"
-    title="รายละเอียดกลุ่ม"
+    :title="`รายละเอียดกลุ่ม`"
     size="lg"
+    @update:model-value="isOpen = $event"
   >
     <div v-if="group" class="group-view">
 
@@ -174,7 +179,13 @@ const formatDate = (dateStr?: string): string => {
       </section>
     </div>
 
-  </ViewModal>
+    <!-- Footer -->
+    <template #footer>
+      <button type="button" class="group-view__close-btn" @click="close">
+        ปิด
+      </button>
+    </template>
+  </Modal>
 </template>
 
 <style scoped>
@@ -436,6 +447,22 @@ const formatDate = (dateStr?: string): string => {
   color: var(--color-text-secondary, #6b7280);
 }
 
+/* ── Close Button ── */
+.group-view__close-btn {
+  padding: var(--spacing-sm, 0.5rem) var(--spacing-xl, 1.5rem);
+  background-color: var(--color-bg-secondary, #f3f4f6);
+  color: var(--color-text-primary, #1f2937);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: var(--radius-md, 0.375rem);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.group-view__close-btn:hover {
+  background-color: #e5e7eb;
+}
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
