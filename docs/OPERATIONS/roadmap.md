@@ -171,37 +171,40 @@
 ### Phase 5: Tag System & Sidebar Restructure (Week 7-8)
 **Goal:** Implement tag-based dashboard categorization, role-based sidebar, and Moderator dual-view
 
-- [ ] **Tag Data Model** (feat/tag-system)
-  - Create `tags` Firestore collection
-  - Add `tags: string[]` field to dashboards
-  - Create composite indexes for tag queries
-  - Implement Firestore security rules (read: all auth, write: admin only)
+- [x] **Tag Data Model** ✅ COMPLETED
+  - `types/tag.ts` — Tag type definition
+  - `tags: string[]` field added to Dashboard type
+  - Mock data: `.data/tags.json`
 
-- [ ] **Tag Store & Composables** (feat/tag-store)
-  - Create `stores/tags.ts` (Pinia store for tag CRUD + caching)
-  - Create `composables/useTags.ts` (tag logic)
-  - Add `canManageTags` and `canAssignTags` to permissions store
-  - Update `stores/permissions.ts` role mapping
+- [x] **Tag Store & Composables** ✅ COMPLETED
+  - `stores/tags.ts` — Pinia store for tag CRUD + caching
+  - `composables/useAdminTags.ts` — admin tag CRUD via useAdminResource
+  - `stores/permissions.ts` — `canManageTags` and `canAssignTags` added per role
 
-- [ ] **Tag UI Components** (feat/tag-ui)
-  - `TagBadge.vue` — display tag chips on dashboard cards
-  - `TagFilter.vue` — tag chip multi-select filter on "View All" page
-  - `TagSelector.vue` — add/remove tags in dashboard edit form
-  - `TagManager.vue` — admin-only CRUD page at `/admin/tags`
+- [x] **Tag UI Components** ✅ COMPLETED (3/4)
+  - `components/features/TagBadge.vue` ✅ — tag chip display
+  - `components/features/TagFilter.vue` ✅ — multi-select tag filter
+  - `components/features/TagSelector.vue` ✅ — add/remove tags in forms
+  - `TagManager.vue` / `/admin/tags` ❌ — admin CRUD page (pending)
 
-- [ ] **Sidebar Restructure** (feat/sidebar-restructure)
-  - Refactor `UnifiedSidebar.vue` to use role-based navigation config
-  - Create `composables/useRoleNavigation.ts`
-  - User sidebar: Dashboard (View All, Search) only
-  - Moderator sidebar: Dashboard + Manage Folders (assigned only)
-  - Admin sidebar: Dashboard + Admin menu (with Tags page)
-  - Remove Folder Tree from sidebar for User/Moderator
+- [x] **Sidebar Restructure** ✅ COMPLETED
+  - `composables/useRoleNavigation.ts` — role-based nav config
+  - `components/layouts/UnifiedSidebar.vue` — updated with role-based accordions
+  - Manage Folders accordion for moderator (with folder tree + dashboard count badges)
+  - Mutually exclusive accordion behavior (Dashboard / Manage Folders / Admin)
 
-- [ ] **Moderator Dual-View** (feat/moderator-dual-view)
-  - Implement View 1 (Viewer mode) — read-only dashboard browsing
-  - Implement View 2 (Manager mode) — CRUD in assigned folders
-  - Sidebar accordion switching between views
-  - Permission checks based on `assignedFolders`
+- [x] **Moderator Dual-View** ✅ COMPLETED
+  - **Step 1** (PR #40): `composables/useModeratorFolders.ts` + `useModeratorDashboards.ts`
+    - Permission-gated access via `assignedModerators` on folder
+    - `canManageFolder()` checks direct + descendant folders
+  - **Step 2** (PR #41): Sidebar Manage Folders accordion
+    - Assigned folder tree with dashboard count badges
+    - Navigate to `/manage/folders/:id`
+  - **Step 3** (PR #42): `pages/manage/folders/[folderId].vue`
+    - Subfolder grid + dashboard DataTable (scoped to folder)
+    - CRUD: create/edit/delete dashboard with tag assignment
+    - Subfolder creation
+    - `DashboardForm.vue` updated with `showTagSelector` / `canCreateTag` / `availableTags` props
 
 - [ ] **Dashboard "View All" Page Enhancement** (feat/dashboard-view-all)
   - Add tag filter chips to discover page
@@ -379,9 +382,11 @@ pages/
 ### Immediate (This Week)
 1. ✅ Setup branch protection (develop branch)
 2. ✅ Create Dashboard Header component
-3. ⏳ **Create Sidebar Navigation component** (feat/sidebar-nav)
-4. ⏳ Update dashboard layout
-5. ⏳ Setup Firestore collections
+3. ✅ Sidebar Navigation + Role-based menus (feat/sidebar-restructure)
+4. ✅ Tag Store, Composables & UI Components (feat/tag-system)
+5. ✅ Moderator Dual-View: Composables + Sidebar + Manage Page (PR #40, #41, #42)
+6. ⏳ **Admin Tags Management Page** (`/admin/tags` — `TagManager.vue`)
+7. ⏳ **Dashboard "View All" Page Enhancement** (tag filter, folder filter, lazy load)
 
 ### Git Flow Process
 For each feature:
