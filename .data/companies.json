@@ -117,5 +117,55 @@
     "region": "SOUTH",
     "regionRole": "sub",
     "isActive": true
+  },
+  {
+    "isActive": true,
+    "code": "INFE",
+    "name": "บริษัท อินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์ จำกัด",
+    "description": "จำหน่ายสินค้าและให้บริการในแบรนด์อินโนเทค",
+    "region": "INNOTECH",
+    "regionRole": "hub",
+    "createdAt": "2026-03-15T09:29:21.154Z",
+    "updatedAt": "2026-03-15T09:29:21.154Z"
+  },
+  {
+    "isActive": true,
+    "code": "ORAY",
+    "name": "บริษัท ออเร้นจ์ เอส (พระนครศรีอยุธยา) จำกัด",
+    "description": "จำหน่ายสินค้าและบริการในแบรนด์ออเร้นจ์ เอส",
+    "region": "ORANGES",
+    "regionRole": "hub",
+    "createdAt": "2026-03-15T09:31:31.402Z",
+    "updatedAt": "2026-03-15T09:31:31.402Z"
+  },
+  {
+    "isActive": true,
+    "code": "STSS",
+    "name": "บริษัท สทรีมวอช เซลส์ แอนด์ เซอร์วิส จำกัด",
+    "description": "ดูแลพื้นที่กรุงเทพชั้นในและใกล้เคียง",
+    "region": "MBR",
+    "regionRole": "hub",
+    "createdAt": "2026-03-15T09:33:34.084Z",
+    "updatedAt": "2026-03-15T09:33:34.084Z"
+  },
+  {
+    "isActive": true,
+    "code": "STEB",
+    "name": "บริษัท สทรีมวอช (กรุงเทพตะวันออก) จำกัด",
+    "description": "ดูแลพื้นที่กรุงเทพตะวันออกและใกล้เคียง",
+    "region": "MBR",
+    "regionRole": "hub",
+    "createdAt": "2026-03-15T09:34:24.984Z",
+    "updatedAt": "2026-03-15T09:34:24.984Z"
+  },
+  {
+    "isActive": true,
+    "code": "STSB",
+    "name": "บริษัท สทรีมวอช (กรุงเทพใต้) จำกัด",
+    "description": "ดูแลพื้นที่กรุงเทพใต้และใกล้เคียง",
+    "region": "MBR",
+    "regionRole": "hub",
+    "createdAt": "2026-03-15T09:35:15.584Z",
+    "updatedAt": "2026-03-15T09:35:15.584Z"
   }
 ]
