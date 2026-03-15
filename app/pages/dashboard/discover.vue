@@ -1,7 +1,7 @@
 <template>
   <ClientOnly>
     <PageLayout
-      v-if="!isLoading && folders.length > 0"
+      v-if="!isInitializing"
       :breadcrumbs="breadcrumbItems"
       :folders="folderTree"
       :selected-folder-id="selectedFolderId"
@@ -24,6 +24,7 @@
             />
             <FolderDropdownFilter
               v-if="flattenedFolders.length > 0"
+              :key="folderDropdownKey"
               v-model="dropdownFolderId"
               :folders="flattenedFolders"
               :dashboard-counts="dashboardCountByFolder"
@@ -160,6 +161,7 @@ const {
   folderPath,
   breadcrumbItems,
   isLoading,
+  isInitializing,
   error,
   shareDialogOpen,
   availableUsers,
@@ -293,6 +295,14 @@ const dashboardCountByFolder = computed(() => {
 })
 
 /**
+ * Key that changes when dashboard counts update — forces FolderDropdownFilter
+ * to re-mount so <option> text nodes reflect the latest counts
+ */
+const folderDropdownKey = computed(() =>
+  Object.values(dashboardCountByFolder.value).reduce((a, b) => a + b, 0)
+)
+
+/**
  * Folder dropdown state — synced with sidebar selectedFolderId
  */
 const dropdownFolderId = ref<string | null>(selectedFolderId.value || null)
@@ -312,7 +322,7 @@ const handleDropdownChange = (folderId: string | null) => {
 /**
  * Grouped view — active when no folder is selected
  */
-const isGroupedView = computed(() => !selectedFolderId.value)
+const isGroupedView = computed(() => !selectedFolderId.value && folders.value.length > 0)
 
 /**
  * Group filtered dashboards by folder (hide empty groups)
@@ -336,10 +346,10 @@ const groupedDashboards = computed(() => {
  * Status text showing count + active tag names
  */
 const dashboardCountText = computed(() => {
-  const count = filteredDashboards.value.length
   const selected = tagStore.selectedTagIds
   if (isGroupedView.value) {
     const groupCount = groupedDashboards.value.length
+    const count = groupedDashboards.value.reduce((sum, g) => sum + g.dashboards.length, 0)
     const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
     if (selected.length > 0) {
       const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
@@ -347,6 +357,7 @@ const dashboardCountText = computed(() => {
     }
     return base
   }
+  const count = filteredDashboards.value.length
   if (selected.length === 0) return `พบ ${count} แดชบอร์ด`
   const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
   return `แสดง ${count} แดชบอร์ด · แท็ก: ${tagNames}`

@@ -5,7 +5,7 @@
     "parentId": null,
     "description": "All sales-related dashboards",
     "isActive": true,
-    "assignedModerators": [],
+    "assignedModerators": ["9c7TScfkuGX7W4dq9P8GHjhrbIu1"],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z",
@@ -17,7 +17,7 @@
     "parentId": null,
     "description": "Financial reports and dashboards",
     "isActive": true,
-    "assignedModerators": [],
+    "assignedModerators": ["9c7TScfkuGX7W4dq9P8GHjhrbIu1"],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z",
@@ -54,7 +54,8 @@
     "description": "Sales reports",
     "isActive": true,
     "assignedModerators": [
-      "user_it_admin"
+      "user_it_admin",
+      "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",
@@ -68,7 +69,8 @@
     "description": "Regional sales analysis",
     "isActive": true,
     "assignedModerators": [
-      "user_it_admin"
+      "user_it_admin",
+      "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",
@@ -152,7 +154,8 @@
     "description": "Budget tracking",
     "isActive": true,
     "assignedModerators": [
-      "user_nattha_mod"
+      "user_nattha_mod",
+      "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",
@@ -166,7 +169,8 @@
     "description": "Payroll reports",
     "isActive": true,
     "assignedModerators": [
-      "user_nattha_mod"
+      "user_nattha_mod",
+      "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
     "createdBy": "user_it_admin",
     "createdAt": "2024-01-05T00:00:00.000Z",
