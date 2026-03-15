@@ -9,7 +9,7 @@
  * - Uses FormField component for consistent styling
  */
 
-import type { Dashboard } from '~/types/dashboard'
+import type { Dashboard, Folder } from '~/types/dashboard'
 import type { Tag } from '~/types/tag'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAuthStore } from '~/stores/auth'
@@ -22,6 +22,7 @@ interface Props {
   showTagSelector?: boolean
   canCreateTag?: boolean
   availableTags?: Tag[]
+  availableFolders?: Folder[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,9 +37,12 @@ const emit = defineEmits<{
 const authStore = useAuthStore()
 const { folders, fetchFolders } = useAdminFolders()
 
+// Use availableFolders prop if provided, otherwise fall back to all folders
+const folderSource = computed(() => props.availableFolders ?? folders.value)
+
 // Folder options
 const folderOptions = computed(() =>
-  folders.value.map(folder => ({
+  folderSource.value.map(folder => ({
     label: buildFolderPath(folder.id),
     value: folder.id,
   }))
@@ -48,14 +52,15 @@ const folderOptions = computed(() =>
  * Build folder path (e.g., "Sales > Monthly > East")
  */
 const buildFolderPath = (folderId: string): string => {
-  const folder = folders.value.find(f => f.id === folderId)
+  const source = folderSource.value
+  const folder = source.find(f => f.id === folderId)
   if (!folder) return ''
 
   const path: string[] = [folder.name]
   let currentId = folder.parentId
 
   while (currentId) {
-    const parent = folders.value.find(f => f.id === currentId)
+    const parent = source.find(f => f.id === currentId)
     if (!parent) break
     path.unshift(parent.name)
     currentId = parent.parentId
@@ -114,9 +119,11 @@ const formatDate = (date: Date | undefined): string => {
   })
 }
 
-// Fetch folders on mount
+// Fetch folders on mount (skip if availableFolders prop is provided)
 onMounted(async () => {
-  await fetchFolders()
+  if (!props.availableFolders) {
+    await fetchFolders()
+  }
 })
 </script>
 
