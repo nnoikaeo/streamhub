@@ -1,6 +1,6 @@
 <template>
   <PageLayout
-    :folders="folderTree"
+    :folders="assignedFolderTree"
     :allow-search="false"
     :allow-create="false"
     :breadcrumbs="breadcrumbs"
@@ -10,8 +10,8 @@
       <!-- Page Header -->
       <div class="page-header">
         <div>
-          <h1 class="page-title">Permission Management</h1>
-          <p class="page-subtitle">Configure dashboard access with 3-layer permission model</p>
+          <h1 class="page-title">จัดการสิทธิ์</h1>
+          <p class="page-subtitle">กำหนดสิทธิ์การเข้าถึงแดชบอร์ดในโฟลเดอร์ที่ดูแล</p>
         </div>
 
         <div class="header-actions">
@@ -20,19 +20,19 @@
             class="action-button secondary"
             @click="resetEditor"
             :disabled="!hasChanges"
-            title="Reset changes"
+            title="รีเซ็ตการเปลี่ยนแปลง"
           >
-            Reset
+            รีเซ็ต
           </button>
           <button
             type="button"
             class="action-button primary"
             @click="savePermissions"
             :disabled="!hasChanges || isSaving"
-            title="Save changes"
+            title="บันทึกการเปลี่ยนแปลง"
           >
             <span v-if="isSaving" class="button-spinner" />
-            {{ isSaving ? 'Saving...' : 'Save Changes' }}
+            {{ isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
           </button>
         </div>
       </div>
@@ -43,7 +43,7 @@
           <polyline points="20 6 9 17 4 12" />
         </svg>
         <span>{{ successMessage }}</span>
-        <button type="button" class="alert-close" @click="successMessage = null" aria-label="Dismiss">
+        <button type="button" class="alert-close" @click="successMessage = null" aria-label="ปิด">
           ✕
         </button>
       </div>
@@ -55,17 +55,17 @@
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <span>{{ errorMessage }}</span>
-        <button type="button" class="alert-close" @click="errorMessage = null" aria-label="Dismiss">
+        <button type="button" class="alert-close" @click="errorMessage = null" aria-label="ปิด">
           ✕
         </button>
       </div>
 
       <!-- Dashboard Selector -->
       <div class="section">
-        <h2 class="section-title">Select Dashboard</h2>
+        <h2 class="section-title">เลือกแดชบอร์ด</h2>
         <div class="section-content">
           <div class="form-group">
-            <label for="dashboard-select" class="form-label">Dashboard</label>
+            <label for="dashboard-select" class="form-label">แดชบอร์ด</label>
             <select
               id="dashboard-select"
               v-model="selectedDashboardId"
@@ -73,8 +73,8 @@
               @change="loadDashboardPermissions"
               :disabled="isLoading"
             >
-              <option value="">Choose a dashboard...</option>
-              <option v-for="dash in dashboards" :key="dash.id" :value="dash.id">
+              <option value="">เลือกแดชบอร์ด...</option>
+              <option v-for="dash in manageableDashboards" :key="dash.id" :value="dash.id">
                 {{ dash.name }} ({{ dash.type }})
               </option>
             </select>
@@ -84,105 +84,104 @@
 
       <!-- Permissions Editor -->
       <div v-if="selectedDashboardId && currentDashboard" class="section">
-        <h2 class="section-title">Dashboard: {{ currentDashboard.name }}</h2>
+        <h2 class="section-title">แดชบอร์ด: {{ currentDashboard.name }}</h2>
         <p class="section-subtitle">
-          Located in: <strong>{{ currentDashboardFolder }}</strong>
+          โฟลเดอร์: <strong>{{ currentDashboardFolder }}</strong>
         </p>
 
         <!-- Loading State -->
         <div v-if="isLoading" class="loading-state">
           <div class="loading-spinner" />
-          <p>Loading permissions...</p>
+          <p>กำลังโหลดสิทธิ์...</p>
         </div>
 
         <!-- Permission Editor Component -->
         <div v-else class="section-content">
           <PermissionEditor
             :dashboard-id="selectedDashboardId"
-            :all-users="allUsersFromComposable"
+            :all-users="allUsers"
             :all-groups="groups"
             :all-companies="companies"
             :current-permissions="permissionsToEdit"
-            :show-restrictions="true"
+            :show-restrictions="false"
             @update:permissions="handlePermissionsUpdate"
           />
         </div>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="!isLoading" class="empty-state">
+      <div v-else-if="!isLoading && manageableDashboards.length > 0" class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
           <line x1="3" y1="9" x2="21" y2="9" />
           <line x1="9" y1="3" x2="9" y2="21" />
         </svg>
-        <h3>Select a Dashboard</h3>
-        <p>Choose a dashboard to manage its permissions</p>
+        <h3>เลือกแดชบอร์ด</h3>
+        <p>เลือกแดชบอร์ดเพื่อจัดการสิทธิ์การเข้าถึง</p>
+      </div>
+
+      <!-- No dashboards available -->
+      <div v-else-if="!isLoading && manageableDashboards.length === 0" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+          <line x1="3" y1="9" x2="21" y2="9" />
+          <line x1="9" y1="3" x2="9" y2="21" />
+        </svg>
+        <h3>ไม่มีแดชบอร์ด</h3>
+        <p>ไม่พบแดชบอร์ดในโฟลเดอร์ที่คุณดูแล</p>
       </div>
     </div>
   </PageLayout>
 </template>
 
 <script setup lang="ts">
+/**
+ * Moderator Permission Management Page
+ *
+ * Allows moderators to manage dashboard permissions (Layer 1 & 2 only).
+ * Scoped to dashboards within assigned folders.
+ * Restrictions (Layer 3) are hidden — only admin can manage those.
+ *
+ * Route: /manage/permissions
+ * Middleware: auth
+ */
+
 import PageLayout from '~/components/compositions/PageLayout.vue'
-import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
-import { useAdminFolders } from '~/composables/useAdminFolders'
+import PermissionEditor from '~/components/features/PermissionEditor.vue'
+import { useModeratorFolders } from '~/composables/useModeratorFolders'
+import { useModeratorDashboards } from '~/composables/useModeratorDashboards'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminGroups } from '~/composables/useAdminGroups'
-import { computed, ref, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
-import type { Dashboard, User, AccessControl, AccessRestrictions, Folder } from '~/types/dashboard'
-import PermissionEditor from '~/components/features/PermissionEditor.vue'
+import { useAuth } from '~/composables/useAuth'
+import { computed, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import type { Dashboard, AccessControl, AccessRestrictions } from '~/types/dashboard'
 
-const { breadcrumbs } = useAdminBreadcrumbs()
-const { folders, fetchFolders } = useAdminFolders()
-const { users: allUsersFromComposable, fetchUsers } = useAdminUsers()
-const { companies, fetchCompanies } = useAdminCompanies()
-const { groups, fetchGroups } = useAdminGroups()
-
-// Page metadata
 definePageMeta({
-  middleware: ['auth', 'admin'],
+  middleware: ['auth'],
   layout: 'default',
 })
 
-// Router and Auth
 const router = useRouter()
-const route = useRoute()
-const { user, loading } = useAuth()
+const { user } = useAuth()
 const dashboardService = useDashboardService()
 
-// Check admin role
-onMounted(async () => {
-  console.log(`🔐 [permissions.vue] onMounted - Checking admin access`)
-  
-  // Wait for user to be loaded (max 5 seconds)
-  console.log(`🔐 [permissions.vue] Waiting for auth to load...`)
-  let attempts = 0
-  while (!user?.value && attempts < 50) {
-    await new Promise((resolve) => setTimeout(resolve, 100))
-    attempts++
-  }
-  
-  console.log(`🔐 [permissions.vue] Auth wait completed after ${attempts * 100}ms`)
-  console.log(`🔐 [permissions.vue] user.value:`, user.value)
-  console.log(`🔐 [permissions.vue] user.value?.role:`, user.value?.role)
-  
-  if (user.value?.role !== 'admin') {
-    console.log(`❌ [permissions.vue] Not admin (role: ${user.value?.role}), redirecting to /dashboard/discover`)
-    router.push('/dashboard/discover')
-  } else {
-    console.log(`✅ [permissions.vue] Admin access granted`)
-    // Continue with dashboard loading
-    await Promise.all([loadDashboards(), fetchFolders(), fetchCompanies(), fetchGroups()])
-  }
-})
+// Composables
+const { assignedFolderTree, fetchFolders: fetchModFolders, canManageFolder } = useModeratorFolders()
+const { manageableDashboards, fetchDashboards } = useModeratorDashboards()
+const { users: allUsers, fetchUsers } = useAdminUsers()
+const { companies, fetchCompanies } = useAdminCompanies()
+const { groups, fetchGroups } = useAdminGroups()
+
+// Breadcrumbs
+const breadcrumbs = computed(() => [
+  { label: 'จัดการ', to: '/dashboard/discover' },
+  { label: 'สิทธิ์' },
+])
 
 // State
-const dashboards = ref<Dashboard[]>([])
 const selectedDashboardId = ref<string>('')
 const currentDashboard = ref<Dashboard | null>(null)
 const currentDashboardFolder = ref<string>('')
@@ -205,44 +204,41 @@ const originalPermissions = ref<{
   restrictions: { revoke: [], expiry: {} },
 })
 
-// Computed properties
+// Computed
 const hasChanges = computed(() => {
   return JSON.stringify(permissionsToEdit.value) !== JSON.stringify(originalPermissions.value)
 })
 
-// Load dashboards
-const loadDashboards = async () => {
+// Lifecycle
+onMounted(async () => {
+  // Wait for user to be loaded
+  let attempts = 0
+  while (!user?.value && attempts < 50) {
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    attempts++
+  }
+
+  if (user.value?.role !== 'moderator') {
+    router.push('/dashboard/discover')
+    return
+  }
+
+  isLoading.value = true
   try {
-    isLoading.value = true
-    errorMessage.value = null
-
-    if (!user.value) {
-      errorMessage.value = 'User not authenticated'
-      return
-    }
-
-    // Get all dashboards for admin
-    const response = await dashboardService.getDashboards(user.value.uid, user.value.company, {
-      limit: 100,
-    })
-
-    dashboards.value = response.dashboards
-
-    // Load all users from composable
-    await fetchUsers()
-
-    // Check if dashboard is specified in query params
-    if (route.query.dashboard) {
-      selectedDashboardId.value = route.query.dashboard as string
-      await loadDashboardPermissions()
-    }
+    await Promise.all([
+      fetchModFolders(),
+      fetchDashboards(),
+      fetchUsers(),
+      fetchCompanies(),
+      fetchGroups(),
+    ])
   } catch (err) {
-    errorMessage.value = err instanceof Error ? err.message : 'Failed to load dashboards'
-    console.error('Error loading dashboards:', err)
+    errorMessage.value = err instanceof Error ? err.message : 'ไม่สามารถโหลดข้อมูลได้'
+    console.error('Error loading data:', err)
   } finally {
     isLoading.value = false
   }
-}
+})
 
 // Load permissions for selected dashboard
 const loadDashboardPermissions = async () => {
@@ -255,10 +251,15 @@ const loadDashboardPermissions = async () => {
     isLoading.value = true
     errorMessage.value = null
 
-    // Load dashboard
     const dashboard = await dashboardService.getDashboard(selectedDashboardId.value)
     if (!dashboard) {
-      errorMessage.value = 'Dashboard not found'
+      errorMessage.value = 'ไม่พบแดชบอร์ด'
+      return
+    }
+
+    // Verify moderator can manage this dashboard's folder
+    if (!canManageFolder(dashboard.folderId)) {
+      errorMessage.value = 'ไม่มีสิทธิ์จัดการแดชบอร์ดนี้'
       return
     }
 
@@ -280,7 +281,7 @@ const loadDashboardPermissions = async () => {
 
     originalPermissions.value = JSON.parse(JSON.stringify(permissionsToEdit.value))
   } catch (err) {
-    errorMessage.value = err instanceof Error ? err.message : 'Failed to load permissions'
+    errorMessage.value = err instanceof Error ? err.message : 'ไม่สามารถโหลดสิทธิ์ได้'
     console.error('Error loading permissions:', err)
   } finally {
     isLoading.value = false
@@ -296,14 +297,13 @@ const handlePermissionsUpdate = (newPermissions: { access: AccessControl; restri
 const savePermissions = async () => {
   try {
     if (!selectedDashboardId.value || !currentDashboard.value) {
-      errorMessage.value = 'No dashboard selected'
+      errorMessage.value = 'ยังไม่ได้เลือกแดชบอร์ด'
       return
     }
 
     isSaving.value = true
     errorMessage.value = null
 
-    // Save permissions
     const response = await dashboardService.saveDashboardPermissions({
       dashboardId: selectedDashboardId.value,
       access: permissionsToEdit.value.access,
@@ -312,18 +312,17 @@ const savePermissions = async () => {
     })
 
     if (response.success) {
-      successMessage.value = `Permissions saved for "${currentDashboard.value.name}"`
+      successMessage.value = `บันทึกสิทธิ์สำหรับ "${currentDashboard.value.name}" แล้ว`
       originalPermissions.value = JSON.parse(JSON.stringify(permissionsToEdit.value))
 
-      // Auto-hide success message after 5 seconds
       setTimeout(() => {
         successMessage.value = null
       }, 5000)
     } else {
-      errorMessage.value = response.message || 'Failed to save permissions'
+      errorMessage.value = response.message || 'ไม่สามารถบันทึกสิทธิ์ได้'
     }
   } catch (err) {
-    errorMessage.value = err instanceof Error ? err.message : 'Failed to save permissions'
+    errorMessage.value = err instanceof Error ? err.message : 'ไม่สามารถบันทึกสิทธิ์ได้'
     console.error('Error saving permissions:', err)
   } finally {
     isSaving.value = false
@@ -334,48 +333,6 @@ const savePermissions = async () => {
 const resetEditor = () => {
   permissionsToEdit.value = JSON.parse(JSON.stringify(originalPermissions.value))
 }
-
-/**
- * Build folder tree hierarchy with children from flat folders array
- * Converts flat folders to tree structure for FolderTree component
- */
-const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
-  const folderMap = new Map<string, Folder & { children: Folder[] }>()
-
-  // First pass: create enhanced folder objects with empty children arrays
-  for (const folder of flatFolders) {
-    folderMap.set(folder.id, {
-      ...folder,
-      children: []
-    })
-  }
-
-  // Second pass: build parent-child relationships
-  const rootFolders: (Folder & { children: Folder[] })[] = []
-  for (const folder of flatFolders) {
-    const enhancedFolder = folderMap.get(folder.id)!
-    if (folder.parentId) {
-      // This folder has a parent
-      const parentFolder = folderMap.get(folder.parentId)
-      if (parentFolder) {
-        parentFolder.children.push(enhancedFolder)
-      }
-    } else {
-      // Root folder (no parent)
-      rootFolders.push(enhancedFolder)
-    }
-  }
-
-  return rootFolders
-}
-
-/**
- * Folder tree with hierarchy built from flat folders array
- */
-const folderTree = computed(() => buildFolderTree(folders.value))
-
-// Lifecycle - Auth check is in the script above
-
 </script>
 
 <style scoped>
@@ -626,72 +583,6 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   margin: 0;
-}
-
-/* Admin Navigation */
-.admin-nav {
-  padding: 1rem 0;
-}
-
-.nav-section {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.nav-section:last-child {
-  border-bottom: none;
-}
-
-.nav-section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--color-gray-400);
-  margin: 0 0 0.75rem 0;
-  letter-spacing: 0.05em;
-}
-
-.nav-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.nav-list li {
-  margin-bottom: 0.5rem;
-}
-
-.nav-list li:last-child {
-  margin-bottom: 0;
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  font-size: 0.875rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
-}
-
-.nav-link:hover {
-  background: var(--color-bg-light);
-  color: var(--color-text-primary);
-}
-
-.nav-link.active {
-  background: var(--color-bg-info);
-  color: var(--color-info);
-  font-weight: 600;
-}
-
-.nav-link svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
 }
 
 /* Responsive */
