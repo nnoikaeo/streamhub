@@ -1,0 +1,50 @@
+[
+  {
+    "code": "NORTH",
+    "name": "กลุ่มภาคเหนือ",
+    "description": "ภาคเหนือของประเทศไทย",
+    "isActive": true
+  },
+  {
+    "code": "NORTHEAST",
+    "name": "กลุ่มภาคตะวันออกเฉียงเหนือ",
+    "description": "ภาคตะวันออกเฉียงเหนือของประเทศไทย",
+    "isActive": true
+  },
+  {
+    "code": "EAST",
+    "name": "กลุ่มภาคตะวันออก",
+    "description": "ภาคตะวันออกของประเทศไทย",
+    "isActive": true
+  },
+  {
+    "code": "SOUTH",
+    "name": "กลุ่มภาคใต้",
+    "description": "ภาคใต้ของประเทศไทย",
+    "isActive": true
+  },
+  {
+    "isActive": true,
+    "code": "INNOTECH",
+    "name": "กลุ่มบริษัทอินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์",
+    "description": "ภาคกลางของประเทศไทย",
+    "createdAt": "2026-03-15T09:22:14.728Z",
+    "updatedAt": "2026-03-15T09:29:33.739Z"
+  },
+  {
+    "isActive": true,
+    "code": "MBR",
+    "name": "กรุงเทพและปริมณฑล",
+    "description": "เขตกรุงเทพมหานครและปริมณฑลของประเทศไทย",
+    "createdAt": "2026-03-15T09:25:00.108Z",
+    "updatedAt": "2026-03-15T09:25:00.108Z"
+  },
+  {
+    "isActive": true,
+    "code": "ORANGES",
+    "name": "กลุ่มบริษัทออเร้นจ์เอส",
+    "description": "ภาคกลางของประเทศไทย",
+    "createdAt": "2026-03-15T09:27:19.735Z",
+    "updatedAt": "2026-03-15T09:27:19.735Z"
+  }
+]

@@ -4,13 +4,24 @@
  */
 
 /**
+ * Region resource
+ */
+export interface Region {
+  code: string
+  name: string
+  description?: string
+  isActive: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
  * Company resource
  */
 export interface Company {
   code: string
   name: string
   description?: string
-  country: string
   region?: string
   regionRole?: 'hub' | 'sub'
   isActive: boolean

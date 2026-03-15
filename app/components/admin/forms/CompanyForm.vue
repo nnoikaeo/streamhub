@@ -4,39 +4,47 @@
  * Form for creating and editing companies in admin panel
  *
  * Features:
- * - Fields: Code, Name, Description, Country, Is Active
+ * - Fields: Code, Name, Description, Region, Region Role
  * - Validation: Required fields (code, name)
  * - Code field disabled in edit mode
+ * - Region Role shown only when Region is selected
  * - Uses generic FormField component
  *
  * Usage:
  * <CompanyForm
  *   :company="selectedCompany"
+ *   :regions="regions"
  *   @submit="handleSubmit"
  * />
  */
 
-import type { Company } from '~/types/admin'
+import type { Company, Region } from '~/types/admin'
 import { createObjectValidator, validators } from '~/utils/formValidators'
 
 interface Props {
   company?: Company | null
+  regions?: Region[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  regions: () => [],
+})
 const emit = defineEmits<{
   submit: [data: Partial<Company>]
 }>()
 
-// Country options — value ต้องตรงกับที่เก็บใน .data/companies.json
-const countryOptions = [
-  { label: 'ประเทศไทย', value: 'ประเทศไทย' },
-  { label: 'ประเทศลาว', value: 'ประเทศลาว' },
-  { label: 'ประเทศเวียดนาม', value: 'ประเทศเวียดนาม' },
-  { label: 'ประเทศกัมพูชา', value: 'ประเทศกัมพูชา' },
-  { label: 'ประเทศพม่า', value: 'ประเทศพม่า' },
-  { label: 'สิงคโปร์', value: 'สิงคโปร์' },
-  { label: 'มาเลเซีย', value: 'มาเลเซีย' },
+// Region options from prop
+const regionOptions = computed(() => [
+  { label: '-- ไม่ระบุ (สำนักงานใหญ่) --', value: '' },
+  ...props.regions
+    .filter(r => r.isActive)
+    .map(r => ({ label: r.name, value: r.code })),
+])
+
+// Region Role options
+const regionRoleOptions = [
+  { label: 'Hub — สาขาหลักของกลุ่มภูมิภาค', value: 'hub' },
+  { label: 'Sub — สาขาย่อยภายใต้ Hub', value: 'sub' },
 ]
 
 // Form validation
@@ -50,23 +58,37 @@ const validate = createObjectValidator({
 })
 
 // Destructure to top-level refs so Volar auto-unwraps them in templates correctly
-const { formData, errors, handleSubmit, setFieldTouched } = useForm({
+const { formData, errors, handleSubmit, setFieldTouched, setFieldValue } = useForm({
   initialValues: {
     code: props.company?.code ?? '',
     name: props.company?.name ?? '',
     description: props.company?.description ?? '',
-    country: props.company?.country ?? 'ประเทศไทย',
+    region: props.company?.region ?? '',
+    regionRole: props.company?.regionRole ?? '',
   },
   validate,
   onSubmit: async (values) => {
-    emit('submit', values)
+    // Clean up: if no region, remove regionRole
+    const submitData = { ...values }
+    if (!submitData.region) {
+      submitData.region = undefined as any
+      submitData.regionRole = undefined as any
+    }
+    emit('submit', submitData)
   },
 })
 
 const isEditMode = computed(() => !!props.company)
+const hasRegion = computed(() => !!formData.region)
+
+// When region is cleared, also clear regionRole
+watch(() => formData.region, (newVal) => {
+  if (!newVal) {
+    setFieldValue('regionRole', '')
+  }
+})
 
 // Expose submit so parent (via ref) can trigger validation + submission
-// This avoids nested <form> (invalid HTML) and DOM FormData issues
 defineExpose({ submit: handleSubmit })
 </script>
 
@@ -101,13 +123,26 @@ defineExpose({ submit: handleSubmit })
       placeholder="อธิบายเกี่ยวกับบริษัทนี้..."
     />
 
-    <FormField
-      v-model="formData.country"
-      type="select"
-      label="ประเทศ"
-      :options="countryOptions"
-    />
+    <!-- Region Section -->
+    <div class="region-section">
+      <div class="region-section__label">ข้อมูลภูมิภาค</div>
 
+      <FormField
+        v-model="formData.region"
+        type="select"
+        label="กลุ่มภูมิภาค (Region)"
+        :options="regionOptions"
+      />
+
+      <FormField
+        v-if="hasRegion"
+        v-model="formData.regionRole"
+        type="select"
+        label="บทบาทในภูมิภาค (Role)"
+        :options="regionRoleOptions"
+        description="Hub = สาขาหลักของกลุ่มภูมิภาค, Sub = สาขาย่อยภายใต้ Hub"
+      />
+    </div>
   </div>
 </template>
 
@@ -118,13 +153,21 @@ defineExpose({ submit: handleSubmit })
   gap: var(--spacing-lg, 1.5rem);
 }
 
-.form-warning {
+.region-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md, 1rem);
   padding: var(--spacing-md, 1rem);
-  background-color: rgba(245, 158, 11, 0.1);
-  color: var(--color-warning, #f59e0b);
-  border-left: 3px solid var(--color-warning, #f59e0b);
-  border-radius: var(--radius-sm, 0.25rem);
-  margin: 0;
-  font-size: 0.9rem;
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: var(--radius-md, 0.375rem);
+  background-color: var(--color-bg-secondary, #f9fafb);
+}
+
+.region-section__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
 }
 </style>

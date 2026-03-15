@@ -61,6 +61,7 @@
               v-if="companies.length > 0"
               v-model="selectedCompanyCode"
               :companies="companies"
+              :regions="regions"
               @update:model-value="handleCompanyFilterChange"
             />
           </div>
@@ -173,6 +174,7 @@ import { computed, ref, watch, onMounted } from 'vue'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useCompanyAccess } from '~/composables/useCompanyAccess'
 
@@ -279,6 +281,7 @@ const { fetchTags } = useAdminTags()
 
 // ========== Company Filter ==========
 const { companies, fetchCompanies } = useAdminCompanies()
+const { regions, fetchRegions } = useAdminRegions()
 const { isAdmin } = useCompanyAccess()
 const selectedCompanyCode = ref<string | null>(null)
 const searchQuery = ref('')
@@ -299,6 +302,7 @@ onMounted(async () => {
     await Promise.all([
       fetchTags(),
       fetchCompanies(),
+      fetchRegions(),
       fetchUsers(),
     ])
   } catch (e) {
