@@ -1,7 +1,7 @@
 # Company Management Guide
 
-> **Document Status:** Foundational Guide for Multi-Company Architecture  
-> **Last Updated:** 2024-01  
+> **Document Status:** Foundational Guide for Multi-Company Architecture
+> **Last Updated:** 2026-03-15
 > **Document Owner:** Development Team
 
 ---
@@ -48,41 +48,51 @@
 
 ### Subsidiary Companies
 
+บริษัทในเครือแบ่งตามกลุ่มภูมิภาค (region groups):
+
 ```
 Streamwash Group
 │
-├── STTH (Streamwash Thailand)
-│   ├── Departments: Operations, Finance, Sales, HR
-│   ├── Employees: ~30-50
-│   ├── Folders: Operations, Finance, Reports
-│   └── Dashboards: 20+
+├── [ไม่มีภูมิภาค] — สำนักงานใหญ่และบริษัทหลัก
+│   ├── STTH — บริษัท สทรีมวอช (ประเทศไทย) จำกัด (สำนักงานใหญ่)
+│   ├── STTN — บริษัท สทรีมวอช เทคโนโลยี จำกัด
+│   └── STCS — บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด
 │
-├── STTN (Streamwash Laos)
-│   ├── Departments: Operations, Finance, Sales
-│   ├── Employees: ~20-30
-│   ├── Folders: Operations, Finance
-│   └── Dashboards: 10+
+├── กลุ่มภาคเหนือ (NORTH)
+│   ├── STCM — บริษัท สทรีมวอช (เชียงใหม่) จำกัด [Hub]
+│   └── STPL — บริษัท สทรีมวอช (พิษณุโลก) จำกัด [Sub]
 │
-├── STCS (Streamwash Cambodia)
-│   ├── Employees: ~15-20
-│   ├── Folders: Operations, Reports
-│   └── Dashboards: 8+
+├── กลุ่มภาคตะวันออกเฉียงเหนือ (NORTHEAST)
+│   ├── STNR — บริษัท สทรีมวอช (นครราชสีมา) จำกัด [Hub]
+│   ├── STKK — บริษัท สทรีมวอช (ขอนแก่น) จำกัด [Sub]
+│   ├── STUB — บริษัท สทรีมวอช (อุบลราชธานี) จำกัด [Sub]
+│   └── STUD — บริษัท สทรีมวอช (อุดรธานี) จำกัด [Sub]
 │
-├── STNR (Streamwash Myanmar)
-│   └── ...
+├── กลุ่มภาคตะวันออก (EAST)
+│   ├── STPT — บริษัท สทรีมวอช (พัทยา) จำกัด [Hub]
+│   ├── STCN — บริษัท สทรีมวอช (ชลบุรี) จำกัด [Sub]
+│   └── STRY — บริษัท สทรีมวอช (ระยอง) จำกัด [Sub]
 │
-├── STPT (Streamwash Vietnam)
-│   └── ...
+├── กลุ่มภาคใต้ (SOUTH)
+│   ├── STPK — บริษัท สทรีมวอช (ภูเก็ต) จำกัด [Hub]
+│   ├── STHY — บริษัท สทรีมวอช (หาดใหญ่) จำกัด [Sub]
+│   └── STKB — บริษัท สทรีมวอช (กระบี่) จำกัด [Sub]
 │
-├── STPK (Streamwash Indonesia)
-│   └── ...
+├── กรุงเทพและปริมณฑล (MBR)
+│   ├── STSS — บริษัท สทรีมวอช เซลส์ แอนด์ เซอร์วิส จำกัด [Hub]
+│   ├── STEB — บริษัท สทรีมวอช (กรุงเทพตะวันออก) จำกัด [Hub]
+│   └── STSB — บริษัท สทรีมวอช (กรุงเทพใต้) จำกัด [Hub]
 │
-└── ... (4+ more companies)
+├── กลุ่มบริษัทอินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์ (INNOTECH)
+│   └── INFE — บริษัท อินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์ จำกัด [Hub]
+│
+└── กลุ่มบริษัทออเร้นจ์เอส (ORANGES)
+    └── ORAY — บริษัท ออเร้นจ์ เอส (พระนครศรีอยุธยา) จำกัด [Hub]
 ```
 
 **Total:**
-- **10+ subsidiary companies**
-- **150+ employees** across all companies
+- **20 บริษัทในเครือ** (active ทั้งหมด)
+- **7 กลุ่มภูมิภาค** (4 ภูมิภาคหลัก + 3 กลุ่มพิเศษ)
 - **100+ dashboards** total
 - **30+ folders** total
 
@@ -90,18 +100,28 @@ Streamwash Group
 
 ## 📍 Company Codes
 
-| Code | Company | Status |
-|------|---------|--------|
-| STTH | Streamwash Thailand | Active |
-| STTN | Streamwash Laos | Active |
-| STCS | Streamwash Cambodia | Active |
-| STNR | Streamwash Myanmar | Active |
-| STPT | Streamwash Vietnam | Active |
-| STPK | Streamwash Indonesia | Active |
-| STSG | Streamwash Singapore | TBD |
-| STKH | Streamwash Hong Kong | TBD |
-| STBR | Streamwash Brazil | TBD |
-| STIN | Streamwash India | TBD |
+| Code | ชื่อบริษัท | กลุ่มภูมิภาค | Role | สถานะ |
+|------|-----------|--------------|------|-------|
+| STTH | บริษัท สทรีมวอช (ประเทศไทย) จำกัด | — | — | Active |
+| STTN | บริษัท สทรีมวอช เทคโนโลยี จำกัด | — | — | Active |
+| STCS | บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด | — | — | Active |
+| STCM | บริษัท สทรีมวอช (เชียงใหม่) จำกัด | NORTH | Hub | Active |
+| STPL | บริษัท สทรีมวอช (พิษณุโลก) จำกัด | NORTH | Sub | Active |
+| STNR | บริษัท สทรีมวอช (นครราชสีมา) จำกัด | NORTHEAST | Hub | Active |
+| STKK | บริษัท สทรีมวอช (ขอนแก่น) จำกัด | NORTHEAST | Sub | Active |
+| STUB | บริษัท สทรีมวอช (อุบลราชธานี) จำกัด | NORTHEAST | Sub | Active |
+| STUD | บริษัท สทรีมวอช (อุดรธานี) จำกัด | NORTHEAST | Sub | Active |
+| STPT | บริษัท สทรีมวอช (พัทยา) จำกัด | EAST | Hub | Active |
+| STCN | บริษัท สทรีมวอช (ชลบุรี) จำกัด | EAST | Sub | Active |
+| STRY | บริษัท สทรีมวอช (ระยอง) จำกัด | EAST | Sub | Active |
+| STPK | บริษัท สทรีมวอช (ภูเก็ต) จำกัด | SOUTH | Hub | Active |
+| STHY | บริษัท สทรีมวอช (หาดใหญ่) จำกัด | SOUTH | Sub | Active |
+| STKB | บริษัท สทรีมวอช (กระบี่) จำกัด | SOUTH | Sub | Active |
+| STSS | บริษัท สทรีมวอช เซลส์ แอนด์ เซอร์วิส จำกัด | MBR | Hub | Active |
+| STEB | บริษัท สทรีมวอช (กรุงเทพตะวันออก) จำกัด | MBR | Hub | Active |
+| STSB | บริษัท สทรีมวอช (กรุงเทพใต้) จำกัด | MBR | Hub | Active |
+| INFE | บริษัท อินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์ จำกัด | INNOTECH | Hub | Active |
+| ORAY | บริษัท ออเร้นจ์ เอส (พระนครศรีอยุธยา) จำกัด | ORANGES | Hub | Active |
 
 ---
 
@@ -112,7 +132,7 @@ Admins are responsible for **company-level management**:
 ### 1. **Create & Configure Companies**
 - Create new subsidiary company in Firestore
 - Set company code (STTH, STTN, etc.)
-- Define company metadata (name, location, department list)
+- Define company metadata (name, description, region, regionRole)
 - Set up initial folders for the company
 
 ### 2. **Manage Folders**
@@ -150,23 +170,23 @@ Admins are responsible for **company-level management**:
 
 ```firestore
 /companies
-  ├── stth
-  │   ├── name: "Streamwash Thailand"
+  ├── STTH
+  │   ├── name: "บริษัท สทรีมวอช (ประเทศไทย) จำกัด"
   │   ├── code: "STTH"
-  │   ├── location: "Bangkok"
-  │   ├── createdAt: 2024-01-21
-  │   ├── isActive: true
-  │   └── metadata: {
-  │       "parentCompany": "Streamwash Group",
-  │       "departments": ["Operations", "Finance", "Sales", "HR"],
-  │       "contact": "...@stth.com"
-  │     }
+  │   ├── description: "สำนักงานใหญ่ประเทศไทย"
+  │   ├── region: null             // ไม่มีภูมิภาค (สำนักงานใหญ่)
+  │   ├── regionRole: null
+  │   ├── createdAt: 2026-01-15
+  │   └── isActive: true
   │
-  ├── sttn
-  │   ├── name: "Streamwash Laos"
-  │   ├── code: "STTN"
-  │   ├── location: "Vientiane"
-  │   └── ...
+  ├── STCM
+  │   ├── name: "บริษัท สทรีมวอช (เชียงใหม่) จำกัด"
+  │   ├── code: "STCM"
+  │   ├── description: "สาขาภาคเหนือ"
+  │   ├── region: "NORTH"          // อ้างอิง regions collection
+  │   ├── regionRole: "hub"        // "hub" | "sub"
+  │   ├── createdAt: 2026-01-15
+  │   └── isActive: true
   │
   └── ... (other companies)
 ```
@@ -267,12 +287,26 @@ Admins MUST have `company` field (their home company), but can access all compan
 
 ```firestore
 /companies/{companyCode}
-  ├── name: string              // Company name
-  ├── code: string              // Company code (STTH, STTN, etc.)
-  ├── location: string          // Location/office (Bangkok, Vientiane, etc.)
-  ├── createdAt: timestamp      // When company was added to system
+  ├── code: string              // Company code (STTH, STCM, etc.) — unique, immutable
+  ├── name: string              // Company full name
+  ├── description: string       // Optional description
+  ├── region: string | null     // Region code reference (e.g., "NORTH") — null = สำนักงานใหญ่
+  ├── regionRole: "hub" | "sub" | null  // Role within region — null if no region
   ├── isActive: boolean         // Active/Inactive status
-  └── metadata: map             // Additional info (departments, contact, etc.)
+  ├── createdAt: timestamp      // When company was added to system
+  └── updatedAt: timestamp      // Last updated
+```
+
+### Regions Collection
+
+```firestore
+/regions/{regionCode}
+  ├── code: string              // Region code (NORTH, NORTHEAST, EAST, SOUTH, MBR, ...)
+  ├── name: string              // Display name (กลุ่มภาคเหนือ, กรุงเทพและปริมณฑล, ...)
+  ├── description: string       // Optional description
+  ├── isActive: boolean
+  ├── createdAt: timestamp
+  └── updatedAt: timestamp
 ```
 
 ### Users Collection (Company-Scoped)

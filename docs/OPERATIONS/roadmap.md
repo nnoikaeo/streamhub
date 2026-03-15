@@ -258,19 +258,28 @@
 
 ```
 /companies
-  ├── stth
-  │   ├── name: "Streamwash Thailand"
+  ├── STTH
+  │   ├── name: "บริษัท สทรีมวอช (ประเทศไทย) จำกัด"
   │   ├── code: "STTH"
-  │   ├── country: "Thailand"
+  │   ├── description: string
+  │   ├── region: null            // null = สำนักงานใหญ่ ไม่มีภูมิภาค
+  │   ├── regionRole: null        // "hub" | "sub" | null
   │   ├── isActive: boolean
   │   └── createdAt: timestamp
   │
-  ├── sttn
-  │   ├── name: "Streamwash Laos"
-  │   ├── code: "STTN"
+  ├── STCM
+  │   ├── name: "บริษัท สทรีมวอช (เชียงใหม่) จำกัด"
+  │   ├── code: "STCM"
+  │   ├── region: "NORTH"        // อ้างอิง regions collection
+  │   ├── regionRole: "hub"
   │   └── ...
   │
-  └── ... (STCS, STNR, STPT, STPK, and more)
+  └── ... (20 บริษัทในเครือ)
+
+/regions
+  ├── NORTH    ├── NORTHEAST    ├── EAST
+  ├── SOUTH    ├── MBR          ├── INNOTECH
+  └── ORANGES
 
 /users
   ├── uid

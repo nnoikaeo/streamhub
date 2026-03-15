@@ -83,6 +83,7 @@ export function useRoleNavigation() {
       { path: '/admin/users', label: 'ผู้ใช้', icon: '👥' },
       { path: '/admin/explorer', label: 'Explorer', icon: '🗂️' },
       { path: '/admin/companies', label: 'บริษัท', icon: '🏢' },
+      { path: '/admin/regions', label: 'กลุ่มภูมิภาค', icon: '🌏' },
       { path: '/admin/groups', label: 'กลุ่ม', icon: '👫' },
       { path: '/admin/tags', label: 'แท็ก', icon: '🏷️' },
       { path: '/admin/permissions', label: 'สิทธิ์', icon: '🔐' },

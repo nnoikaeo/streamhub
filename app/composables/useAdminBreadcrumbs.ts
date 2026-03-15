@@ -43,6 +43,10 @@ export function useAdminBreadcrumbs() {
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'บริษัท' },
     ],
+    '/admin/regions': [
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
+      { label: 'กลุ่มภูมิภาค' },
+    ],
     '/admin/groups': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'กลุ่ม' },

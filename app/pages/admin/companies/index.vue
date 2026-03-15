@@ -7,43 +7,19 @@ import PageLayout from '~/components/compositions/PageLayout.vue'
  * - Display all companies in DataTable
  * - CRUD operations (Create, Read, Update, Delete)
  * - Toggle active status inline via DataTable toggle switch
- * - Filter by active status
+ * - Filter by active status and region
  * - Search by name or code
  * - Protected by admin middleware
  *
  * Route: /admin/companies
  * Middleware: auth, admin
- *
- * WORKFLOW:
- * 1. Page loads → auth & admin middleware checks
- * 2. onMounted → fetchCompanies() loads all companies from useAdminCompanies composable
- * 3. DataTable renders companies with columns (code, name, country, isActive toggle)
- * 4. User actions:
- *    - Click "เพิ่มบริษัทใหม่" → handleAddCompany → showCompanyModal
- *    - Click "แก้ไข" → handleEditCompany → showCompanyModal with selectedCompany
- *    - Click "ลบ" → handleDeleteCompany → showConfirmDialog with companyToDelete
- *    - Toggle status → handleToggleActive → updateCompany API call
- * 5. FormModal with CompanyForm → handleSaveCompany → updateCompany API call
- * 6. ConfirmDialog → confirmDeleteCompany → deleteCompany API call
- * 7. Filters: search, active status → filteredCompanies computed property
- *
- * COMPONENTS USED:
- * - AdminPageContent: Shared layout wrapper (header, filters, table structure + styles)
- * - DataTable: Generic table component (auto-imported from ~/components/admin)
- * - FormModal: Modal wrapper for company form (auto-imported from ~/components/admin)
- * - CompanyForm: Form component for editing company data (auto-imported from ~/components/admin)
- * - ConfirmDialog: Confirmation dialog for delete action (auto-imported from ~/components/admin)
- *
- * COMPOSABLES USED:
- * - useAdminCompanies: Fetch, update, delete companies
- * - useAdminFolders: Fetch folders for sidebar breadcrumb
- * - useAdminBreadcrumbs: Generate breadcrumb navigation
  */
 
 import { ref, computed, onMounted } from 'vue'
 import type { Company } from '~/types/admin'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 
 definePageMeta({
@@ -55,6 +31,7 @@ console.log('📄 [admin/companies/index.vue] Companies management page initiali
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { companies, loading, fetchCompanies, createCompany, updateCompany, deleteCompany } = useAdminCompanies()
+const { regions, fetchRegions } = useAdminRegions()
 const { folders, buildFolderTree } = useAdminFolders()
 
 // Modal & dialog state
@@ -71,43 +48,61 @@ const companyFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 // Filters
 const searchQuery = ref('')
 const filterActive = ref<boolean | null>(null)
+const filterRegion = ref<string | null>(null)
+
+/**
+ * Region code → name map for display
+ */
+const regionMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const r of regions.value) {
+    map[r.code] = r.name
+  }
+  return map
+})
 
 /**
  * Column definitions for DataTable
- * - Code: company code identifier
- * - Name: full company name (with description as subtitle via subtitleKey)
- * - Country: registered country
- * - Status toggle switch (green when enabled, uses isStatusColumn)
- * - Actions (icons only)
  */
 const columns = [
   { key: 'code', label: 'รหัส', sortable: true, width: '100px' },
-  { key: 'name', label: 'ชื่อบริษัท', sortable: true, width: '350px', subtitleKey: 'description' },
-  { key: 'country', label: 'ประเทศ', sortable: true, width: '120px' },
+  { key: 'name', label: 'ชื่อบริษัท', sortable: true, width: '300px', subtitleKey: 'description' },
+  { key: 'regionName', label: 'กลุ่มภูมิภาค', sortable: true, width: '200px' },
   { key: 'isActive', label: 'สถานะ', sortable: true, width: '100px', isStatusColumn: true },
 ]
 
 /**
- * Filter and search companies
+ * Filter, search, and enrich companies with region name
  */
 const filteredCompanies = computed(() => {
-  return companies.value.filter(company => {
-    if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase()
-      const matchesCode = company.code.toLowerCase().includes(query)
-      const matchesName = company.name.toLowerCase().includes(query)
-      const matchesDescription = company.description?.toLowerCase().includes(query) ?? false
-      if (!matchesCode && !matchesName && !matchesDescription) {
+  return companies.value
+    .filter(company => {
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        const matchesCode = company.code.toLowerCase().includes(query)
+        const matchesName = company.name.toLowerCase().includes(query)
+        const matchesDescription = company.description?.toLowerCase().includes(query) ?? false
+        if (!matchesCode && !matchesName && !matchesDescription) {
+          return false
+        }
+      }
+
+      if (filterActive.value !== null && company.isActive !== filterActive.value) {
         return false
       }
-    }
 
-    if (filterActive.value !== null && company.isActive !== filterActive.value) {
-      return false
-    }
+      if (filterRegion.value !== null && (company.region ?? '') !== filterRegion.value) {
+        return false
+      }
 
-    return true
-  })
+      return true
+    })
+    .map(company => ({
+      ...company,
+      regionName: company.region
+        ? `${regionMap.value[company.region] ?? company.region}${company.regionRole === 'hub' ? ' (Hub)' : company.regionRole === 'sub' ? ' (Sub)' : ''}`
+        : '—',
+    }))
 })
 
 /**
@@ -191,6 +186,7 @@ const clearFilters = () => {
   console.log('🔄 [Filters] Clearing all filters')
   searchQuery.value = ''
   filterActive.value = null
+  filterRegion.value = null
   console.log('✅ [Filters] All filters cleared')
 }
 
@@ -214,11 +210,11 @@ const actions = [
 
 onMounted(async () => {
   try {
-    console.log('🚀 [Lifecycle] onMounted - Starting to fetch companies...')
-    await fetchCompanies()
-    console.log('✅ [Lifecycle] onMounted - Companies fetched successfully')
+    console.log('🚀 [Lifecycle] onMounted - Starting to fetch companies and regions...')
+    await Promise.all([fetchCompanies(), fetchRegions()])
+    console.log('✅ [Lifecycle] onMounted - Companies and regions fetched successfully')
   } catch (error) {
-    console.error('❌ [Lifecycle] Error loading companies:', error)
+    console.error('❌ [Lifecycle] Error loading data:', error)
   }
 })
 
@@ -264,6 +260,15 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           </select>
         </div>
 
+        <!-- Region Filter -->
+        <div class="filter-group">
+          <select v-model="filterRegion" class="theme-form-select">
+            <option :value="null">-- ภูมิภาคทั้งหมด --</option>
+            <option value="">ไม่มีภูมิภาค (สำนักงานใหญ่)</option>
+            <option v-for="r in regions" :key="r.code" :value="r.code">{{ r.name }}</option>
+          </select>
+        </div>
+
         <!-- Clear Filters -->
         <button @click="clearFilters" class="theme-btn theme-btn--ghost">
           🔄 ล้างตัวกรอง
@@ -289,7 +294,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         @save="companyFormRef?.submit()"
         @cancel="showCompanyModal = false"
       >
-        <CompanyForm ref="companyFormRef" :company="selectedCompany" @submit="handleSaveCompany" />
+        <CompanyForm ref="companyFormRef" :company="selectedCompany" :regions="regions" @submit="handleSaveCompany" />
       </FormModal>
 
       <!-- Delete Confirmation Dialog -->
