@@ -55,6 +55,11 @@ const navCategories = [
         icon: '🏢',
       },
       {
+        path: '/admin/regions',
+        label: 'กลุ่มภูมิภาค',
+        icon: '🌏',
+      },
+      {
         path: '/admin/groups',
         label: 'กลุ่ม',
         icon: '👫',

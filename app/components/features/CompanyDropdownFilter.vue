@@ -45,13 +45,15 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Company } from '~/types/admin'
+import type { Company, Region } from '~/types/admin'
 
 const props = withDefaults(defineProps<{
   companies: Company[]
+  regions?: Region[]
   modelValue: string | null
 }>(), {
   modelValue: null,
+  regions: () => [],
 })
 
 const emit = defineEmits<{
@@ -62,6 +64,15 @@ const emit = defineEmits<{
 const ungroupedCompanies = computed(() =>
   props.companies.filter(c => !c.region && c.isActive)
 )
+
+/** Region code → name map */
+const regionNameMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const r of props.regions) {
+    map[r.code] = r.name
+  }
+  return map
+})
 
 /** Companies grouped by region, hub first */
 const regionGroups = computed(() => {
@@ -75,8 +86,8 @@ const regionGroups = computed(() => {
     grouped.get(company.region)!.push(company)
   }
 
-  return Array.from(grouped.entries()).map(([region, companies]) => ({
-    region,
+  return Array.from(grouped.entries()).map(([regionCode, companies]) => ({
+    region: regionNameMap.value[regionCode] ?? regionCode,
     companies: companies.sort((a, b) => {
       // Hub first, then subs
       if (a.regionRole === 'hub' && b.regionRole !== 'hub') return -1
