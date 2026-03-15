@@ -82,6 +82,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   const folderPath = ref<Folder[]>([])
   const infiniteScrollSentinel = ref<HTMLElement | null>(null)
   const isInitializing = ref(true)
+  const accessDenied = ref(false)
 
   const DEBUG = true
   const log = (label: string, data?: any) => {
@@ -157,11 +158,16 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
 
       // Note: Do not auto-select folder - let user choose
       // Only select folder if specified in URL query params
-    } catch (err) {
+    } catch (err: any) {
       log('loadFolders error', err)
-      dashboardStore.setError(
-        err instanceof Error ? err.message : 'Failed to load folders'
-      )
+      if (err?.response?.status === 403 || err?.statusCode === 403) {
+        accessDenied.value = true
+        dashboardStore.setError('Access denied: You do not have permission to view folders')
+      } else {
+        dashboardStore.setError(
+          err instanceof Error ? err.message : 'Failed to load folders'
+        )
+      }
       console.error('Error loading folders:', err)
     } finally {
       dashboardStore.setLoading(false)
@@ -212,11 +218,16 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
         folderPath.value = path || []
         log('loadDashboards got folder path', { pathLength: folderPath.value.length })
       }
-    } catch (err) {
+    } catch (err: any) {
       log('loadDashboards error', err)
-      dashboardStore.setError(
-        err instanceof Error ? err.message : 'Failed to load dashboards'
-      )
+      if (err?.response?.status === 403 || err?.statusCode === 403) {
+        accessDenied.value = true
+        dashboardStore.setError('Access denied: You do not have permission to view dashboards')
+      } else {
+        dashboardStore.setError(
+          err instanceof Error ? err.message : 'Failed to load dashboards'
+        )
+      }
       console.error('Error loading dashboards:', err)
     } finally {
       dashboardStore.setLoading(false)
@@ -454,6 +465,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
     breadcrumbItems,
     isLoading,
     error,
+    accessDenied,
     shareDialogOpen,
     availableUsers,
     infiniteScrollSentinel,
