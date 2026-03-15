@@ -51,8 +51,9 @@ const filterActive = ref<boolean | null>(null)
  * Column definitions for DataTable
  */
 const columns = [
+  { key: 'sortOrder', label: 'ลำดับ', sortable: true, width: '80px', align: 'center' as const },
   { key: 'code', label: 'รหัส', sortable: true, width: '120px' },
-  { key: 'name', label: 'ชื่อกลุ่มภูมิภาค', sortable: true, width: '300px', subtitleKey: 'description' },
+  { key: 'name', label: 'ชื่อกลุ่มธุรกิจ/เขตพื้นที่', sortable: true, width: '300px', subtitleKey: 'description' },
   { key: 'isActive', label: 'สถานะ', sortable: true, width: '100px', isStatusColumn: true },
 ]
 
@@ -60,24 +61,55 @@ const columns = [
  * Filter and search regions
  */
 const filteredRegions = computed(() => {
-  return regions.value.filter(region => {
-    if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase()
-      const matchesCode = region.code.toLowerCase().includes(query)
-      const matchesName = region.name.toLowerCase().includes(query)
-      const matchesDescription = region.description?.toLowerCase().includes(query) ?? false
-      if (!matchesCode && !matchesName && !matchesDescription) {
+  return regions.value
+    .filter(region => {
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        const matchesCode = region.code.toLowerCase().includes(query)
+        const matchesName = region.name.toLowerCase().includes(query)
+        const matchesDescription = region.description?.toLowerCase().includes(query) ?? false
+        if (!matchesCode && !matchesName && !matchesDescription) {
+          return false
+        }
+      }
+
+      if (filterActive.value !== null && region.isActive !== filterActive.value) {
         return false
       }
-    }
 
-    if (filterActive.value !== null && region.isActive !== filterActive.value) {
-      return false
-    }
-
-    return true
-  })
+      return true
+    })
+    .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
 })
+
+/**
+ * Reorder handlers — swap sortOrder with adjacent item
+ */
+const handleMoveUp = async (region: Region) => {
+  const sorted = filteredRegions.value
+  const index = sorted.findIndex(r => r.code === region.code)
+  if (index <= 0) return
+
+  const prev = sorted[index - 1]
+  const currentOrder = region.sortOrder ?? index + 1
+  const prevOrder = prev.sortOrder ?? index
+
+  await updateRegion(region.code, { sortOrder: prevOrder })
+  await updateRegion(prev.code, { sortOrder: currentOrder })
+}
+
+const handleMoveDown = async (region: Region) => {
+  const sorted = filteredRegions.value
+  const index = sorted.findIndex(r => r.code === region.code)
+  if (index < 0 || index >= sorted.length - 1) return
+
+  const next = sorted[index + 1]
+  const currentOrder = region.sortOrder ?? index + 1
+  const nextOrder = next.sortOrder ?? index + 2
+
+  await updateRegion(region.code, { sortOrder: nextOrder })
+  await updateRegion(next.code, { sortOrder: currentOrder })
+}
 
 /**
  * Action handlers
@@ -168,6 +200,18 @@ const clearFilters = () => {
  */
 const actions = [
   {
+    label: 'เลื่อนขึ้น',
+    icon: '⬆️',
+    onClick: handleMoveUp,
+    variant: 'ghost' as const,
+  },
+  {
+    label: 'เลื่อนลง',
+    icon: '⬇️',
+    onClick: handleMoveDown,
+    variant: 'ghost' as const,
+  },
+  {
     label: 'แก้ไข',
     icon: '✏️',
     onClick: handleEditRegion,
@@ -191,6 +235,11 @@ onMounted(async () => {
   }
 })
 
+/** sortOrder ถัดไปสำหรับ region ใหม่ */
+const nextRegionSortOrder = computed(() =>
+  regions.value.reduce((max, r) => Math.max(max, r.sortOrder ?? 0), 0) + 1
+)
+
 /**
  * Folder tree for sidebar
  */
@@ -207,9 +256,9 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     <!-- Main Content -->
     <AdminPageContent>
       <template #header>
-        <h1 class="page-header__title">จัดการกลุ่มภูมิภาค</h1>
+        <h1 class="page-header__title">จัดการกลุ่มธุรกิจ/เขตพื้นที่</h1>
         <button @click="handleAddRegion" class="page-header-action-btn">
-          ➕ เพิ่มกลุ่มภูมิภาคใหม่
+          ➕ เพิ่มกลุ่มธุรกิจ/เขตพื้นที่ใหม่
         </button>
       </template>
 
@@ -220,7 +269,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             v-model="searchQuery"
             type="text"
             class="theme-form-input"
-            placeholder="ค้นหาตามรหัสหรือชื่อกลุ่มภูมิภาค..."
+            placeholder="ค้นหาตามรหัสหรือชื่อกลุ่มธุรกิจ/เขตพื้นที่..."
           />
         </div>
 
@@ -245,7 +294,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           :data="filteredRegions"
           :loading="loading"
           :actions="actions"
-          empty-message="ไม่พบกลุ่มภูมิภาค"
+          empty-message="ไม่พบกลุ่มธุรกิจ/เขตพื้นที่"
           @toggleActive="handleToggleActive"
         />
       </template>
@@ -253,19 +302,19 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       <!-- Region Form Modal -->
       <FormModal
         v-model="showRegionModal"
-        :title="selectedRegion ? 'แก้ไขกลุ่มภูมิภาค' : 'เพิ่มกลุ่มภูมิภาคใหม่'"
+        :title="selectedRegion ? 'แก้ไขกลุ่มธุรกิจ/เขตพื้นที่' : 'เพิ่มกลุ่มธุรกิจ/เขตพื้นที่ใหม่'"
         :loading="loading"
         @save="regionFormRef?.submit()"
         @cancel="showRegionModal = false"
       >
-        <RegionForm ref="regionFormRef" :region="selectedRegion" @submit="handleSaveRegion" />
+        <RegionForm ref="regionFormRef" :region="selectedRegion" :next-sort-order="nextRegionSortOrder" @submit="handleSaveRegion" />
       </FormModal>
 
       <!-- Delete Confirmation Dialog -->
       <ConfirmDialog
         :is-open="showConfirmDialog"
-        title="ลบกลุ่มภูมิภาค"
-        :message="`คุณแน่ใจว่าต้องการลบกลุ่มภูมิภาค '${regionToDelete?.name}' (${regionToDelete?.code}) หรือไม่?`"
+        title="ลบกลุ่มธุรกิจ/เขตพื้นที่"
+        :message="`คุณแน่ใจว่าต้องการลบกลุ่มธุรกิจ/เขตพื้นที่ '${regionToDelete?.name}' (${regionToDelete?.code}) หรือไม่?`"
         :loading="loading"
         @confirm="confirmDeleteRegion"
         @cancel="showConfirmDialog = false"
@@ -274,10 +323,10 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       <!-- Toggle Active Confirmation Dialog -->
       <ConfirmDialog
         :is-open="showToggleDialog"
-        :title="regionToToggle?.isActive ? 'ปิดใช้งานกลุ่มภูมิภาค' : 'เปิดใช้งานกลุ่มภูมิภาค'"
+        :title="regionToToggle?.isActive ? 'ปิดใช้งานกลุ่มธุรกิจ/เขตพื้นที่' : 'เปิดใช้งานกลุ่มธุรกิจ/เขตพื้นที่'"
         :message="regionToToggle?.isActive
-          ? `คุณต้องการปิดใช้งานกลุ่มภูมิภาค '${regionToToggle?.name}' (${regionToToggle?.code}) หรือไม่?`
-          : `คุณต้องการเปิดใช้งานกลุ่มภูมิภาค '${regionToToggle?.name}' (${regionToToggle?.code}) หรือไม่?`"
+          ? `คุณต้องการปิดใช้งานกลุ่มธุรกิจ/เขตพื้นที่ '${regionToToggle?.name}' (${regionToToggle?.code}) หรือไม่?`
+          : `คุณต้องการเปิดใช้งานกลุ่มธุรกิจ/เขตพื้นที่ '${regionToToggle?.name}' (${regionToToggle?.code}) หรือไม่?`"
         :confirm-text="regionToToggle?.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน'"
         :is-danger="regionToToggle?.isActive"
         :loading="loading"
