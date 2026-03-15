@@ -2,23 +2,32 @@
   {
     "code": "STTH",
     "name": "บริษัท สทรีมวอช (ประเทศไทย) จำกัด",
-    "description": "สำนักงานใหญ่ประเทศไทย ดูแลการดำเนินงานภาพรวมของกลุ่มบริษัท",
+    "description": "สำนักงานใหญ่ประเทศไทย ดูแลการดำเนินงานภาพรวมของกลุ่มธุรกิจ/เขตพื้นที่ทั้งหมด",
+    "sortOrder": 1,
     "isActive": true,
-    "updatedAt": "2026-03-05T10:28:27.845Z"
+    "updatedAt": "2026-03-15T12:15:48.323Z",
+    "region": "HEADQUARTERS",
+    "regionRole": "hub"
   },
   {
     "code": "STTN",
     "name": "บริษัท สทรีมวอช เทคโนโลยี จำกัด",
     "description": "ให้บริการงานด้านวิศวกรรมที่เกี่ยวข้องกับเครื่องล้างจานและเครื่องทำน้ำแข็ง",
+    "sortOrder": 1,
     "isActive": true,
-    "updatedAt": "2026-03-05T14:30:13.372Z"
+    "updatedAt": "2026-03-15T11:35:06.978Z",
+    "region": "SUPPLY_CHAIN",
+    "regionRole": "hub"
   },
   {
     "code": "STCS",
     "name": "บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด",
     "description": "ผลิตและจำหน่ายเคมีภัณฑ์ครบวงจร",
+    "sortOrder": 2,
     "isActive": true,
-    "updatedAt": "2026-03-05T14:16:16.416Z"
+    "updatedAt": "2026-03-15T11:35:21.625Z",
+    "region": "SUPPLY_CHAIN",
+    "regionRole": "hub"
   },
   {
     "code": "STCM",
@@ -26,6 +35,7 @@
     "description": "สาขาภาคเหนือ ดูแลพื้นที่เชียงใหม่และจังหวัดใกล้เคียง",
     "region": "NORTH",
     "regionRole": "hub",
+    "sortOrder": 1,
     "isActive": true
   },
   {
@@ -34,6 +44,7 @@
     "description": "สาขาภาคเหนือตอนล่าง ดูแลพื้นที่พิษณุโลกและจังหวัดใกล้เคียง",
     "region": "NORTH",
     "regionRole": "sub",
+    "sortOrder": 2,
     "isActive": true
   },
   {
@@ -42,6 +53,7 @@
     "description": "สาขาภาคตะวันออกเฉียงเหนือ ดูแลพื้นที่นครราชสีมาและจังหวัดใกล้เคียง",
     "region": "NORTHEAST",
     "regionRole": "hub",
+    "sortOrder": 1,
     "isActive": true
   },
   {
@@ -50,6 +62,7 @@
     "description": "สาขาภาคตะวันออกเฉียงเหนือ ดูแลพื้นที่ขอนแก่นและจังหวัดใกล้เคียง",
     "region": "NORTHEAST",
     "regionRole": "sub",
+    "sortOrder": 2,
     "isActive": true
   },
   {
@@ -58,6 +71,7 @@
     "description": "สาขาภาคตะวันออกเฉียงเหนือ ดูแลพื้นที่อุบลราชธานีและจังหวัดใกล้เคียง",
     "region": "NORTHEAST",
     "regionRole": "sub",
+    "sortOrder": 3,
     "isActive": true
   },
   {
@@ -66,6 +80,7 @@
     "description": "สาขาภาคตะวันออกเฉียงเหนือ ดูแลพื้นที่อุดรธานีและจังหวัดใกล้เคียง",
     "region": "NORTHEAST",
     "regionRole": "sub",
+    "sortOrder": 4,
     "isActive": true
   },
   {
@@ -74,6 +89,7 @@
     "description": "สาขาภาคตะวันออก ดูแลพื้นที่พัทยาและใกล้เคียง",
     "region": "EAST",
     "regionRole": "hub",
+    "sortOrder": 1,
     "isActive": true,
     "updatedAt": "2026-03-05T14:16:38.513Z"
   },
@@ -83,6 +99,7 @@
     "description": "สาขาภาคตะวันออก ดูแลพื้นที่ชลบุรีและจังหวัดใกล้เคียง",
     "region": "EAST",
     "regionRole": "sub",
+    "sortOrder": 2,
     "isActive": true
   },
   {
@@ -91,6 +108,7 @@
     "description": "สาขาภาคตะวันออก ดูแลพื้นที่ระยองและจังหวัดใกล้เคียง",
     "region": "EAST",
     "regionRole": "sub",
+    "sortOrder": 3,
     "isActive": true
   },
   {
@@ -99,6 +117,7 @@
     "description": "สาขาภาคใต้ ดูแลพื้นที่ภูเก็ตและจังหวัดใกล้เคียง",
     "region": "SOUTH",
     "regionRole": "hub",
+    "sortOrder": 1,
     "isActive": true,
     "updatedAt": "2026-03-05T22:44:57.478Z"
   },
@@ -108,6 +127,7 @@
     "description": "สาขาภาคใต้ ดูแลพื้นที่หาดใหญ่และจังหวัดใกล้เคียง",
     "region": "SOUTH",
     "regionRole": "sub",
+    "sortOrder": 2,
     "isActive": true
   },
   {
@@ -116,6 +136,7 @@
     "description": "สาขาภาคใต้ ดูแลพื้นที่กระบี่และจังหวัดใกล้เคียง",
     "region": "SOUTH",
     "regionRole": "sub",
+    "sortOrder": 3,
     "isActive": true
   },
   {
@@ -125,6 +146,7 @@
     "description": "จำหน่ายสินค้าและให้บริการในแบรนด์อินโนเทค",
     "region": "INNOTECH",
     "regionRole": "hub",
+    "sortOrder": 1,
     "createdAt": "2026-03-15T09:29:21.154Z",
     "updatedAt": "2026-03-15T09:29:21.154Z"
   },
@@ -135,6 +157,7 @@
     "description": "จำหน่ายสินค้าและบริการในแบรนด์ออเร้นจ์ เอส",
     "region": "ORANGES",
     "regionRole": "hub",
+    "sortOrder": 1,
     "createdAt": "2026-03-15T09:31:31.402Z",
     "updatedAt": "2026-03-15T09:31:31.402Z"
   },
@@ -145,6 +168,7 @@
     "description": "ดูแลพื้นที่กรุงเทพชั้นในและใกล้เคียง",
     "region": "MBR",
     "regionRole": "hub",
+    "sortOrder": 1,
     "createdAt": "2026-03-15T09:33:34.084Z",
     "updatedAt": "2026-03-15T09:33:34.084Z"
   },
@@ -155,6 +179,7 @@
     "description": "ดูแลพื้นที่กรุงเทพตะวันออกและใกล้เคียง",
     "region": "MBR",
     "regionRole": "hub",
+    "sortOrder": 2,
     "createdAt": "2026-03-15T09:34:24.984Z",
     "updatedAt": "2026-03-15T09:34:24.984Z"
   },
@@ -165,6 +190,7 @@
     "description": "ดูแลพื้นที่กรุงเทพใต้และใกล้เคียง",
     "region": "MBR",
     "regionRole": "hub",
+    "sortOrder": 3,
     "createdAt": "2026-03-15T09:35:15.584Z",
     "updatedAt": "2026-03-15T09:35:15.584Z"
   }

@@ -45,7 +45,7 @@ export function useAdminBreadcrumbs() {
     ],
     '/admin/regions': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
-      { label: 'กลุ่มภูมิภาค' },
+      { label: 'กลุ่มธุรกิจ/เขตพื้นที่' },
     ],
     '/admin/groups': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },

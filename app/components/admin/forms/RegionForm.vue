@@ -21,6 +21,7 @@ import { createObjectValidator, validators } from '~/utils/formValidators'
 
 interface Props {
   region?: Region | null
+  nextSortOrder?: number
 }
 
 const props = defineProps<Props>()
@@ -31,11 +32,11 @@ const emit = defineEmits<{
 // Form validation
 const validate = createObjectValidator({
   code: [
-    (value) => validators.required(value, 'รหัสภูมิภาค'),
-    (value) => validators.minLength(2, 'รหัสภูมิภาค')(value),
-    (value) => validators.maxLength(20, 'รหัสภูมิภาค')(value),
+    (value) => validators.required(value, 'รหัสกลุ่มธุรกิจ/เขตพื้นที่'),
+    (value) => validators.minLength(2, 'รหัสกลุ่มธุรกิจ/เขตพื้นที่')(value),
+    (value) => validators.maxLength(20, 'รหัสกลุ่มธุรกิจ/เขตพื้นที่')(value),
   ],
-  name: [(value) => validators.required(value, 'ชื่อกลุ่มภูมิภาค')],
+  name: [(value) => validators.required(value, 'ชื่อกลุ่มธุรกิจ/เขตพื้นที่')],
 })
 
 // Destructure to top-level refs so Volar auto-unwraps them in templates correctly
@@ -44,6 +45,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     code: props.region?.code ?? '',
     name: props.region?.name ?? '',
     description: props.region?.description ?? '',
+    sortOrder: props.region?.sortOrder ?? props.nextSortOrder ?? 0,
   },
   validate,
   onSubmit: async (values) => {
@@ -62,19 +64,19 @@ defineExpose({ submit: handleSubmit })
     <FormField
       v-model="formData.code"
       type="text"
-      label="รหัสภูมิภาค (Code)"
+      label="รหัสกลุ่มธุรกิจ/เขตพื้นที่ (Code)"
       placeholder="เช่น NORTH"
       :error="errors.code"
       :disabled="isEditMode"
       :required="true"
-      :description="!isEditMode ? 'รหัสภูมิภาค ไม่สามารถเปลี่ยนแปลงหลังสร้างได้' : undefined"
+      :description="!isEditMode ? 'รหัสกลุ่มธุรกิจ/เขตพื้นที่ ไม่สามารถเปลี่ยนแปลงหลังสร้างได้' : undefined"
       @blur="setFieldTouched('code')"
     />
 
     <FormField
       v-model="formData.name"
       type="text"
-      label="ชื่อกลุ่มภูมิภาค (Name)"
+      label="ชื่อกลุ่มธุรกิจ/เขตพื้นที่ (Name)"
       placeholder="เช่น กลุ่มภาคเหนือ"
       :error="errors.name"
       :required="true"
@@ -85,7 +87,16 @@ defineExpose({ submit: handleSubmit })
       v-model="formData.description"
       type="textarea"
       label="คำอธิบาย (Description)"
-      placeholder="อธิบายเกี่ยวกับกลุ่มภูมิภาคนี้..."
+      placeholder="อธิบายเกี่ยวกับกลุ่มธุรกิจ/เขตพื้นที่นี้..."
+    />
+
+    <FormField
+      v-model="formData.sortOrder"
+      type="number"
+      label="ลำดับการแสดงผล (Sort Order)"
+      placeholder="เช่น 1, 2, 3"
+      :disabled="true"
+      description="ปรับลำดับได้ด้วยปุ่ม ⬆️ / ⬇️ ในหน้าจัดการกลุ่มธุรกิจ/เขตพื้นที่"
     />
   </div>
 </template>

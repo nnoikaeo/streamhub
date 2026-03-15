@@ -60,9 +60,11 @@ const emit = defineEmits<{
   'update:modelValue': [value: string | null]
 }>()
 
-/** Companies without a region — shown at top level */
+/** Companies without a region — shown at top level, sorted by sortOrder */
 const ungroupedCompanies = computed(() =>
-  props.companies.filter(c => !c.region && c.isActive)
+  props.companies
+    .filter(c => !c.region && c.isActive)
+    .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
 )
 
 /** Region code → name map */
@@ -74,7 +76,16 @@ const regionNameMap = computed(() => {
   return map
 })
 
-/** Companies grouped by region, hub first */
+/** Region code → sortOrder map */
+const regionSortMap = computed(() => {
+  const map: Record<string, number> = {}
+  for (const r of props.regions) {
+    map[r.code] = r.sortOrder ?? 999
+  }
+  return map
+})
+
+/** Companies grouped by region, sorted by region sortOrder, then hub first + company sortOrder */
 const regionGroups = computed(() => {
   const grouped = new Map<string, Company[]>()
 
@@ -86,15 +97,19 @@ const regionGroups = computed(() => {
     grouped.get(company.region)!.push(company)
   }
 
-  return Array.from(grouped.entries()).map(([regionCode, companies]) => ({
-    region: regionNameMap.value[regionCode] ?? regionCode,
-    companies: companies.sort((a, b) => {
-      // Hub first, then subs
-      if (a.regionRole === 'hub' && b.regionRole !== 'hub') return -1
-      if (a.regionRole !== 'hub' && b.regionRole === 'hub') return 1
-      return a.code.localeCompare(b.code)
-    }),
-  }))
+  return Array.from(grouped.entries())
+    .sort(([codeA], [codeB]) => {
+      return (regionSortMap.value[codeA] ?? 999) - (regionSortMap.value[codeB] ?? 999)
+    })
+    .map(([regionCode, companies]) => ({
+      region: regionNameMap.value[regionCode] ?? regionCode,
+      companies: companies.sort((a, b) => {
+        // Hub first, then subs
+        if (a.regionRole === 'hub' && b.regionRole !== 'hub') return -1
+        if (a.regionRole !== 'hub' && b.regionRole === 'hub') return 1
+        return (a.sortOrder ?? 999) - (b.sortOrder ?? 999)
+      }),
+    }))
 })
 
 const handleChange = (event: Event) => {

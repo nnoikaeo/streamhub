@@ -1,50 +1,79 @@
 [
   {
     "code": "NORTH",
-    "name": "กลุ่มภาคเหนือ",
+    "name": "ภาคเหนือ",
     "description": "ภาคเหนือของประเทศไทย",
-    "isActive": true
+    "sortOrder": 3,
+    "isActive": true,
+    "updatedAt": "2026-03-15T12:14:28.376Z"
   },
   {
     "code": "NORTHEAST",
-    "name": "กลุ่มภาคตะวันออกเฉียงเหนือ",
+    "name": "ภาคตะวันออกเฉียงเหนือ",
     "description": "ภาคตะวันออกเฉียงเหนือของประเทศไทย",
-    "isActive": true
+    "sortOrder": 4,
+    "isActive": true,
+    "updatedAt": "2026-03-15T12:14:25.212Z"
   },
   {
     "code": "EAST",
-    "name": "กลุ่มภาคตะวันออก",
+    "name": "ภาคตะวันออก",
     "description": "ภาคตะวันออกของประเทศไทย",
-    "isActive": true
+    "sortOrder": 5,
+    "isActive": true,
+    "updatedAt": "2026-03-15T12:14:21.813Z"
   },
   {
     "code": "SOUTH",
-    "name": "กลุ่มภาคใต้",
+    "name": "ภาคใต้",
     "description": "ภาคใต้ของประเทศไทย",
-    "isActive": true
+    "sortOrder": 6,
+    "isActive": true,
+    "updatedAt": "2026-03-15T12:14:19.845Z"
   },
   {
     "isActive": true,
     "code": "INNOTECH",
     "name": "กลุ่มบริษัทอินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์",
     "description": "ภาคกลางของประเทศไทย",
+    "sortOrder": 7,
     "createdAt": "2026-03-15T09:22:14.728Z",
-    "updatedAt": "2026-03-15T09:29:33.739Z"
+    "updatedAt": "2026-03-15T12:14:17.544Z"
   },
   {
     "isActive": true,
     "code": "MBR",
     "name": "กรุงเทพและปริมณฑล",
     "description": "เขตกรุงเทพมหานครและปริมณฑลของประเทศไทย",
+    "sortOrder": 2,
     "createdAt": "2026-03-15T09:25:00.108Z",
-    "updatedAt": "2026-03-15T09:25:00.108Z"
+    "updatedAt": "2026-03-15T12:14:29.793Z"
   },
   {
     "isActive": true,
     "code": "ORANGES",
-    "name": "กลุ่มบริษัทออเร้นจ์เอส",
+    "name": "กลุ่มบริษัทออเร้นจ์ เอส",
     "description": "ภาคกลางของประเทศไทย",
+    "sortOrder": 8,
     "createdAt": "2026-03-15T09:27:19.735Z",
-    "updatedAt": "2026-03-15T09:27:19.735Z"
+    "updatedAt": "2026-03-15T12:14:15.845Z"
+  },
+  {
+    "isActive": true,
+    "code": "SUPPLY_CHAIN",
+    "name": "กลุ่มซัพพลายเชน",
+    "description": "กลุ่มธุรกิจที่สนับสนุนกลุ่มบริษัท สทรีมวอช (ประเทศไทย) จำกัด",
+    "sortOrder": 9,
+    "createdAt": "2026-03-15T11:32:12.399Z",
+    "updatedAt": "2026-03-15T12:14:12.066Z"
+  },
+  {
+    "isActive": true,
+    "code": "HEADQUARTERS",
+    "name": "สำนักงานใหญ่",
+    "description": "ดูแลกลุ่มธุรกิจและเขตพื้นที่ทั้งหมด",
+    "sortOrder": 1,
+    "createdAt": "2026-03-15T12:14:07.643Z",
+    "updatedAt": "2026-03-15T12:14:29.772Z"
   }
 ]

@@ -62,12 +62,24 @@ const regionMap = computed(() => {
 })
 
 /**
+ * Region code → sortOrder map for sorting
+ */
+const regionSortMap = computed(() => {
+  const map: Record<string, number> = {}
+  for (const r of regions.value) {
+    map[r.code] = r.sortOrder ?? 999
+  }
+  return map
+})
+
+/**
  * Column definitions for DataTable
  */
 const columns = [
+  { key: 'sortOrder', label: 'ลำดับ', sortable: true, width: '80px', align: 'center' as const },
   { key: 'code', label: 'รหัส', sortable: true, width: '100px' },
   { key: 'name', label: 'ชื่อบริษัท', sortable: true, width: '300px', subtitleKey: 'description' },
-  { key: 'regionName', label: 'กลุ่มภูมิภาค', sortable: true, width: '200px' },
+  { key: 'regionName', label: 'กลุ่มธุรกิจ/เขตพื้นที่', sortable: true, width: '200px' },
   { key: 'isActive', label: 'สถานะ', sortable: true, width: '100px', isStatusColumn: true },
 ]
 
@@ -103,7 +115,50 @@ const filteredCompanies = computed(() => {
         ? `${regionMap.value[company.region] ?? company.region}${company.regionRole === 'hub' ? ' (Hub)' : company.regionRole === 'sub' ? ' (Sub)' : ''}`
         : '—',
     }))
+    .sort((a, b) => {
+      // Ungrouped companies first, then by region sortOrder
+      const regionA = a.region ?? ''
+      const regionB = b.region ?? ''
+      if (!regionA && regionB) return -1
+      if (regionA && !regionB) return 1
+      if (regionA !== regionB) {
+        return (regionSortMap.value[regionA] ?? 999) - (regionSortMap.value[regionB] ?? 999)
+      }
+      // Within same region, sort by sortOrder
+      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999)
+    })
 })
+
+/**
+ * Reorder handlers — swap sortOrder with adjacent item within the same region
+ */
+const handleMoveUp = async (company: Company) => {
+  const sameGroup = filteredCompanies.value.filter(c => (c.region ?? '') === (company.region ?? ''))
+  const index = sameGroup.findIndex(c => c.code === company.code)
+  if (index <= 0) return
+
+  const prev = sameGroup[index - 1]
+  if (!prev) return
+  const currentOrder = company.sortOrder ?? index + 1
+  const prevOrder = prev.sortOrder ?? index
+
+  await updateCompany(company.code, { sortOrder: prevOrder })
+  await updateCompany(prev.code, { sortOrder: currentOrder })
+}
+
+const handleMoveDown = async (company: Company) => {
+  const sameGroup = filteredCompanies.value.filter(c => (c.region ?? '') === (company.region ?? ''))
+  const index = sameGroup.findIndex(c => c.code === company.code)
+  if (index < 0 || index >= sameGroup.length - 1) return
+
+  const next = sameGroup[index + 1]
+  if (!next) return
+  const currentOrder = company.sortOrder ?? index + 1
+  const nextOrder = next.sortOrder ?? index + 2
+
+  await updateCompany(company.code, { sortOrder: nextOrder })
+  await updateCompany(next.code, { sortOrder: currentOrder })
+}
 
 /**
  * Action handlers
@@ -195,6 +250,18 @@ const clearFilters = () => {
  */
 const actions = [
   {
+    label: 'เลื่อนขึ้น',
+    icon: '⬆️',
+    onClick: handleMoveUp,
+    variant: 'ghost' as const,
+  },
+  {
+    label: 'เลื่อนลง',
+    icon: '⬇️',
+    onClick: handleMoveDown,
+    variant: 'ghost' as const,
+  },
+  {
     label: 'แก้ไข',
     icon: '✏️',
     onClick: handleEditCompany,
@@ -263,8 +330,8 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         <!-- Region Filter -->
         <div class="filter-group">
           <select v-model="filterRegion" class="theme-form-select">
-            <option :value="null">-- ภูมิภาคทั้งหมด --</option>
-            <option value="">ไม่มีภูมิภาค (สำนักงานใหญ่)</option>
+            <option :value="null">-- กลุ่มธุรกิจ/เขตพื้นที่ทั้งหมด --</option>
+            <option value="">ไม่มีกลุ่มธุรกิจ/เขตพื้นที่</option>
             <option v-for="r in regions" :key="r.code" :value="r.code">{{ r.name }}</option>
           </select>
         </div>
@@ -294,7 +361,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         @save="companyFormRef?.submit()"
         @cancel="showCompanyModal = false"
       >
-        <CompanyForm ref="companyFormRef" :company="selectedCompany" :regions="regions" @submit="handleSaveCompany" />
+        <CompanyForm ref="companyFormRef" :company="selectedCompany" :regions="regions" :companies="companies" @submit="handleSaveCompany" />
       </FormModal>
 
       <!-- Delete Confirmation Dialog -->
