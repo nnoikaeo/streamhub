@@ -247,7 +247,7 @@ Step 1 (Foundation) → Step 2 (Store) → Step 3 (Components) → Step 4 (Admin
 ```
 อ่านไฟล์ต่อไปนี้ก่อน:
 - app/pages/admin/groups/index.vue (ดู pattern admin page ที่มี CRUD)
-- app/components/admin/AdminSidebar.vue (ดู admin menu items)
+- app/composables/useRoleNavigation.ts (source of truth ของ admin menu items)
 - app/components/admin/forms/GroupForm.vue (ดู pattern form)
 - app/components/admin/ConfirmDialog.vue (ดู confirm dialog)
 - app/composables/useAdminTags.ts (สร้างใน Step 2)
@@ -282,16 +282,12 @@ Step 1 (Foundation) → Step 2 (Store) → Step 3 (Components) → Step 4 (Admin
 
    Preview section: แสดง TagBadge ของ tag ที่กำลัง edit
 
-3. อัปเดต `app/components/admin/AdminSidebar.vue`:
-   เพิ่มเมนู Tags ในรายการเมนู admin (ระหว่าง Groups กับ Permissions)
+3. อัปเดต `app/composables/useRoleNavigation.ts`:
+   เพิ่มเมนู Tags ใน adminMenuGroup items (ระหว่าง Groups กับ Permissions)
+   ```typescript
+   { path: '/admin/tags', label: 'แท็ก', icon: '🏷️' }
    ```
-   { label: 'Tags', icon: 'i-heroicons-tag', to: '/admin/tags' }
-   ```
-   ดู icon naming convention จาก menu items ที่มีอยู่แล้ว
-
-4. อัปเดต `app/components/layouts/UnifiedSidebar.vue`:
-   เพิ่ม Tags ใน adminMenuItems array (ถ้า admin menu items อยู่ที่นี่แทน AdminSidebar)
-   ดูว่า admin menu items ถูก define ที่ไหน แล้วเพิ่ม Tags ให้ถูกที่
+   หมายเหตุ: `AdminSidebar.vue` ถูกลบแล้ว — admin menu items ทั้งหมดอยู่ใน `useRoleNavigation.ts`
 
 ห้ามแก้ไขไฟล์อื่นนอกเหนือจากที่ระบุ
 ```
@@ -356,7 +352,7 @@ Step 1 (Foundation) → Step 2 (Store) → Step 3 (Components) → Step 4 (Admin
 - app/components/layouts/UnifiedSidebar.vue (sidebar ปัจจุบัน)
 - app/components/layouts/FolderAccordion.vue (folder tree component)
 - app/components/admin/AdminAccordion.vue (admin menu component)
-- app/components/admin/AdminSidebar.vue (admin sidebar)
+- app/composables/useRoleNavigation.ts (source of truth ของ menu items ทุก role)
 - app/composables/useSidebarVisibility.ts (visibility logic)
 - app/stores/permissions.ts (role checking)
 - app/stores/auth.ts (user data)
@@ -399,6 +395,7 @@ Step 1 (Foundation) → Step 2 (Store) → Step 3 (Components) → Step 4 (Admin
   ├ Explorer         → /admin/explorer
   ├ Dashboards       → /admin/dashboards
   ├ Companies        → /admin/companies
+  ├ Regions          → /admin/regions
   ├ Groups           → /admin/groups
   ├ Tags             → /admin/tags
   └ Permissions      → /admin/permissions
