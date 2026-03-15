@@ -11,6 +11,8 @@ export interface Company {
   name: string
   description?: string
   country: string
+  region?: string
+  regionRole?: 'hub' | 'sub'
   isActive: boolean
   createdAt?: string
   updatedAt?: string

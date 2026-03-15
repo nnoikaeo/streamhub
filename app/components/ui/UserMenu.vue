@@ -30,6 +30,7 @@
             <div class="user-details">
               <div class="user-name-lg">{{ displayName }}</div>
               <div class="user-email">{{ userEmail }}</div>
+              <div v-if="userRoleCompany" class="user-role-company">{{ userRoleCompany }}</div>
             </div>
           </div>
         </div>
@@ -102,6 +103,17 @@ const displayName = computed(() => {
  */
 const userEmail = computed(() => {
   return user.value?.email || 'No email'
+})
+
+/**
+ * Get user role + company label
+ */
+const userRoleCompany = computed(() => {
+  const role = (user.value as any)?.role
+  const company = (user.value as any)?.company
+  if (!role && !company) return ''
+  const parts = [role, company].filter(Boolean)
+  return parts.join(' · ')
 })
 
 /**
@@ -300,6 +312,13 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.user-role-company {
+  font-size: 0.7rem;
+  color: var(--color-primary);
+  font-weight: 500;
+  margin-top: 2px;
 }
 
 /* ========== DIVIDER ========== */

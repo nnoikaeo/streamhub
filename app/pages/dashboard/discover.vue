@@ -30,6 +30,12 @@
               :dashboard-counts="dashboardCountByFolder"
               @update:model-value="handleDropdownChange"
             />
+            <CompanyDropdownFilter
+              v-if="companies.length > 0"
+              v-model="selectedCompanyCode"
+              :companies="companies"
+              @update:model-value="handleCompanyFilterChange"
+            />
           </div>
 
           <!-- Dashboards Found Header -->
@@ -63,6 +69,7 @@
             v-if="isGroupedView"
             :groups="groupedDashboards"
             :loading="isLoading"
+            :user-map="userMap"
             empty-message="ไม่พบแดชบอร์ด"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
@@ -132,11 +139,15 @@ import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import GroupedDashboardGrid from '~/components/features/GroupedDashboardGrid.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
+import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminUsers } from '~/composables/useAdminUsers'
+import { useCompanyAccess } from '~/composables/useCompanyAccess'
 
 const route = useRoute()
 console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route.path, name: route.name })
@@ -239,13 +250,37 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 const tagStore = useTagStore()
 const { fetchTags } = useAdminTags()
 
+// ========== Company Filter ==========
+const { companies, fetchCompanies } = useAdminCompanies()
+const { isAdmin } = useCompanyAccess()
+const selectedCompanyCode = ref<string | null>(null)
+
+// ========== Users (for moderator display) ==========
+const { users, fetchUsers } = useAdminUsers()
+
+const userMap = computed(() => {
+  const map: Record<string, any> = {}
+  for (const u of users.value) {
+    map[u.uid] = u
+  }
+  return map
+})
+
 onMounted(async () => {
   try {
-    await fetchTags()
+    await Promise.all([
+      fetchTags(),
+      fetchCompanies(),
+      fetchUsers(),
+    ])
   } catch (e) {
-    console.warn('[discover] Failed to load tags:', e)
+    console.warn('[discover] Failed to load tags/companies/users:', e)
   }
 })
+
+const handleCompanyFilterChange = (code: string | null) => {
+  selectedCompanyCode.value = code
+}
 
 const handleTagFilterUpdate = (ids: string[]) => {
   tagStore.clearTagFilter()
@@ -253,16 +288,31 @@ const handleTagFilterUpdate = (ids: string[]) => {
 }
 
 /**
- * Filtered dashboards by selected tags (AND logic)
- * If no tags selected → show all dashboards
+ * Filtered dashboards by selected tags (AND logic) + company filter
  */
 const filteredDashboards = computed<Dashboard[]>(() => {
+  let result = dashboards.value
+
+  // Company filter (admin only)
+  const companyCode = selectedCompanyCode.value
+  if (companyCode) {
+    result = result.filter((d) => {
+      const companyAccess = d.access?.company
+      if (!companyAccess) return false
+      return companyCode in companyAccess
+    })
+  }
+
+  // Tag filter (AND logic)
   const selected = tagStore.selectedTagIds
-  if (selected.length === 0) return dashboards.value
-  return dashboards.value.filter((d) => {
-    const dTags = d.tags ?? []
-    return selected.every((tagId) => dTags.includes(tagId))
-  })
+  if (selected.length > 0) {
+    result = result.filter((d) => {
+      const dTags = d.tags ?? []
+      return selected.every((tagId) => dTags.includes(tagId))
+    })
+  }
+
+  return result
 })
 
 // ========== Folder Dropdown Filter ==========
@@ -343,24 +393,26 @@ const groupedDashboards = computed(() => {
 })
 
 /**
- * Status text showing count + active tag names
+ * Status text showing count + active tag names + company filter
  */
 const dashboardCountText = computed(() => {
   const selected = tagStore.selectedTagIds
+  const companySuffix = selectedCompanyCode.value ? ` · บริษัท: ${selectedCompanyCode.value}` : ''
+
   if (isGroupedView.value) {
     const groupCount = groupedDashboards.value.length
     const count = groupedDashboards.value.reduce((sum, g) => sum + g.dashboards.length, 0)
     const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
     if (selected.length > 0) {
       const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
-      return `${base} · แท็ก: ${tagNames}`
+      return `${base} · แท็ก: ${tagNames}${companySuffix}`
     }
-    return base
+    return `${base}${companySuffix}`
   }
   const count = filteredDashboards.value.length
-  if (selected.length === 0) return `พบ ${count} แดชบอร์ด`
+  if (selected.length === 0) return `พบ ${count} แดชบอร์ด${companySuffix}`
   const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
-  return `แสดง ${count} แดชบอร์ด · แท็ก: ${tagNames}`
+  return `แสดง ${count} แดชบอร์ด · แท็ก: ${tagNames}${companySuffix}`
 })
 
 // ========== Permission-Based UI ==========
@@ -442,8 +494,14 @@ const dashboardCountText = computed(() => {
 .discover-filters {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  flex-wrap: nowrap;
+}
+
+.discover-filters > :first-child {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 /* ========== DASHBOARDS HEADER ========== */
@@ -478,6 +536,15 @@ const dashboardCountText = computed(() => {
 @media (max-width: 768px) {
   .discover-main-content {
     padding: 0 var(--spacing-md);
+  }
+
+  .discover-filters {
+    flex-wrap: wrap;
+  }
+
+  .discover-filters > :first-child {
+    flex: unset;
+    width: 100%;
   }
 
   .dashboards-count {

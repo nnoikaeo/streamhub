@@ -22,6 +22,12 @@
         </svg>
         <h3 class="folder-group__name">{{ group.folder.name }}</h3>
         <span class="folder-group__count">{{ group.dashboards.length }}</span>
+        <span
+          v-if="getModeratorLabel(group.folder)"
+          class="folder-group__moderator"
+        >
+          ผู้ดูแล: {{ getModeratorLabel(group.folder) }}
+        </span>
       </div>
       <DashboardGrid
         :dashboards="group.dashboards"
@@ -41,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Dashboard, Folder } from '~/types/dashboard'
+import type { Dashboard, Folder, User } from '~/types/dashboard'
 import DashboardGrid from './DashboardGrid.vue'
 
 export interface DashboardGroup {
@@ -49,14 +55,28 @@ export interface DashboardGroup {
   dashboards: Dashboard[]
 }
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   groups: DashboardGroup[]
   loading?: boolean
   emptyMessage?: string
+  userMap?: Record<string, User>
 }>(), {
   loading: false,
   emptyMessage: 'ไม่พบแดชบอร์ด',
+  userMap: () => ({}),
 })
+
+const getModeratorLabel = (folder: Folder): string => {
+  const mods = folder.assignedModerators
+  if (!mods || mods.length === 0) return ''
+  return mods
+    .map(uid => {
+      const user = props.userMap[uid]
+      if (!user) return uid
+      return `${user.name} (${user.company})`
+    })
+    .join(', ')
+}
 
 defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
@@ -108,6 +128,12 @@ defineEmits<{
   background-color: var(--color-bg-secondary, #f3f4f6);
   padding: 2px 8px;
   border-radius: 9999px;
+}
+
+.folder-group__moderator {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-left: auto;
 }
 
 /* ========== EMPTY STATE ========== */
