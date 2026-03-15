@@ -1,4 +1,4 @@
-import { readJSON, findMany } from '../../utils/jsonDatabase'
+import { readJSON } from '../../utils/jsonDatabase'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -6,15 +6,39 @@ export default defineEventHandler(async (event) => {
     console.log('[API] GET /api/mock/dashboards')
     console.log('  📥 Query params:', query)
 
+    const uid = query.uid as string
+    const companyFilter = query.company as string
+
+    // If uid provided: validate company access and filter by permissions
+    if (uid) {
+      const accessResult = await validateCompanyAccess(event, companyFilter)
+      if (!accessResult.allowed) {
+        return sendForbidden(event, accessResult.reason)
+      }
+
+      const dashboards = await readJSON('dashboards.json')
+      console.log(`  📊 Total dashboards loaded: ${dashboards.length}`)
+
+      let filtered = filterAccessibleDashboards(dashboards as any[], accessResult.user)
+
+      if (query.folderId) {
+        filtered = filtered.filter((d: any) => d.folderId === query.folderId)
+        console.log(`  🔍 After folderId filter: ${filtered.length}`)
+      }
+
+      console.log(`  ✅ Returning: ${filtered.length} dashboards`)
+      return { success: true, data: filtered, total: filtered.length }
+    }
+
+    // Fallback: no uid (admin pages, backward compatible)
     const dashboards = await readJSON('dashboards.json')
     console.log(`  📊 Total dashboards loaded: ${dashboards.length}`)
 
-    // Filter by query parameters
-    let filtered = dashboards
+    let filtered: any[] = dashboards as any[]
 
-    if (query.company) {
-      filtered = filtered.filter((d: any) => d.access?.company?.[query.company as string])
-      console.log(`  🔍 After company filter (${query.company}): ${filtered.length}`)
+    if (companyFilter) {
+      filtered = filtered.filter((d: any) => d.access?.company?.[companyFilter])
+      console.log(`  🔍 After company filter (${companyFilter}): ${filtered.length}`)
     }
 
     if (query.folderId) {
@@ -23,11 +47,7 @@ export default defineEventHandler(async (event) => {
     }
 
     console.log(`  ✅ Returning: ${filtered.length} dashboards`)
-    return {
-      success: true,
-      data: filtered,
-      total: filtered.length
-    }
+    return { success: true, data: filtered, total: filtered.length }
   } catch (error: any) {
     console.error('[API] Error fetching dashboards:', error.message)
     throw createError({
