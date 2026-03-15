@@ -24,10 +24,12 @@ import { createObjectValidator, validators } from '~/utils/formValidators'
 interface Props {
   company?: Company | null
   regions?: Region[]
+  companies?: Company[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   regions: () => [],
+  companies: () => [],
 })
 const emit = defineEmits<{
   submit: [data: Partial<Company>]
@@ -35,15 +37,16 @@ const emit = defineEmits<{
 
 // Region options from prop
 const regionOptions = computed(() => [
-  { label: '-- ไม่ระบุ (สำนักงานใหญ่) --', value: '' },
+  { label: '-- ไม่ระบุ --', value: '' },
   ...props.regions
     .filter(r => r.isActive)
+    .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
     .map(r => ({ label: r.name, value: r.code })),
 ])
 
 // Region Role options
 const regionRoleOptions = [
-  { label: 'Hub — สาขาหลักของกลุ่มภูมิภาค', value: 'hub' },
+  { label: 'Hub — สาขาหลักของกลุ่มธุรกิจ/เขตพื้นที่', value: 'hub' },
   { label: 'Sub — สาขาย่อยภายใต้ Hub', value: 'sub' },
 ]
 
@@ -57,6 +60,12 @@ const validate = createObjectValidator({
   name: [(value) => validators.required(value, 'ชื่อบริษัท')],
 })
 
+/** คำนวณ sortOrder ถัดไปสำหรับ region ที่กำหนด */
+const calcNextSortOrder = (regionCode: string) => {
+  const sameGroup = props.companies.filter(c => (c.region ?? '') === regionCode)
+  return sameGroup.reduce((max, c) => Math.max(max, c.sortOrder ?? 0), 0) + 1
+}
+
 // Destructure to top-level refs so Volar auto-unwraps them in templates correctly
 const { formData, errors, handleSubmit, setFieldTouched, setFieldValue } = useForm({
   initialValues: {
@@ -65,14 +74,14 @@ const { formData, errors, handleSubmit, setFieldTouched, setFieldValue } = useFo
     description: props.company?.description ?? '',
     region: props.company?.region ?? '',
     regionRole: props.company?.regionRole ?? '',
+    sortOrder: props.company?.sortOrder ?? calcNextSortOrder(''),
   },
   validate,
   onSubmit: async (values) => {
-    // Clean up: if no region, remove regionRole
-    const submitData = { ...values }
-    if (!submitData.region) {
-      submitData.region = undefined as any
-      submitData.regionRole = undefined as any
+    const submitData: Partial<Company> = {
+      ...values,
+      region: values.region || undefined,
+      regionRole: (values.regionRole as 'hub' | 'sub') || undefined,
     }
     emit('submit', submitData)
   },
@@ -81,10 +90,13 @@ const { formData, errors, handleSubmit, setFieldTouched, setFieldValue } = useFo
 const isEditMode = computed(() => !!props.company)
 const hasRegion = computed(() => !!formData.region)
 
-// When region is cleared, also clear regionRole
+// When region changes: clear regionRole, and auto-update sortOrder in create mode
 watch(() => formData.region, (newVal) => {
   if (!newVal) {
     setFieldValue('regionRole', '')
+  }
+  if (!isEditMode.value) {
+    setFieldValue('sortOrder', calcNextSortOrder(newVal ?? ''))
   }
 })
 
@@ -123,14 +135,23 @@ defineExpose({ submit: handleSubmit })
       placeholder="อธิบายเกี่ยวกับบริษัทนี้..."
     />
 
+    <FormField
+      v-model="formData.sortOrder"
+      type="number"
+      label="ลำดับการแสดงผล (Sort Order)"
+      placeholder="เช่น 1, 2, 3"
+      :disabled="true"
+      description="ปรับลำดับได้ด้วยปุ่ม ⬆️ / ⬇️ ในหน้าจัดการบริษัท"
+    />
+
     <!-- Region Section -->
     <div class="region-section">
-      <div class="region-section__label">ข้อมูลภูมิภาค</div>
+      <div class="region-section__label">ข้อมูลกลุ่มธุรกิจ/เขตพื้นที่</div>
 
       <FormField
         v-model="formData.region"
         type="select"
-        label="กลุ่มภูมิภาค (Region)"
+        label="กลุ่มธุรกิจ/เขตพื้นที่ (Region)"
         :options="regionOptions"
       />
 
@@ -138,9 +159,9 @@ defineExpose({ submit: handleSubmit })
         v-if="hasRegion"
         v-model="formData.regionRole"
         type="select"
-        label="บทบาทในภูมิภาค (Role)"
+        label="บทบาทในกลุ่มธุรกิจ/เขตพื้นที่ (Role)"
         :options="regionRoleOptions"
-        description="Hub = สาขาหลักของกลุ่มภูมิภาค, Sub = สาขาย่อยภายใต้ Hub"
+        description="Hub = สาขาหลักของกลุ่มธุรกิจ/เขตพื้นที่, Sub = สาขาย่อยภายใต้ Hub"
       />
     </div>
   </div>

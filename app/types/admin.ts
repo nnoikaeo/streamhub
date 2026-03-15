@@ -10,6 +10,7 @@ export interface Region {
   code: string
   name: string
   description?: string
+  sortOrder?: number
   isActive: boolean
   createdAt?: string
   updatedAt?: string
@@ -24,6 +25,7 @@ export interface Company {
   description?: string
   region?: string
   regionRole?: 'hub' | 'sub'
+  sortOrder?: number
   isActive: boolean
   createdAt?: string
   updatedAt?: string

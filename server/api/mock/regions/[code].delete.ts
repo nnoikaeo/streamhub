@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     if (referencingCompanies.length > 0) {
       throw createError({
         statusCode: 409,
-        message: `ไม่สามารถลบกลุ่มภูมิภาคนี้ได้ เนื่องจากมี ${referencingCompanies.length} บริษัทที่ใช้งานอยู่`
+        message: `ไม่สามารถลบกลุ่มธุรกิจ/เขตพื้นที่นี้ได้ เนื่องจากมี ${referencingCompanies.length} บริษัทที่ใช้งานอยู่`
       })
     }
 
