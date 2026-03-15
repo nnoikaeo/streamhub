@@ -8,6 +8,52 @@
       </div>
     </div>
 
+    <!-- Company Badges -->
+    <div class="card-companies">
+      <span
+        v-if="companyKeys.length === 0"
+        class="company-badge company-badge--global"
+      >
+        <svg class="company-badge__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="2" width="16" height="20" rx="1" />
+          <line x1="9" y1="6" x2="9" y2="6.01" />
+          <line x1="15" y1="6" x2="15" y2="6.01" />
+          <line x1="9" y1="10" x2="9" y2="10.01" />
+          <line x1="15" y1="10" x2="15" y2="10.01" />
+          <line x1="9" y1="14" x2="15" y2="14" />
+          <line x1="9" y1="18" x2="15" y2="18" />
+        </svg>
+        <span>ทุกบริษัท</span>
+      </span>
+      <span
+        v-for="code in companyKeys"
+        :key="code"
+        class="company-badge"
+      >
+        <svg class="company-badge__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="2" width="16" height="20" rx="1" />
+          <line x1="9" y1="6" x2="9" y2="6.01" />
+          <line x1="15" y1="6" x2="15" y2="6.01" />
+          <line x1="9" y1="10" x2="9" y2="10.01" />
+          <line x1="15" y1="10" x2="15" y2="10.01" />
+          <line x1="9" y1="14" x2="15" y2="14" />
+          <line x1="9" y1="18" x2="15" y2="18" />
+        </svg>
+        <span>{{ code }}</span>
+      </span>
+    </div>
+
+    <!-- Tags -->
+    <div v-if="visibleTags.length > 0" class="card-tags">
+      <TagBadge
+        v-for="tag in visibleTags"
+        :key="tag.id"
+        :tag="tag"
+        size="sm"
+      />
+      <span v-if="hiddenCount > 0" class="card-tags__more">+{{ hiddenCount }}</span>
+    </div>
+
     <!-- Open Button - Using Primary Brand Color -->
     <button class="open-button" @click="$emit('view')">
       <span>เปิด</span>
@@ -22,6 +68,9 @@
 <script setup lang="ts">
 import { computed, h } from 'vue'
 import type { Dashboard } from '../../types/dashboard'
+import type { Tag } from '../../types/tag'
+import { useTagStore } from '~/stores/tags'
+import TagBadge from './TagBadge.vue'
 
 /**
  * DashboardCard - Individual dashboard card component
@@ -30,13 +79,36 @@ import type { Dashboard } from '../../types/dashboard'
 
 interface Props {
   dashboard: Dashboard
+  tags?: Tag[]
 }
+
+const MAX_VISIBLE_TAGS = 3
 
 const props = defineProps<Props>()
 
 defineEmits<{
   view: []
 }>()
+
+const tagStore = useTagStore()
+
+// Resolve tags: use prop if provided, otherwise resolve from store via dashboard.tags (string[])
+const resolvedTags = computed<Tag[]>(() => {
+  if (props.tags && props.tags.length > 0) return props.tags
+  const tagIds = props.dashboard.tags
+  if (!tagIds || tagIds.length === 0) return []
+  return tagStore.getTagsByIds(tagIds)
+})
+
+// Company keys from access.company object
+const companyKeys = computed(() => {
+  const access = props.dashboard.access
+  if (!access?.company) return []
+  return Object.keys(access.company)
+})
+
+const visibleTags = computed(() => resolvedTags.value.slice(0, MAX_VISIBLE_TAGS))
+const hiddenCount = computed(() => Math.max(0, resolvedTags.value.length - MAX_VISIBLE_TAGS))
 
 // Dashboard icon for card header
 const dashboardIcon = computed(() => {
@@ -81,7 +153,7 @@ const dashboardIcon = computed(() => {
       h('rect', { x: '3', y: '14', width: '7', height: '7' })
     ]),
   }
-  
+
   return iconMap[props.dashboard.type] || iconMap.analysis
 })
 </script>
@@ -139,6 +211,58 @@ const dashboardIcon = computed(() => {
 .card-icon svg {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+/* ========== COMPANY BADGES ========== */
+.card-companies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.company-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #475569;
+  line-height: 1;
+}
+
+.company-badge--global {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6d28d9;
+}
+
+.company-badge__icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ========== TAGS ========== */
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.card-tags__more {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  padding: 2px 6px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
 }
 
 /* ========== OPEN BUTTON ========== */

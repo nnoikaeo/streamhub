@@ -11,6 +11,7 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": false,
+    "tags": ["tag_sales", "tag_monthly"],
     "access": {
       "direct": {
         "users": [],
@@ -48,6 +49,7 @@
     "updatedAt": "2024-02-02T00:00:00.000Z",
     "updatedBy": "user_nattha_mod",
     "isArchived": false,
+    "tags": ["tag_finance", "tag_kpi"],
     "access": {
       "direct": {
         "users": [
@@ -87,6 +89,7 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": false,
+    "tags": ["tag_hr"],
     "access": {
       "direct": {
         "users": [],
@@ -114,6 +117,7 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": false,
+    "tags": ["tag_finance", "tag_quarterly"],
     "access": {
       "direct": {
         "users": [],
@@ -149,6 +153,7 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "user_somchai_mod",
     "isArchived": false,
+    "tags": ["tag_quarterly", "tag_planning"],
     "access": {
       "direct": {
         "users": [],
@@ -178,6 +183,7 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": false,
+    "tags": ["tag_sales"],
     "access": {
       "direct": {
         "users": [
@@ -218,6 +224,7 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "user_somchai_mod",
     "isArchived": false,
+    "tags": ["tag_sales", "tag_quarterly"],
     "access": {
       "direct": {
         "users": [],
@@ -251,6 +258,7 @@
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": true,
     "archivedAt": "2024-01-20T00:00:00.000Z",
+    "tags": [],
     "access": {
       "direct": {
         "users": [],

@@ -26,6 +26,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   // Accordion states - persisted across navigation
   const isFoldersAccordionOpen = ref<boolean>(true)
   const isAdminAccordionOpen = ref<boolean>(false)
+  const isManageFoldersAccordionOpen = ref<boolean>(false)
 
   // Cache keys for invalidation
   const dashboardsCacheKey = ref<string>('')
@@ -69,7 +70,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
    * @param companyCode Company code to filter by (e.g., 'STTH')
    */
   const getDashboardsByCompany = (companyCode: string) => {
-    return dashboards.value.filter((d) => d.company === companyCode)
+    return dashboards.value.filter((d) => (d as any).company === companyCode)
   }
 
   /**
@@ -77,7 +78,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
    * @param companyCode Company code to filter by (e.g., 'STTH')
    */
   const getFoldersByCompany = (companyCode: string) => {
-    return folders.value.filter((f) => f.company === companyCode)
+    return folders.value.filter((f) => (f as any).company === companyCode)
   }
 
   // ========== Mutations - Reducers ==========
@@ -102,7 +103,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const updateDashboard = (id: string, updates: Partial<Dashboard>) => {
     const index = dashboards.value.findIndex((d) => d.id === id)
     if (index !== -1) {
-      dashboards.value[index] = { ...dashboards.value[index], ...updates }
+      dashboards.value[index] = Object.assign({}, dashboards.value[index], updates)
     }
   }
 
@@ -133,7 +134,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const updateFolder = (id: string, updates: Partial<Folder>) => {
     const index = folders.value.findIndex((f) => f.id === id)
     if (index !== -1) {
-      folders.value[index] = { ...folders.value[index], ...updates }
+      folders.value[index] = Object.assign({}, folders.value[index], updates)
     }
   }
 
@@ -233,20 +234,38 @@ export const useDashboardStore = defineStore('dashboard', () => {
   }
 
   /**
-   * Initialize accordion states based on context
-   * - Dashboard pages: Folders open, Admin closed
-   * - Admin pages: Admin open, Folders closed
-   * - Non-admin users: Folders open, Admin hidden
+   * Set manage folders accordion open/closed state
    */
-  const initializeAccordionStates = (isAdminPage: boolean, isAdminUser: boolean) => {
-    if (isAdminPage && isAdminUser) {
-      // Admin page: show admin accordion, hide folders
+  const setManageFoldersAccordionOpen = (isOpen: boolean) => {
+    isManageFoldersAccordionOpen.value = isOpen
+  }
+
+  /**
+   * Toggle manage folders accordion state
+   */
+  const toggleManageFoldersAccordion = () => {
+    isManageFoldersAccordionOpen.value = !isManageFoldersAccordionOpen.value
+  }
+
+  /**
+   * Initialize accordion states based on context
+   * - /manage/* pages: Manage Folders open, Dashboard + Admin closed
+   * - /admin/* pages: Admin open, Dashboard + Manage Folders closed
+   * - /dashboard/* pages: Dashboard open, Admin + Manage Folders closed
+   */
+  const initializeAccordionStates = (isAdminPage: boolean, isAdminUser: boolean, isManagePage: boolean = false) => {
+    if (isManagePage) {
+      isFoldersAccordionOpen.value = false
+      isAdminAccordionOpen.value = false
+      isManageFoldersAccordionOpen.value = true
+    } else if (isAdminPage && isAdminUser) {
       isFoldersAccordionOpen.value = false
       isAdminAccordionOpen.value = true
+      isManageFoldersAccordionOpen.value = false
     } else {
-      // Dashboard page: show folders accordion, hide admin
       isFoldersAccordionOpen.value = true
       isAdminAccordionOpen.value = false
+      isManageFoldersAccordionOpen.value = false
     }
   }
 
@@ -316,6 +335,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     expandedFolders,
     isFoldersAccordionOpen,
     isAdminAccordionOpen,
+    isManageFoldersAccordionOpen,
 
     // Computed - Selectors
     currentFolder,
@@ -343,8 +363,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
     clearExpandedFolders,
     setFoldersAccordionOpen,
     setAdminAccordionOpen,
+    setManageFoldersAccordionOpen,
     toggleFoldersAccordion,
     toggleAdminAccordion,
+    toggleManageFoldersAccordion,
     initializeAccordionStates,
 
     // Cache Management

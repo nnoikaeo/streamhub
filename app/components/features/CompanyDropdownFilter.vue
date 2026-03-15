@@ -1,0 +1,142 @@
+<template>
+  <div class="company-dropdown-filter">
+    <svg class="company-dropdown-filter__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="4" y="2" width="16" height="20" rx="1" />
+      <line x1="9" y1="6" x2="9" y2="6.01" />
+      <line x1="15" y1="6" x2="15" y2="6.01" />
+      <line x1="9" y1="10" x2="9" y2="10.01" />
+      <line x1="15" y1="10" x2="15" y2="10.01" />
+      <line x1="9" y1="14" x2="15" y2="14" />
+      <line x1="9" y1="18" x2="15" y2="18" />
+    </svg>
+    <select
+      class="company-dropdown-filter__select"
+      :value="modelValue ?? ''"
+      @change="handleChange"
+    >
+      <option value="">ทุกบริษัท</option>
+
+      <!-- Companies without region (e.g. STTH, STTN, STCS) -->
+      <option
+        v-for="company in ungroupedCompanies"
+        :key="company.code"
+        :value="company.code"
+      >
+        {{ company.code }}
+      </option>
+
+      <!-- Grouped by region -->
+      <optgroup
+        v-for="group in regionGroups"
+        :key="group.region"
+        :label="group.region"
+      >
+        <option
+          v-for="company in group.companies"
+          :key="company.code"
+          :value="company.code"
+        >
+          {{ company.code }}{{ company.regionRole === 'hub' ? ' (Hub)' : '' }}
+        </option>
+      </optgroup>
+    </select>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { Company } from '~/types/admin'
+
+const props = withDefaults(defineProps<{
+  companies: Company[]
+  modelValue: string | null
+}>(), {
+  modelValue: null,
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string | null]
+}>()
+
+/** Companies without a region — shown at top level */
+const ungroupedCompanies = computed(() =>
+  props.companies.filter(c => !c.region && c.isActive)
+)
+
+/** Companies grouped by region, hub first */
+const regionGroups = computed(() => {
+  const grouped = new Map<string, Company[]>()
+
+  for (const company of props.companies) {
+    if (!company.region || !company.isActive) continue
+    if (!grouped.has(company.region)) {
+      grouped.set(company.region, [])
+    }
+    grouped.get(company.region)!.push(company)
+  }
+
+  return Array.from(grouped.entries()).map(([region, companies]) => ({
+    region,
+    companies: companies.sort((a, b) => {
+      // Hub first, then subs
+      if (a.regionRole === 'hub' && b.regionRole !== 'hub') return -1
+      if (a.regionRole !== 'hub' && b.regionRole === 'hub') return 1
+      return a.code.localeCompare(b.code)
+    }),
+  }))
+})
+
+const handleChange = (event: Event) => {
+  const value = (event.target as HTMLSelectElement).value
+  emit('update:modelValue', value || null)
+}
+</script>
+
+<style scoped>
+.company-dropdown-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.company-dropdown-filter__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.company-dropdown-filter__select {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  min-width: 120px;
+}
+
+.company-dropdown-filter__select:hover {
+  border-color: var(--color-border-default);
+}
+
+.company-dropdown-filter__select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 59, 130, 246), 0.15);
+}
+
+@media (max-width: 768px) {
+  .company-dropdown-filter {
+    width: 100%;
+  }
+
+  .company-dropdown-filter__select {
+    width: 100%;
+    min-width: unset;
+  }
+}
+</style>

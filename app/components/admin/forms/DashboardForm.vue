@@ -10,6 +10,7 @@
  */
 
 import type { Dashboard } from '~/types/dashboard'
+import type { Tag } from '~/types/tag'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAuthStore } from '~/stores/auth'
 import { createObjectValidator, validators } from '~/utils/formValidators'
@@ -17,9 +18,17 @@ import { onMounted } from 'vue'
 
 interface Props {
   dashboard?: Dashboard | null
+  lockedFolderId?: string
+  showTagSelector?: boolean
+  canCreateTag?: boolean
+  availableTags?: Tag[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  showTagSelector: false,
+  canCreateTag: false,
+  availableTags: () => [],
+})
 const emit = defineEmits<{
   submit: [data: Partial<Dashboard>]
 }>()
@@ -67,11 +76,12 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     name: props.dashboard?.name || '',
     description: props.dashboard?.description || '',
     type: 'looker' as const,
-    folderId: props.dashboard?.folderId || '',
+    folderId: props.lockedFolderId || props.dashboard?.folderId || '',
     lookerDashboardId: props.dashboard?.lookerDashboardId || '',
     lookerEmbedUrl: props.dashboard?.lookerEmbedUrl || '',
     isArchived: props.dashboard?.isArchived ?? false,
     owner: props.dashboard?.owner || authStore.user?.uid || '',
+    tags: props.dashboard?.tags ?? [],
   },
   validate: (values) => {
     const validationErrors = baseValidate(values)
@@ -137,8 +147,19 @@ onMounted(async () => {
       :options="folderOptions"
       :error="errors.folderId"
       :required="true"
+      :disabled="!!lockedFolderId"
       @blur="setFieldTouched('folderId')"
     />
+
+    <div v-if="showTagSelector" class="form-field-group">
+      <label class="form-label">Tags</label>
+      <TagSelector
+        :model-value="formData.tags"
+        :available-tags="availableTags"
+        :can-create-tag="canCreateTag"
+        @update:model-value="formData.tags = $event"
+      />
+    </div>
 
     <FormField
       v-model="formData.lookerDashboardId"
@@ -190,6 +211,18 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg, 1.5rem);
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 0.25rem);
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
 }
 
 .form-warning {

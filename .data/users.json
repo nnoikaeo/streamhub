@@ -11,9 +11,9 @@
     "updatedAt": "2026-03-12T14:23:14.826Z"
   },
   {
-    "uid": "user_somchai_mod",
-    "email": "somchai@streamwash.com",
-    "name": "Somchai Moderator",
+    "uid": "9c7TScfkuGX7W4dq9P8GHjhrbIu1",
+    "email": "n.noikaeo@gmail.com",
+    "name": "Nopphol Noikaeo",
     "role": "moderator",
     "company": "STTH",
     "groups": [
@@ -22,7 +22,7 @@
     ],
     "isActive": true,
     "createdAt": "2024-01-05T00:00:00.000Z",
-    "updatedAt": "2024-02-01T00:00:00.000Z"
+    "updatedAt": "2026-03-14T15:33:46.793Z"
   },
   {
     "uid": "user_nattha_mod",
@@ -65,9 +65,9 @@
     "updatedAt": "2024-02-01T00:00:00.000Z"
   },
   {
-    "uid": "user_sombat_user",
-    "email": "sombat@streamwash.com",
-    "name": "Sombat User",
+    "uid": "rHdLmTdB1LSKLeUZ2j45KjS2OBl2",
+    "email": "survey.streamwash@gmail.com",
+    "name": "Survey Streamwash",
     "role": "user",
     "company": "STTH",
     "groups": [
@@ -75,6 +75,19 @@
     ],
     "isActive": true,
     "createdAt": "2024-01-25T00:00:00.000Z",
+    "updatedAt": "2026-03-15T03:10:09.523Z"
+  },
+  {
+    "uid": "user_somchai_mod",
+    "email": "somchai@streamwash.com",
+    "name": "Somchai Moderator",
+    "role": "moderator",
+    "company": "STTH",
+    "groups": [
+      "sales"
+    ],
+    "isActive": true,
+    "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-02-01T00:00:00.000Z"
   }
 ]

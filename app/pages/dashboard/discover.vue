@@ -1,7 +1,7 @@
 <template>
   <ClientOnly>
     <PageLayout
-      v-if="!isLoading && folders.length > 0"
+      v-if="!isInitializing"
       :breadcrumbs="breadcrumbItems"
       :folders="folderTree"
       :selected-folder-id="selectedFolderId"
@@ -14,6 +14,30 @@
       <!-- Main: Dashboard Grid -->
       <div class="discover-main-content">
 
+          <!-- Filters: Tag + Folder -->
+          <div class="discover-filters">
+            <TagFilter
+              v-if="tagStore.activeTags.length > 0"
+              :tags="tagStore.activeTags"
+              :selected-tag-ids="tagStore.selectedTagIds"
+              @update:selected-tag-ids="handleTagFilterUpdate"
+            />
+            <FolderDropdownFilter
+              v-if="flattenedFolders.length > 0"
+              :key="folderDropdownKey"
+              v-model="dropdownFolderId"
+              :folders="flattenedFolders"
+              :dashboard-counts="dashboardCountByFolder"
+              @update:model-value="handleDropdownChange"
+            />
+            <CompanyDropdownFilter
+              v-if="companies.length > 0"
+              v-model="selectedCompanyCode"
+              :companies="companies"
+              @update:model-value="handleCompanyFilterChange"
+            />
+          </div>
+
           <!-- Dashboards Found Header -->
           <div class="dashboards-header">
             <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,7 +48,7 @@
               <line x1="3" y1="12" x2="3.01" y2="12" />
               <line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
-            <h2 class="dashboards-count">พบ {{ dashboards.length }} แดชบอร์ด</h2>
+            <h2 class="dashboards-count">{{ dashboardCountText }}</h2>
           </div>
 
           <!-- Error Message -->
@@ -40,11 +64,24 @@
             </button>
           </div>
 
-          <!-- Dashboard Grid with Loading State -->
-          <DashboardGrid
-            :dashboards="dashboards"
+          <!-- Grouped View (when showing all folders) -->
+          <GroupedDashboardGrid
+            v-if="isGroupedView"
+            :groups="groupedDashboards"
             :loading="isLoading"
-            empty-message="No dashboards in this folder. Create one to get started!"
+            :user-map="userMap"
+            empty-message="ไม่พบแดชบอร์ด"
+            @view-dashboard="handleViewDashboard"
+            @share-dashboard="handleShareDashboard"
+            @menu-dashboard="handleMenuDashboard"
+          />
+
+          <!-- Flat View (when specific folder selected) -->
+          <DashboardGrid
+            v-else
+            :dashboards="filteredDashboards"
+            :loading="isLoading"
+            empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
             @menu-dashboard="handleMenuDashboard"
@@ -100,8 +137,17 @@ import type { Folder, Dashboard } from '~/types/dashboard'
 import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
+import GroupedDashboardGrid from '~/components/features/GroupedDashboardGrid.vue'
+import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
+import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
-import { computed } from 'vue'
+import TagFilter from '~/components/features/TagFilter.vue'
+import { computed, ref, watch, onMounted } from 'vue'
+import { useTagStore } from '~/stores/tags'
+import { useAdminTags } from '~/composables/useAdminTags'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminUsers } from '~/composables/useAdminUsers'
+import { useCompanyAccess } from '~/composables/useCompanyAccess'
 
 const route = useRoute()
 console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route.path, name: route.name })
@@ -126,6 +172,7 @@ const {
   folderPath,
   breadcrumbItems,
   isLoading,
+  isInitializing,
   error,
   shareDialogOpen,
   availableUsers,
@@ -198,6 +245,175 @@ const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
  * Folder tree with hierarchy built from flat folders array
  */
 const folderTree = computed(() => buildFolderTree(folders.value))
+
+// ========== Tag Store & Filter ==========
+const tagStore = useTagStore()
+const { fetchTags } = useAdminTags()
+
+// ========== Company Filter ==========
+const { companies, fetchCompanies } = useAdminCompanies()
+const { isAdmin } = useCompanyAccess()
+const selectedCompanyCode = ref<string | null>(null)
+
+// ========== Users (for moderator display) ==========
+const { users, fetchUsers } = useAdminUsers()
+
+const userMap = computed(() => {
+  const map: Record<string, any> = {}
+  for (const u of users.value) {
+    map[u.uid] = u
+  }
+  return map
+})
+
+onMounted(async () => {
+  try {
+    await Promise.all([
+      fetchTags(),
+      fetchCompanies(),
+      fetchUsers(),
+    ])
+  } catch (e) {
+    console.warn('[discover] Failed to load tags/companies/users:', e)
+  }
+})
+
+const handleCompanyFilterChange = (code: string | null) => {
+  selectedCompanyCode.value = code
+}
+
+const handleTagFilterUpdate = (ids: string[]) => {
+  tagStore.clearTagFilter()
+  ids.forEach((id) => tagStore.toggleTagFilter(id))
+}
+
+/**
+ * Filtered dashboards by selected tags (AND logic) + company filter
+ */
+const filteredDashboards = computed<Dashboard[]>(() => {
+  let result = dashboards.value
+
+  // Company filter (admin only)
+  const companyCode = selectedCompanyCode.value
+  if (companyCode) {
+    result = result.filter((d) => {
+      const companyAccess = d.access?.company
+      if (!companyAccess) return false
+      return companyCode in companyAccess
+    })
+  }
+
+  // Tag filter (AND logic)
+  const selected = tagStore.selectedTagIds
+  if (selected.length > 0) {
+    result = result.filter((d) => {
+      const dTags = d.tags ?? []
+      return selected.every((tagId) => dTags.includes(tagId))
+    })
+  }
+
+  return result
+})
+
+// ========== Folder Dropdown Filter ==========
+const router = useRouter()
+
+/**
+ * Flatten folder tree in display order (for dropdown hierarchy)
+ */
+const flattenedFolders = computed(() => {
+  const result: (Folder & { level: number })[] = []
+  const walk = (nodes: (Folder & { children?: Folder[] })[], level: number) => {
+    for (const node of nodes) {
+      result.push({ ...node, level })
+      if (node.children?.length) walk(node.children, level + 1)
+    }
+  }
+  walk(folderTree.value, 0)
+  return result
+})
+
+/**
+ * Dashboard count per folder (respects tag filter)
+ */
+const dashboardCountByFolder = computed(() => {
+  const counts: Record<string, number> = {}
+  for (const d of filteredDashboards.value) {
+    counts[d.folderId] = (counts[d.folderId] || 0) + 1
+  }
+  return counts
+})
+
+/**
+ * Key that changes when dashboard counts update — forces FolderDropdownFilter
+ * to re-mount so <option> text nodes reflect the latest counts
+ */
+const folderDropdownKey = computed(() =>
+  Object.values(dashboardCountByFolder.value).reduce((a, b) => a + b, 0)
+)
+
+/**
+ * Folder dropdown state — synced with sidebar selectedFolderId
+ */
+const dropdownFolderId = ref<string | null>(selectedFolderId.value || null)
+
+watch(selectedFolderId, (id) => {
+  dropdownFolderId.value = id
+})
+
+const handleDropdownChange = (folderId: string | null) => {
+  if (folderId) {
+    selectFolder(folderId)
+  } else {
+    router.push('/dashboard/discover')
+  }
+}
+
+/**
+ * Grouped view — active when no folder is selected
+ */
+const isGroupedView = computed(() => !selectedFolderId.value && folders.value.length > 0)
+
+/**
+ * Group filtered dashboards by folder (hide empty groups)
+ */
+const groupedDashboards = computed(() => {
+  if (!isGroupedView.value) return []
+  const folderMap = new Map<string, { folder: Folder; dashboards: Dashboard[] }>()
+  for (const folder of folders.value) {
+    folderMap.set(folder.id, { folder, dashboards: [] })
+  }
+  for (const d of filteredDashboards.value) {
+    const group = folderMap.get(d.folderId)
+    if (group) group.dashboards.push(d)
+  }
+  return Array.from(folderMap.values())
+    .filter((g) => g.dashboards.length > 0)
+    .sort((a, b) => a.folder.name.localeCompare(b.folder.name, 'th'))
+})
+
+/**
+ * Status text showing count + active tag names + company filter
+ */
+const dashboardCountText = computed(() => {
+  const selected = tagStore.selectedTagIds
+  const companySuffix = selectedCompanyCode.value ? ` · บริษัท: ${selectedCompanyCode.value}` : ''
+
+  if (isGroupedView.value) {
+    const groupCount = groupedDashboards.value.length
+    const count = groupedDashboards.value.reduce((sum, g) => sum + g.dashboards.length, 0)
+    const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
+    if (selected.length > 0) {
+      const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
+      return `${base} · แท็ก: ${tagNames}${companySuffix}`
+    }
+    return `${base}${companySuffix}`
+  }
+  const count = filteredDashboards.value.length
+  if (selected.length === 0) return `พบ ${count} แดชบอร์ด${companySuffix}`
+  const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
+  return `แสดง ${count} แดชบอร์ด · แท็ก: ${tagNames}${companySuffix}`
+})
 
 // ========== Permission-Based UI ==========
 
@@ -274,6 +490,20 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   padding: 0 var(--spacing-xl);
 }
 
+/* ========== FILTERS ========== */
+.discover-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: nowrap;
+}
+
+.discover-filters > :first-child {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
 /* ========== DASHBOARDS HEADER ========== */
 .dashboards-header {
   display: flex;
@@ -306,6 +536,15 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 @media (max-width: 768px) {
   .discover-main-content {
     padding: 0 var(--spacing-md);
+  }
+
+  .discover-filters {
+    flex-wrap: wrap;
+  }
+
+  .discover-filters > :first-child {
+    flex: unset;
+    width: 100%;
   }
 
   .dashboards-count {
