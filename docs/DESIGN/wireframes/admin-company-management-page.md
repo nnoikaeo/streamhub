@@ -3,8 +3,8 @@
 > **Purpose:** Manage subsidiary companies (create, edit, delete, activate/deactivate)
 > **Users:** Admin role only
 > **Current Implementation:** `app/pages/admin/companies/index.vue` (to be created)
-> **Last Updated:** 2026-02-14
-> **Version:** 1.0
+> **Last Updated:** 2026-03-15
+> **Version:** 2.0
 
 ---
 
@@ -46,18 +46,16 @@
 │  12 companies found                                  │
 │                                                      │
 │  ┌─────────────────────────────────────────────────┐│
-│  │ Company Name    Code  Country   Users   Status   ││
+│  │ ชื่อบริษัท          รหัส  กลุ่มภูมิภาค           สถานะ    ││
 │  ├─────────────────────────────────────────────────┤│
-│  │ Streamwash TH   STTH  Thailand  45      🟢 Active││
-│  │ Streamwash Laos STTN  Laos      28      🟢 Active││
-│  │ Streamwash CS   STCS  Cambodia  12      🟢 Active││
-│  │ [Edit][Delete][View Details]                    ││
+│  │ สทรีมวอช (ปท.ไทย)  STTH  —                     🟢 Active ││
+│  │ [Edit][Delete]                                  ││
 │  │                                                 ││
-│  │ Streamwash NR   STNR  Myanmar   8       🟡 Pending││
-│  │ [Edit][Delete][View Details]                    ││
+│  │ สทรีมวอช (เชียงใหม่) STCM กลุ่มภาคเหนือ (Hub) 🟢 Active ││
+│  │ [Edit][Delete]                                  ││
 │  │                                                 ││
-│  │ Streamwash PKO  STPK  Vietnam   0       🔴 Inactive││
-│  │ [Edit][Delete][View Details]                    ││
+│  │ สทรีมวอช (พิษณุโลก) STPL กลุ่มภาคเหนือ (Sub)  🟢 Active ││
+│  │ [Edit][Delete]                                  ││
 │  │                                                 ││
 │  └─────────────────────────────────────────────────┘│
 │                                                      │
@@ -74,13 +72,11 @@
 
 | Column | Content | Actions |
 |--------|---------|---------|
-| **Name** | Company full name | Sortable |
-| **Code** | Company code (STTH, STTN, etc.) | Unique identifier |
-| **Country** | Country/Region | Sortable |
-| **Users** | Number of active users | Click to filter users by company |
-| **Status** | Active, Pending, Inactive | Sortable |
-| **Created** | Date created | Sortable |
-| **Actions** | Edit, Delete, Details | [Edit] [Delete] [Details] |
+| **รหัส** | Company code (STTH, STCM, etc.) | Unique identifier, Sortable |
+| **ชื่อบริษัท** | Company full name + description subtitle | Sortable |
+| **กลุ่มภูมิภาค** | Region name + role badge (Hub/Sub), แสดง `—` ถ้าไม่มี region | Sortable |
+| **สถานะ** | Active/Inactive toggle switch | Toggle inline |
+| **Actions** | Edit, Delete | [✏️] [🗑️] |
 
 ### Row Actions
 
@@ -90,9 +86,9 @@
 
 ### Filter & Search
 
-- **Status:** All, Active, Pending, Inactive
-- **Region:** All, Thailand, Laos, Cambodia, Myanmar, Vietnam, etc.
-- **Search:** Search by company name or code
+- **Search:** ค้นหาตามรหัสหรือชื่อบริษัท
+- **สถานะ:** ทั้งหมด, เปิดใช้งาน, ปิดใช้งาน
+- **กลุ่มภูมิภาค:** ทั้งหมด, ไม่มีภูมิภาค, กลุ่มภาคเหนือ, กลุ่มภาคตะวันออกเฉียงเหนือ, ฯลฯ (ดึงจาก regions data)
 
 ---
 
@@ -103,24 +99,23 @@
 │  Add Company                   [X] │
 ├────────────────────────────────────┤
 │                                    │
-│  Company Name:                     │
-│  [Streamwash Thailand]             │
+│  ชื่อบริษัท (Name): *              │
+│  [บริษัท สทรีมวอช (ประเทศไทย) จำกัด] │
 │                                    │
-│  Company Code:                     │
+│  รหัสบริษัท (Code): *              │
 │  [STTH]                            │
-│  (2-4 uppercase letters)           │
+│  (2-10 ตัวอักษร, ไม่สามารถแก้ได้) │
 │                                    │
-│  Country/Region:                   │
-│  [Thailand ▼]                      │
+│  คำอธิบาย (Description):           │
+│  [สำนักงานใหญ่ประเทศไทย...]        │
 │                                    │
-│  Description:                      │
-│  [HQ in Bangkok]                   │
-│                                    │
-│  Contact Email:                    │
-│  [admin@streamwash-th.com]         │
-│                                    │
-│  Status:                           │
-│  🟢 Active   ○ Pending   ○ Inactive│
+│  ┌─ ข้อมูลภูมิภาค ───────────────┐ │
+│  │ กลุ่มภูมิภาค:                  │ │
+│  │ [-- ไม่ระบุ (สำนักงานใหญ่) ▼] │ │
+│  │                                │ │
+│  │ บทบาท (Region Role):           │ │
+│  │ [Hub / Sub ▼]  ← แสดงเมื่อเลือก region │
+│  └────────────────────────────────┘ │
 │                                    │
 │  [Save Company] [Cancel]           │
 │                                    │
@@ -128,17 +123,17 @@
 ```
 
 **Fields:**
-- **Company Name:** Full legal name (required)
-- **Company Code:** Unique 2-4 letter code (required)
-- **Country/Region:** Dropdown of countries
-- **Description:** Optional notes
-- **Contact Email:** Company admin email (optional)
-- **Status:** Active, Pending, or Inactive toggle
+- **ชื่อบริษัท (Name):** ชื่อเต็มของบริษัท (required)
+- **รหัสบริษัท (Code):** 2–10 ตัวอักษร, unique, ไม่สามารถเปลี่ยนแปลงได้หลังสร้าง (required)
+- **คำอธิบาย (Description):** Optional
+- **กลุ่มภูมิภาค (Region):** dropdown จากข้อมูล regions, เลือก "ไม่ระบุ" สำหรับสำนักงานใหญ่ (optional)
+- **บทบาท (Region Role):** `Hub` หรือ `Sub` — แสดงเฉพาะเมื่อเลือก Region (conditional)
 
 **Validation:**
-- Company Code must be unique
-- Company Code must be 2-4 characters, uppercase
+- Company Code ต้องไม่ซ้ำกัน
+- Company Code ต้อง 2–10 ตัวอักษร
 - Company Name is required
+- Region Role required ถ้าเลือก Region
 
 ---
 
@@ -149,7 +144,7 @@
 │  COMPANY: Streamwash Thailand      │
 │                                    │
 │  Code: STTH                        │
-│  Country: Thailand                 │
+│  Region: กลุ่มภาคเหนือ (Hub)       │
 │  Status: 🟢 Active                 │
 │  Created: Jan 15, 2026             │
 │  Updated: Feb 10, 2026             │
@@ -173,7 +168,7 @@
 ```
 
 **Displays:**
-- Company metadata (code, country, status)
+- Company metadata (code, region + role, status)
 - Creation and update dates
 - User/folder/dashboard counts
 - Recent activity log

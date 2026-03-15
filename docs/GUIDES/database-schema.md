@@ -1,9 +1,9 @@
 # Database Schema Reference
 
-> **Document Status:** Technical Reference for Firestore Data Model  
-> **Last Updated:** 2024-01  
-> **Document Owner:** Development Team  
-> **Version:** 3.0 (Multi-Company Architecture + Tag System)
+> **Document Status:** Technical Reference for Firestore Data Model
+> **Last Updated:** 2026-03-15
+> **Document Owner:** Development Team
+> **Version:** 4.0 (Region Groups + Remove country field)
 
 ---
 
@@ -12,9 +12,10 @@
 ```
 Firestore Database (Multi-Company)
 ├── companies/           (🏢 Subsidiary companies registry)
+├── regions/             (🌏 Region groups for company grouping)
 ├── users/              (👥 User accounts - company-scoped)
-├── folders/            (📁 Dashboard folders - company-scoped)
-├── dashboards/         (📊 Dashboard documents - company-scoped)
+├── folders/            (📁 Dashboard folders - no company field)
+├── dashboards/         (📊 Dashboard documents - no company field)
 ├── invitations/        (📧 User invitations - company-scoped)
 └── tags/               (🏷️ Dashboard tags - cross-company)
 ```
@@ -30,39 +31,89 @@ Firestore Database (Multi-Company)
 
 ```typescript
 {
-  name: string                   // Company name
-  code: string                   // Unique company code (STTH, STTN, etc.)
-  location: string               // Location/office (Bangkok, Vientiane, etc.)
-  createdAt: Timestamp           // Creation date
+  code: string                   // Unique company code (STTH, STCM, etc.) — immutable after creation
+  name: string                   // Company full name
+  description: string            // Optional description
+  region: string | null          // Region code reference (e.g., "NORTH") — null = no region (HQ)
+  regionRole: 'hub' | 'sub' | null  // Role within region — required when region is set
   isActive: boolean              // Active/inactive status
-  metadata: {
-    parentCompany: string
-    departments: string[]
-    contact: string
-    website: string
-  }
+  createdAt: Timestamp           // Creation date
+  updatedAt: Timestamp           // Last update
+}
+```
+
+**Example (HQ company):**
+```json
+{
+  "code": "STTH",
+  "name": "บริษัท สทรีมวอช (ประเทศไทย) จำกัด",
+  "description": "สำนักงานใหญ่ประเทศไทย",
+  "region": null,
+  "regionRole": null,
+  "isActive": true,
+  "createdAt": "2026-01-15T00:00:00.000Z",
+  "updatedAt": "2026-03-05T10:28:27.845Z"
+}
+```
+
+**Example (Regional branch):**
+```json
+{
+  "code": "STCM",
+  "name": "บริษัท สทรีมวอช (เชียงใหม่) จำกัด",
+  "description": "สาขาภาคเหนือ ดูแลพื้นที่เชียงใหม่และจังหวัดใกล้เคียง",
+  "region": "NORTH",
+  "regionRole": "hub",
+  "isActive": true,
+  "createdAt": "2026-01-15T00:00:00.000Z",
+  "updatedAt": "2026-01-15T00:00:00.000Z"
+}
+```
+
+---
+
+## 2. Regions Collection
+
+**Path:** `/regions/{regionCode}`
+**Purpose:** Region groups — used to group companies into geographic/business clusters
+
+**Document Structure:**
+
+```typescript
+{
+  code: string                   // Unique region code (NORTH, NORTHEAST, EAST, SOUTH, MBR, ...)
+  name: string                   // Display name (กลุ่มภาคเหนือ, กรุงเทพและปริมณฑล, ...)
+  description: string            // Optional description
+  isActive: boolean
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }
 ```
 
 **Example:**
 ```json
 {
-  "name": "Streamwash Thailand",
-  "code": "STTH",
-  "location": "Bangkok",
-  "createdAt": Timestamp(2024-01-20),
-  "isActive": true,
-  "metadata": {
-    "parentCompany": "Streamwash Group",
-    "departments": ["Operations", "Finance", "Sales", "HR"],
-    "contact": "contact@stth.com"
-  }
+  "code": "NORTH",
+  "name": "กลุ่มภาคเหนือ",
+  "description": "ภาคเหนือของประเทศไทย",
+  "isActive": true
 }
 ```
 
+**Current Regions:**
+| Code | Name |
+|------|------|
+| NORTH | กลุ่มภาคเหนือ |
+| NORTHEAST | กลุ่มภาคตะวันออกเฉียงเหนือ |
+| EAST | กลุ่มภาคตะวันออก |
+| SOUTH | กลุ่มภาคใต้ |
+| MBR | กรุงเทพและปริมณฑล |
+| INNOTECH | กลุ่มบริษัทอินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์ |
+| ORANGES | กลุ่มบริษัทออเร้นจ์เอส |
+
 ---
 
-## 2. Users Collection
+## 3. Users Collection
 
 **Path:** `/users/{userId}`  
 **Purpose:** User accounts with company assignment
@@ -146,7 +197,7 @@ match /users/{userId} {
 
 ---
 
-## 3. Folders Collection
+## 4. Folders Collection
 
 **Path:** `/folders/{folderId}`  
 **Purpose:** Dashboard organization (not company-scoped - uses permissions instead)
@@ -205,11 +256,11 @@ match /users/{userId} {
 }
 ```
 
-**Critical:** `company` field MUST be set!
+**Note:** No `company` field! Folders are not tied to a specific company — access is controlled via `assignedModerators`.
 
 ---
 
-## 4. Dashboards Collection
+## 5. Dashboards Collection
 
 **Path:** `/dashboards/{dashboardId}`  
 **Purpose:** Dashboard metadata and configuration
@@ -279,7 +330,7 @@ match /dashboards/{dashboardId} {
 
 ---
 
-## 5. Invitations Collection
+## 6. Invitations Collection
 
 **Path:** `/invitations/{invitationId}`  
 **Purpose:** Track pending user invitations
@@ -329,7 +380,7 @@ match /dashboards/{dashboardId} {
 
 ---
 
-## 6. Tags Collection
+## 7. Tags Collection
 
 **Path:** `/tags/{tagId}`
 **Purpose:** Dashboard categorization tags for filtering and discovery (cross-company)
@@ -421,22 +472,29 @@ Tag (1) ←──── tagged by ────→ (many) Dashboards
 ## Data Relationships
 
 ```
+Region (1)
+  └─ groups (many) Companies
+      └─ Company.region stores region code (code reference)
+
 Company (1)
+  ├─ belongs to (0-1) Region   // via company.region code
+  ├─ has regionRole: hub|sub   // hierarchy within region
+  │
   ├─ has (many) Users
   │   ├─ role: user/moderator/admin
   │   └─ assignedFolders (if moderator)
   │
-  ├─ has (many) Folders
-  │   ├─ contains Subfolders
-  │   └─ assigned to Moderators
+  ├─ has (many) Invitations
+  │   └─ pending/accepted/rejected
   │
-  ├─ has (many) Dashboards
-  │   ├─ in Folder
-  │   ├─ has Permissions
-  │   └─ tagged with (many) Tags
-  │
-  └─ has (many) Invitations
-      └─ pending/accepted/rejected
+  └─ (Users access) Folders & Dashboards via permissions
+
+Folders (no company field)
+  ├─ contains Subfolders
+  ├─ assigned to Moderators
+  └─ contains (many) Dashboards
+      ├─ has Permissions
+      └─ tagged with (many) Tags
 
 Tags (cross-company, shared)
   └─ tagged by (many) Dashboards
