@@ -3,6 +3,7 @@ import { findById } from '../../../utils/jsonDatabase'
 export default defineEventHandler(async (event) => {
   try {
     const uid = getRouterParam(event, 'uid')
+    const query = getQuery(event)
     console.log('[API] GET /api/mock/users/:uid -', uid)
 
     if (!uid) {
@@ -21,15 +22,21 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    return {
-      success: true,
-      data: user
+    // If requester provided: validate cross-company access
+    const requesterUid = query.requester as string
+    if (requesterUid) {
+      const requester = await findById('users.json', requesterUid)
+      if (requester && (requester as any).role !== 'admin') {
+        if ((requester as any).company !== (user as any).company) {
+          return sendForbidden(event, 'Cannot access user from different company')
+        }
+      }
     }
+
+    return { success: true, data: user }
   } catch (error: any) {
     console.error('[API] Error fetching user:', error.message)
-    if (error.statusCode) {
-      throw error
-    }
+    if (error.statusCode) throw error
     throw createError({
       statusCode: 500,
       message: 'Failed to read user'

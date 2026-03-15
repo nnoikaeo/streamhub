@@ -3,6 +3,7 @@ import { findById } from '../../../utils/jsonDatabase'
 export default defineEventHandler(async (event) => {
   try {
     const id = getRouterParam(event, 'id')
+    const query = getQuery(event)
     console.log('[API] GET /api/mock/dashboards/:id -', id)
 
     if (!id) {
@@ -21,15 +22,24 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    return {
-      success: true,
-      data: dashboard
+    // If uid provided: validate company access + dashboard-level access
+    const uid = query.uid as string
+    if (uid) {
+      const accessResult = await validateCompanyAccess(event)
+      if (!accessResult.allowed) {
+        return sendForbidden(event, accessResult.reason)
+      }
+
+      const access = checkDashboardAccess(dashboard, accessResult.user)
+      if (!access.allowed) {
+        return sendForbidden(event, access.reason)
+      }
     }
+
+    return { success: true, data: dashboard }
   } catch (error: any) {
     console.error('[API] Error fetching dashboard:', error.message)
-    if (error.statusCode) {
-      throw error
-    }
+    if (error.statusCode) throw error
     throw createError({
       statusCode: 500,
       message: 'Failed to read dashboard'
