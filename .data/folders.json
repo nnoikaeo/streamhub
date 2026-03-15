@@ -41,7 +41,7 @@
     "parentId": null,
     "description": "Human resources dashboards",
     "isActive": true,
-    "assignedModerators": [],
+    "assignedModerators": ["61JSdbE674TqRBHHUu9ezdzFul93"],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z",
@@ -54,13 +54,13 @@
     "description": "Sales reports",
     "isActive": true,
     "assignedModerators": [
-      "user_it_admin",
+      "61JSdbE674TqRBHHUu9ezdzFul93",
       "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_sales_regional",
@@ -69,13 +69,13 @@
     "description": "Regional sales analysis",
     "isActive": true,
     "assignedModerators": [
-      "user_it_admin",
+      "61JSdbE674TqRBHHUu9ezdzFul93",
       "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_sales_reports_east",
@@ -86,10 +86,10 @@
     "assignedModerators": [
       "user_somchai_mod"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_sales_reports_west",
@@ -100,10 +100,10 @@
     "assignedModerators": [
       "user_somchai_mod"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2026-03-06T01:43:51.391Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_sales_regional_north",
@@ -114,10 +114,10 @@
     "assignedModerators": [
       "user_somchai_mod"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_sales_regional_south",
@@ -128,10 +128,10 @@
     "assignedModerators": [
       "user_somchai_mod"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2026-03-06T01:37:31.193Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_sales_regional_north_2024",
@@ -142,10 +142,10 @@
     "assignedModerators": [
       "user_somchai_mod"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-15T00:00:00.000Z",
     "updatedAt": "2024-01-15T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_finance_budget",
@@ -157,10 +157,10 @@
       "user_nattha_mod",
       "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_finance_payroll",
@@ -172,10 +172,10 @@
       "user_nattha_mod",
       "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_finance_budget_2024",
@@ -186,10 +186,10 @@
     "assignedModerators": [
       "user_nattha_mod"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_finance_budget_2025",
@@ -200,10 +200,10 @@
     "assignedModerators": [
       "user_nattha_mod"
     ],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-01-10T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   },
   {
     "id": "folder_operations_inventory",
@@ -212,9 +212,9 @@
     "description": "Inventory management",
     "isActive": true,
     "assignedModerators": [],
-    "createdBy": "user_it_admin",
+    "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-05T00:00:00.000Z",
     "updatedAt": "2024-01-05T00:00:00.000Z",
-    "updatedBy": "user_it_admin"
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   }
 ]
