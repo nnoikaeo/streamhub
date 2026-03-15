@@ -79,7 +79,7 @@ const handleRequestAccess = () => {
         <h2 class="text-3xl font-bold text-center mb-2 text-slate-900">Dashboard Hub</h2>
 
         <!-- Subtitle -->
-        <p class="text-center text-xs text-slate-500 mb-8">
+        <p class="text-center text-md text-slate-500 mb-8">
           ระบบบริหารจัดการแดชบอร์ด
         </p>
 

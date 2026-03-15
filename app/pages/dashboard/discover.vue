@@ -14,6 +14,33 @@
       <!-- Main: Dashboard Grid -->
       <div class="discover-main-content">
 
+          <!-- Search Bar -->
+          <div class="discover-search">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="search-input"
+              placeholder="ค้นหาแดชบอร์ด..."
+              aria-label="ค้นหาแดชบอร์ด"
+            />
+            <button
+              v-if="searchQuery"
+              type="button"
+              class="search-clear"
+              aria-label="ล้างการค้นหา"
+              @click="searchQuery = ''"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
           <!-- Filters: Tag + Folder -->
           <div class="discover-filters">
             <TagFilter
@@ -254,6 +281,7 @@ const { fetchTags } = useAdminTags()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { isAdmin } = useCompanyAccess()
 const selectedCompanyCode = ref<string | null>(null)
+const searchQuery = ref('')
 
 // ========== Users (for moderator display) ==========
 const { users, fetchUsers } = useAdminUsers()
@@ -292,6 +320,15 @@ const handleTagFilterUpdate = (ids: string[]) => {
  */
 const filteredDashboards = computed<Dashboard[]>(() => {
   let result = dashboards.value
+
+  // Search filter (name + description, case-insensitive)
+  const query = searchQuery.value.trim().toLowerCase()
+  if (query) {
+    result = result.filter((d) =>
+      d.name.toLowerCase().includes(query) ||
+      d.description?.toLowerCase().includes(query)
+    )
+  }
 
   // Company filter (admin only)
   const companyCode = selectedCompanyCode.value
@@ -398,6 +435,7 @@ const groupedDashboards = computed(() => {
 const dashboardCountText = computed(() => {
   const selected = tagStore.selectedTagIds
   const companySuffix = selectedCompanyCode.value ? ` · บริษัท: ${selectedCompanyCode.value}` : ''
+  const searchSuffix = searchQuery.value.trim() ? ` · ค้นหา: "${searchQuery.value.trim()}"` : ''
 
   if (isGroupedView.value) {
     const groupCount = groupedDashboards.value.length
@@ -405,14 +443,14 @@ const dashboardCountText = computed(() => {
     const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
     if (selected.length > 0) {
       const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
-      return `${base} · แท็ก: ${tagNames}${companySuffix}`
+      return `${base} · แท็ก: ${tagNames}${companySuffix}${searchSuffix}`
     }
-    return `${base}${companySuffix}`
+    return `${base}${companySuffix}${searchSuffix}`
   }
   const count = filteredDashboards.value.length
-  if (selected.length === 0) return `พบ ${count} แดชบอร์ด${companySuffix}`
+  if (selected.length === 0) return `พบ ${count} แดชบอร์ด${companySuffix}${searchSuffix}`
   const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
-  return `แสดง ${count} แดชบอร์ด · แท็ก: ${tagNames}${companySuffix}`
+  return `แสดง ${count} แดชบอร์ด · แท็ก: ${tagNames}${companySuffix}${searchSuffix}`
 })
 
 // ========== Permission-Based UI ==========
@@ -487,7 +525,69 @@ const dashboardCountText = computed(() => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-  padding: 0 var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-xl) 0;
+}
+
+/* ========== SEARCH BAR ========== */
+.discover-search {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 0.5rem);
+  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
+  background-color: var(--color-bg-secondary, #f3f4f6);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: var(--radius-md, 0.375rem);
+  transition: border-color var(--transition-base, 0.2s ease);
+}
+
+.discover-search:focus-within {
+  border-color: var(--color-primary, #3b82f6);
+  background-color: var(--color-bg-primary, #ffffff);
+}
+
+.search-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-text-secondary, #6b7280);
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary, #1f2937);
+  outline: none;
+  font-family: inherit;
+}
+
+.search-input::placeholder {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-text-secondary, #6b7280);
+  border-radius: var(--radius-sm, 0.25rem);
+  transition: color var(--transition-base, 0.2s ease);
+}
+
+.search-clear:hover {
+  color: var(--color-text-primary, #1f2937);
+}
+
+.search-clear svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 /* ========== FILTERS ========== */

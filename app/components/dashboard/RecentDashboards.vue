@@ -1,6 +1,6 @@
 <template>
   <div class="recent-dashboards">
-    <h2 class="recent-dashboards__title">Recent Dashboards</h2>
+    <h2 class="recent-dashboards__title">แดชบอร์ดล่าสุด</h2>
     
     <div v-if="dashboards.length > 0" class="recent-dashboards__list">
       <div
@@ -11,23 +11,23 @@
         <div class="dashboard-item__icon">📊</div>
         <div class="dashboard-item__content">
           <h3 class="dashboard-item__name">{{ dashboard.name }}</h3>
-          <p class="dashboard-item__time">Last accessed: {{ formatTime(dashboard.lastAccessed) }}</p>
+          <p class="dashboard-item__time">เปิดล่าสุด: {{ formatTime(dashboard.lastAccessed) }}</p>
         </div>
         <NuxtLink
           :to="`/dashboard/view?id=${dashboard.id}`"
           class="dashboard-item__link"
         >
-          Open →
+          เปิด →
         </NuxtLink>
       </div>
     </div>
 
     <div v-else class="recent-dashboards__empty">
-      <p>No recent dashboards</p>
+      <p>ไม่มีแดชบอร์ดล่าสุด</p>
     </div>
 
     <NuxtLink to="/dashboard/discover" class="recent-dashboards__view-all">
-      View All Dashboards →
+      ดูแดชบอร์ดทั้งหมด →
     </NuxtLink>
   </div>
 </template>
@@ -52,15 +52,15 @@ const formatTime = (date: Date | string | undefined) => {
   const dateObj = typeof date === 'string' ? new Date(date) : date
   
   // Check if date is valid
-  if (isNaN(dateObj.getTime())) return 'Unknown'
-  
+  if (isNaN(dateObj.getTime())) return 'ไม่ทราบ'
+
   const diff = now.getTime() - dateObj.getTime()
   const hours = Math.floor(diff / (1000 * 60 * 60))
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 
-  if (hours < 1) return 'Just now'
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`
-  return `${days} day${days > 1 ? 's' : ''} ago`
+  if (hours < 1) return 'เมื่อกี้'
+  if (hours < 24) return `${hours} ชั่วโมงที่แล้ว`
+  return `${days} วันที่แล้ว`
 }
 </script>
 
