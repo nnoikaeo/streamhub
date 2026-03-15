@@ -25,6 +25,7 @@ interface MenuItem {
   path: string
   label: string
   icon: string
+  exact?: boolean
 }
 
 interface Props {
@@ -68,9 +69,10 @@ const isOpen = computed({
 
 /**
  * Check if a menu item is active
+ * Supports exact matching (for paths like '/dashboard' that would otherwise match all sub-routes)
  */
-const isActive = (path: string): boolean => {
-  return route.path.startsWith(path)
+const isActive = (item: MenuItem): boolean => {
+  return item.exact ? route.path === item.path : route.path.startsWith(item.path)
 }
 
 /**
@@ -140,7 +142,7 @@ const onLeave = (el: Element) => {
           v-for="item in items"
           :key="item.path"
           :to="item.path"
-          :class="['accordion-item', { 'accordion-item--active': isActive(item.path) }]"
+          :class="['accordion-item', { 'accordion-item--active': isActive(item) }]"
         >
           <span class="accordion-item__icon">{{ item.icon }}</span>
           <span class="accordion-item__label">{{ item.label }}</span>

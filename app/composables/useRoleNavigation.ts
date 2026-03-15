@@ -19,6 +19,7 @@ export interface SidebarMenuItem {
   path: string
   label: string
   icon: string
+  exact?: boolean
   badge?: number
   children?: SidebarMenuItem[]
 }
@@ -49,14 +50,14 @@ export function useRoleNavigation() {
 
   /**
    * Dashboard menu group — visible to ALL roles
-   * Primary entry point: View All and Search
+   * Primary entry point: Home and View All (with integrated search)
    */
   const dashboardMenuGroup = computed<SidebarMenuGroup>(() => ({
     id: 'dashboard',
     label: 'แดชบอร์ด',
     items: [
-      { path: '/dashboard/discover', label: 'ดูทั้งหมด', icon: '📊' },
-      { path: '/dashboard/discover?mode=search', label: 'ค้นหา', icon: '🔍' },
+      { path: '/dashboard', label: 'หน้าแรก', icon: '🏠', exact: true },
+      { path: '/dashboard/discover', label: 'แดชบอร์ดทั้งหมด', icon: '📊' },
     ],
   }))
 

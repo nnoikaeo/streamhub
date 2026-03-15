@@ -14,32 +14,26 @@
       <!-- Page Content -->
       <div class="dashboard-page">
           <div class="dashboard-header">
-            <h1 class="dashboard-title">Welcome, {{ user?.displayName || 'User' }}</h1>
-            <p class="dashboard-subtitle">{{ user?.email }}</p>
+            <h1 class="dashboard-title">สวัสดี {{ user?.displayName || 'User' }}</h1>
+            <!-- <p class="dashboard-subtitle">{{ user?.email }}</p> -->
           </div>
 
     <!-- All Users Section -->
     <section class="dashboard-section">
-      <h2 class="section-title">My Workspace</h2>
+      <h2 class="section-title">พื้นที่ทำงานของฉัน</h2>
       
-      <div class="stats-grid">
+      <div class="stats-grid stats-grid--2col">
         <DashboardStatCard
-          title="My Dashboards"
+          title="แดชบอร์ดของฉัน"
           :count="myDashboardsCount"
           icon="📊"
           link="/dashboard/discover?filter=my"
         />
         <DashboardStatCard
-          title="Shared with Me"
+          title="แชร์ให้ฉัน"
           :count="sharedDashboardsCount"
           icon="🤝"
           link="/dashboard/discover?filter=shared"
-        />
-        <DashboardStatCard
-          title="Favorites"
-          :count="favoritesCount"
-          icon="⭐"
-          link="/dashboard/discover?filter=favorites"
         />
       </div>
 
@@ -58,23 +52,23 @@
 
     <!-- Moderator + Admin Section -->
     <section v-if="isModerator || isAdmin" class="dashboard-section">
-      <h2 class="section-title">Company Overview</h2>
+      <h2 class="section-title">ภาพรวมบริษัท</h2>
 
       <div class="stats-grid">
         <DashboardStatCard
-          title="Company Dashboards"
+          title="แดชบอร์ดบริษัท"
           :count="companyDashboardsCount"
           icon="🏢"
           link="/dashboard/discover?scope=company"
         />
         <DashboardStatCard
-          title="Folders"
+          title="โฟลเดอร์"
           :count="foldersCount"
           icon="📁"
           link="/admin/folders"
         />
         <DashboardStatCard
-          title="Companies"
+          title="บริษัท"
           :count="companiesCount"
           icon="🏢"
           link="/admin/companies"
@@ -169,11 +163,6 @@ const sharedDashboardsCount = computed(() => {
   ).length
 })
 
-const favoritesCount = computed(() => {
-  // TODO: Implement favorites functionality
-  return 0
-})
-
 const companyDashboardsCount = computed(() => {
   // All dashboards in same company
   return dashboards.value.length
@@ -235,7 +224,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-  padding: 0 var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-xl) 0;
   height: 100%;
 }
 
@@ -278,6 +267,10 @@ onMounted(async () => {
   grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-xl);
+}
+
+.stats-grid--2col {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .content-grid {
