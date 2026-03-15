@@ -104,7 +104,11 @@ export class JSONMockService implements IDashboardService {
 
       this.log('⚠️ getFolders: No data in response')
       return { folders: [], total: 0, hasMore: false }
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.response?.status === 403 || error?.statusCode === 403) {
+        console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
+        return { folders: [], total: 0, hasMore: false }
+      }
       console.error('❌ [JSONMockService] getFolders error:', error)
       return { folders: [], total: 0, hasMore: false }
     }
@@ -236,7 +240,11 @@ export class JSONMockService implements IDashboardService {
 
       this.log('⚠️ getDashboards: No data in response')
       return { dashboards: [], total: 0, hasMore: false }
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.response?.status === 403 || error?.statusCode === 403) {
+        console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
+        return { dashboards: [], total: 0, hasMore: false }
+      }
       console.error('❌ [JSONMockService] getDashboards error:', error)
       return { dashboards: [], total: 0, hasMore: false }
     }
