@@ -1,11 +1,11 @@
 <template>
   <div class="quick-actions">
-    <h2 class="quick-actions__title">Quick Actions</h2>
+    <h2 class="quick-actions__title">การดำเนินการด่วน</h2>
     
     <div class="quick-actions__grid">
       <button class="action-button" @click="$emit('view-dashboards')">
         <span class="action-button__icon">👁️</span>
-        <span class="action-button__text">View Dashboards</span>
+        <span class="action-button__text">ดูแดชบอร์ด</span>
       </button>
 
       <button
@@ -14,7 +14,7 @@
         @click="$emit('create-dashboard')"
       >
         <span class="action-button__icon">➕</span>
-        <span class="action-button__text">Create Dashboard</span>
+        <span class="action-button__text">สร้างแดชบอร์ด</span>
       </button>
 
       <button
@@ -23,7 +23,7 @@
         @click="$emit('share-dashboard')"
       >
         <span class="action-button__icon">🔗</span>
-        <span class="action-button__text">Share</span>
+        <span class="action-button__text">แชร์</span>
       </button>
 
       <button
@@ -32,7 +32,7 @@
         @click="$emit('invite-user')"
       >
         <span class="action-button__icon">✉️</span>
-        <span class="action-button__text">Invite User</span>
+        <span class="action-button__text">เชิญผู้ใช้</span>
       </button>
     </div>
   </div>

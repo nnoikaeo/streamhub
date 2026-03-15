@@ -11,7 +11,7 @@
       :to="link"
       class="stat-card__link"
     >
-      View →
+      ดูเพิ่มเติม →
     </NuxtLink>
   </div>
 </template>
