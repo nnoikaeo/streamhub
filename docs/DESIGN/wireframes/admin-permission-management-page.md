@@ -1,41 +1,37 @@
-# Admin Permission Management Page
+# Permission Management Page
 
-> **Purpose:** Admin panel for managing 3-layer permissions for dashboards
-> **Users:** Admin role only
-> **Current Implementation:** `app/pages/admin/permissions.vue`
-> **Last Updated:** 2026-02-13
-> **Version:** 4.0 (Consolidated with Single Source of Truth)
-
----
-
-## 🎯 Key Principle
-
-**Admin Panel = Dedicated space for complex permission management**
-- Separate from Discover page
-- Full 3-layer permission UI
-- Admin-only access with audit trail
-- Support for bulk operations
+> **Purpose:** Permission management for dashboards using 3-column pattern
+> **Users:** Admin + Moderator
+> **Implementation:** `app/pages/admin/permissions.vue`, `app/pages/manage/permissions.vue`
+> **Last Updated:** 2026-03-15
+> **Version:** 5.0 (3-Column Pattern + Moderator Support)
 
 ---
 
-## 🏗️ Page Structure
+## Key Principle
+
+**PermissionEditor = Shared component for Admin and Moderator permission management**
+- 3-Column pattern per tab (consistent with GroupForm member selector)
+- Admin: 3 tabs (Direct, Company, Restrictions)
+- Moderator: 2 tabs (Direct, Company — no Restrictions)
+- Parent page owns Save/Reset — PermissionEditor emits changes only
+
+---
+
+## Page Structure
 
 ### Layout
-- Uses: AdminLayout or AppLayout
-- Left: Admin navigation sidebar
-- Right: Permission editor (3 layers)
+- Uses: PageLayout with sidebar navigation
+- Left: Navigation sidebar (admin or moderator)
+- Right: Dashboard selector + PermissionEditor
 
 ### Components
-- PermissionEditor (main component)
-- Layer1DirectAccess
-- Layer2CompanyScoped
-- Layer3Restrictions
-- CompanyAccessCard
-- PermissionItem
+- `PermissionEditor` — Main component (3 tabs, 3-column per tab)
+- `PageLayout` — Shared layout wrapper
 
 ---
 
-## 📂 Admin Sidebar Navigation
+## Admin Sidebar Navigation
 
 ```
 ADMIN PANEL MENU
@@ -44,27 +40,17 @@ ADMIN PANEL MENU
 
 ━━ MANAGEMENT ━━
 📊 Dashboards
-   Search & select dashboard
-
 📋 Folders
-   Manage folder permissions
-
 👥 Users
-   Manage users & roles
-
-🔐 Permissions
-   ├─ Direct Access
-   ├─ Company-Scoped
-   └─ Restrictions
+🔐 Permissions    ← /admin/permissions
 
 ━━ REPORTS ━━
 📊 Audit Log
-   View permission changes
 ```
 
 ---
 
-## 🎨 Permission Editor (Right Pane)
+## Permission Editor (3-Column Pattern)
 
 ### Header Section
 
@@ -75,129 +61,165 @@ Created: 2024-01-15 | Modified: 2024-02-01
 Current Access: 4 users + 3 groups
 ```
 
-**Shows:**
-- Dashboard name
-- Owner information
-- Metadata (created/modified dates)
-- Quick access stats
+---
+
+### Tab 1: สิทธิ์ตรง (Direct Access)
+
+**3-Column Layout:**
+
+```
+┌──────────────┬──────────────────────┬──────────────────────┐
+│  ประเภท      │  รายการ              │  สิทธิ์ที่ให้แล้ว     │
+├──────────────┼──────────────────────┼──────────────────────┤
+│              │  🔍 ค้นหา...         │  สิทธิ์ที่ให้แล้ว     │
+│  ► ผู้ใช้ (5)│                      │  ล้างทั้งหมด          │
+│    กลุ่ม (3) │  สมชาย (STTH)    [+] │ ──────────────────── │
+│              │  นายหา (STTH)    [+] │  👤 สมชาย  STTH  [✕] │
+│              │  user1 (STTN)    [+] │  👤 user1  STTN  [✕] │
+│              │                      │  👥 Finance  3คน [✕] │
+└──────────────┴──────────────────────┴──────────────────────┘
+```
+
+**Column 1:** Toggle between ผู้ใช้ (users) and กลุ่ม (groups) with counts
+**Column 2:** Searchable list — users or groups depending on Column 1 selection. Click "+" to add.
+**Column 3:** All granted direct permissions (users with 👤, groups with 👥). Click ✕ to remove.
+
+**Logic:** `(user_uid OR user_group) = Access Granted`
 
 ---
 
-### Layer 1: Direct Access
+### Tab 2: ตามบริษัท (Company-Scoped)
 
-**Feature:** Add individual users, roles, or groups
+**3-Column Layout:**
 
-**Actions:**
-- [+] Add User - Grant direct access to specific user
-- [+] Add Role - Any user with this role can access
-- [+] Add Group - Any user in this group can access
+```
+┌──────────────┬──────────────────────┬──────────────────────┐
+│  บริษัท      │  กลุ่ม · STTH        │  สรุปสิทธิ์ทุกบริษัท  │
+├──────────────┼──────────────────────┼──────────────────────┤
+│              │  🔍 ค้นหา...         │                      │
+│  ► STTH (2)  │                      │  ── STTH ──          │
+│    STTN (1)  │  ☑ Finance    3คน   │  👥 Finance      [✕] │
+│    STCS (0)  │  ☑ Sales      5คน   │  👥 Sales        [✕] │
+│              │  ☐ Operations  4คน   │                      │
+│              │  ☐ Marketing   2คน   │  ── STTN ──          │
+│              │                      │  👥 Finance      [✕] │
+└──────────────┴──────────────────────┴──────────────────────┘
+```
 
-**Each Item Shows:**
-- Name (user/role/group)
-- Granted date and by whom
-- [Details] [Edit] [Delete] actions
+**Column 1:** Active companies with badge showing number of selected groups
+**Column 2:** Checkbox list of groups for selected company. Toggle to add/remove.
+**Column 3:** Summary of all company permissions, grouped by company header. Click ✕ to remove.
 
-**Logic:** (user_uid OR user_role OR user_group) = Access Granted
+**Important:** Groups only — no Roles in company-scoped UI. Roles field preserved in data model.
 
----
-
-### Layer 2: Company-Scoped Access
-
-**Feature:** Grant access based on user's company + role/group
-
-**For Each Company:**
-- Company selector: [STTH ▼]
-- Roles checklist: ☑️ user, ☐ moderator, ☐ admin
-- Groups checklist: ☑️ sales, ☑️ finance, ☐ operations
-
-**Each Company Shows:**
-- List of roles that can access
-- List of groups that can access
-- Summary: "X users can access"
-
-**Actions:**
-- [+ Add Company] - Add another company's access rules
-- [Edit settings] - Modify role/group access
-- [Delete] - Remove company access
-
-**Logic:** (company + (role OR group)) = Access Granted
+**Logic:** `(company + group) = Access Granted`
 
 **Full Details:** See [roles-and-permissions.md](../../GUIDES/roles-and-permissions.md)
 
 ---
 
-### Layer 3: Restrictions (Deny + Expiry)
+### Tab 3: ข้อจำกัด (Restrictions) — Admin Only
 
-**Feature:** Explicit deny and time-based access revocation
+**3-Column Layout:**
 
-**Revoked Access:**
-- [+] Revoke User - Block specific user permanently
-- Shows: User, revocation date, reason, [Restore] [Delete]
+```
+┌──────────────┬──────────────────────┬──────────────────────┐
+│  ประเภท      │  ผู้ใช้              │  ข้อจำกัดทั้งหมด      │
+├──────────────┼──────────────────────┼──────────────────────┤
+│              │  🔍 ค้นหา...         │  ข้อจำกัดทั้งหมด      │
+│  ► ระงับ (2) │                      │  ล้างทั้งหมด          │
+│    หมดอายุ(1)│  สมชาย (STTH)    [+] │ ──────────────────── │
+│              │  นายหา (STTH)    [+] │  ❌ user5  ระงับ [✕] │
+│              │  user3 (STTN)    [+] │  ❌ user7  ระงับ [✕] │
+│              │                      │  ⏰ user6  28/02 [✕] │
+└──────────────┴──────────────────────┴──────────────────────┘
+```
 
-**Expiry Dates:**
-- [+] Add Expiry - Set temporary access with end date
-- Shows: User/Group, expiry date, days remaining, [Edit] [Extend] [Remove]
+**Column 1:** Toggle between ระงับ (revoke) and หมดอายุ (expiry) with counts
+**Column 2:** User list. Click "+" opens mini popup to enter reason (revoke) or date (expiry).
+**Column 3:** All restrictions (❌ revoked, ⏰ expiry). Click ✕ to remove.
 
-**Logic:** (revoked OR expired) = Access Denied
+**Visibility:** `v-if="showRestrictions"` — Admin only (Moderator does not see this tab)
+
+**Logic:** `(revoked OR expired) = Access Denied`
 
 ---
 
-## 🎯 Action Buttons
+## Role-Based Visibility
+
+| Feature | Admin (`/admin/permissions`) | Moderator (`/manage/permissions`) |
+|---------|------|-----------|
+| Tab 1: สิทธิ์ตรง (Direct) | Yes | Yes |
+| Tab 2: ตามบริษัท (Company) | Yes — all companies | Yes — all companies |
+| Tab 3: ข้อจำกัด (Restrictions) | Yes | No (`showRestrictions: false`) |
+| Dashboard scope | All dashboards | Assigned folders only |
+| Save/Reset | Page-level buttons | Page-level buttons |
+
+---
+
+## Moderator Permission Management
+
+**Route:** `/manage/permissions`
+
+**Same PermissionEditor component with:**
+- `showRestrictions: false` — Tab 3 hidden
+- Dashboard selector scoped to assigned folders only (via `useModeratorDashboards()`)
+- Breadcrumb: จัดการ > สิทธิ์
+
+---
+
+## Action Buttons (Page-Level)
 
 ```
-[💾 Save Changes]      - Save all permission modifications
+[💾 Save Changes]      - Save all permission modifications (page-level, not in PermissionEditor)
 [↻ Reset]              - Discard changes
-[🗑️ Delete Dashboard]  - Delete dashboard entirely
-[📋 Change Log]        - View permission change history
-[👁️ Preview Access]    - See all users with current access
 ```
 
 ---
 
-## 🔄 Common Admin Tasks
+## Common Tasks
 
 ### Grant Direct Access to User
-1. Click [+ Add User] in Layer 1
-2. Search and select user
-3. [Grant Access]
-4. [Save Changes]
+1. Select Tab 1 (สิทธิ์ตรง)
+2. Click "ผู้ใช้" in Column 1
+3. Search and click "+" on user in Column 2
+4. User appears in Column 3
+5. Click [Save Changes] at page level
 
-### Set Company-Wide Role Access
-1. Navigate to Layer 2 - Company
-2. Check role checkbox
-3. System shows "X users will get access"
-4. [Save Changes]
+### Add Group Access for Company
+1. Select Tab 2 (ตามบริษัท)
+2. Click company in Column 1
+3. Check group checkboxes in Column 2
+4. Summary updates in Column 3
+5. Click [Save Changes] at page level
 
-### Revoke Temporary Access
-1. Click [Edit expiry] in Layer 3
-2. Select: Extend, Remove expiry, or Revoke
-3. [Save]
+### Revoke User Access (Admin Only)
+1. Select Tab 3 (ข้อจำกัด)
+2. Click "ระงับ" in Column 1
+3. Click "+" on user in Column 2
+4. Enter reason in popup, click "ระงับ"
+5. Click [Save Changes] at page level
 
-### Bulk Add Group Access
-1. Navigate to Layer 2 - Company
-2. Check multiple group checkboxes
-3. System shows total user count
-4. [Save Changes]
-
-### Temporarily Block User
-1. Click [+] in Layer 3 - Revoked Access
-2. Enter reason: "Investigation ongoing"
-3. [Revoke]
-4. Later: Click [Restore] to restore access
+### Set Access Expiry (Admin Only)
+1. Select Tab 3 (ข้อจำกัด)
+2. Click "หมดอายุ" in Column 1
+3. Click "+" on user in Column 2
+4. Select date in popup, click "ตั้งวันหมดอายุ"
+5. Click [Save Changes] at page level
 
 ---
 
-## 📱 Responsive Design
+## Responsive Design
 
-- **Desktop (>1024px):** Full sidebar + full editor
-- **Tablet (768-1024px):** Collapsible sidebar + editor
-- **Mobile (<768px):** Not recommended (too complex for mobile)
+- **Desktop (>1024px):** Full sidebar + 3-column panels
+- **Tablet (768-1024px):** Collapsible sidebar + 3-column panels
+- **Mobile (<640px):** Panels stack vertically (1 column)
 
 **Details:** See [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md)
 
 ---
 
-## 🔗 Related Documents
+## Related Documents
 
 | Document | Purpose | Link |
 |----------|---------|------|
@@ -209,20 +231,7 @@ Current Access: 4 users + 3 groups
 
 ---
 
-## ✨ Key Differences from v3.x
-
-- ✅ Consolidated from 716 lines to ~300 lines (58% reduction)
-- ✅ Removed verbose ASCII wireframes
-- ✅ Removed permission logic code examples (link to roles-and-permissions.md)
-- ✅ Removed implementation checklists and component breakdown
-- ✅ Removed workflow diagrams and examples
-- ✅ Kept essential UI structure and admin actions
-- ✅ Added cross-references (Single Source of Truth)
-- ✅ Simplified to focus on purpose and features
-
----
-
 **Created:** 2024-02-03
-**Updated:** 2026-02-13 (v4.0 - Consolidated & Simplified)
+**Updated:** 2026-03-15 (v5.0 — 3-Column Pattern + Moderator Support)
 **Designer:** Development Team
-**Version:** 4.0
+**Version:** 5.0
