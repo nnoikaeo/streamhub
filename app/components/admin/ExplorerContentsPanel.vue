@@ -26,6 +26,8 @@ interface Props {
   allUsers?: User[]
   /** Show moderator column + manage button (admin only) */
   showModeratorColumn?: boolean
+  /** Recursive dashboard counts per folder (shown as badge on subfolder rows) */
+  dashboardCounts?: Record<string, number>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -144,6 +146,13 @@ const gridColumns = computed(() =>
             </svg>
           </span>
           <span class="item-name">{{ folder.name }}</span>
+          <span
+            v-if="dashboardCounts?.[folder.id]"
+            class="folder-dashboard-count"
+            :title="`${dashboardCounts![folder.id]} dashboard ภายในโฟลเดอร์นี้ (รวม subfolder)`"
+          >
+            {{ dashboardCounts![folder.id] }}
+          </span>
         </span>
         <span v-if="showModeratorColumn" class="col-moderators">
           <template v-if="getModeratorNames(folder).length > 0">
@@ -360,6 +369,26 @@ const gridColumns = computed(() =>
 
 .item-icon--folder {
   color: #f59e0b;
+}
+
+.folder-dashboard-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  background-color: #e5e7eb;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.table-row--folder:hover .folder-dashboard-count {
+  background-color: #dbeafe;
+  color: #1d4ed8;
 }
 
 .item-icon--dashboard {

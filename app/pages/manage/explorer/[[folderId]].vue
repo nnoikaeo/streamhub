@@ -12,6 +12,7 @@
 
 import ExplorerPage from '~/components/features/ExplorerPage.vue'
 import { useModeratorFolders } from '~/composables/useModeratorFolders'
+import { computeRecursiveDashboardCounts } from '~/composables/useAdminFolders'
 import { useModeratorDashboards } from '~/composables/useModeratorDashboards'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useExplorer } from '~/composables/useExplorer'
@@ -107,6 +108,10 @@ const currentDashboards = computed(() =>
   manageableDashboards.value.filter(d => d.folderId === explorer.currentFolderId.value)
 )
 
+const dashboardCounts = computed(() =>
+  computeRecursiveDashboardCounts(allFolders.value, manageableDashboards.value)
+)
+
 // ─── Navigation guard — redirect if URL points to non-manageable folder ──
 
 watch([explorer.currentFolderId, allFolders], ([folderId, folders]) => {
@@ -155,5 +160,6 @@ onMounted(async () => {
     :can-create-tag="false"
     :available-tags="tags"
     :available-folders="manageableFolders"
+    :dashboard-counts="dashboardCounts"
   />
 </template>

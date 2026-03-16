@@ -10,7 +10,7 @@
  */
 
 import ExplorerPage from '~/components/features/ExplorerPage.vue'
-import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminFolders, computeRecursiveDashboardCounts } from '~/composables/useAdminFolders'
 import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
@@ -74,6 +74,10 @@ const currentDashboards = computed(() =>
   dashboards.value.filter(d => d.folderId === explorer.currentFolderId.value)
 )
 
+const dashboardCounts = computed(() =>
+  computeRecursiveDashboardCounts(folders.value, dashboards.value)
+)
+
 // ─── Moderator assignment handler ───────────────────────────────────────
 
 const handleSaveModerators = async (folderId: string, moderatorUids: string[]) => {
@@ -102,5 +106,6 @@ onMounted(async () => {
     :show-moderator-column="true"
     :all-users="users"
     :on-save-moderators="handleSaveModerators"
+    :dashboard-counts="dashboardCounts"
   />
 </template>
