@@ -34,9 +34,9 @@
           <!-- Folder Name -->
           <span class="folder-name">{{ folder.name }}</span>
 
-          <!-- Optional Badge (item count) -->
-          <span v-if="folder.children && folder.children.length > 0" class="folder-count">
-            {{ folder.children.length }}
+          <!-- Optional Badge (dashboard count or child folder count fallback) -->
+          <span v-if="getFolderBadge(folder.id) > 0" class="folder-count">
+            {{ getFolderBadge(folder.id) }}
           </span>
         </div>
 
@@ -47,6 +47,7 @@
           :selected-folder-id="selectedFolderId"
           :expanded-folders="expandedFolders"
           :disabled-folder-ids="disabledFolderIds"
+          :dashboard-counts="dashboardCounts"
           class="tree-nested"
           @select="$emit('select', $event)"
           @expand="$emit('expand', $event)"
@@ -108,6 +109,12 @@ interface Props {
    * Used by moderator explorer to show full tree with non-assigned folders greyed out.
    */
   disabledFolderIds?: Set<string>
+
+  /**
+   * Recursive dashboard counts per folder.
+   * When provided, badge shows dashboard count instead of child folder count.
+   */
+  dashboardCounts?: Record<string, number>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -128,6 +135,19 @@ const localExpandedFolders = ref<Set<string>>(new Set())
  * - Uncontrolled mode: no prop → use localExpandedFolders (managed internally)
  */
 const expandedFolders = computed(() => props.expandedFolders ?? localExpandedFolders.value)
+
+/**
+ * Get badge number for a folder.
+ * If dashboardCounts prop is provided, show recursive dashboard count.
+ * Otherwise fall back to child folder count.
+ */
+const getFolderBadge = (folderId: string): number => {
+  if (props.dashboardCounts) {
+    return props.dashboardCounts[folderId] || 0
+  }
+  const folder = props.folders.find(f => f.id === folderId)
+  return folder?.children?.length || 0
+}
 
 /**
  * Check if folder is selected

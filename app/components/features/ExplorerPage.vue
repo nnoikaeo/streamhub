@@ -62,6 +62,9 @@ interface Props {
   showModeratorColumn?: boolean
   allUsers?: User[]
   onSaveModerators?: (folderId: string, moderatorUids: string[]) => Promise<void>
+
+  /** Recursive dashboard counts per folder (passed to FolderTree + ContentsPanel) */
+  dashboardCounts?: Record<string, number>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -198,6 +201,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
               :selected-folder-id="explorer.currentFolderId.value"
               :expanded-folders="explorer.expandedFolders.value"
               :disabled-folder-ids="disabledFolderIds"
+              :dashboard-counts="dashboardCounts"
               @select="explorer.navigateToFolder"
               @expand="explorer.handleFolderExpand"
             />
@@ -213,6 +217,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
           :current-folder-id="explorer.currentFolderId.value"
           :all-users="allUsers"
           :show-moderator-column="showModeratorColumn"
+          :dashboard-counts="dashboardCounts"
           @new-folder="explorer.handleNewFolder"
           @new-dashboard="explorer.handleNewDashboard"
           @edit-folder="explorer.handleEditFolder"

@@ -14,6 +14,54 @@ import type { Folder } from '~/types/dashboard'
 type FolderWithChildren = Folder & { children: FolderWithChildren[] }
 
 /**
+ * Compute recursive dashboard counts for every folder.
+ * For each folder, the count includes dashboards directly in that folder
+ * plus all dashboards in its descendant folders.
+ *
+ * @param folders - flat array of all folders
+ * @param dashboards - flat array of all dashboards (each has a folderId)
+ * @returns Record mapping folderId → total recursive dashboard count
+ */
+export function computeRecursiveDashboardCounts(
+  folders: Folder[],
+  dashboards: { folderId: string }[]
+): Record<string, number> {
+  // Step 1: count direct dashboards per folder
+  const directCount: Record<string, number> = {}
+  for (const d of dashboards) {
+    directCount[d.folderId] = (directCount[d.folderId] || 0) + 1
+  }
+
+  // Step 2: build children lookup
+  const childrenMap = new Map<string | null, string[]>()
+  for (const f of folders) {
+    const parentId = f.parentId ?? null
+    if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
+    childrenMap.get(parentId)!.push(f.id)
+  }
+
+  // Step 3: recursive sum (post-order traversal with memoization)
+  const result: Record<string, number> = {}
+
+  const sumCount = (folderId: string): number => {
+    if (result[folderId] !== undefined) return result[folderId]
+    let total = directCount[folderId] || 0
+    const children = childrenMap.get(folderId) || []
+    for (const childId of children) {
+      total += sumCount(childId)
+    }
+    result[folderId] = total
+    return total
+  }
+
+  for (const f of folders) {
+    sumCount(f.id)
+  }
+
+  return result
+}
+
+/**
  * Converts a flat folder array into a nested tree structure.
  * Shared by all pages that need a folder tree (sidebar, admin pages, etc.)
  */
