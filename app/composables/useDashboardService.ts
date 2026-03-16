@@ -814,9 +814,17 @@ export const useDashboardService = (): IDashboardService => {
           return service.deleteDashboard(dashboardId)
         }
 
-        async saveDashboardPermissions(dashboardId: string, permissions: any) {
+        async getDashboardPermissions(dashboardId: string) {
           const service = await this.initJsonService()
-          return service.saveDashboardPermissions(dashboardId, permissions)
+          return service.getDashboardPermissions(dashboardId)
+        }
+
+        async saveDashboardPermissions(request: SavePermissionsRequest) {
+          const service = await this.initJsonService()
+          return service.saveDashboardPermissions(request.dashboardId, {
+            access: request.access,
+            restrictions: request.restrictions,
+          })
         }
 
         async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: string) {

@@ -5,132 +5,139 @@
     :allow-create="false"
     :breadcrumbs="breadcrumbs"
   >
-    <!-- Main Content: Permissions Editor -->
-    <div class="permissions-page">
-      <!-- Page Header -->
-      <div class="page-header">
-        <div>
-          <h1 class="page-title">Permission Management</h1>
-          <p class="page-subtitle">Configure dashboard access with 3-layer permission model</p>
-        </div>
+    <AdminPageContent>
+      <template #header>
+        <h1 class="page-header__title">จัดการสิทธิ์</h1>
+      </template>
 
-        <div class="header-actions">
-          <button
-            type="button"
-            class="action-button secondary"
-            @click="resetEditor"
-            :disabled="!hasChanges"
-            title="Reset changes"
-          >
-            Reset
-          </button>
-          <button
-            type="button"
-            class="action-button primary"
-            @click="savePermissions"
-            :disabled="!hasChanges || isSaving"
-            title="Save changes"
-          >
-            <span v-if="isSaving" class="button-spinner" />
-            {{ isSaving ? 'Saving...' : 'Save Changes' }}
-          </button>
-        </div>
-      </div>
-
-      <!-- Status Messages -->
-      <div v-if="successMessage" class="alert alert-success" role="status">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
-        <span>{{ successMessage }}</span>
-        <button type="button" class="alert-close" @click="successMessage = null" aria-label="Dismiss">
-          ✕
-        </button>
-      </div>
-
-      <div v-if="errorMessage" class="alert alert-error" role="alert">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10" />
-          <line x1="12" y1="8" x2="12" y2="12" />
-          <line x1="12" y1="16" x2="12.01" y2="16" />
-        </svg>
-        <span>{{ errorMessage }}</span>
-        <button type="button" class="alert-close" @click="errorMessage = null" aria-label="Dismiss">
-          ✕
-        </button>
-      </div>
-
-      <!-- Dashboard Selector -->
-      <div class="section">
-        <h2 class="section-title">Select Dashboard</h2>
-        <div class="section-content">
-          <div class="form-group">
-            <label for="dashboard-select" class="form-label">Dashboard</label>
-            <select
-              id="dashboard-select"
-              v-model="selectedDashboardId"
-              class="form-input form-select"
-              @change="loadDashboardPermissions"
+      <template #filters>
+        <div class="filter-group dashboard-search-wrapper">
+          <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
+            <input
+              ref="searchInputRef"
+              v-model="dashboardSearchQuery"
+              type="text"
+              class="theme-form-input"
+              :placeholder="selectedDashboardId ? '' : '🔍 ค้นหาแดชบอร์ด...'"
               :disabled="isLoading"
+              @focus="isDropdownOpen = true"
+              @input="isDropdownOpen = true"
+            />
+            <!-- Selected indicator (shown when a dashboard is selected and input is not focused) -->
+            <div
+              v-if="selectedDashboardId && !dashboardSearchQuery"
+              class="dashboard-search__selected"
+              @click="focusSearch"
             >
-              <option value="">Choose a dashboard...</option>
-              <option v-for="dash in dashboards" :key="dash.id" :value="dash.id">
-                {{ dash.name }} ({{ dash.type }})
-              </option>
-            </select>
+              <span class="dashboard-search__name">{{ currentDashboard?.name }}</span>
+              <span class="dashboard-search__folder">{{ currentDashboardFolder }}</span>
+              <button
+                type="button"
+                class="dashboard-search__clear"
+                @click.stop="clearSelection"
+                title="ล้างการเลือก"
+              >✕</button>
+            </div>
+
+            <!-- Dropdown list -->
+            <div v-if="isDropdownOpen" class="dashboard-dropdown">
+              <div
+                v-for="dash in filteredDashboards"
+                :key="dash.id"
+                class="dashboard-dropdown__item"
+                :class="{ 'dashboard-dropdown__item--active': dash.id === selectedDashboardId }"
+                @mousedown.prevent="selectDashboard(dash.id)"
+              >
+                <span class="dashboard-dropdown__name">{{ dash.name }}</span>
+                <span class="dashboard-dropdown__folder">{{ getFolderBreadcrumb(dash.folderId) }}</span>
+              </div>
+              <div v-if="filteredDashboards.length === 0" class="dashboard-dropdown__empty">
+                ไม่พบแดชบอร์ด
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
 
-      <!-- Permissions Editor -->
-      <div v-if="selectedDashboardId && currentDashboard" class="section">
-        <h2 class="section-title">Dashboard: {{ currentDashboard.name }}</h2>
-        <p class="section-subtitle">
-          Located in: <strong>{{ currentDashboardFolder }}</strong>
-        </p>
-
-        <!-- Loading State -->
-        <div v-if="isLoading" class="loading-state">
-          <div class="loading-spinner" />
-          <p>Loading permissions...</p>
+      <template #table>
+        <!-- Status Messages -->
+        <div v-if="successMessage" class="alert alert-success" role="status">
+          <span>{{ successMessage }}</span>
+          <button type="button" class="alert-close" @click="successMessage = null" aria-label="Dismiss">✕</button>
         </div>
 
-        <!-- Permission Editor Component -->
-        <div v-else class="section-content">
-          <PermissionEditor
-            :dashboard-id="selectedDashboardId"
-            :all-users="allUsersFromComposable"
-            :all-groups="groups"
-            :all-companies="companies"
-            :current-permissions="permissionsToEdit"
-            :show-restrictions="true"
-            @update:permissions="handlePermissionsUpdate"
-          />
+        <div v-if="errorMessage" class="alert alert-error" role="alert">
+          <span>{{ errorMessage }}</span>
+          <button type="button" class="alert-close" @click="errorMessage = null" aria-label="Dismiss">✕</button>
         </div>
-      </div>
 
-      <!-- Empty State -->
-      <div v-else-if="!isLoading" class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-          <line x1="3" y1="9" x2="21" y2="9" />
-          <line x1="9" y1="3" x2="9" y2="21" />
-        </svg>
-        <h3>Select a Dashboard</h3>
-        <p>Choose a dashboard to manage its permissions</p>
-      </div>
-    </div>
+        <!-- Permissions Editor -->
+        <div v-if="selectedDashboardId && currentDashboard" class="editor-section">
+          <div class="editor-header">
+            <div>
+              <h2 class="editor-title">{{ currentDashboard.name }}</h2>
+              <p class="editor-subtitle">โฟลเดอร์: {{ currentDashboardFolder }}</p>
+            </div>
+            <div class="editor-actions">
+              <button
+                type="button"
+                class="page-header-action-btn page-header-action-btn--secondary"
+                @click="resetEditor"
+                :disabled="!hasChanges"
+              >
+                รีเซ็ต
+              </button>
+              <button
+                type="button"
+                class="page-header-action-btn"
+                @click="savePermissions"
+                :disabled="!hasChanges || isSaving"
+              >
+                {{ isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="isLoading" class="loading-state">
+            <div class="loading-spinner" />
+            <p>กำลังโหลด...</p>
+          </div>
+
+          <!-- Permission Editor Component -->
+          <div v-else>
+            <PermissionEditor
+              :dashboard-id="selectedDashboardId"
+              :all-users="allUsersFromComposable"
+              :all-groups="groups"
+              :all-companies="companies"
+              :current-permissions="permissionsToEdit"
+              :show-restrictions="true"
+              @update:permissions="handlePermissionsUpdate"
+            />
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="!isLoading" class="empty-state">
+          <div class="empty-state__icon">🔐</div>
+          <h3>เลือกแดชบอร์ด</h3>
+          <p>เลือกแดชบอร์ดจากด้านบนเพื่อจัดการสิทธิ์</p>
+        </div>
+      </template>
+    </AdminPageContent>
   </PageLayout>
 </template>
 
 <script setup lang="ts">
 import PageLayout from '~/components/compositions/PageLayout.vue'
+import AdminPageContent from '~/components/admin/AdminPageContent.vue'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminGroups } from '~/composables/useAdminGroups'
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
@@ -138,7 +145,7 @@ import type { Dashboard, User, AccessControl, AccessRestrictions, Folder } from 
 import PermissionEditor from '~/components/features/PermissionEditor.vue'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
-const { folders, fetchFolders } = useAdminFolders()
+const { folders, fetchFolders, getFolderPath } = useAdminFolders()
 const { users: allUsersFromComposable, fetchUsers } = useAdminUsers()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { groups, fetchGroups } = useAdminGroups()
@@ -203,6 +210,64 @@ const originalPermissions = ref<{
 }>({
   access: { direct: { users: [], roles: [], groups: [] }, company: {} },
   restrictions: { revoke: [], expiry: {} },
+})
+
+// Dashboard search dropdown
+const dashboardSearchQuery = ref('')
+const isDropdownOpen = ref(false)
+const searchInputRef = ref<HTMLInputElement | null>(null)
+
+const sortedDashboards = computed(() => {
+  return [...dashboards.value].sort((a, b) => {
+    const pathA = getFolderBreadcrumb(a.folderId)
+    const pathB = getFolderBreadcrumb(b.folderId)
+    return pathA.localeCompare(pathB) || a.name.localeCompare(b.name)
+  })
+})
+
+const filteredDashboards = computed(() => {
+  if (!dashboardSearchQuery.value) return sortedDashboards.value
+  const q = dashboardSearchQuery.value.toLowerCase()
+  return sortedDashboards.value.filter(d =>
+    d.name.toLowerCase().includes(q) || getFolderBreadcrumb(d.folderId).toLowerCase().includes(q)
+  )
+})
+
+const getFolderBreadcrumb = (folderId: string): string => {
+  const path = getFolderPath(folderId)
+  return path.map(f => f.name).join(' > ') || ''
+}
+
+const selectDashboard = (dashboardId: string) => {
+  selectedDashboardId.value = dashboardId
+  dashboardSearchQuery.value = ''
+  isDropdownOpen.value = false
+  loadDashboardPermissions()
+}
+
+const clearSelection = () => {
+  selectedDashboardId.value = ''
+  currentDashboard.value = null
+  currentDashboardFolder.value = ''
+  dashboardSearchQuery.value = ''
+}
+
+const focusSearch = () => {
+  searchInputRef.value?.focus()
+}
+
+// Close dropdown on click outside
+const handleClickOutside = (e: MouseEvent) => {
+  const wrapper = (e.target as HTMLElement)?.closest('.dashboard-search-wrapper')
+  if (!wrapper) isDropdownOpen.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 // Computed properties
@@ -379,117 +444,177 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <style scoped>
-.permissions-page {
-  padding: 2rem;
+/* Dashboard Search Dropdown */
+.dashboard-search-wrapper {
+  position: relative;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
-  margin-bottom: 2rem;
+.dashboard-search {
+  position: relative;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  margin: 0.5rem 0 0 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.action-button {
+.dashboard-search__selected {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 0.375rem;
+  gap: var(--spacing-sm);
+  padding: 0 2.5rem 0 var(--spacing-md);
   cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.action-button.primary {
-  background: var(--color-primary);
-  color: white;
-}
-
-.action-button.primary:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
-.action-button.secondary {
   background: white;
+  border-radius: var(--radius-md);
+}
+
+.dashboard-search__name {
+  font-weight: 600;
   color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.action-button.secondary:hover:not(:disabled) {
-  background: var(--color-bg-light);
-  border-color: var(--color-text-secondary);
+.dashboard-search__folder {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
-.action-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.dashboard-search__clear {
+  position: absolute;
+  right: var(--spacing-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  padding: 0.25rem;
+  line-height: 1;
 }
 
-.button-spinner {
-  display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.dashboard-search__clear:hover {
+  color: var(--color-text-primary);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.dashboard-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 320px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid var(--color-border-default, #d1d5db);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,.1));
 }
 
-.alert {
+.dashboard-dropdown__item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  border-radius: 0.375rem;
-  margin-bottom: 1.5rem;
-  font-size: 0.875rem;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  transition: background-color 0.15s;
 }
 
-.alert svg {
-  width: 1.25rem;
-  height: 1.25rem;
+.dashboard-dropdown__item:hover {
+  background-color: var(--color-bg-secondary, #f3f4f6);
+}
+
+.dashboard-dropdown__item--active {
+  background-color: var(--color-primary-light, #e0e7ff);
+  font-weight: 600;
+}
+
+.dashboard-dropdown__name {
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-dropdown__folder {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
+.dashboard-dropdown__empty {
+  padding: var(--spacing-lg);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* Editor Section */
+.editor-section {
+  padding: var(--spacing-lg);
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+}
+
+.editor-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.editor-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0 0 0;
+}
+
+.editor-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.page-header-action-btn--secondary {
+  background: white !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border-default) !important;
+}
+
+.page-header-action-btn--secondary:hover:not(:disabled) {
+  background: var(--color-bg-secondary) !important;
+}
+
+/* Alerts */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  margin: var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+
 .alert-success {
-  background: var(--color-bg-success);
-  border: 1px solid var(--color-border-success);
-  color: var(--color-success);
+  background: var(--color-bg-success, #f0fdf4);
+  border: 1px solid var(--color-border-success, #bbf7d0);
+  color: var(--color-success, #16a34a);
 }
 
 .alert-error {
-  background: var(--color-bg-error);
-  border: 1px solid var(--color-border-error);
-  color: var(--color-error);
+  background: var(--color-bg-error, #fef2f2);
+  border: 1px solid var(--color-border-error, #fecaca);
+  color: var(--color-error, #dc2626);
 }
 
 .alert-close {
@@ -498,121 +623,45 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   border: none;
   cursor: pointer;
   color: inherit;
-  padding: 0 0.25rem;
-  font-size: 1.125rem;
-  line-height: 1;
+  font-size: 1rem;
 }
 
-.alert-close:hover {
-  opacity: 0.7;
-}
-
-.section {
-  background: white;
-  border: 1px solid var(--color-border-light);
-  border-radius: 0.5rem;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.section-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0 0 0.5rem 0;
-}
-
-.section-subtitle {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  margin: 0 0 1.5rem 0;
-}
-
-.section-content {
-  margin-top: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group:last-child {
-  margin-bottom: 0;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  background: white;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(45, 51, 137, 0.1);
-}
-
-.form-input:disabled {
-  background: var(--color-bg-light);
-  color: var(--color-gray-400);
-  cursor: not-allowed;
-}
-
-.form-select {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 1.25rem 1.25rem;
-  padding-right: 2.5rem;
-}
-
+/* Loading */
 .loading-state {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 1rem;
+  gap: var(--spacing-md);
   padding: 3rem;
-  flex-direction: column;
 }
 
 .loading-spinner {
   width: 2.5rem;
   height: 2.5rem;
-  border: 3px solid var(--color-border-light);
+  border: 3px solid var(--color-border-light, #e5e7eb);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: var(--spacing-sm);
   padding: 4rem 2rem;
   text-align: center;
 }
 
-.empty-state svg {
-  width: 4rem;
-  height: 4rem;
-  color: var(--color-border);
+.empty-state__icon {
+  font-size: 3rem;
 }
 
 .empty-state h3 {
@@ -628,90 +677,15 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   margin: 0;
 }
 
-/* Admin Navigation */
-.admin-nav {
-  padding: 1rem 0;
-}
-
-.nav-section {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.nav-section:last-child {
-  border-bottom: none;
-}
-
-.nav-section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--color-gray-400);
-  margin: 0 0 0.75rem 0;
-  letter-spacing: 0.05em;
-}
-
-.nav-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.nav-list li {
-  margin-bottom: 0.5rem;
-}
-
-.nav-list li:last-child {
-  margin-bottom: 0;
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  font-size: 0.875rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
-}
-
-.nav-link:hover {
-  background: var(--color-bg-light);
-  color: var(--color-text-primary);
-}
-
-.nav-link.active {
-  background: var(--color-bg-info);
-  color: var(--color-info);
-  font-weight: 600;
-}
-
-.nav-link svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-  .permissions-page {
-    padding: 1rem;
-  }
-
-  .page-header {
+  .editor-header {
     flex-direction: column;
+    align-items: flex-start;
   }
 
-  .header-actions {
+  .editor-actions {
     width: 100%;
-    flex-direction: column;
-  }
-
-  .action-button {
-    width: 100%;
-    justify-content: center;
   }
 }
 </style>
