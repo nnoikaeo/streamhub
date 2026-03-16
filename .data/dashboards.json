@@ -11,7 +11,10 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": false,
-    "tags": ["tag_sales", "tag_monthly"],
+    "tags": [
+      "tag_sales",
+      "tag_monthly"
+    ],
     "access": {
       "direct": {
         "users": [],
@@ -46,10 +49,13 @@
     "lookerEmbedUrl": "https://looker.streamvoice.com/dashboards/456",
     "owner": "user_nattha_mod",
     "createdAt": "2024-01-20T00:00:00.000Z",
-    "updatedAt": "2024-02-02T00:00:00.000Z",
+    "updatedAt": "2026-03-16T15:12:24.123Z",
     "updatedBy": "user_nattha_mod",
     "isArchived": false,
-    "tags": ["tag_finance", "tag_kpi"],
+    "tags": [
+      "tag_finance",
+      "tag_kpi"
+    ],
     "access": {
       "direct": {
         "users": [
@@ -75,7 +81,8 @@
       "expiry": {
         "user_teerak_user": "2024-03-15T00:00:00.000Z"
       }
-    }
+    },
+    "type": "looker"
   },
   {
     "id": "dash_hr_employee_data",
@@ -89,7 +96,9 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": false,
-    "tags": ["tag_hr"],
+    "tags": [
+      "tag_hr"
+    ],
     "access": {
       "direct": {
         "users": [],
@@ -117,7 +126,10 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": false,
-    "tags": ["tag_finance", "tag_quarterly"],
+    "tags": [
+      "tag_finance",
+      "tag_quarterly"
+    ],
     "access": {
       "direct": {
         "users": [],
@@ -153,7 +165,10 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "user_somchai_mod",
     "isArchived": false,
-    "tags": ["tag_quarterly", "tag_planning"],
+    "tags": [
+      "tag_quarterly",
+      "tag_planning"
+    ],
     "access": {
       "direct": {
         "users": [],
@@ -183,7 +198,9 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "isArchived": false,
-    "tags": ["tag_sales"],
+    "tags": [
+      "tag_sales"
+    ],
     "access": {
       "direct": {
         "users": [
@@ -224,7 +241,10 @@
     "updatedAt": "2024-02-01T00:00:00.000Z",
     "updatedBy": "user_somchai_mod",
     "isArchived": false,
-    "tags": ["tag_sales", "tag_quarterly"],
+    "tags": [
+      "tag_sales",
+      "tag_quarterly"
+    ],
     "access": {
       "direct": {
         "users": [],

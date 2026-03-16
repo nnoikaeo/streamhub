@@ -3,7 +3,7 @@
 > **Purpose:** Permission management for dashboards using 3-column pattern
 > **Users:** Admin + Moderator
 > **Implementation:** `app/pages/admin/permissions.vue`, `app/pages/manage/permissions.vue`
-> **Last Updated:** 2026-03-15
+> **Last Updated:** 2026-03-16
 > **Version:** 5.0 (3-Column Pattern + Moderator Support)
 
 ---
@@ -31,22 +31,18 @@
 
 ---
 
-## Admin Sidebar Navigation
+## Navigation
 
-```
-ADMIN PANEL MENU
+### Admin
+- `/admin/explorer` — File explorer with moderator assignment (👥) and permission shortcut (🔑)
+- `/admin/permissions` — Permission management (accessible via 🔑 buttons in explorer)
 
-🏠 Home
+### Moderator
+- `/manage/explorer` — File explorer scoped to assigned folders
+- `/manage/permissions` — Permission management (accessible via 🔑 buttons in explorer)
 
-━━ MANAGEMENT ━━
-📊 Dashboards
-📋 Folders
-👥 Users
-🔐 Permissions    ← /admin/permissions
-
-━━ REPORTS ━━
-📊 Audit Log
-```
+**Note:** The "สิทธิ์" (Permissions) menu was removed from sidebar for both roles.
+Permissions page is accessed via 🔑 buttons on dashboard rows and search results in explorer.
 
 ---
 
@@ -165,6 +161,9 @@ Current Access: 4 users + 3 groups
 - `showRestrictions: false` — Tab 3 hidden
 - Dashboard selector scoped to assigned folders only (via `useModeratorDashboards()`)
 - Breadcrumb: จัดการ > สิทธิ์
+- Auto-select dashboard via `?dashboard=id` query param (from explorer 🔑 button)
+- Pre-filter by folder via `?folder=id` query param (from explorer folder 🔑 button, admin only)
+- Back-navigation after save/cancel when navigated from explorer
 
 ---
 

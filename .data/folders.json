@@ -5,10 +5,12 @@
     "parentId": null,
     "description": "All sales-related dashboards",
     "isActive": true,
-    "assignedModerators": ["9c7TScfkuGX7W4dq9P8GHjhrbIu1"],
+    "assignedModerators": [
+      "user_nattha_mod"
+    ],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2026-03-16T15:14:25.950Z",
     "updatedBy": "user-1"
   },
   {
@@ -17,10 +19,13 @@
     "parentId": null,
     "description": "Financial reports and dashboards",
     "isActive": true,
-    "assignedModerators": ["9c7TScfkuGX7W4dq9P8GHjhrbIu1"],
+    "assignedModerators": [
+      "9c7TScfkuGX7W4dq9P8GHjhrbIu1",
+      "user_somchai_mod"
+    ],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2026-03-16T15:14:11.087Z",
     "updatedBy": "user-1"
   },
   {
@@ -41,7 +46,9 @@
     "parentId": null,
     "description": "Human resources dashboards",
     "isActive": true,
-    "assignedModerators": ["61JSdbE674TqRBHHUu9ezdzFul93"],
+    "assignedModerators": [
+      "61JSdbE674TqRBHHUu9ezdzFul93"
+    ],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z",

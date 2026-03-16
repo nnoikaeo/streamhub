@@ -20,7 +20,7 @@
  * ```
  */
 
-import { ref, readonly } from 'vue'
+import { readonly } from 'vue'
 import type { Ref } from 'vue'
 
 /**
@@ -131,11 +131,6 @@ interface AdminResourceReturn<T> {
 export function useAdminResource<T extends Record<string, any>>(
   config: AdminResourceConfig<T>
 ): AdminResourceReturn<T> {
-  // State management
-  const items = ref<T[]>([])
-  const loading = ref(false)
-  const error = ref<Error | null>(null)
-
   // Extract configuration with defaults
   const {
     resourceName,
@@ -146,6 +141,11 @@ export function useAdminResource<T extends Record<string, any>>(
     extensions = {},
     pluralName = resourceName.endsWith('s') ? resourceName : `${resourceName}s`
   } = config
+
+  // State management — useState shares state across all callers with the same key
+  const items = useState<T[]>(`admin-resource-${resourceName}`, () => [])
+  const loading = useState<boolean>(`admin-resource-${resourceName}-loading`, () => false)
+  const error = useState<Error | null>(`admin-resource-${resourceName}-error`, () => null)
 
   /**
    * Get display value from item for console logs

@@ -158,10 +158,20 @@ export function useModeratorFolders() {
     return adminFolders.deleteFolder(id)
   }
 
+  /**
+   * Full folder tree (all folders) — for explorer page to show full structure
+   * with non-manageable folders rendered as disabled
+   */
+  const allFolders = folders
+  const allFolderTree = computed(() => buildFolderTree(folders.value))
+
   return {
     assignedFolders,
     assignedFolderTree,
     manageableFolders,
+    manageableFolderIds,
+    allFolders,
+    allFolderTree,
     fetchFolders,
     buildFolderTree,
     createFolder,

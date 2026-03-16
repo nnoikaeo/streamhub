@@ -55,9 +55,7 @@ export function useRoleNavigation() {
     id: 'manage',
     label: 'จัดการ',
     items: [
-      { path: '/manage/dashboards', label: 'แดชบอร์ด', icon: '📊' },
-      { path: '/manage/folders', label: 'โฟลเดอร์', icon: '📁' },
-      { path: '/manage/permissions', label: 'สิทธิ์', icon: '🔑' },
+      { path: '/manage/explorer', label: 'Explorer', icon: '🗂️' },
     ],
   }))
 
@@ -76,7 +74,6 @@ export function useRoleNavigation() {
       { path: '/admin/regions', label: 'กลุ่มธุรกิจ/เขตพื้นที่', icon: '🌏' },
       { path: '/admin/groups', label: 'กลุ่ม', icon: '👫' },
       { path: '/admin/tags', label: 'แท็ก', icon: '🏷️' },
-      { path: '/admin/permissions', label: 'สิทธิ์', icon: '🔐' },
     ],
   }))
 

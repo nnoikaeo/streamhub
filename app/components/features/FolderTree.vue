@@ -6,7 +6,7 @@
         <!-- Folder Item -->
         <div
           class="folder-row"
-          :class="{ 'folder-selected': isSelected(folder.id) }"
+          :class="{ 'folder-selected': isSelected(folder.id), 'folder-disabled': isDisabled(folder.id) }"
           @click="selectFolder(folder)"
         >
           <!-- Expand/Collapse Button -->
@@ -46,6 +46,7 @@
           :folders="folder.children"
           :selected-folder-id="selectedFolderId"
           :expanded-folders="expandedFolders"
+          :disabled-folder-ids="disabledFolderIds"
           class="tree-nested"
           @select="$emit('select', $event)"
           @expand="$emit('expand', $event)"
@@ -101,6 +102,12 @@ interface Props {
    * Set of expanded folder IDs
    */
   expandedFolders?: Set<string>
+
+  /**
+   * Set of folder IDs to render as disabled (visible but not clickable).
+   * Used by moderator explorer to show full tree with non-assigned folders greyed out.
+   */
+  disabledFolderIds?: Set<string>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -130,6 +137,13 @@ const isSelected = (folderId: string): boolean => {
 }
 
 /**
+ * Check if folder is disabled (visible but not clickable)
+ */
+const isDisabled = (folderId: string): boolean => {
+  return !!props.disabledFolderIds?.has(folderId)
+}
+
+/**
  * Toggle folder expansion
  * - Always emits 'expand' for parent (controlled mode) to handle
  * - Also updates localExpandedFolders (uncontrolled mode fallback)
@@ -146,9 +160,10 @@ const toggleExpand = (folderId: string) => {
 }
 
 /**
- * Select folder
+ * Select folder — blocked when folder is disabled
  */
 const selectFolder = (folder: Folder) => {
+  if (isDisabled(folder.id)) return
   emit('select', folder)
   // Auto-expand when selecting a folder
   if (folder.children && folder.children.length > 0 && !expandedFolders.value.has(folder.id)) {
@@ -197,6 +212,15 @@ const selectFolder = (folder: Folder) => {
     padding-left: calc(0.75rem - 2px);
     color: #1d4ed8;
     font-weight: 500;
+  }
+
+  &.folder-disabled {
+    opacity: 0.45;
+    cursor: default;
+
+    &:hover {
+      background-color: transparent;
+    }
   }
 }
 
