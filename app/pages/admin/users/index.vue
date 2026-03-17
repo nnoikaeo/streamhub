@@ -45,6 +45,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import type { User } from '~/types/dashboard'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
@@ -59,7 +60,8 @@ console.log('📄 [admin/users/index.vue] Users management page initialized')
 
 // States
 const { users, loading, fetchUsers, createUser, updateUser, deleteUser } = useAdminUsers()
-const { companies } = useAdminCompanies()
+const { companies, fetchCompanies } = useAdminCompanies()
+const { regions, fetchRegions } = useAdminRegions()
 const { folders } = useAdminFolders()
 const showUserModal = ref(false)
 const showConfirmDialog = ref(false)
@@ -238,7 +240,11 @@ const actions = [
 onMounted(async () => {
   try {
     console.log('🚀 [Lifecycle] onMounted - Starting to fetch users...')
-    await fetchUsers()
+    await Promise.all([
+      fetchUsers(),
+      fetchCompanies(),
+      fetchRegions(),
+    ])
     console.log('✅ [Lifecycle] onMounted - Users fetched successfully')
   } catch (error) {
     console.error('❌ [Lifecycle] Error loading users:', error)
@@ -327,12 +333,11 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 
             <!-- Company Filter -->
             <div class="filter-group">
-              <select v-model="filterCompany" class="theme-form-select">
-                <option :value="null">-- บริษัททั้งหมด --</option>
-                <option v-for="c in companies" :key="c.code" :value="c.code">
-                  {{ c.code }}
-                </option>
-              </select>
+              <CompanyDropdownFilter
+                v-model="filterCompany"
+                :companies="companies"
+                :regions="regions"
+              />
             </div>
 
             <!-- Active Filter -->
