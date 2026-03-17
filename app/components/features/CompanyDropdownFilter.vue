@@ -1,6 +1,6 @@
 <template>
   <div class="company-dropdown-filter">
-    <svg class="company-dropdown-filter__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <svg v-if="showIcon" class="company-dropdown-filter__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <rect x="4" y="2" width="16" height="20" rx="1" />
       <line x1="9" y1="6" x2="9" y2="6.01" />
       <line x1="15" y1="6" x2="15" y2="6.01" />
@@ -51,9 +51,11 @@ const props = withDefaults(defineProps<{
   companies: Company[]
   regions?: Region[]
   modelValue: string | null
+  showIcon?: boolean
 }>(), {
   modelValue: null,
   regions: () => [],
+  showIcon: true,
 })
 
 const emit = defineEmits<{

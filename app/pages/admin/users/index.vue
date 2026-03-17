@@ -337,6 +337,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                 v-model="filterCompany"
                 :companies="companies"
                 :regions="regions"
+                :show-icon="false"
               />
             </div>
 
