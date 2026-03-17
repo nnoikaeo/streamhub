@@ -12,8 +12,9 @@
 
 import type { User } from '~/types/dashboard'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminRegions } from '~/composables/useAdminRegions'
 import { createObjectValidator, validators } from '~/utils/formValidators'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 
 interface Props {
   user?: User | null
@@ -26,6 +27,41 @@ const emit = defineEmits<{
 
 // Composables
 const { companies, fetchCompanies } = useAdminCompanies()
+const { regions, fetchRegions } = useAdminRegions()
+
+// Company grouping (same logic as CompanyDropdownFilter)
+const ungroupedCompanies = computed(() =>
+  companies.value
+    .filter(c => !c.region && c.isActive)
+    .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
+)
+
+const regionGroups = computed(() => {
+  const regionSortMap: Record<string, number> = {}
+  const regionNameMap: Record<string, string> = {}
+  for (const r of regions.value) {
+    regionSortMap[r.code] = r.sortOrder ?? 999
+    regionNameMap[r.code] = r.name
+  }
+
+  const grouped = new Map<string, typeof companies.value>()
+  for (const c of companies.value) {
+    if (!c.region || !c.isActive) continue
+    if (!grouped.has(c.region)) grouped.set(c.region, [])
+    grouped.get(c.region)!.push(c)
+  }
+
+  return Array.from(grouped.entries())
+    .sort(([a], [b]) => (regionSortMap[a] ?? 999) - (regionSortMap[b] ?? 999))
+    .map(([code, comps]) => ({
+      region: regionNameMap[code] ?? code,
+      companies: comps.sort((a, b) => {
+        if (a.regionRole === 'hub' && b.regionRole !== 'hub') return -1
+        if (a.regionRole !== 'hub' && b.regionRole === 'hub') return 1
+        return (a.sortOrder ?? 999) - (b.sortOrder ?? 999)
+      }),
+    }))
+})
 
 // Role options
 const roleOptions = [
@@ -34,13 +70,31 @@ const roleOptions = [
   { label: 'User', value: 'user' },
 ]
 
-// Company options
-const companyOptions = computed(() =>
-  companies.value.filter(c => c.isActive).map(c => ({
-    label: `${c.code} - ${c.name}`,
-    value: c.code,
-  }))
-)
+// Company groupedOptions for FormField
+const companyGroupedOptions = computed(() => {
+  const result: Array<{ group?: string; items: Array<{ label: string; value: string }> }> = []
+
+  if (ungroupedCompanies.value.length > 0) {
+    result.push({
+      items: ungroupedCompanies.value.map(c => ({
+        label: `${c.code} - ${c.name}`,
+        value: c.code,
+      })),
+    })
+  }
+
+  for (const group of regionGroups.value) {
+    result.push({
+      group: group.region,
+      items: group.companies.map(c => ({
+        label: `${c.code}${c.regionRole === 'hub' ? ' (Hub)' : ''} - ${c.name}`,
+        value: c.code,
+      })),
+    })
+  }
+
+  return result
+})
 
 // Form validation
 const validate = createObjectValidator({
@@ -71,9 +125,9 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
 
 const isEditMode = computed(() => !!props.user)
 
-// Fetch companies on mount
+// Fetch companies + regions on mount
 onMounted(async () => {
-  await fetchCompanies()
+  await Promise.all([fetchCompanies(), fetchRegions()])
 })
 
 defineExpose({ submit: handleSubmit })
@@ -115,9 +169,9 @@ defineExpose({ submit: handleSubmit })
 
     <FormField
       v-model="formData.company"
-      type="select"
+      type="grouped-select"
       label="บริษัท"
-      :options="companyOptions"
+      :grouped-options="companyGroupedOptions"
     />
 
     <FormField
