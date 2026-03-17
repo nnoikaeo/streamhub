@@ -378,24 +378,53 @@ export class JSONMockService implements IDashboardService {
   }
 
   /**
+   * Get current permissions for a dashboard
+   */
+  async getDashboardPermissions(dashboardId: string): Promise<{
+    access: any
+    restrictions: any
+  }> {
+    try {
+      this.log('getDashboardPermissions:', dashboardId)
+      const dashboard = await this.getDashboard(dashboardId)
+      if (!dashboard) {
+        return {
+          access: { direct: { users: [], roles: [], groups: [] }, company: {} },
+          restrictions: { revoke: [], expiry: {} },
+        }
+      }
+      return {
+        access: dashboard.access ?? { direct: { users: [], roles: [], groups: [] }, company: {} },
+        restrictions: dashboard.restrictions ?? { revoke: [], expiry: {} },
+      }
+    } catch (error) {
+      console.error('❌ [JSONMockService] getDashboardPermissions error:', error)
+      return {
+        access: { direct: { users: [], roles: [], groups: [] }, company: {} },
+        restrictions: { revoke: [], expiry: {} },
+      }
+    }
+  }
+
+  /**
    * Save permissions (not implemented in mock, just logs)
    */
   async saveDashboardPermissions(
     dashboardId: string,
     permissions: any
-  ): Promise<boolean> {
+  ): Promise<{ success: boolean; message: string; updatedAt: Date }> {
     try {
       this.log('saveDashboardPermissions:', { dashboardId, permissions })
       console.log(
         '📝 [JSONMockService] Permissions saved (mock implementation)'
       )
-      return true
+      return { success: true, message: 'Permissions saved successfully', updatedAt: new Date() }
     } catch (error) {
       console.error(
         '❌ [JSONMockService] saveDashboardPermissions error:',
         error
       )
-      return false
+      return { success: false, message: 'Failed to save permissions', updatedAt: new Date() }
     }
   }
 

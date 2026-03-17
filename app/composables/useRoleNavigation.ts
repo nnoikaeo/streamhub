@@ -4,7 +4,7 @@
  *
  * Returns menu groups based on user role:
  * - User: Dashboard group only
- * - Moderator: Dashboard + Manage Folders groups
+ * - Moderator: Dashboard + Manage groups (dashboards, folders, permissions)
  * - Admin: Dashboard + Admin groups
  *
  * Usage:
@@ -13,7 +13,6 @@
 
 import { computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
-import { useModeratorFolders } from './useModeratorFolders'
 
 export interface SidebarMenuItem {
   path: string
@@ -32,21 +31,8 @@ export interface SidebarMenuGroup {
 
 export function useRoleNavigation() {
   const authStore = useAuthStore()
-  const { assignedFolderTree, getDashboardCount } = useModeratorFolders()
 
   const role = computed(() => authStore.user?.role ?? 'user')
-
-  type FolderNode = { id: string; name: string; children: FolderNode[] }
-
-  const mapFolderToMenuItem = (folder: FolderNode): SidebarMenuItem => ({
-    label: folder.name,
-    icon: '📁',
-    path: `/manage/folders/${folder.id}`,
-    badge: getDashboardCount(folder.id),
-    children: folder.children.length > 0
-      ? folder.children.map(mapFolderToMenuItem)
-      : undefined,
-  })
 
   /**
    * Dashboard menu group — visible to ALL roles
@@ -62,13 +48,15 @@ export function useRoleNavigation() {
   }))
 
   /**
-   * Manage Folders menu group — MODERATOR only
-   * Items populated from assigned folders (placeholder for future implementation)
+   * Manage menu group — MODERATOR only
+   * Flat menu for moderator management pages
    */
-  const manageFoldersMenuGroup = computed<SidebarMenuGroup>(() => ({
-    id: 'manage-folders',
-    label: 'จัดการโฟลเดอร์',
-    items: assignedFolderTree.value.map(mapFolderToMenuItem),
+  const manageMenuGroup = computed<SidebarMenuGroup>(() => ({
+    id: 'manage',
+    label: 'จัดการ',
+    items: [
+      { path: '/manage/explorer', label: 'Explorer', icon: '🗂️' },
+    ],
   }))
 
   /**
@@ -86,7 +74,6 @@ export function useRoleNavigation() {
       { path: '/admin/regions', label: 'กลุ่มธุรกิจ/เขตพื้นที่', icon: '🌏' },
       { path: '/admin/groups', label: 'กลุ่ม', icon: '👫' },
       { path: '/admin/tags', label: 'แท็ก', icon: '🏷️' },
-      { path: '/admin/permissions', label: 'สิทธิ์', icon: '🔐' },
     ],
   }))
 
@@ -97,7 +84,7 @@ export function useRoleNavigation() {
     const groups: SidebarMenuGroup[] = [dashboardMenuGroup.value]
 
     if (role.value === 'moderator') {
-      groups.push(manageFoldersMenuGroup.value)
+      groups.push(manageMenuGroup.value)
     }
 
     if (role.value === 'admin') {

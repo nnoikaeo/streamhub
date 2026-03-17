@@ -2,18 +2,19 @@
 /**
  * ExplorerContentsPanel Component
  *
- * Right panel of the Admin Explorer page.
+ * Right panel of the Explorer page.
  * Displays subfolders and dashboards of the currently selected folder.
  *
  * Features:
  * - Toolbar: New Folder / New Dashboard buttons
  * - Folders listed first, then dashboards (Windows Explorer convention)
  * - Hover-reveal action buttons (edit, delete) per row
+ * - Optional moderator column with manage button (admin only)
  * - Double-click: navigate into folder / open dashboard
  * - Empty state with quick-create actions
  */
 
-import type { Folder, Dashboard } from '~/types/dashboard'
+import type { Folder, Dashboard, User } from '~/types/dashboard'
 
 interface Props {
   subfolders: Folder[]
@@ -21,9 +22,17 @@ interface Props {
   isAdmin: boolean
   loading: boolean
   currentFolderId: string | null
+  /** All users — used to resolve moderator names */
+  allUsers?: User[]
+  /** Show moderator column + manage button (admin only) */
+  showModeratorColumn?: boolean
+  /** Recursive dashboard counts per folder (shown as badge on subfolder rows) */
+  dashboardCounts?: Record<string, number>
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  showModeratorColumn: false,
+})
 
 const emit = defineEmits<{
   'new-folder': []
@@ -34,10 +43,28 @@ const emit = defineEmits<{
   'delete-dashboard': [dashboard: Dashboard]
   'navigate-folder': [folder: Folder]
   'open-dashboard': [dashboard: Dashboard]
+  'manage-moderators': [folder: Folder]
+  'manage-permissions': [dashboard: Dashboard]
+  'manage-folder-permissions': [folder: Folder]
 }>()
 
 const isEmpty = computed(() => props.subfolders.length === 0 && props.dashboards.length === 0)
 const canCreateDashboard = computed(() => !!props.currentFolderId)
+
+/** Resolve moderator UIDs to display names */
+const getModeratorNames = (folder: Folder): string[] => {
+  if (!props.allUsers || !folder.assignedModerators?.length) return []
+  return folder.assignedModerators
+    .map(uid => props.allUsers!.find(u => u.uid === uid)?.name)
+    .filter(Boolean) as string[]
+}
+
+/** Dynamic grid columns based on whether moderator column is shown */
+const gridColumns = computed(() =>
+  props.showModeratorColumn
+    ? '1fr 160px 130px 110px 120px'
+    : '1fr 130px 110px 100px'
+)
 </script>
 
 <template>
@@ -96,8 +123,9 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
     <!-- Contents Table -->
     <div v-else class="contents-table">
       <!-- Header -->
-      <div class="table-header">
+      <div class="table-header" :style="{ gridTemplateColumns: gridColumns }">
         <span class="col-name">ชื่อ</span>
+        <span v-if="showModeratorColumn" class="col-moderators">ผู้ดูแล</span>
         <span class="col-type">ประเภท</span>
         <span class="col-status">สถานะ</span>
         <span class="col-actions" />
@@ -108,6 +136,7 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
         v-for="folder in subfolders"
         :key="folder.id"
         class="table-row table-row--folder"
+        :style="{ gridTemplateColumns: gridColumns }"
         @dblclick="emit('navigate-folder', folder)"
       >
         <span class="col-name">
@@ -117,6 +146,23 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
             </svg>
           </span>
           <span class="item-name">{{ folder.name }}</span>
+          <span
+            v-if="dashboardCounts?.[folder.id]"
+            class="folder-dashboard-count"
+            :title="`${dashboardCounts![folder.id]} dashboard ภายในโฟลเดอร์นี้ (รวม subfolder)`"
+          >
+            {{ dashboardCounts![folder.id] }}
+          </span>
+        </span>
+        <span v-if="showModeratorColumn" class="col-moderators">
+          <template v-if="getModeratorNames(folder).length > 0">
+            <span
+              v-for="name in getModeratorNames(folder)"
+              :key="name"
+              class="moderator-badge"
+            >{{ name }}</span>
+          </template>
+          <span v-else class="moderator-empty">&mdash;</span>
         </span>
         <span class="col-type">
           <span class="badge badge--folder">Folder</span>
@@ -127,6 +173,18 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
           </span>
         </span>
         <span class="col-actions row-actions">
+          <button
+            v-if="showModeratorColumn"
+            class="action-btn"
+            title="จัดการสิทธิ์ dashboard ใน folder นี้"
+            @click.stop="emit('manage-folder-permissions', folder)"
+          >🔑</button>
+          <button
+            v-if="showModeratorColumn"
+            class="action-btn"
+            title="จัดการผู้ดูแล"
+            @click.stop="emit('manage-moderators', folder)"
+          >👥</button>
           <button
             class="action-btn"
             title="แก้ไข"
@@ -148,6 +206,7 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
         v-for="dashboard in dashboards"
         :key="dashboard.id"
         class="table-row table-row--dashboard"
+        :style="{ gridTemplateColumns: gridColumns }"
         @dblclick="emit('open-dashboard', dashboard)"
       >
         <span class="col-name">
@@ -158,6 +217,7 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
           </span>
           <span class="item-name">{{ dashboard.name }}</span>
         </span>
+        <span v-if="showModeratorColumn" class="col-moderators" />
         <span class="col-type">
           <span class="badge badge--dashboard">Dashboard</span>
         </span>
@@ -167,6 +227,11 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
           </span>
         </span>
         <span class="col-actions row-actions">
+          <button
+            class="action-btn"
+            title="จัดการสิทธิ์"
+            @click.stop="emit('manage-permissions', dashboard)"
+          >🔑</button>
           <button
             class="action-btn"
             title="แก้ไข"
@@ -249,7 +314,6 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
 .table-header,
 .table-row {
   display: grid;
-  grid-template-columns: 1fr 130px 110px 72px;
   align-items: center;
   padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
 }
@@ -307,6 +371,26 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
   color: #f59e0b;
 }
 
+.folder-dashboard-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  background-color: #e5e7eb;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.table-row--folder:hover .folder-dashboard-count {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
 .item-icon--dashboard {
   color: #3b82f6;
 }
@@ -317,6 +401,34 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
   white-space: nowrap;
   font-size: 0.875rem;
   color: var(--color-text-primary, #1f2937);
+}
+
+/* ── Moderator column ── */
+.col-moderators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.moderator-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: #ede9fe;
+  color: #6d28d9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.moderator-empty {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #9ca3af);
 }
 
 /* ── Badges ── */
@@ -341,12 +453,6 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
   display: flex;
   gap: 0.25rem;
   justify-content: flex-end;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-
-.table-row:hover .row-actions {
-  opacity: 1;
 }
 
 .action-btn {

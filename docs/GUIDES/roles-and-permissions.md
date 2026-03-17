@@ -1,9 +1,9 @@
 # 🔐 Roles & Permissions Guide
 
 > **Document Status:** Single Source of Truth for Roles & Access Control  
-> **Last Updated:** 2024-01-27  
-> **Document Owner:** Development Team  
-> **Version:** 4.0 (Contextual INTERSECT Architecture + Tag System + Moderator Dual-View)
+> **Last Updated:** 2026-03-16
+> **Document Owner:** Development Team
+> **Version:** 5.0 (Explorer-Based Management + 3-Column PermissionEditor)
 
 **StreamHub Role-Based Access Control (RBAC) with Structured Permissions (Direct + Company-Scoped)**
 
@@ -113,14 +113,17 @@ User: สมชาย (STTH)
 - ❌ Create/Edit/Delete dashboards
 - ❌ Assign tags
 
-**View 2 — Manager Mode (via "Manage Folders" menu):**
+**View 2 — Manager Mode (via "จัดการ" menu → `/manage/explorer`):**
 - ✅ Create/Edit/Delete subfolders (in assigned folders)
 - ✅ Set subfolder permissions (in assigned folders)
 - ✅ Create/Edit/Delete dashboards (in assigned folders)
-- ✅ Set dashboard permissions (in assigned folders)
+- ✅ Set dashboard permissions — Layer 1 (Direct) + Layer 2 (Company) for all companies
 - ✅ Assign/unassign tags to dashboards (select from existing tags)
 - ✅ Move dashboards between assigned folders
 - ✅ View activity logs (in company)
+- ✅ Access `/manage/explorer` (unified folder + dashboard management)
+- ✅ Access `/manage/permissions` (via 🔑 button in explorer)
+- ❌ Set Layer 3 restrictions (Admin only)
 - ❌ Create new tags (Admin only)
 - ❌ Edit/Delete tags (Admin only)
 - ❌ Invite users
@@ -209,24 +212,26 @@ Moderators operate in **2 distinct views**, switching via sidebar navigation:
 │                                                             │
 │    ┌─────────────────────┐     ┌─────────────────────────┐ │
 │    │  View 1: Viewer     │     │  View 2: Manager        │ │
-│    │  (Dashboard menu)   │     │  (Manage Folders menu)   │ │
+│    │  (Dashboard menu)   │     │  (จัดการ menu)           │ │
 │    │                     │     │                          │ │
 │    │  Same as User:      │     │  Limited Admin:          │ │
 │    │  - View dashboards  │     │  - CRUD dashboards      │ │
 │    │  - Search           │     │  - CRUD subfolders      │ │
 │    │  - Filter by tag    │     │  - Assign tags          │ │
-│    │  - Read-only        │     │  - Set permissions      │ │
+│    │  - Read-only        │     │  - Set permissions L1+L2│ │
 │    │                     │     │  - Move dashboards      │ │
 │    │  No edit/create     │     │  Only in assignedFolders│ │
 │    └─────────────────────┘     └─────────────────────────┘ │
 │                                                             │
 │    Sidebar:                                                 │
-│    ▾ Dashboard        ← View 1 (Viewer)                    │
-│      ├ View All                                             │
-│      └ Search                                               │
-│    ▾ Manage Folders   ← View 2 (Manager)                   │
-│      ├ 📁 Sales (assigned)                                  │
-│      └ 📁 Finance (assigned)                                │
+│    ▾ แดชบอร์ด          ← View 1 (Viewer)                   │
+│      ├ 🏠 หน้าแรก                                           │
+│      └ 📊 แดชบอร์ดทั้งหมด                                    │
+│    ▾ จัดการ            ← View 2 (Manager)                   │
+│      └ 📁 Explorer      (/manage/explorer)                  │
+│                                                             │
+│    Note: /manage/permissions accessible via 🔑 buttons      │
+│    in explorer (on dashboard rows and search results)       │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -241,7 +246,7 @@ Is item in assignedFolders?
    YES → Which view?
     │     │
     │    View 1 (Dashboard) → Read-only (view, search, filter)
-    │    View 2 (Manage)    → Full CRUD + tag assign
+    │    View 2 (จัดการ)    → Full CRUD + tag assign + permissions (L1+L2)
     │
    NO → View 1 behavior only (read-only, if has access permission)
 ```
@@ -462,9 +467,13 @@ User CAN ACCESS if:
     OR "group:{userGroup}" in access.company[userCompany]
   )
   AND userCompany EXISTS in access.company
-  
+
 (MUST have both role/group AND company match)
 ```
+
+> **UI Note:** The PermissionEditor UI uses **Groups only** for company-scoped access.
+> The `roles` field is preserved in the data model for backward compatibility and admin API usage,
+> but the 3-column UI only exposes group checkboxes. Moderators can configure groups for **all companies**.
 
 **Layer 3: Restrictions (Explicit Deny)**
 ```
@@ -697,6 +706,13 @@ Access Results:
 - [ ] Create TagBadge, TagSelector, TagFilter, TagManager components
 - [ ] Restructure sidebar navigation (role-based menus)
 - [ ] Implement Moderator dual-view switching (Viewer/Manager)
+- [x] Refactor PermissionEditor to 3-column pattern (3 tabs)
+- [x] Create `/manage/permissions` page (moderator permission editor)
+- [x] Create `/manage/explorer` page (unified folder + dashboard management, replaces separate dashboards/folders pages)
+- [x] Create `/admin/explorer` page (admin file explorer with moderator assignment)
+- [x] Create shared ExplorerPage + PermissionsPage components
+- [x] Update moderator sidebar navigation → Explorer menu
+- [x] Add 🔑 shortcut buttons in explorer → permissions page
 
 ---
 
@@ -709,5 +725,5 @@ Access Results:
 
 ---
 
-**Last Updated:** 2024-01-27  
-**Version:** 3.0 (Contextual INTERSECT + Mixed Permissions)
+**Last Updated:** 2026-03-16
+**Version:** 5.0 (Explorer-Based Management + 3-Column PermissionEditor)

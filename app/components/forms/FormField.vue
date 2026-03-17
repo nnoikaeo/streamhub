@@ -10,13 +10,18 @@
 
 interface Props {
   modelValue: string | number | boolean | string[]
-  type?: 'text' | 'email' | 'number' | 'select' | 'textarea' | 'checkbox' | 'multi-select'
+  type?: 'text' | 'email' | 'number' | 'select' | 'grouped-select' | 'textarea' | 'checkbox' | 'multi-select'
   label?: string
   placeholder?: string
   error?: string
   required?: boolean
   disabled?: boolean
   options?: Array<{ label: string; value: string | number }>
+  groupedOptions?: Array<{
+    group?: string
+    items: Array<{ label: string; value: string }>
+  }>
+  hideBlankOption?: boolean
   rows?: number // For textarea
   description?: string
 }
@@ -94,10 +99,37 @@ const fieldId = computed(() => `field-${Math.random().toString(36).substr(2, 9)}
       @blur="$emit('blur')"
       @focus="$emit('focus')"
     >
-      <option value="">-- {{ placeholder || 'เลือก' }} --</option>
+      <option v-if="!hideBlankOption" value="">-- {{ placeholder || 'เลือก' }} --</option>
       <option v-for="opt in options" :key="opt.value" :value="opt.value">
         {{ opt.label }}
       </option>
+    </select>
+
+    <!-- Grouped Select -->
+    <select
+      v-else-if="type === 'grouped-select'"
+      :id="fieldId"
+      v-model="inputValue"
+      :disabled="disabled"
+      :aria-invalid="isFieldError"
+      :aria-describedby="error ? `${fieldId}-error` : undefined"
+      class="form-input form-select"
+      :class="{ 'form-input--error': isFieldError }"
+      @blur="$emit('blur')"
+      @focus="$emit('focus')"
+    >
+      <template v-for="section in groupedOptions" :key="section.group ?? '_ungrouped'">
+        <optgroup v-if="section.group" :label="section.group">
+          <option v-for="opt in section.items" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </option>
+        </optgroup>
+        <template v-else>
+          <option v-for="opt in section.items" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </option>
+        </template>
+      </template>
     </select>
 
     <!-- Checkbox -->
