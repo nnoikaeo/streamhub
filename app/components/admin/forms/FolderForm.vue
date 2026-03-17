@@ -154,6 +154,7 @@ defineExpose({ submit: handleSubmit })
       type="select"
       label="โฟลเดอร์หลัก"
       :options="parentFolderOptions"
+      :hide-blank-option="true"
       :description="'เลือกโฟลเดอร์หลักสำหรับสร้างลำดับชั้น'"
     />
   </form>
