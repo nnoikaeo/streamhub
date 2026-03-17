@@ -124,12 +124,28 @@ const sortedDashboards = computed(() => {
 /** Pre-filter folder from query param */
 const preFilterFolderId = computed(() => route.query.folder as string | undefined)
 
+/** Get all descendant folder IDs (including the folder itself) */
+const getDescendantFolderIds = (folderId: string): Set<string> => {
+  const ids = new Set<string>([folderId])
+  const collectChildren = (parentId: string) => {
+    for (const folder of props.allFolders) {
+      if (folder.parentId === parentId && !ids.has(folder.id)) {
+        ids.add(folder.id)
+        collectChildren(folder.id)
+      }
+    }
+  }
+  collectChildren(folderId)
+  return ids
+}
+
 const filteredDashboards = computed(() => {
   let list = sortedDashboards.value
 
-  // Pre-filter by folder when navigated from explorer with ?folder=id
+  // Pre-filter by folder (including subfolders) when navigated from explorer with ?folder=id
   if (preFilterFolderId.value) {
-    list = list.filter(d => d.folderId === preFilterFolderId.value)
+    const folderIds = getDescendantFolderIds(preFilterFolderId.value)
+    list = list.filter(d => folderIds.has(d.folderId))
   }
 
   if (!dashboardSearchQuery.value) return list
