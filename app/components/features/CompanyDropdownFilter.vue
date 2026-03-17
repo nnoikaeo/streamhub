@@ -14,7 +14,7 @@
       :value="modelValue ?? ''"
       @change="handleChange"
     >
-      <option value="">ทุกบริษัท</option>
+      <option value="">{{ placeholder }}</option>
 
       <!-- Companies without region (e.g. STTH, STTN, STCS) -->
       <option
@@ -52,10 +52,12 @@ const props = withDefaults(defineProps<{
   regions?: Region[]
   modelValue: string | null
   showIcon?: boolean
+  placeholder?: string
 }>(), {
   modelValue: null,
   regions: () => [],
   showIcon: true,
+  placeholder: 'ทุกบริษัท',
 })
 
 const emit = defineEmits<{

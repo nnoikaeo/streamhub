@@ -338,6 +338,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                 :companies="companies"
                 :regions="regions"
                 :show-icon="false"
+                placeholder="-- ทุกบริษัท --"
               />
             </div>
 
