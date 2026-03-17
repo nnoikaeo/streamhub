@@ -21,6 +21,7 @@ interface Props {
     group?: string
     items: Array<{ label: string; value: string }>
   }>
+  hideBlankOption?: boolean
   rows?: number // For textarea
   description?: string
 }
@@ -98,7 +99,7 @@ const fieldId = computed(() => `field-${Math.random().toString(36).substr(2, 9)}
       @blur="$emit('blur')"
       @focus="$emit('focus')"
     >
-      <option value="">-- {{ placeholder || 'เลือก' }} --</option>
+      <option v-if="!hideBlankOption" value="">-- {{ placeholder || 'เลือก' }} --</option>
       <option v-for="opt in options" :key="opt.value" :value="opt.value">
         {{ opt.label }}
       </option>
