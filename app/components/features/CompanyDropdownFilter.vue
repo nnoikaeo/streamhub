@@ -10,7 +10,7 @@
       <line x1="9" y1="18" x2="15" y2="18" />
     </svg>
     <select
-      class="company-dropdown-filter__select"
+      class="theme-form-select"
       :value="modelValue ?? ''"
       @change="handleChange"
     >
@@ -132,37 +132,9 @@ const handleChange = (event: Event) => {
   flex-shrink: 0;
 }
 
-.company-dropdown-filter__select {
-  padding: 6px 12px;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-  transition: border-color var(--transition-fast);
-  min-width: 120px;
-}
-
-.company-dropdown-filter__select:hover {
-  border-color: var(--color-border-default);
-}
-
-.company-dropdown-filter__select:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb, 59, 130, 246), 0.15);
-}
-
 @media (max-width: 768px) {
   .company-dropdown-filter {
     width: 100%;
-  }
-
-  .company-dropdown-filter__select {
-    width: 100%;
-    min-width: unset;
   }
 }
 </style>
