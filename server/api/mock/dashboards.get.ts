@@ -17,9 +17,11 @@ export default defineEventHandler(async (event) => {
       }
 
       const dashboards = await readJSON('dashboards.json')
+      const folders = await readJSON('folders.json')
       console.log(`  📊 Total dashboards loaded: ${dashboards.length}`)
+      console.log(`  📁 Total folders loaded: ${(folders as any[]).length}`)
 
-      let filtered = filterAccessibleDashboards(dashboards as any[], accessResult.user)
+      let filtered = filterAccessibleDashboards(dashboards as any[], accessResult.user, folders as any[])
 
       if (query.folderId) {
         filtered = filtered.filter((d: any) => d.folderId === query.folderId)

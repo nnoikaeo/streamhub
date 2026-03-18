@@ -56,54 +56,112 @@ export async function validateCompanyAccess(
 }
 
 /**
- * ตรวจสอบว่า user มีสิทธิ์เข้าถึง dashboard ตาม 3-layer model
- * ใช้กับ API endpoint ที่ดึง dashboard เฉพาะ
+ * Walk folder chain upward from a given folderId, returning ancestors
+ * that have inheritPermissions=true (and have access defined).
+ */
+export function getInheritingAncestors(
+  folderId: string,
+  folders: any[]
+): any[] {
+  const ancestors: any[] = []
+  let currentId: string | null = folderId
+
+  while (currentId) {
+    const folder = folders.find((f: any) => f.id === currentId)
+    if (!folder) break
+
+    if (folder.inheritPermissions && folder.access) {
+      ancestors.push(folder)
+    }
+
+    currentId = folder.parentId || null
+  }
+
+  return ancestors
+}
+
+/**
+ * Check if a single access+restrictions source blocks the user (restrictions check).
+ */
+function isRestricted(restrictions: any, uid: string): boolean {
+  if (!restrictions) return false
+  if (restrictions.revoke?.includes(uid)) return true
+  const expiryDate = restrictions.expiry?.[uid]
+  if (expiryDate && new Date(expiryDate) < new Date()) return true
+  return false
+}
+
+/**
+ * Check if a single access source grants access to the user (Layer 1 + Layer 2).
+ */
+function matchesAccessRules(access: any, user: any): boolean {
+  if (!access) return false
+  // Layer 1: Direct access
+  if (access.direct?.users?.includes(user.uid)) return true
+  if (user.groups?.some((g: string) => access.direct?.groups?.includes(g))) return true
+  // Layer 2: Company-scoped
+  if (Array.isArray(access.company) && access.company.includes(user.company)) return true
+  return false
+}
+
+/**
+ * ตรวจสอบว่า user มีสิทธิ์เข้าถึง dashboard ตาม 3-layer model + folder inheritance
+ *
+ * OR-merge formula:
+ *   Final = (DashboardPerms OR FolderPerms) AND NOT (DashboardRestrictions OR FolderRestrictions)
  */
 export function checkDashboardAccess(
   dashboard: any,
-  user: any
+  user: any,
+  folders?: any[]
 ): { allowed: boolean; reason: string } {
-  // Admin bypass
+  // Admin bypass (still respect explicit revocation)
   if (user.role === 'admin') {
+    const restrictions = dashboard.restrictions || { revoke: [], expiry: {} }
+    if (restrictions.revoke?.includes(user.uid)) {
+      return { allowed: false, reason: 'Access revoked' }
+    }
     return { allowed: true, reason: 'Admin access' }
   }
 
-  const access = dashboard.access || { direct: { users: [], groups: [] }, company: [] }
-  const restrictions = dashboard.restrictions || { revoke: [], expiry: {} }
+  // Collect inheriting ancestor folders
+  const ancestorFolders = folders
+    ? getInheritingAncestors(dashboard.folderId, folders)
+    : []
 
-  // Layer 3: Check restrictions first (deny overrides)
-  if (restrictions.revoke?.includes(user.uid)) {
-    return { allowed: false, reason: 'Access revoked' }
+  // Check ALL restrictions first (dashboard + folder) — deny overrides
+  const dashRestrictions = dashboard.restrictions || { revoke: [], expiry: {} }
+  if (isRestricted(dashRestrictions, user.uid)) {
+    return { allowed: false, reason: 'Access revoked or expired' }
+  }
+  for (const folder of ancestorFolders) {
+    if (isRestricted(folder.restrictions, user.uid)) {
+      return { allowed: false, reason: `Restricted by folder: ${folder.name || folder.id}` }
+    }
   }
 
-  const expiryDate = restrictions.expiry?.[user.uid]
-  if (expiryDate && new Date(expiryDate) < new Date()) {
-    return { allowed: false, reason: 'Access expired' }
+  // OR-merge: Dashboard permissions OR any ancestor folder permissions
+  const dashAccess = dashboard.access || { direct: { users: [], groups: [] }, company: [] }
+  if (matchesAccessRules(dashAccess, user)) {
+    return { allowed: true, reason: 'Dashboard access' }
   }
-
-  // Layer 1: Direct access (OR condition)
-  if (access.direct?.users?.includes(user.uid)) {
-    return { allowed: true, reason: 'Direct user access' }
-  }
-  if (user.groups?.some((g: string) => access.direct?.groups?.includes(g))) {
-    return { allowed: true, reason: 'Direct group access' }
-  }
-
-  // Layer 2: Company-scoped — any user from a listed company gets access
-  if (Array.isArray(access.company) && access.company.includes(user.company)) {
-    return { allowed: true, reason: 'Company access' }
+  for (const folder of ancestorFolders) {
+    if (matchesAccessRules(folder.access, user)) {
+      return { allowed: true, reason: `Inherited from folder: ${folder.name || folder.id}` }
+    }
   }
 
   return { allowed: false, reason: 'No matching access rule' }
 }
 
 /**
- * Filter dashboards ที่ user มีสิทธิ์เข้าถึง
+ * Filter dashboards ที่ user มีสิทธิ์เข้าถึง (folder-aware)
  */
 export function filterAccessibleDashboards(
   dashboards: any[],
-  user: any
+  user: any,
+  folders?: any[]
 ): any[] {
   if (user.role === 'admin') return dashboards
-  return dashboards.filter(d => checkDashboardAccess(d, user).allowed)
+  return dashboards.filter(d => checkDashboardAccess(d, user, folders).allowed)
 }
