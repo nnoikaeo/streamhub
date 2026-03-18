@@ -25,7 +25,7 @@ import type {
 
 export class JSONMockService implements IDashboardService {
   private baseURL = '/api/mock'
-  private DEBUG = true
+  private DEBUG = false
 
   private log(label: string, data?: any) {
     if (this.DEBUG) {
@@ -394,18 +394,18 @@ export class JSONMockService implements IDashboardService {
       const dashboard = await this.getDashboard(dashboardId)
       if (!dashboard) {
         return {
-          access: { direct: { users: [], roles: [], groups: [] }, company: {} },
+          access: { direct: { users: [], groups: [] }, company: [] },
           restrictions: { revoke: [], expiry: {} },
         }
       }
       return {
-        access: dashboard.access ?? { direct: { users: [], roles: [], groups: [] }, company: {} },
+        access: dashboard.access ?? { direct: { users: [], groups: [] }, company: [] },
         restrictions: dashboard.restrictions ?? { revoke: [], expiry: {} },
       }
     } catch (error) {
       console.error('❌ [JSONMockService] getDashboardPermissions error:', error)
       return {
-        access: { direct: { users: [], roles: [], groups: [] }, company: {} },
+        access: { direct: { users: [], groups: [] }, company: [] },
         restrictions: { revoke: [], expiry: {} },
       }
     }
@@ -420,9 +420,6 @@ export class JSONMockService implements IDashboardService {
   ): Promise<{ success: boolean; message: string; updatedAt: Date }> {
     try {
       this.log('saveDashboardPermissions:', { dashboardId, permissions })
-      console.log(
-        '📝 [JSONMockService] Permissions saved (mock implementation)'
-      )
       return { success: true, message: 'Permissions saved successfully', updatedAt: new Date() }
     } catch (error) {
       console.error(
@@ -443,9 +440,6 @@ export class JSONMockService implements IDashboardService {
   ): Promise<boolean> {
     try {
       this.log('quickShareDashboard:', { dashboardId, userIds, expiryDate })
-      console.log(
-        '📝 [JSONMockService] Dashboard shared (mock implementation)'
-      )
       return true
     } catch (error) {
       console.error('❌ [JSONMockService] quickShareDashboard error:', error)
@@ -459,7 +453,6 @@ export class JSONMockService implements IDashboardService {
   async getAuditLog(options?: any): Promise<AuditLogEntry[]> {
     try {
       this.log('getAuditLog called')
-      console.log('📝 [JSONMockService] Returning empty audit log (mock)')
       return []
     } catch (error) {
       console.error('❌ [JSONMockService] getAuditLog error:', error)
