@@ -15,6 +15,12 @@ import type {
   GetFoldersResponse,
   AuditLogEntry,
   IDashboardService,
+  AccessControl,
+  AccessRestrictions,
+  PermissionMetadata,
+  SaveFolderPermissionsRequest,
+  FolderPermissionsResponse,
+  SavePermissionsResponse,
 } from '~/types/dashboard'
 
 export class JSONMockService implements IDashboardService {
@@ -457,6 +463,122 @@ export class JSONMockService implements IDashboardService {
       return []
     } catch (error) {
       console.error('❌ [JSONMockService] getAuditLog error:', error)
+      return []
+    }
+  }
+
+  /**
+   * Save folder-level permissions via POST /api/mock/folders
+   */
+  async saveFolderPermissions(
+    request: SaveFolderPermissionsRequest
+  ): Promise<SavePermissionsResponse> {
+    try {
+      this.log('saveFolderPermissions:', request.folderId)
+
+      // Fetch existing folder to merge
+      const folder = await this.getFolder(request.folderId)
+      if (!folder) {
+        return { success: false, message: 'Folder not found', updatedAt: new Date() }
+      }
+
+      const updatedFolder = {
+        ...folder,
+        access: request.access,
+        restrictions: request.restrictions,
+        inheritPermissions: request.inheritPermissions,
+        permissionMeta: request.permissionMeta,
+        updatedAt: new Date().toISOString(),
+      }
+
+      const response = await $fetch(`${this.baseURL}/folders`, {
+        method: 'POST',
+        body: updatedFolder,
+      }) as { success: boolean; message?: string }
+
+      if (response.success) {
+        this.log('✅ saveFolderPermissions: Saved')
+        return { success: true, message: 'Folder permissions saved', updatedAt: new Date() }
+      }
+
+      return { success: false, message: 'Failed to save folder permissions', updatedAt: new Date() }
+    } catch (error) {
+      console.error('❌ [JSONMockService] saveFolderPermissions error:', error)
+      return { success: false, message: 'Failed to save folder permissions', updatedAt: new Date() }
+    }
+  }
+
+  /**
+   * Get folder permissions from folder data
+   */
+  async getFolderPermissions(folderId: string): Promise<FolderPermissionsResponse> {
+    try {
+      this.log('getFolderPermissions:', folderId)
+
+      const folder = await this.getFolder(folderId)
+      if (!folder) {
+        return {
+          access: { direct: { users: [], groups: [] }, company: [] },
+          restrictions: { revoke: [], expiry: {} },
+          inheritPermissions: false,
+        }
+      }
+
+      return {
+        access: folder.access ?? { direct: { users: [], groups: [] }, company: [] },
+        restrictions: folder.restrictions ?? { revoke: [], expiry: {} },
+        inheritPermissions: folder.inheritPermissions ?? false,
+        permissionMeta: folder.permissionMeta,
+      }
+    } catch (error) {
+      console.error('❌ [JSONMockService] getFolderPermissions error:', error)
+      return {
+        access: { direct: { users: [], groups: [] }, company: [] },
+        restrictions: { revoke: [], expiry: {} },
+        inheritPermissions: false,
+      }
+    }
+  }
+
+  /**
+   * Resolve effective users from access rules (deduplicated)
+   */
+  async resolveEffectiveUsers(
+    access: AccessControl,
+    restrictions: AccessRestrictions,
+    allUsers: User[],
+    allGroups: { id: string; members: string[] }[]
+  ): Promise<User[]> {
+    try {
+      this.log('resolveEffectiveUsers called')
+
+      const uids = new Set<string>()
+
+      // Direct users
+      for (const uid of access.direct.users) uids.add(uid)
+
+      // Group members
+      for (const gid of access.direct.groups) {
+        const group = allGroups.find(g => g.id === gid)
+        if (group) group.members.forEach(uid => uids.add(uid))
+      }
+
+      // Company users
+      for (const companyCode of access.company) {
+        allUsers.filter(u => u.company === companyCode).forEach(u => uids.add(u.uid))
+      }
+
+      // Remove restricted
+      for (const uid of restrictions.revoke) uids.delete(uid)
+      const now = new Date()
+      for (const [uid, date] of Object.entries(restrictions.expiry)) {
+        if (new Date(date as any) < now) uids.delete(uid)
+      }
+
+      this.log(`✅ resolveEffectiveUsers: ${uids.size} users`)
+      return allUsers.filter(u => uids.has(u.uid))
+    } catch (error) {
+      console.error('❌ [JSONMockService] resolveEffectiveUsers error:', error)
       return []
     }
   }
