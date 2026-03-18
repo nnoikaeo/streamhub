@@ -601,24 +601,19 @@ const saveFolderPermissions = async () => {
     isSaving.value = true
     errorMessage.value = null
 
-    const updatedFolder = {
-      ...currentEditFolder.value,
+    const permissionMeta: PermissionMetadata = {
+      setBy: user.value?.uid ?? '',
+      setByName: user.value?.name ?? '',
+      setAt: new Date().toISOString(),
+    }
+
+    const response = await dashboardService.saveFolderPermissions({
+      folderId: selectedEditFolderId.value,
       access: folderPermissions.value.access,
       restrictions: folderPermissions.value.restrictions,
       inheritPermissions: folderInheritEnabled.value,
-      permissionMeta: {
-        setBy: user.value?.uid ?? '',
-        setByName: user.value?.name ?? '',
-        setAt: new Date().toISOString(),
-      } as PermissionMetadata,
-      updatedAt: new Date().toISOString(),
-      updatedBy: user.value?.uid ?? '',
-    }
-
-    const response = await $fetch('/api/mock/folders', {
-      method: 'POST',
-      body: updatedFolder,
-    }) as { success: boolean; message?: string }
+      permissionMeta,
+    })
 
     if (response.success) {
       if (cameFromExplorer.value) {
@@ -627,7 +622,13 @@ const saveFolderPermissions = async () => {
       }
       successMessage.value = `บันทึกสิทธิ์สำหรับโฟลเดอร์ "${currentEditFolder.value.name}" แล้ว`
       originalFolderPermissions.value = JSON.parse(JSON.stringify(folderPermissions.value))
-      currentEditFolder.value = { ...currentEditFolder.value, ...updatedFolder }
+      currentEditFolder.value = {
+        ...currentEditFolder.value,
+        access: folderPermissions.value.access,
+        restrictions: folderPermissions.value.restrictions,
+        inheritPermissions: folderInheritEnabled.value,
+        permissionMeta,
+      }
       setTimeout(() => { successMessage.value = null }, 5000)
     } else {
       errorMessage.value = response.message || 'ไม่สามารถบันทึกสิทธิ์ได้'

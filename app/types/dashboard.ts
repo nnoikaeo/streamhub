@@ -234,6 +234,21 @@ export interface SavePermissionsRequest {
   updatedBy: string
 }
 
+export interface SaveFolderPermissionsRequest {
+  folderId: string
+  access: AccessControl
+  restrictions: AccessRestrictions
+  inheritPermissions: boolean
+  permissionMeta: PermissionMetadata
+}
+
+export interface FolderPermissionsResponse {
+  access: AccessControl
+  restrictions: AccessRestrictions
+  inheritPermissions: boolean
+  permissionMeta?: PermissionMetadata
+}
+
 export interface SavePermissionsResponse {
   success: boolean
   message?: string

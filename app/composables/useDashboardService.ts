@@ -21,7 +21,12 @@ import type {
   GetDashboardsResponse,
   GetFoldersResponse,
   SavePermissionsRequest,
+  SaveFolderPermissionsRequest,
+  FolderPermissionsResponse,
   SavePermissionsResponse,
+  AccessControl,
+  AccessRestrictions,
+  PermissionMetadata,
   AuditLogEntry,
 } from '~/types/dashboard'
 
@@ -145,6 +150,32 @@ export interface IDashboardService {
    * Get who actually has access to dashboard (expanded view)
    */
   getAccessibleUsers(dashboardId: string): Promise<User[]>
+
+  // ========== FOLDER PERMISSIONS ==========
+
+  /**
+   * Save folder-level permissions
+   */
+  saveFolderPermissions(
+    request: SaveFolderPermissionsRequest
+  ): Promise<SavePermissionsResponse>
+
+  /**
+   * Get current permissions for a folder
+   */
+  getFolderPermissions(
+    folderId: string
+  ): Promise<FolderPermissionsResponse>
+
+  /**
+   * Resolve effective users (deduplicated) from access rules
+   */
+  resolveEffectiveUsers(
+    access: AccessControl,
+    restrictions: AccessRestrictions,
+    allUsers: User[],
+    allGroups: { id: string; members: string[] }[]
+  ): Promise<User[]>
 
   // ========== QUICK SHARE (MODERATOR) ==========
 
@@ -560,6 +591,70 @@ export class MockDashboardService implements IDashboardService {
     return this.users.filter((u) => result.has(u.uid))
   }
 
+  async saveFolderPermissions(
+    request: SaveFolderPermissionsRequest
+  ): Promise<SavePermissionsResponse> {
+    await this.loadData()
+    const folder = this.folders.find(f => f.id === request.folderId)
+    if (!folder) {
+      return { success: false, message: 'Folder not found', updatedAt: new Date() }
+    }
+    folder.access = request.access
+    folder.restrictions = request.restrictions
+    folder.inheritPermissions = request.inheritPermissions
+    folder.permissionMeta = request.permissionMeta
+    return { success: true, message: 'Folder permissions saved', updatedAt: new Date() }
+  }
+
+  async getFolderPermissions(folderId: string): Promise<FolderPermissionsResponse> {
+    const folder = await this.getFolder(folderId)
+    if (!folder) {
+      return {
+        access: { direct: { users: [], groups: [] }, company: [] },
+        restrictions: { revoke: [], expiry: {} },
+        inheritPermissions: false,
+      }
+    }
+    return {
+      access: folder.access ?? { direct: { users: [], groups: [] }, company: [] },
+      restrictions: folder.restrictions ?? { revoke: [], expiry: {} },
+      inheritPermissions: folder.inheritPermissions ?? false,
+      permissionMeta: folder.permissionMeta,
+    }
+  }
+
+  async resolveEffectiveUsers(
+    access: AccessControl,
+    restrictions: AccessRestrictions,
+    allUsers: User[],
+    allGroups: { id: string; members: string[] }[]
+  ): Promise<User[]> {
+    const uids = new Set<string>()
+
+    // Direct users
+    for (const uid of access.direct.users) uids.add(uid)
+
+    // Group members
+    for (const gid of access.direct.groups) {
+      const group = allGroups.find(g => g.id === gid)
+      if (group) group.members.forEach(uid => uids.add(uid))
+    }
+
+    // Company users
+    for (const companyCode of access.company) {
+      allUsers.filter(u => u.company === companyCode).forEach(u => uids.add(u.uid))
+    }
+
+    // Remove restricted
+    for (const uid of restrictions.revoke) uids.delete(uid)
+    const now = new Date()
+    for (const [uid, date] of Object.entries(restrictions.expiry)) {
+      if (new Date(date as any) < now) uids.delete(uid)
+    }
+
+    return allUsers.filter(u => uids.has(u.uid))
+  }
+
   async quickShareDashboard(
     dashboardId: string,
     selectedUserIds: string[],
@@ -792,6 +887,26 @@ export const useDashboardService = (): IDashboardService => {
         async getAuditLog(options?: any) {
           const service = await this.initJsonService()
           return service.getAuditLog(options)
+        }
+
+        async saveFolderPermissions(request: SaveFolderPermissionsRequest) {
+          const service = await this.initJsonService()
+          return service.saveFolderPermissions(request)
+        }
+
+        async getFolderPermissions(folderId: string) {
+          const service = await this.initJsonService()
+          return service.getFolderPermissions(folderId)
+        }
+
+        async resolveEffectiveUsers(
+          access: AccessControl,
+          restrictions: AccessRestrictions,
+          allUsers: User[],
+          allGroups: { id: string; members: string[] }[]
+        ) {
+          const service = await this.initJsonService()
+          return service.resolveEffectiveUsers(access, restrictions, allUsers, allGroups)
         }
       })()
     } else {
