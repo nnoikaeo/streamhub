@@ -1,11 +1,11 @@
 # 🔐 Roles & Permissions Guide
 
-> **Document Status:** Single Source of Truth for Roles & Access Control  
-> **Last Updated:** 2026-03-16
+> **Document Status:** Single Source of Truth for Roles & Access Control
+> **Last Updated:** 2026-03-18
 > **Document Owner:** Development Team
-> **Version:** 5.0 (Explorer-Based Management + 3-Column PermissionEditor)
+> **Version:** 6.0 (Unified 3-Column Inline + Folder Permissions + Provenance)
 
-**StreamHub Role-Based Access Control (RBAC) with Structured Permissions (Direct + Company-Scoped)**
+**StreamHub Role-Based Access Control (RBAC) with Simplified Permissions (Direct + Company-Scoped)**
 
 ---
 
@@ -352,71 +352,67 @@ const ROLE_PERMISSIONS = {
 
 ---
 
-### Dashboard Access Structure
+### Dashboard / Folder Access Structure (v6.0)
 
-Dashboards use a **structured 3-layer permission model**:
-
-```firestore
-/dashboards/{dashboardId}
-  ├── title: string
-  ├── company: string          // REQUIRED: Dashboard owner (STTH, STTN, etc.)
-  ├── folder: string
-  │
-  ├── access: {
-  │   // ============================================================
-  │   // Layer 1: Direct Access (Standalone OR - no restrictions)
-  │   // ============================================================
-  │   direct: {
-  │     "uid:uid-1": ["view"],
-  │     "uid:uid-2": ["view"],
-  │     "group:board_members": ["view"],  // Cross-company groups OK
-  │     "role:admin": ["view", "edit", "delete"]
-  │   },
-  │   
-  │   // ============================================================
-  │   // Layer 2: Company-Scoped Access (AND with company - secure)
-  │   // ============================================================
-  │   company: {
-  │     "STTH": {
-  │       "role:user": ["view"],
-  │       "role:moderator": ["view", "edit"],
-  │       "group:finance": ["view", "edit"]
-  │     },
-  │     "STTN": {
-  │       "role:user": ["view"],
-  │       "group:finance": ["view"]
-  │     }
-  │   }
-  │ },
-  │
-  ├── restrictions: {
-  │   revoke: ["uid:uid-5"],               // Explicitly deny
-  │   expiry: {
-  │     "uid:uid-6": "2024-02-22T23:59:59Z" // Auto-revoke after date
-  │   }
-  │ }
-  │
-  └── metadata: {
-      createdBy: string
-      createdAt: timestamp
-      updatedAt: timestamp
-    }
-```
-
----
-
-### Permission Levels
-
-All access fields use this array:
+Dashboards and folders use a **simplified 3-layer permission model**:
 
 ```typescript
-type Permission = "view" | "edit" | "delete"
+// Layer 1: Direct Access
+interface DirectAccess {
+  users: string[]   // User UIDs (direct grant)
+  groups: string[]  // Group IDs (cross-company groups OK)
+}
 
-// Examples:
-"uid:uid-1": ["view"]                      // View only
-"group:finance": ["view", "edit"]           // View + Edit
-"role:admin": ["view", "edit", "delete"]    // Full access
+// Layer 2: Company-Scoped Access
+// Selecting a company = ALL users in that company get access
+type CompanyAccess = string[]  // Company IDs e.g. ["STTH", "STTN"]
+
+// Combined
+interface AccessControl {
+  direct: DirectAccess
+  company: CompanyAccess
+}
+
+// Layer 3: Restrictions (Explicit Deny)
+interface AccessRestrictions {
+  revoke: string[]   // UIDs explicitly denied
+  expiry: { [userId: string]: Date }  // Time-limited access
+}
 ```
+
+**Permission Metadata** (provenance tracking):
+
+```typescript
+interface PermissionMetadata {
+  setBy: string      // UID of the user who set the permission
+  setByName?: string // Display name (denormalized)
+  setAt: string      // ISO date string
+}
+```
+
+**Folder-level Permissions** (v6.0):
+
+```typescript
+interface Folder {
+  // ... existing fields ...
+  access?: AccessControl           // Optional folder-level permissions
+  restrictions?: AccessRestrictions
+  inheritPermissions?: boolean     // Default false — when true, cascades to all dashboards
+  permissionMeta?: PermissionMetadata
+}
+```
+
+**OR-merge rule:**
+```
+Final access = (DashboardPerms OR FolderPerms) AND NOT (DashboardRestrictions OR FolderRestrictions)
+```
+
+**Changes from v5.0:**
+- `direct.roles[]` removed — roles no longer used in direct access
+- `company` changed from `{ [companyId]: { roles, groups } }` → `string[]`
+- Selecting a company grants access to ALL users in that company (no group/role filter)
+- New: `permissionMeta` for provenance tracking
+- New: `Folder.inheritPermissions` for folder-level cascade
 
 ---
 
@@ -447,33 +443,24 @@ Groups are shared across dashboards:
 
 ## ⚙️ Access Logic
 
-### Contextual INTERSECT (Layer-Based)
+### Access Logic (v6.0 — Simplified)
 
-**Layer 1: Direct Access (Standalone OR)**
+**Layer 1: Direct Access (OR)**
 ```
 User CAN ACCESS if:
-  "uid:{userId}" in access.direct
-  OR "role:admin" in access.direct
-  OR userInDirectGroups()
-  
+  userId in access.direct.users
+  OR any of user.groups in access.direct.groups
+
 (No company filter for direct access)
 ```
 
-**Layer 2: Company-Scoped (AND with company)**
+**Layer 2: Company-Scoped (simplified)**
 ```
 User CAN ACCESS if:
-  (
-    "role:{userRole}" in access.company[userCompany]
-    OR "group:{userGroup}" in access.company[userCompany]
-  )
-  AND userCompany EXISTS in access.company
+  user.company in access.company
 
-(MUST have both role/group AND company match)
+(Any user from a listed company gets access — no role/group filter needed)
 ```
-
-> **UI Note:** The PermissionEditor UI uses **Groups only** for company-scoped access.
-> The `roles` field is preserved in the data model for backward compatibility and admin API usage,
-> but the 3-column UI only exposes group checkboxes. Moderators can configure groups for **all companies**.
 
 **Layer 3: Restrictions (Explicit Deny)**
 ```
@@ -486,22 +473,27 @@ User CANNOT ACCESS if:
 ```javascript
 allow read: if
   // Layer 1: Direct (OR)
-  (direct["uid:" + uid] != null)
-  OR (direct["role:admin"] != null)
-  OR isUserInDirectGroups()
-  
-  // Layer 2: Company-Scoped (AND)
-  OR (
-    company[userCompany] != null
-    AND (
-      company[userCompany]["role:" + role] != null
-      OR isUserInCompanyGroups()
-    )
-  )
-  
+  access.direct.users.includes(userId)
+  OR user.groups.some(g => access.direct.groups.includes(g))
+
+  // Layer 2: Company-Scoped
+  OR access.company.includes(user.company)
+
   // Layer 3: Restrictions (AND NOT)
-  AND !isRevoked(uid, restrictions.revoke)
-  AND !isExpired(uid, restrictions.expiry);
+  AND !restrictions.revoke.includes(userId)
+  AND !isExpired(userId, restrictions.expiry)
+```
+
+**Folder Inheritance:**
+```javascript
+// For each ancestor folder with inheritPermissions === true:
+folderGrant = folderAccess.company.includes(user.company)
+           || folderAccess.direct.users.includes(userId)
+           || user.groups.some(g => folderAccess.direct.groups.includes(g))
+
+// Final
+finalAccess = (dashboardGrant OR folderGrant)
+           AND NOT (dashboardRevoke OR folderRevoke)
 ```
 
 ---
@@ -725,5 +717,5 @@ Access Results:
 
 ---
 
-**Last Updated:** 2026-03-16
-**Version:** 5.0 (Explorer-Based Management + 3-Column PermissionEditor)
+**Last Updated:** 2026-03-18
+**Version:** 6.0 (Unified 3-Column Inline + Folder Permissions + Provenance)

@@ -18,22 +18,9 @@
     "access": {
       "direct": {
         "users": [],
-        "roles": [
-          "moderator"
-        ],
         "groups": []
       },
-      "company": {
-        "STTH": {
-          "roles": [
-            "user",
-            "moderator"
-          ],
-          "groups": [
-            "sales"
-          ]
-        }
-      }
+      "company": ["STTH"]
     },
     "restrictions": {
       "revoke": [],
@@ -62,19 +49,9 @@
           "user_somchai_mod",
           "user_teerak_user"
         ],
-        "roles": [],
         "groups": []
       },
-      "company": {
-        "STTH": {
-          "roles": [
-            "user"
-          ],
-          "groups": [
-            "finance"
-          ]
-        }
-      }
+      "company": ["STTH"]
     },
     "restrictions": {
       "revoke": [],
@@ -102,12 +79,9 @@
     "access": {
       "direct": {
         "users": [],
-        "roles": [
-          "admin"
-        ],
-        "groups": []
+        "groups": ["admin_group"]
       },
-      "company": {}
+      "company": []
     },
     "restrictions": {
       "revoke": [],
@@ -133,20 +107,9 @@
     "access": {
       "direct": {
         "users": [],
-        "roles": [],
         "groups": []
       },
-      "company": {
-        "STTH": {
-          "roles": [
-            "user",
-            "moderator"
-          ],
-          "groups": [
-            "finance"
-          ]
-        }
-      }
+      "company": ["STTH"]
     },
     "restrictions": {
       "revoke": [
@@ -172,12 +135,11 @@
     "access": {
       "direct": {
         "users": [],
-        "roles": [],
         "groups": [
           "project_q1"
         ]
       },
-      "company": {}
+      "company": []
     },
     "restrictions": {
       "revoke": [],
@@ -206,23 +168,11 @@
         "users": [
           "user_somchai_mod"
         ],
-        "roles": [
-          "moderator"
-        ],
         "groups": [
           "sales"
         ]
       },
-      "company": {
-        "STTH": {
-          "roles": [
-            "user"
-          ],
-          "groups": [
-            "operations"
-          ]
-        }
-      }
+      "company": ["STTH"]
     },
     "restrictions": {
       "revoke": [],
@@ -248,19 +198,9 @@
     "access": {
       "direct": {
         "users": [],
-        "roles": [],
         "groups": []
       },
-      "company": {
-        "STTH": {
-          "roles": [
-            "user"
-          ],
-          "groups": [
-            "sales"
-          ]
-        }
-      }
+      "company": ["STTH"]
     },
     "restrictions": {
       "revoke": [],
@@ -282,10 +222,9 @@
     "access": {
       "direct": {
         "users": [],
-        "roles": [],
         "groups": []
       },
-      "company": {}
+      "company": []
     },
     "restrictions": {
       "revoke": [],

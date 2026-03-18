@@ -24,8 +24,25 @@
     ],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2026-03-16T17:53:13.703Z",
-    "updatedBy": "user-1"
+    "updatedAt": "2026-03-18T00:00:00.000Z",
+    "updatedBy": "user-1",
+    "inheritPermissions": true,
+    "access": {
+      "direct": {
+        "users": [],
+        "groups": []
+      },
+      "company": ["STTH"]
+    },
+    "restrictions": {
+      "revoke": [],
+      "expiry": {}
+    },
+    "permissionMeta": {
+      "setBy": "user-1",
+      "setByName": "Admin",
+      "setAt": "2026-03-18T00:00:00.000Z"
+    }
   },
   {
     "id": "folder_operations",
@@ -165,8 +182,14 @@
     ],
     "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-05T00:00:00.000Z",
-    "updatedAt": "2024-01-05T00:00:00.000Z",
-    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
+    "updatedAt": "2026-03-18T00:00:00.000Z",
+    "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93",
+    "inheritPermissions": true,
+    "permissionMeta": {
+      "setBy": "user_somchai_mod",
+      "setByName": "สมชาย",
+      "setAt": "2026-03-18T00:00:00.000Z"
+    }
   },
   {
     "id": "folder_finance_payroll",

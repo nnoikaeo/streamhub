@@ -68,7 +68,7 @@ export function checkDashboardAccess(
     return { allowed: true, reason: 'Admin access' }
   }
 
-  const access = dashboard.access || { direct: { users: [], roles: [], groups: [] }, company: {} }
+  const access = dashboard.access || { direct: { users: [], groups: [] }, company: [] }
   const restrictions = dashboard.restrictions || { revoke: [], expiry: {} }
 
   // Layer 3: Check restrictions first (deny overrides)
@@ -85,22 +85,13 @@ export function checkDashboardAccess(
   if (access.direct?.users?.includes(user.uid)) {
     return { allowed: true, reason: 'Direct user access' }
   }
-  if (access.direct?.roles?.includes(user.role)) {
-    return { allowed: true, reason: 'Direct role access' }
-  }
   if (user.groups?.some((g: string) => access.direct?.groups?.includes(g))) {
     return { allowed: true, reason: 'Direct group access' }
   }
 
-  // Layer 2: Company-scoped access (AND condition)
-  const companyAccess = access.company?.[user.company]
-  if (companyAccess) {
-    if (companyAccess.roles?.includes(user.role)) {
-      return { allowed: true, reason: 'Company-role access' }
-    }
-    if (user.groups?.some((g: string) => companyAccess.groups?.includes(g))) {
-      return { allowed: true, reason: 'Company-group access' }
-    }
+  // Layer 2: Company-scoped — any user from a listed company gets access
+  if (Array.isArray(access.company) && access.company.includes(user.company)) {
+    return { allowed: true, reason: 'Company access' }
   }
 
   return { allowed: false, reason: 'No matching access rule' }

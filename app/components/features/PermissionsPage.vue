@@ -78,7 +78,7 @@ const permissionsToEdit = ref<{
   access: AccessControl
   restrictions: AccessRestrictions
 }>({
-  access: { direct: { users: [], roles: [], groups: [] }, company: {} },
+  access: { direct: { users: [], groups: [] }, company: [] },
   restrictions: { revoke: [], expiry: {} },
 })
 
@@ -86,7 +86,7 @@ const originalPermissions = ref<{
   access: AccessControl
   restrictions: AccessRestrictions
 }>({
-  access: { direct: { users: [], roles: [], groups: [] }, company: {} },
+  access: { direct: { users: [], groups: [] }, company: [] },
   restrictions: { revoke: [], expiry: {} },
 })
 
