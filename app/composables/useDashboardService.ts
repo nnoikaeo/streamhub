@@ -273,7 +273,7 @@ export class MockDashboardService implements IDashboardService {
     }
 
     // Get accessible dashboards
-    const accessible = getAccessibleDashboards(user, this.dashboards)
+    const accessible = getAccessibleDashboards(user, this.dashboards, this.folders)
     const accessibleFolderIds = new Set(
       accessible.map((d) => d.folderId)
     )
@@ -350,7 +350,7 @@ export class MockDashboardService implements IDashboardService {
       return { dashboards: [], total: 0, hasMore: false }
     }
 
-    let accessible = getAccessibleDashboards(user, this.dashboards)
+    let accessible = getAccessibleDashboards(user, this.dashboards, this.folders)
 
     // Filter by folder if specified
     if (options?.folderId) {
@@ -394,7 +394,7 @@ export class MockDashboardService implements IDashboardService {
     if (!user) return []
 
     const allInFolder = getMockDashboardsByFolder(folderId, this.dashboards)
-    return getAccessibleDashboards(user, allInFolder)
+    return getAccessibleDashboards(user, allInFolder, this.folders)
   }
 
   async getDashboardCard(

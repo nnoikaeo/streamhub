@@ -7,7 +7,6 @@
  * const dashboards = await service.getDashboards(userId, companyId)
  */
 
-import { getAccessibleDashboards } from '~/composables/useMockData'
 import type {
   User,
   Dashboard,
