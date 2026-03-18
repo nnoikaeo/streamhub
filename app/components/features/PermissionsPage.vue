@@ -16,7 +16,8 @@ import PageLayout from '~/components/compositions/PageLayout.vue'
 import PermissionEditor from '~/components/features/PermissionEditor.vue'
 import { useDashboardService } from '~/composables/useDashboardService'
 import { useAuth } from '~/composables/useAuth'
-import type { Dashboard, User, AccessControl, AccessRestrictions, Folder } from '~/types/dashboard'
+import type { Dashboard, User, AccessControl, AccessRestrictions, Folder, PermissionMetadata } from '~/types/dashboard'
+import type { AdminGroup, Company } from '~/types/admin'
 
 interface Props {
   /** Dashboards available for selection */
@@ -90,6 +91,32 @@ const originalPermissions = ref<{
   restrictions: { revoke: [], expiry: {} },
 })
 
+// ─── Edit Mode ──────────────────────────────────────────────────────────
+
+const editMode = ref<'dashboard' | 'folder'>('dashboard')
+
+// ─── Folder Mode State ──────────────────────────────────────────────────
+
+const selectedEditFolderId = ref<string>('')
+const currentEditFolder = ref<Folder | null>(null)
+const folderInheritEnabled = ref(false)
+
+const folderPermissions = ref<{
+  access: AccessControl
+  restrictions: AccessRestrictions
+}>({
+  access: { direct: { users: [], groups: [] }, company: [] },
+  restrictions: { revoke: [], expiry: {} },
+})
+
+const originalFolderPermissions = ref<{
+  access: AccessControl
+  restrictions: AccessRestrictions
+}>({
+  access: { direct: { users: [], groups: [] }, company: [] },
+  restrictions: { revoke: [], expiry: {} },
+})
+
 // ─── Dashboard search dropdown ──────────────────────────────────────────
 
 const dashboardSearchQuery = ref('')
@@ -121,32 +148,8 @@ const sortedDashboards = computed(() => {
   })
 })
 
-/** Pre-filter folder from query param */
-const preFilterFolderId = computed(() => route.query.folder as string | undefined)
-
-/** Get all descendant folder IDs (including the folder itself) */
-const getDescendantFolderIds = (folderId: string): Set<string> => {
-  const ids = new Set<string>([folderId])
-  const collectChildren = (parentId: string) => {
-    for (const folder of props.allFolders) {
-      if (folder.parentId === parentId && !ids.has(folder.id)) {
-        ids.add(folder.id)
-        collectChildren(folder.id)
-      }
-    }
-  }
-  collectChildren(folderId)
-  return ids
-}
-
 const filteredDashboards = computed(() => {
   let list = sortedDashboards.value
-
-  // Pre-filter by folder (including subfolders) when navigated from explorer with ?folder=id
-  if (preFilterFolderId.value) {
-    const folderIds = getDescendantFolderIds(preFilterFolderId.value)
-    list = list.filter(d => folderIds.has(d.folderId))
-  }
 
   if (!dashboardSearchQuery.value) return list
   const q = dashboardSearchQuery.value.toLowerCase()
@@ -183,18 +186,288 @@ const handleClickOutside = (e: MouseEvent) => {
   if (!wrapper) isDropdownOpen.value = false
 }
 
+// ─── Folder search dropdown ─────────────────────────────────────────────
+
+const folderSearchQuery = ref('')
+const isFolderDropdownOpen = ref(false)
+const folderSearchInputRef = ref<HTMLInputElement | null>(null)
+
+const flatSortedFolders = computed(() => {
+  return [...props.allFolders]
+    .filter(f => f.isActive)
+    .sort((a, b) => {
+      const pathA = getFolderBreadcrumb(a.id)
+      const pathB = getFolderBreadcrumb(b.id)
+      return pathA.localeCompare(pathB)
+    })
+})
+
+const filteredEditFolders = computed(() => {
+  const list = flatSortedFolders.value
+  if (!folderSearchQuery.value) return list
+  const q = folderSearchQuery.value.toLowerCase()
+  return list.filter(f =>
+    f.name.toLowerCase().includes(q) || getFolderBreadcrumb(f.id).toLowerCase().includes(q)
+  )
+})
+
+const selectEditFolder = (folderId: string) => {
+  selectedEditFolderId.value = folderId
+  folderSearchQuery.value = ''
+  isFolderDropdownOpen.value = false
+  loadFolderPermissions()
+}
+
+const clearFolderSelection = () => {
+  if (cameFromExplorer.value) {
+    goBackToExplorer()
+    return
+  }
+  selectedEditFolderId.value = ''
+  currentEditFolder.value = null
+  folderSearchQuery.value = ''
+  folderInheritEnabled.value = false
+}
+
+const focusFolderSearch = () => {
+  folderSearchInputRef.value?.focus()
+}
+
+const handleFolderClickOutside = (e: MouseEvent) => {
+  const wrapper = (e.target as HTMLElement)?.closest('.folder-search-wrapper')
+  if (!wrapper) isFolderDropdownOpen.value = false
+}
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  document.addEventListener('click', handleFolderClickOutside)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', handleFolderClickOutside)
 })
 
 // ─── Computed ───────────────────────────────────────────────────────────
 
+const activePermissions = computed(() => {
+  return editMode.value === 'dashboard' ? permissionsToEdit.value : folderPermissions.value
+})
+
 const hasChanges = computed(() => {
-  return JSON.stringify(permissionsToEdit.value) !== JSON.stringify(originalPermissions.value)
+  if (editMode.value === 'dashboard') {
+    return JSON.stringify(permissionsToEdit.value) !== JSON.stringify(originalPermissions.value)
+  }
+  return JSON.stringify(folderPermissions.value) !== JSON.stringify(originalFolderPermissions.value) ||
+    folderInheritEnabled.value !== (currentEditFolder.value?.inheritPermissions ?? false)
+})
+
+// ─── Inherited Permissions ──────────────────────────────────────────────
+
+const inheritedExpanded = ref(true)
+
+const getAncestorChain = (folderId: string): Folder[] => {
+  const ancestors: Folder[] = []
+  let currentId: string | null | undefined = folderId
+  while (currentId) {
+    const folder = props.allFolders.find(f => f.id === currentId)
+    if (!folder) break
+    ancestors.push(folder)
+    currentId = folder.parentId ?? null
+  }
+  return ancestors
+}
+
+const inheritedFolders = computed((): Folder[] => {
+  let folderId = ''
+  if (editMode.value === 'dashboard' && currentDashboard.value) {
+    folderId = currentDashboard.value.folderId
+  } else if (editMode.value === 'folder' && currentEditFolder.value) {
+    folderId = currentEditFolder.value.id
+  }
+  if (!folderId) return []
+
+  const ancestors = getAncestorChain(folderId)
+  // For folder mode: skip the folder itself
+  const startIdx = editMode.value === 'folder' ? 1 : 0
+  return ancestors
+    .slice(startIdx)
+    .filter(f => f.inheritPermissions && f.access)
+})
+
+const getInheritedUserCount = (folder: Folder): number => {
+  if (!folder.access) return 0
+  const uids = new Set<string>()
+  for (const uid of folder.access.direct.users) uids.add(uid)
+  for (const gid of folder.access.direct.groups) {
+    const group = props.allGroups.find((g: any) => g.id === gid)
+    if (group) group.members.forEach((uid: string) => uids.add(uid))
+  }
+  for (const companyCode of folder.access.company) {
+    props.allUsers.filter(u => u.company === companyCode).forEach(u => uids.add(u.uid))
+  }
+  return uids.size
+}
+
+const formatProvenance = (meta?: PermissionMetadata): string => {
+  if (!meta) return ''
+  const name = meta.setByName || meta.setBy
+  const date = new Date(meta.setAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })
+  return `${name}, ${date}`
+}
+
+// ─── Conflict Detection ──────────────────────────────────────────────────
+
+interface ConflictWarning {
+  type: 'redundant-grant' | 'revoke-vs-inherited-grant' | 'grant-vs-inherited-revoke'
+  message: string
+}
+
+const conflicts = computed<ConflictWarning[]>(() => {
+  const perms = activePermissions.value
+  const warnings: ConflictWarning[] = []
+
+  // 1. Redundant grant: user in direct.users but already covered by company or group
+  for (const uid of perms.access.direct.users) {
+    const u = props.allUsers.find(x => x.uid === uid)
+    if (!u) continue
+    if (perms.access.company.includes(u.company)) {
+      warnings.push({
+        type: 'redundant-grant',
+        message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — บริษัท ${u.company} มีสิทธิ์อยู่แล้ว`,
+      })
+    }
+    for (const gid of perms.access.direct.groups) {
+      const group = props.allGroups.find((g: any) => g.id === gid)
+      if (group?.members.includes(uid)) {
+        warnings.push({
+          type: 'redundant-grant',
+          message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — อยู่ในกลุ่ม ${group.name} อยู่แล้ว`,
+        })
+        break
+      }
+    }
+  }
+
+  // 2. revoke-vs-inherited-grant: user revoked but has inherited access
+  for (const uid of perms.restrictions.revoke) {
+    const u = props.allUsers.find(x => x.uid === uid)
+    if (!u) continue
+    for (const folder of inheritedFolders.value) {
+      if (!folder.access) continue
+      const hasInheritedAccess =
+        folder.access.direct.users.includes(uid) ||
+        folder.access.company.includes(u.company) ||
+        folder.access.direct.groups.some((gid: string) => {
+          const g = props.allGroups.find((g: any) => g.id === gid)
+          return g?.members.includes(uid)
+        })
+      if (hasInheritedAccess) {
+        warnings.push({
+          type: 'revoke-vs-inherited-grant',
+          message: `${u.name} ถูกระงับ แต่ยังมีสิทธิ์จากโฟลเดอร์ "${folder.name}" (สิทธิ์สืบทอด)`,
+        })
+        break
+      }
+    }
+  }
+
+  // 3. grant-vs-inherited-revoke: user granted here but restricted in inherited folder
+  for (const folder of inheritedFolders.value) {
+    if (!folder.restrictions?.revoke.length) continue
+    for (const uid of folder.restrictions.revoke) {
+      const u = props.allUsers.find(x => x.uid === uid)
+      if (!u) continue
+      const hasDirectAccess =
+        perms.access.direct.users.includes(uid) ||
+        perms.access.company.includes(u.company) ||
+        perms.access.direct.groups.some((gid: string) => {
+          const g = props.allGroups.find((g: any) => g.id === gid)
+          return g?.members.includes(uid)
+        })
+      if (hasDirectAccess) {
+        warnings.push({
+          type: 'grant-vs-inherited-revoke',
+          message: `${u.name} มีสิทธิ์ที่นี่ แต่ถูกระงับในโฟลเดอร์ "${folder.name}"`,
+        })
+      }
+    }
+  }
+
+  return warnings
+})
+
+// ─── Effective Access Summary ───────────────────────────────────────────
+
+const effectiveAccessExpanded = ref(false)
+
+interface EffectiveAccessEntry {
+  uid: string
+  name: string
+  company: string
+  sources: string[]
+}
+
+const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
+  const perms = activePermissions.value
+  const userMap = new Map<string, EffectiveAccessEntry>()
+
+  const addUser = (uid: string, source: string) => {
+    const u = props.allUsers.find(x => x.uid === uid)
+    if (!u) return
+    if (!userMap.has(uid)) {
+      userMap.set(uid, { uid, name: u.name, company: u.company, sources: [] })
+    }
+    const entry = userMap.get(uid)!
+    if (!entry.sources.includes(source)) entry.sources.push(source)
+  }
+
+  // Direct users
+  for (const uid of perms.access.direct.users) addUser(uid, 'สิทธิ์ตรง')
+
+  // Group members
+  for (const gid of perms.access.direct.groups) {
+    const group = props.allGroups.find((g: any) => g.id === gid)
+    if (!group) continue
+    for (const uid of group.members) addUser(uid, `กลุ่ม ${group.name}`)
+  }
+
+  // Company users
+  for (const companyCode of perms.access.company) {
+    for (const u of props.allUsers.filter(x => x.company === companyCode)) {
+      addUser(u.uid, `บริษัท ${companyCode}`)
+    }
+  }
+
+  // Inherited folder permissions
+  for (const folder of inheritedFolders.value) {
+    if (!folder.access) continue
+    for (const uid of folder.access.direct.users) addUser(uid, `📁 ${folder.name}`)
+    for (const gid of folder.access.direct.groups) {
+      const group = props.allGroups.find((g: any) => g.id === gid)
+      if (!group) continue
+      for (const uid of group.members) addUser(uid, `📁 ${folder.name} › ${group.name}`)
+    }
+    for (const companyCode of folder.access.company) {
+      for (const u of props.allUsers.filter(x => x.company === companyCode)) {
+        addUser(u.uid, `📁 ${folder.name} › ${companyCode}`)
+      }
+    }
+  }
+
+  // Remove restricted users
+  const restricted = new Set<string>(perms.restrictions.revoke)
+  const now = new Date()
+  for (const [uid, date] of Object.entries(perms.restrictions.expiry)) {
+    if (new Date(date as string) < now) restricted.add(uid)
+  }
+  for (const folder of inheritedFolders.value) {
+    if (!folder.restrictions) continue
+    for (const uid of folder.restrictions.revoke) restricted.add(uid)
+  }
+  for (const uid of restricted) userMap.delete(uid)
+
+  return Array.from(userMap.values()).sort((a, b) => a.name.localeCompare(b.name))
 })
 
 // ─── Load permissions ───────────────────────────────────────────────────
@@ -242,15 +515,47 @@ const loadDashboardPermissions = async () => {
   }
 }
 
+// ─── Load folder permissions ────────────────────────────────────────────
+
+const loadFolderPermissions = () => {
+  const folder = props.allFolders.find(f => f.id === selectedEditFolderId.value)
+  if (!folder) {
+    currentEditFolder.value = null
+    return
+  }
+
+  currentEditFolder.value = folder
+  folderInheritEnabled.value = folder.inheritPermissions ?? false
+
+  const access: AccessControl = folder.access
+    ? JSON.parse(JSON.stringify(folder.access))
+    : { direct: { users: [], groups: [] }, company: [] }
+  const restrictions: AccessRestrictions = folder.restrictions
+    ? JSON.parse(JSON.stringify(folder.restrictions))
+    : { revoke: [], expiry: {} }
+
+  folderPermissions.value = { access, restrictions }
+  originalFolderPermissions.value = JSON.parse(JSON.stringify({ access, restrictions }))
+}
+
 // ─── Handle permissions update ──────────────────────────────────────────
 
 const handlePermissionsUpdate = (newPermissions: { access: AccessControl; restrictions: AccessRestrictions }) => {
-  permissionsToEdit.value = newPermissions
+  if (editMode.value === 'dashboard') {
+    permissionsToEdit.value = newPermissions
+  } else {
+    folderPermissions.value = newPermissions
+  }
 }
 
 // ─── Save permissions ───────────────────────────────────────────────────
 
 const savePermissions = async () => {
+  if (editMode.value === 'folder') {
+    await saveFolderPermissions()
+    return
+  }
+
   try {
     if (!selectedDashboardId.value || !currentDashboard.value) {
       errorMessage.value = 'ยังไม่ได้เลือกแดชบอร์ด'
@@ -286,21 +591,100 @@ const savePermissions = async () => {
   }
 }
 
+const saveFolderPermissions = async () => {
+  try {
+    if (!selectedEditFolderId.value || !currentEditFolder.value) {
+      errorMessage.value = 'ยังไม่ได้เลือกโฟลเดอร์'
+      return
+    }
+
+    isSaving.value = true
+    errorMessage.value = null
+
+    const updatedFolder = {
+      ...currentEditFolder.value,
+      access: folderPermissions.value.access,
+      restrictions: folderPermissions.value.restrictions,
+      inheritPermissions: folderInheritEnabled.value,
+      permissionMeta: {
+        setBy: user.value?.uid ?? '',
+        setByName: user.value?.name ?? '',
+        setAt: new Date().toISOString(),
+      } as PermissionMetadata,
+      updatedAt: new Date().toISOString(),
+      updatedBy: user.value?.uid ?? '',
+    }
+
+    const response = await $fetch('/api/mock/folders', {
+      method: 'POST',
+      body: updatedFolder,
+    }) as { success: boolean; message?: string }
+
+    if (response.success) {
+      if (cameFromExplorer.value) {
+        goBackToExplorer()
+        return
+      }
+      successMessage.value = `บันทึกสิทธิ์สำหรับโฟลเดอร์ "${currentEditFolder.value.name}" แล้ว`
+      originalFolderPermissions.value = JSON.parse(JSON.stringify(folderPermissions.value))
+      currentEditFolder.value = { ...currentEditFolder.value, ...updatedFolder }
+      setTimeout(() => { successMessage.value = null }, 5000)
+    } else {
+      errorMessage.value = response.message || 'ไม่สามารถบันทึกสิทธิ์ได้'
+    }
+  } catch (err) {
+    errorMessage.value = err instanceof Error ? err.message : 'ไม่สามารถบันทึกสิทธิ์ได้'
+    console.error('Error saving folder permissions:', err)
+  } finally {
+    isSaving.value = false
+  }
+}
+
 // ─── Reset ──────────────────────────────────────────────────────────────
 
 const resetEditor = () => {
-  permissionsToEdit.value = JSON.parse(JSON.stringify(originalPermissions.value))
+  if (editMode.value === 'dashboard') {
+    permissionsToEdit.value = JSON.parse(JSON.stringify(originalPermissions.value))
+  } else {
+    folderPermissions.value = JSON.parse(JSON.stringify(originalFolderPermissions.value))
+    folderInheritEnabled.value = currentEditFolder.value?.inheritPermissions ?? false
+  }
 }
 
-// Auto-select dashboard from query param (?dashboard=xxx)
-const queryDashboardHandled = ref(false)
+// ─── Mode switch ────────────────────────────────────────────────────────
+
+const switchMode = (mode: 'dashboard' | 'folder') => {
+  if (editMode.value === mode) return
+  editMode.value = mode
+  errorMessage.value = null
+  successMessage.value = null
+}
+
+// Auto-select from query params (?dashboard=xxx or ?folder=xxx)
+const queryHandled = ref(false)
+
 watch(() => props.dashboards, (dashboards) => {
-  const queryId = route.query.dashboard as string
-  if (queryId && dashboards.length > 0 && !queryDashboardHandled.value) {
-    const exists = dashboards.some(d => d.id === queryId)
+  if (queryHandled.value) return
+  const dashId = route.query.dashboard as string
+  if (dashId && dashboards.length > 0) {
+    const exists = dashboards.some(d => d.id === dashId)
     if (exists) {
-      queryDashboardHandled.value = true
-      selectDashboard(queryId)
+      queryHandled.value = true
+      editMode.value = 'dashboard'
+      selectDashboard(dashId)
+    }
+  }
+}, { immediate: true })
+
+watch(() => props.allFolders, (folders) => {
+  if (queryHandled.value) return
+  const folderId = route.query.folder as string
+  if (folderId && folders.length > 0) {
+    const exists = folders.some(f => f.id === folderId)
+    if (exists) {
+      queryHandled.value = true
+      editMode.value = 'folder'
+      selectEditFolder(folderId)
     }
   }
 }, { immediate: true })
@@ -319,17 +703,28 @@ watch(() => props.dashboards, (dashboards) => {
       </template>
 
       <template #filters>
-        <!-- Folder pre-filter indicator -->
-        <div v-if="preFilterFolderId" class="folder-filter-indicator">
-          <span class="folder-filter-label">📁 แสดง dashboard ใน: <strong>{{ getFolderBreadcrumb(preFilterFolderId) }}</strong></span>
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
           <button
             type="button"
-            class="folder-filter-clear"
-            @click="router.replace({ query: { ...route.query, folder: undefined } })"
-            title="แสดงทั้งหมด"
-          >✕ แสดงทั้งหมด</button>
+            class="mode-toggle__btn"
+            :class="{ 'mode-toggle__btn--active': editMode === 'dashboard' }"
+            @click="switchMode('dashboard')"
+          >
+            📊 แดชบอร์ด
+          </button>
+          <button
+            type="button"
+            class="mode-toggle__btn"
+            :class="{ 'mode-toggle__btn--active': editMode === 'folder' }"
+            @click="switchMode('folder')"
+          >
+            📁 โฟลเดอร์
+          </button>
         </div>
-        <div class="filter-group dashboard-search-wrapper">
+
+        <!-- Dashboard Selector (dashboard mode) -->
+        <div v-if="editMode === 'dashboard'" class="filter-group dashboard-search-wrapper">
           <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
             <input
               ref="searchInputRef"
@@ -341,7 +736,6 @@ watch(() => props.dashboards, (dashboards) => {
               @focus="isDropdownOpen = true"
               @input="isDropdownOpen = true"
             />
-            <!-- Selected indicator -->
             <div
               v-if="selectedDashboardId && !dashboardSearchQuery"
               class="dashboard-search__selected"
@@ -356,8 +750,6 @@ watch(() => props.dashboards, (dashboards) => {
                 title="ล้างการเลือก"
               >✕</button>
             </div>
-
-            <!-- Dropdown list -->
             <div v-if="isDropdownOpen" class="dashboard-dropdown">
               <div
                 v-for="dash in filteredDashboards"
@@ -371,6 +763,50 @@ watch(() => props.dashboards, (dashboards) => {
               </div>
               <div v-if="filteredDashboards.length === 0" class="dashboard-dropdown__empty">
                 ไม่พบแดชบอร์ด
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Folder Selector (folder mode) -->
+        <div v-if="editMode === 'folder'" class="filter-group folder-search-wrapper">
+          <div class="dashboard-search" :class="{ 'dashboard-search--open': isFolderDropdownOpen }">
+            <input
+              ref="folderSearchInputRef"
+              v-model="folderSearchQuery"
+              type="text"
+              class="theme-form-input"
+              :placeholder="selectedEditFolderId ? '' : '🔍 ค้นหาโฟลเดอร์...'"
+              @focus="isFolderDropdownOpen = true"
+              @input="isFolderDropdownOpen = true"
+            />
+            <div
+              v-if="selectedEditFolderId && !folderSearchQuery"
+              class="dashboard-search__selected"
+              @click="focusFolderSearch"
+            >
+              <span class="dashboard-search__name">📁 {{ currentEditFolder?.name }}</span>
+              <span class="dashboard-search__folder">{{ getFolderBreadcrumb(selectedEditFolderId) }}</span>
+              <button
+                type="button"
+                class="dashboard-search__clear"
+                @click.stop="clearFolderSelection"
+                title="ล้างการเลือก"
+              >✕</button>
+            </div>
+            <div v-if="isFolderDropdownOpen" class="dashboard-dropdown">
+              <div
+                v-for="folder in filteredEditFolders"
+                :key="folder.id"
+                class="dashboard-dropdown__item"
+                :class="{ 'dashboard-dropdown__item--active': folder.id === selectedEditFolderId }"
+                @mousedown.prevent="selectEditFolder(folder.id)"
+              >
+                <span class="dashboard-dropdown__name">📁 {{ folder.name }}</span>
+                <span class="dashboard-dropdown__folder">{{ getFolderBreadcrumb(folder.id) }}</span>
+              </div>
+              <div v-if="filteredEditFolders.length === 0" class="dashboard-dropdown__empty">
+                ไม่พบโฟลเดอร์
               </div>
             </div>
           </div>
@@ -389,12 +825,17 @@ watch(() => props.dashboards, (dashboards) => {
           <button type="button" class="alert-close" @click="errorMessage = null" aria-label="Dismiss">✕</button>
         </div>
 
-        <!-- Permissions Editor -->
-        <div v-if="selectedDashboardId && currentDashboard" class="editor-section">
+        <!-- ═══ Dashboard Mode ═══ -->
+        <div v-if="editMode === 'dashboard' && selectedDashboardId && currentDashboard" class="editor-section">
           <div class="editor-header">
             <div>
               <h2 class="editor-title">{{ currentDashboard.name }}</h2>
-              <p class="editor-subtitle">โฟลเดอร์: {{ currentDashboardFolder }}</p>
+              <p class="editor-subtitle">
+                โฟลเดอร์: {{ currentDashboardFolder }}
+                <template v-if="currentDashboard.permissionMeta">
+                  · <span class="provenance-text">{{ formatProvenance(currentDashboard.permissionMeta) }}</span>
+                </template>
+              </p>
             </div>
             <div class="editor-actions">
               <button
@@ -416,6 +857,27 @@ watch(() => props.dashboards, (dashboards) => {
             </div>
           </div>
 
+          <!-- Inherited Permissions -->
+          <div v-if="inheritedFolders.length > 0" class="inherited-section">
+            <button type="button" class="inherited-section__toggle" @click="inheritedExpanded = !inheritedExpanded">
+              <span class="inherited-section__icon">{{ inheritedExpanded ? '▼' : '▶' }}</span>
+              <span>🔒 สิทธิ์ที่สืบทอดมา ({{ inheritedFolders.length }} โฟลเดอร์)</span>
+            </button>
+            <div v-if="inheritedExpanded" class="inherited-section__list">
+              <div
+                v-for="folder in inheritedFolders"
+                :key="folder.id"
+                class="inherited-row"
+              >
+                <span class="inherited-row__icon">📁</span>
+                <span class="inherited-row__name">{{ folder.name }}</span>
+                <span v-if="folder.access?.company.length" class="inherited-row__badge">🏢 {{ folder.access.company.join(', ') }}</span>
+                <span class="inherited-row__count">({{ getInheritedUserCount(folder) }} คน)</span>
+                <span v-if="folder.permissionMeta" class="inherited-row__provenance">{{ formatProvenance(folder.permissionMeta) }}</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Loading State -->
           <div v-if="isLoading" class="loading-state">
             <div class="loading-spinner" />
@@ -433,13 +895,166 @@ watch(() => props.dashboards, (dashboards) => {
               @update:permissions="handlePermissionsUpdate"
             />
           </div>
+
+          <!-- Conflict Warnings -->
+          <div v-if="conflicts.length > 0" class="conflict-section">
+            <div class="conflict-section__title">⚠️ การแจ้งเตือน ({{ conflicts.length }})</div>
+            <div
+              v-for="(conflict, idx) in conflicts"
+              :key="idx"
+              class="conflict-item"
+              :class="{
+                'conflict-item--redundant': conflict.type === 'redundant-grant',
+                'conflict-item--warning': conflict.type === 'revoke-vs-inherited-grant',
+                'conflict-item--danger': conflict.type === 'grant-vs-inherited-revoke',
+              }"
+            >
+              <span class="conflict-item__icon">{{ conflict.type === 'redundant-grant' ? 'ℹ️' : '⚠️' }}</span>
+              <span class="conflict-item__message">{{ conflict.message }}</span>
+            </div>
+          </div>
+
+          <!-- Effective Access Summary -->
+          <div class="effective-section">
+            <button type="button" class="effective-section__toggle" @click="effectiveAccessExpanded = !effectiveAccessExpanded">
+              <span>ผลลัพธ์รวม: <strong>{{ effectiveAccess.length }} คน</strong> มีสิทธิ์เข้าถึง</span>
+              <span class="effective-section__caret">{{ effectiveAccessExpanded ? '▲' : '▼' }}</span>
+            </button>
+            <div v-if="effectiveAccessExpanded" class="effective-section__list">
+              <div
+                v-for="entry in effectiveAccess"
+                :key="entry.uid"
+                class="effective-row"
+              >
+                <span class="effective-row__name">{{ entry.name }}</span>
+                <span class="effective-row__company">{{ entry.company }}</span>
+                <span class="effective-row__sources">{{ entry.sources.join(', ') }}</span>
+              </div>
+              <div v-if="effectiveAccess.length === 0" class="effective-section__empty">ไม่มีผู้ใช้ที่มีสิทธิ์เข้าถึง</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ Folder Mode ═══ -->
+        <div v-else-if="editMode === 'folder' && selectedEditFolderId && currentEditFolder" class="editor-section">
+          <div class="editor-header">
+            <div>
+              <h2 class="editor-title">📁 {{ currentEditFolder.name }}</h2>
+              <p class="editor-subtitle">
+                {{ getFolderBreadcrumb(selectedEditFolderId) }}
+                <template v-if="currentEditFolder.permissionMeta">
+                  · <span class="provenance-text">{{ formatProvenance(currentEditFolder.permissionMeta) }}</span>
+                </template>
+              </p>
+            </div>
+            <div class="editor-actions">
+              <button
+                type="button"
+                class="page-header-action-btn page-header-action-btn--secondary"
+                @click="resetEditor"
+                :disabled="!hasChanges"
+              >
+                รีเซ็ต
+              </button>
+              <button
+                type="button"
+                class="page-header-action-btn"
+                @click="savePermissions"
+                :disabled="!hasChanges || isSaving"
+              >
+                {{ isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Inherit Toggle -->
+          <div class="inherit-toggle">
+            <label class="inherit-toggle__label">
+              <input
+                type="checkbox"
+                v-model="folderInheritEnabled"
+                class="inherit-toggle__checkbox"
+              />
+              <span class="inherit-toggle__text">สิทธิ์สืบทอด</span>
+            </label>
+            <span class="inherit-toggle__hint">เมื่อเปิด สิทธิ์จะส่งต่อไปยังแดชบอร์ดทุกตัวในโฟลเดอร์นี้</span>
+          </div>
+
+          <!-- Inherited Permissions from parent folders -->
+          <div v-if="inheritedFolders.length > 0" class="inherited-section">
+            <button type="button" class="inherited-section__toggle" @click="inheritedExpanded = !inheritedExpanded">
+              <span class="inherited-section__icon">{{ inheritedExpanded ? '▼' : '▶' }}</span>
+              <span>🔒 สิทธิ์ที่สืบทอดมา ({{ inheritedFolders.length }} โฟลเดอร์)</span>
+            </button>
+            <div v-if="inheritedExpanded" class="inherited-section__list">
+              <div
+                v-for="folder in inheritedFolders"
+                :key="folder.id"
+                class="inherited-row"
+              >
+                <span class="inherited-row__icon">📁</span>
+                <span class="inherited-row__name">{{ folder.name }}</span>
+                <span v-if="folder.access?.company.length" class="inherited-row__badge">🏢 {{ folder.access.company.join(', ') }}</span>
+                <span class="inherited-row__count">({{ getInheritedUserCount(folder) }} คน)</span>
+                <span v-if="folder.permissionMeta" class="inherited-row__provenance">{{ formatProvenance(folder.permissionMeta) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Permission Editor Component -->
+          <PermissionEditor
+            :all-users="allUsers"
+            :all-groups="allGroups"
+            :all-companies="allCompanies"
+            :permissions="folderPermissions"
+            :show-restrictions="showRestrictions"
+            @update:permissions="handlePermissionsUpdate"
+          />
+
+          <!-- Conflict Warnings -->
+          <div v-if="conflicts.length > 0" class="conflict-section">
+            <div class="conflict-section__title">⚠️ การแจ้งเตือน ({{ conflicts.length }})</div>
+            <div
+              v-for="(conflict, idx) in conflicts"
+              :key="idx"
+              class="conflict-item"
+              :class="{
+                'conflict-item--redundant': conflict.type === 'redundant-grant',
+                'conflict-item--warning': conflict.type === 'revoke-vs-inherited-grant',
+                'conflict-item--danger': conflict.type === 'grant-vs-inherited-revoke',
+              }"
+            >
+              <span class="conflict-item__icon">{{ conflict.type === 'redundant-grant' ? 'ℹ️' : '⚠️' }}</span>
+              <span class="conflict-item__message">{{ conflict.message }}</span>
+            </div>
+          </div>
+
+          <!-- Effective Access Summary -->
+          <div class="effective-section">
+            <button type="button" class="effective-section__toggle" @click="effectiveAccessExpanded = !effectiveAccessExpanded">
+              <span>ผลลัพธ์รวม: <strong>{{ effectiveAccess.length }} คน</strong> มีสิทธิ์เข้าถึง</span>
+              <span class="effective-section__caret">{{ effectiveAccessExpanded ? '▲' : '▼' }}</span>
+            </button>
+            <div v-if="effectiveAccessExpanded" class="effective-section__list">
+              <div
+                v-for="entry in effectiveAccess"
+                :key="entry.uid"
+                class="effective-row"
+              >
+                <span class="effective-row__name">{{ entry.name }}</span>
+                <span class="effective-row__company">{{ entry.company }}</span>
+                <span class="effective-row__sources">{{ entry.sources.join(', ') }}</span>
+              </div>
+              <div v-if="effectiveAccess.length === 0" class="effective-section__empty">ไม่มีผู้ใช้ที่มีสิทธิ์เข้าถึง</div>
+            </div>
+          </div>
         </div>
 
         <!-- Empty State -->
         <div v-else-if="!isLoading" class="empty-state">
           <div class="empty-state__icon">🔐</div>
-          <h3>เลือกแดชบอร์ด</h3>
-          <p>เลือกแดชบอร์ดจากด้านบนเพื่อจัดการสิทธิ์</p>
+          <h3>{{ editMode === 'dashboard' ? 'เลือกแดชบอร์ด' : 'เลือกโฟลเดอร์' }}</h3>
+          <p>{{ editMode === 'dashboard' ? 'เลือกแดชบอร์ดจากด้านบนเพื่อจัดการสิทธิ์' : 'เลือกโฟลเดอร์จากด้านบนเพื่อจัดการสิทธิ์' }}</p>
         </div>
       </template>
     </AdminPageContent>
@@ -447,45 +1062,44 @@ watch(() => props.dashboards, (dashboards) => {
 </template>
 
 <style scoped>
-/* Folder pre-filter indicator */
-.folder-filter-indicator {
+/* Mode Toggle */
+.mode-toggle {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  gap: 0;
+  border: 1px solid var(--color-border-default);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  color: #1e40af;
-}
-
-.folder-filter-label {
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  width: fit-content;
 }
 
-.folder-filter-clear {
-  background: none;
-  border: none;
+.mode-toggle__btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  font-size: 0.8rem;
-  color: #1e40af;
-  white-space: nowrap;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  transition: background 0.12s ease;
+  border: none;
+  background: var(--color-bg-primary, white);
+  color: var(--color-text-secondary);
+  transition: all 0.15s ease;
+  font-family: inherit;
 }
 
-.folder-filter-clear:hover {
-  background: #dbeafe;
+.mode-toggle__btn:hover:not(.mode-toggle__btn--active) {
+  background: var(--color-bg-secondary, #f3f4f6);
 }
 
-/* Dashboard Search Dropdown */
-.dashboard-search-wrapper {
+.mode-toggle__btn--active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.mode-toggle__btn + .mode-toggle__btn {
+  border-left: 1px solid var(--color-border-default);
+}
+
+/* Dashboard / Folder Search Dropdown */
+.dashboard-search-wrapper,
+.folder-search-wrapper {
   position: relative;
 }
 
@@ -619,6 +1233,11 @@ watch(() => props.dashboards, (dashboards) => {
   margin: 0.25rem 0 0 0;
 }
 
+.provenance-text {
+  font-style: italic;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
 .editor-actions {
   display: flex;
   gap: var(--spacing-sm);
@@ -632,6 +1251,244 @@ watch(() => props.dashboards, (dashboards) => {
 
 .page-header-action-btn--secondary:hover:not(:disabled) {
   background: var(--color-bg-secondary) !important;
+}
+
+/* Inherited Permissions Section */
+.inherited-section {
+  margin-bottom: var(--spacing-lg);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.inherited-section__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: var(--color-bg-tertiary, #f9fafb);
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  text-align: left;
+}
+
+.inherited-section__toggle:hover {
+  background: var(--color-bg-secondary, #f3f4f6);
+}
+
+.inherited-section__icon {
+  font-size: 0.7rem;
+  width: 1rem;
+  text-align: center;
+}
+
+.inherited-section__list {
+  border-top: 1px solid var(--color-border-light, #e5e7eb);
+}
+
+.inherited-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--color-border-light, #e5e7eb);
+}
+
+.inherited-row:last-child {
+  border-bottom: none;
+}
+
+.inherited-row__icon {
+  flex-shrink: 0;
+}
+
+.inherited-row__name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.inherited-row__badge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  background: var(--color-primary-lightest, #eff6ff);
+  color: var(--color-primary, #2563eb);
+  border-radius: 9999px;
+}
+
+.inherited-row__count {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.inherited-row__provenance {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+/* Inherit Toggle (folder mode) */
+.inherit-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--color-bg-tertiary, #f9fafb);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: var(--radius-md);
+}
+
+.inherit-toggle__label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.inherit-toggle__checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.inherit-toggle__text {
+  color: var(--color-text-primary);
+}
+
+.inherit-toggle__hint {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+/* Conflict Warnings */
+.conflict-section {
+  margin-top: var(--spacing-lg);
+}
+
+.conflict-section__title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
+}
+
+.conflict-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+}
+
+.conflict-item--redundant {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.conflict-item--warning {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.conflict-item--danger {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.conflict-item__icon {
+  flex-shrink: 0;
+}
+
+.conflict-item__message {
+  line-height: 1.4;
+}
+
+/* Effective Access Summary */
+.effective-section {
+  margin-top: var(--spacing-lg);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.effective-section__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: var(--color-bg-tertiary, #f9fafb);
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.effective-section__toggle:hover {
+  background: var(--color-bg-secondary, #f3f4f6);
+}
+
+.effective-section__caret {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+
+.effective-section__list {
+  border-top: 1px solid var(--color-border-light, #e5e7eb);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.effective-section__empty {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.effective-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid var(--color-border-light, #e5e7eb);
+}
+
+.effective-row:last-child {
+  border-bottom: none;
+}
+
+.effective-row__name {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  min-width: 8rem;
+}
+
+.effective-row__company {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  min-width: 4rem;
+}
+
+.effective-row__sources {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  flex: 1;
+  text-align: right;
 }
 
 /* Alerts */
@@ -726,6 +1583,27 @@ watch(() => props.dashboards, (dashboards) => {
 
   .editor-actions {
     width: 100%;
+  }
+
+  .mode-toggle {
+    width: 100%;
+  }
+
+  .mode-toggle__btn {
+    flex: 1;
+  }
+
+  .inherited-row {
+    flex-wrap: wrap;
+  }
+
+  .inherited-row__provenance {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .effective-row {
+    flex-wrap: wrap;
   }
 }
 </style>
