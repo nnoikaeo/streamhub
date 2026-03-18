@@ -425,11 +425,10 @@ watch(() => props.dashboards, (dashboards) => {
           <!-- Permission Editor Component -->
           <div v-else>
             <PermissionEditor
-              :dashboard-id="selectedDashboardId"
               :all-users="allUsers"
               :all-groups="allGroups"
               :all-companies="allCompanies"
-              :current-permissions="permissionsToEdit"
+              :permissions="permissionsToEdit"
               :show-restrictions="showRestrictions"
               @update:permissions="handlePermissionsUpdate"
             />
