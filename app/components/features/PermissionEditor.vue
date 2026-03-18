@@ -176,10 +176,10 @@
       <div class="pe-selector">
         <div class="pe-selector__label">
           ตามบริษัท
-          <span class="pe-selector__count">{{ companyTotalGroups }} กลุ่ม</span>
+          <span class="pe-selector__count">{{ localAccess.company.length }} บริษัท</span>
         </div>
         <div class="pe-selector__panels">
-          <!-- Column 1: Companies -->
+          <!-- Column 1: Companies (click to toggle) -->
           <div class="panel panel--company">
             <div class="panel__header">บริษัท</div>
             <div class="panel__body">
@@ -188,11 +188,11 @@
                 :key="company.code"
                 type="button"
                 class="company-item"
-                :class="{ 'company-item--active': selectedCompanyCode === company.code }"
-                @click="selectedCompanyCode = company.code; companySearch = ''"
+                :class="{ 'company-item--active': isCompanySelected(company.code) }"
+                @click="toggleCompany(company.code)"
               >
                 {{ company.code }}
-                <span class="company-item__count">{{ getCompanyGroupCount(company.code) }}</span>
+                <span v-if="isCompanySelected(company.code)" class="company-item__count">✓</span>
               </button>
               <div v-if="activeCompanies.length === 0" class="panel__empty">
                 ไม่มีบริษัทที่ใช้งาน
@@ -200,104 +200,43 @@
             </div>
           </div>
 
-          <!-- Column 2: Groups for selected company (checkboxes) -->
+          <!-- Column 2: Info panel -->
           <div class="panel panel--items">
-            <div class="panel__header">
-              กลุ่ม{{ selectedCompanyCode ? ` · ${selectedCompanyCode}` : '' }}
-              <span class="panel__header-count">({{ filteredCompanyGroups.length }})</span>
-            </div>
-            <div class="panel__search">
-              <input
-                v-model="companySearch"
-                type="text"
-                class="panel__search-input"
-                placeholder="ค้นหาชื่อกลุ่ม..."
-              />
-            </div>
+            <div class="panel__header">ข้อมูล</div>
             <div class="panel__body">
-              <!-- "ทั้งหมด" = unrestricted mode: ทุก role เข้าถึงได้ ไม่จำกัดกลุ่ม -->
-              <label v-if="selectedCompanyCode" class="group-checkbox group-checkbox--all">
-                <input
-                  type="checkbox"
-                  class="group-checkbox__input"
-                  :checked="isCompanyUnrestricted(selectedCompanyCode)"
-                  @change="toggleCompanyUnrestricted(selectedCompanyCode)"
-                />
-                <span class="group-checkbox__name">ทั้งหมด</span>
-                <span class="group-checkbox__members">ไม่จำกัดกลุ่ม</span>
-              </label>
-              <label
-                v-for="group in filteredCompanyGroups"
-                :key="group.id"
-                class="group-checkbox"
-              >
-                <input
-                  type="checkbox"
-                  class="group-checkbox__input"
-                  :checked="isGroupInCompany(selectedCompanyCode, group.id)"
-                  :disabled="isCompanyUnrestricted(selectedCompanyCode)"
-                  @change="toggleCompanyGroup(selectedCompanyCode, group.id)"
-                />
-                <span class="group-checkbox__name">{{ group.name }}</span>
-                <span class="group-checkbox__members">{{ group.members.length }} สมาชิก</span>
-              </label>
-              <div v-if="filteredCompanyGroups.length === 0" class="panel__empty">
-                {{ companySearch ? 'ไม่พบกลุ่มที่ตรงกัน' : (selectedCompanyCode ? 'ไม่มีกลุ่ม' : 'เลือกบริษัทก่อน') }}
+              <div class="panel__empty">
+                คลิกเลือกบริษัทเพื่อให้สิทธิ์ทุกคนในบริษัทนั้น
               </div>
             </div>
           </div>
 
-          <!-- Column 3: Summary of all company permissions -->
+          <!-- Column 3: Selected companies -->
           <div class="panel panel--selected">
-            <div class="panel__header">สรุปสิทธิ์ทุกบริษัท</div>
+            <div class="panel__header">บริษัทที่ให้สิทธิ์</div>
             <div class="panel__body">
-              <template v-for="(companyData, companyCode) in localAccess.company" :key="companyCode">
-                <div v-if="companyData.groups.length > 0" class="company-summary">
-                  <div class="company-summary__header">{{ companyCode }}</div>
-                  <!-- Unrestricted mode -->
-                  <div v-if="companyData.groups.includes('*')" class="selected-item selected-item--unrestricted">
-                    <div class="selected-item__info">
-                      <span class="selected-item__icon">🌐</span>
-                      <div class="selected-item__text">
-                        <span class="selected-item__name">ทั้งหมด (ไม่จำกัดกลุ่ม)</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      class="selected-item__remove"
-                      @click="toggleCompanyUnrestricted(companyCode as string)"
-                      aria-label="ลบสิทธิ์"
-                    >
-                      ✕
-                    </button>
+              <div
+                v-for="code in localAccess.company"
+                :key="code"
+                class="selected-item"
+              >
+                <div class="selected-item__info">
+                  <span class="selected-item__icon">🏢</span>
+                  <div class="selected-item__text">
+                    <span class="selected-item__name">{{ code }}</span>
+                    <span class="selected-item__company">ทุกคนในบริษัท</span>
                   </div>
-                  <!-- Individual groups -->
-                  <template v-else>
-                    <div
-                      v-for="gid in companyData.groups"
-                      :key="`${companyCode}-${gid}`"
-                      class="selected-item"
-                    >
-                      <div class="selected-item__info">
-                        <span class="selected-item__icon">👥</span>
-                        <div class="selected-item__text">
-                          <span class="selected-item__name">{{ getGroupName(gid) }}</span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        class="selected-item__remove"
-                        @click="removeCompanyGroup(companyCode as string, gid)"
-                        aria-label="ลบสิทธิ์"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </template>
                 </div>
-              </template>
-              <div v-if="companyTotalGroups === 0" class="panel__empty">
-                เลือกกลุ่มจากบริษัท
+                <button
+                  type="button"
+                  class="selected-item__remove"
+                  @click="removeCompany(code)"
+                  aria-label="ลบสิทธิ์"
+                >
+                  ✕
+                </button>
+              </div>
+              <div v-if="localAccess.company.length === 0" class="panel__empty">
+                ยังไม่ได้เลือกบริษัท
               </div>
             </div>
           </div>
@@ -587,7 +526,7 @@ const activeTab = ref<TabId>('direct')
 const visibleTabs = computed(() => {
   const tabs: { id: TabId; label: string; count: number }[] = [
     { id: 'direct', label: 'สิทธิ์ตรง', count: directCount.value },
-    { id: 'company', label: 'ตามบริษัท', count: companyTotalGroups.value },
+    { id: 'company', label: 'ตามบริษัท', count: localAccess.value.company.length },
   ]
   if (props.showRestrictions) {
     tabs.push({ id: 'restrictions', label: 'ข้อจำกัด', count: restrictionCount.value })
@@ -661,99 +600,24 @@ function clearAllDirect() {
 
 // ── Tab 2: Company-Scoped ──
 
-const selectedCompanyCode = ref('')
-const companySearch = ref('')
-
 const activeCompanies = computed(() => props.allCompanies.filter((c) => c.isActive))
 
-const companyTotalGroups = computed(() =>
-  Object.values(localAccess.value.company).reduce((sum, cd) => {
-    if (cd.groups.includes('*')) return sum + 1 // unrestricted counts as 1
-    return sum + cd.groups.length
-  }, 0),
-)
-
-function getCompanyGroupCount(code: string): number | string {
-  if (isCompanyUnrestricted(code)) return '✓'
-  return localAccess.value.company[code]?.groups.length ?? 0
+function isCompanySelected(code: string): boolean {
+  return localAccess.value.company.includes(code)
 }
 
-function isGroupInCompany(code: string, gid: string): boolean {
-  return localAccess.value.company[code]?.groups.includes(gid) ?? false
-}
-
-const filteredCompanyGroups = computed(() => {
-  if (!companySearch.value) return props.allGroups
-  const q = companySearch.value.toLowerCase()
-  return props.allGroups.filter(
-    (g) =>
-      g.name.toLowerCase().includes(q) || (g.description ?? '').toLowerCase().includes(q),
-  )
-})
-
-/**
- * "ทั้งหมด" (unrestricted) mode for company access.
- * When active, groups array contains ['*'] meaning all roles in this company
- * can access the dashboard — no group restriction.
- *
- * Flow:
- * - Click "ทั้งหมด" → clears all individual groups, sets groups to ['*']
- * - Click "ทั้งหมด" again → removes '*', clears company entry
- * - While '*' is active, individual group checkboxes are disabled
- * - Click any individual group → only works when '*' is NOT active
- */
-function isCompanyUnrestricted(code: string): boolean {
-  return localAccess.value.company[code]?.groups.includes('*') ?? false
-}
-
-function toggleCompanyUnrestricted(companyCode: string) {
-  if (!companyCode) return
-  if (isCompanyUnrestricted(companyCode)) {
-    // Turn off unrestricted → remove company entry
-    delete localAccess.value.company[companyCode]
-  } else {
-    // Turn on unrestricted → clear individual groups, set ['*']
-    localAccess.value.company[companyCode] = { roles: [], groups: ['*'] }
-  }
-  emitUpdate()
-}
-
-function toggleCompanyGroup(companyCode: string, gid: string) {
-  if (!companyCode) return
-  // Block if unrestricted mode is active
-  if (isCompanyUnrestricted(companyCode)) return
-
-  if (!localAccess.value.company[companyCode]) {
-    localAccess.value.company[companyCode] = { roles: [], groups: [] }
-  }
-  const groups = localAccess.value.company[companyCode].groups
-  const idx = groups.indexOf(gid)
+function toggleCompany(code: string) {
+  const idx = localAccess.value.company.indexOf(code)
   if (idx === -1) {
-    groups.push(gid)
+    localAccess.value.company.push(code)
   } else {
-    groups.splice(idx, 1)
-  }
-  // Clean up empty entry
-  if (
-    groups.length === 0 &&
-    localAccess.value.company[companyCode].roles.length === 0
-  ) {
-    delete localAccess.value.company[companyCode]
+    localAccess.value.company.splice(idx, 1)
   }
   emitUpdate()
 }
 
-function removeCompanyGroup(companyCode: string, gid: string) {
-  if (!localAccess.value.company[companyCode]) return
-  localAccess.value.company[companyCode].groups = localAccess.value.company[
-    companyCode
-  ].groups.filter((g) => g !== gid)
-  if (
-    localAccess.value.company[companyCode].groups.length === 0 &&
-    localAccess.value.company[companyCode].roles.length === 0
-  ) {
-    delete localAccess.value.company[companyCode]
-  }
+function removeCompany(code: string) {
+  localAccess.value.company = localAccess.value.company.filter((c) => c !== code)
   emitUpdate()
 }
 
@@ -833,10 +697,7 @@ function clearAllRestrictions() {
 // ── Lifecycle ──
 
 onMounted(() => {
-  const first = activeCompanies.value[0]
-  if (first) {
-    selectedCompanyCode.value = first.code
-  }
+  // No auto-selection needed for company tab (v6.0 model)
 })
 </script>
 

@@ -166,28 +166,15 @@ export function getAccessibleDashboards(
       return true
     }
 
-    if (access.direct.roles.includes(user.role)) {
-      return true
-    }
-
     for (const group of user.groups) {
       if (access.direct.groups.includes(group)) {
         return true
       }
     }
 
-    // Layer 2: Company-scoped (AND logic: company + (role OR group))
-    const companyAccess = access.company[user.company]
-    if (companyAccess) {
-      if (companyAccess.roles.includes(user.role)) {
-        return true
-      }
-
-      for (const group of user.groups) {
-        if (companyAccess.groups.includes(group)) {
-          return true
-        }
-      }
+    // Layer 2: Company-scoped — any user from a listed company gets access
+    if (access.company.includes(user.company)) {
+      return true
     }
 
     return false

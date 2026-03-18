@@ -23,8 +23,8 @@ export function useAdminDashboards() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       access: {
-        direct: { users: [], roles: [], groups: [] },
-        company: {}
+        direct: { users: [], groups: [] },
+        company: []
       },
       restrictions: {
         revoke: [],

@@ -200,11 +200,11 @@ const ownerName = computed(() => {
 
 const isPublic = computed(() => {
   if (!dashboard.value) return false
-  // Check if company access allows public or if direct access includes any users/roles/groups
-  const hasDirectAccess = 
+  // Check if direct or company access is configured
+  const hasDirectAccess =
     dashboard.value.access.direct.users.length > 0 ||
-    dashboard.value.access.direct.roles.length > 0 ||
-    dashboard.value.access.direct.groups.length > 0
+    dashboard.value.access.direct.groups.length > 0 ||
+    dashboard.value.access.company.length > 0
   return hasDirectAccess
 })
 

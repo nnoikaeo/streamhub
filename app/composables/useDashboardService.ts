@@ -423,7 +423,7 @@ export class MockDashboardService implements IDashboardService {
       ...dashboard,
       accessReason: {
         layer: 1,
-        type: 'role' as const,
+        type: 'user' as const,
         name: 'user',
       },
       isOwner,
@@ -457,19 +457,12 @@ export class MockDashboardService implements IDashboardService {
     // Check layer 1
     const access = dashboard.access
     if (access.direct.users.includes(userId)) return true
-    if (access.direct.roles.includes(user.role)) return true
     if (user.groups.some((g) => access.direct.groups.includes(g))) {
       return true
     }
 
-    // Check layer 2
-    const compAccess = access.company[user.company]
-    if (compAccess) {
-      if (compAccess.roles.includes(user.role)) return true
-      if (user.groups.some((g) => compAccess.groups.includes(g))) {
-        return true
-      }
-    }
+    // Check layer 2: any user from a listed company gets access
+    if (access.company.includes(user.company)) return true
 
     return false
   }
@@ -495,15 +488,6 @@ export class MockDashboardService implements IDashboardService {
       }
     }
 
-    if (access.direct.roles.includes(user.role)) {
-      return {
-        hasAccess: true,
-        layer: 1,
-        grantedBy: 'role',
-        grantName: user.role,
-      }
-    }
-
     for (const group of user.groups) {
       if (access.direct.groups.includes(group)) {
         return {
@@ -515,26 +499,12 @@ export class MockDashboardService implements IDashboardService {
       }
     }
 
-    const compAccess2 = access.company[user.company]
-    if (compAccess2) {
-      if (compAccess2.roles.includes(user.role)) {
-        return {
-          hasAccess: true,
-          layer: 2,
-          grantedBy: 'role',
-          grantName: `${user.role} (in ${user.company})`,
-        }
-      }
-
-      for (const group of user.groups) {
-        if (compAccess2.groups.includes(group)) {
-          return {
-            hasAccess: true,
-            layer: 2,
-            grantedBy: 'group',
-            grantName: `${group} (in ${user.company})`,
-          }
-        }
+    if (access.company.includes(user.company)) {
+      return {
+        hasAccess: true,
+        layer: 2,
+        grantedBy: 'company',
+        grantName: user.company,
       }
     }
 
@@ -573,13 +543,6 @@ export class MockDashboardService implements IDashboardService {
     // Direct users
     access.direct.users.forEach((u) => result.add(u))
 
-    // Direct roles
-    this.users.forEach((user) => {
-      if (access.direct.roles.includes(user.role)) {
-        result.add(user.uid)
-      }
-    })
-
     // Direct groups
     this.users.forEach((user) => {
       if (user.groups.some((g) => access.direct.groups.includes(g))) {
@@ -587,16 +550,10 @@ export class MockDashboardService implements IDashboardService {
       }
     })
 
-    // Company-scoped
+    // Company-scoped — all users from listed companies
     this.users.forEach((user) => {
-      const compAccess3 = access.company[user.company]
-      if (compAccess3) {
-        if (compAccess3.roles.includes(user.role)) {
-          result.add(user.uid)
-        }
-        if (user.groups.some((g) => compAccess3.groups.includes(g))) {
-          result.add(user.uid)
-        }
+      if (access.company.includes(user.company)) {
+        result.add(user.uid)
       }
     })
 
