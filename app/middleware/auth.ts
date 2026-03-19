@@ -9,6 +9,9 @@
  */
 
 export default defineNuxtRouteMiddleware(async (to) => {
+  // Firebase auth is client-only — skip all auth checks during SSR
+  if (import.meta.server) return
+
   try {
     const authStore = useAuthStore()
     const { initAuth } = useAuth()
