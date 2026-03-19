@@ -21,6 +21,10 @@ export default defineNuxtConfig({
     '@pinia/nuxt'
   ],
 
+  ui: {
+    fonts: false
+  },
+
   imports: {
     autoImport: true
   },

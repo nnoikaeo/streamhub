@@ -1,8 +1,30 @@
 <template>
   <div class="permission-editor">
+    <!-- ═══ Tab Header (when restrictions enabled) ═══ -->
+    <div v-if="showRestrictions" class="pe-tabs">
+      <button
+        type="button"
+        class="pe-tabs__btn"
+        :class="{ 'pe-tabs__btn--active': activeTab === 'grants' }"
+        @click="activeTab = 'grants'"
+      >
+        จัดการสิทธิ์
+        <span class="pe-tabs__badge">{{ totalGrantCount }}</span>
+      </button>
+      <button
+        type="button"
+        class="pe-tabs__btn"
+        :class="{ 'pe-tabs__btn--active': activeTab === 'restrictions' }"
+        @click="activeTab = 'restrictions'"
+      >
+        ข้อจำกัด
+        <span class="pe-tabs__badge" :class="{ 'pe-tabs__badge--danger': restrictionCount > 0 && activeTab !== 'restrictions' }">{{ restrictionCount }}</span>
+      </button>
+    </div>
+
     <!-- ═══ Access Grant Section (Unified 3-Column) ═══ -->
-    <div class="pe-section">
-      <div class="pe-section__label">
+    <div v-show="!showRestrictions || activeTab === 'grants'" class="pe-section">
+      <div v-if="!showRestrictions" class="pe-section__label">
         จัดการสิทธิ์
         <span class="pe-section__count">{{ totalGrantCount }} รายการ</span>
       </div>
@@ -47,12 +69,12 @@
             {{ column2Header }}
             <span class="panel__header-count">({{ column2Count }})</span>
           </div>
-          <div v-if="grantMode !== 'companies'" class="panel__search">
+          <div class="panel__search">
             <input
               v-model="grantSearch"
               type="text"
               class="panel__search-input"
-              :placeholder="grantMode === 'users' ? 'ค้นหาชื่อ หรืออีเมล...' : 'ค้นหาชื่อกลุ่ม...'"
+              :placeholder="grantMode === 'users' ? 'ค้นหาชื่อ หรืออีเมล...' : grantMode === 'groups' ? 'ค้นหาชื่อกลุ่ม...' : 'ค้นหารหัสหรือชื่อบริษัท...'"
             />
           </div>
           <div class="panel__body">
@@ -101,7 +123,7 @@
             <!-- Companies mode -->
             <template v-else>
               <button
-                v-for="c in activeCompanies"
+                v-for="c in filteredCompanies"
                 :key="c.code"
                 type="button"
                 class="user-item"
@@ -115,8 +137,8 @@
                 <span v-if="isCompanySelected(c.code)" class="user-item__check">✓</span>
                 <span v-else class="user-item__add">+</span>
               </button>
-              <div v-if="activeCompanies.length === 0" class="panel__empty">
-                ไม่มีบริษัทที่ใช้งาน
+              <div v-if="filteredCompanies.length === 0" class="panel__empty">
+                {{ grantSearch ? 'ไม่พบบริษัทที่ตรงกัน' : 'ไม่มีบริษัทที่ใช้งาน' }}
               </div>
             </template>
           </div>
@@ -211,11 +233,7 @@
     </div>
 
     <!-- ═══ Restrictions Section (Admin only) ═══ -->
-    <div v-if="showRestrictions" class="pe-section pe-section--restrictions">
-      <div class="pe-section__label">
-        ข้อจำกัด
-        <span class="pe-section__count pe-section__count--danger">{{ restrictionCount }} รายการ</span>
-      </div>
+    <div v-if="showRestrictions" v-show="activeTab === 'restrictions'" class="pe-section pe-section--restrictions">
       <div class="pe-section__panels">
         <!-- Column 1: Restriction Type Toggle -->
         <div class="panel panel--type">
@@ -492,6 +510,7 @@ function emitUpdate() {
 type GrantMode = 'users' | 'groups' | 'companies'
 const grantMode = ref<GrantMode>('users')
 const grantSearch = ref('')
+const activeTab = ref<'grants' | 'restrictions'>('grants')
 
 const totalGrantCount = computed(
   () =>
@@ -509,7 +528,7 @@ const column2Header = computed(() => {
 const column2Count = computed(() => {
   if (grantMode.value === 'users') return filteredUsers.value.length
   if (grantMode.value === 'groups') return filteredGroups.value.length
-  return activeCompanies.value.length
+  return filteredCompanies.value.length
 })
 
 // ── Users ──
@@ -578,6 +597,17 @@ function removeDirectGroup(gid: string) {
 // ── Companies ──
 
 const activeCompanies = computed(() => props.allCompanies.filter((c) => c.isActive))
+
+const filteredCompanies = computed(() => {
+  let list = activeCompanies.value
+  if (grantSearch.value) {
+    const q = grantSearch.value.toLowerCase()
+    list = list.filter(
+      (c) => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q),
+    )
+  }
+  return list
+})
 
 function isCompanySelected(code: string): boolean {
   return localAccess.value.company.includes(code)
@@ -685,6 +715,66 @@ function clearAllRestrictions() {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg, 1.5rem);
+}
+
+/* ── Tabs ── */
+.pe-tabs {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md, 0.5rem);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.pe-tabs__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-primary, white);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms ease-in-out);
+  font-family: inherit;
+}
+
+.pe-tabs__btn + .pe-tabs__btn {
+  border-left: 1px solid var(--color-border-default);
+}
+
+.pe-tabs__btn:hover:not(.pe-tabs__btn--active) {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.pe-tabs__btn--active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.pe-tabs__badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background-color: var(--color-neutral-200, #e5e7eb);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  min-width: 1.25rem;
+  text-align: center;
+}
+
+.pe-tabs__btn--active .pe-tabs__badge {
+  color: var(--color-primary);
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.pe-tabs__badge--danger {
+  color: var(--color-error, #dc2626);
+  background-color: #fef2f2;
 }
 
 /* ── Section wrapper ── */

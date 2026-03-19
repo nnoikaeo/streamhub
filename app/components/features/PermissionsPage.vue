@@ -410,6 +410,7 @@ interface EffectiveAccessEntry {
 
 const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   const perms = activePermissions.value
+  const isFolderMode = editMode.value === 'folder'
   const userMap = new Map<string, EffectiveAccessEntry>()
 
   const addUser = (uid: string, source: string) => {
@@ -422,35 +423,41 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
     if (!entry.sources.includes(source)) entry.sources.push(source)
   }
 
-  // Direct users
+  // Direct permissions on the current item (same labels in both modes)
   for (const uid of perms.access.direct.users) addUser(uid, 'สิทธิ์ตรง')
 
-  // Group members
   for (const gid of perms.access.direct.groups) {
     const group = props.allGroups.find((g: any) => g.id === gid)
     if (!group) continue
     for (const uid of group.members) addUser(uid, `กลุ่ม ${group.name}`)
   }
 
-  // Company users
   for (const companyCode of perms.access.company) {
     for (const u of props.allUsers.filter(x => x.company === companyCode)) {
       addUser(u.uid, `บริษัท ${companyCode}`)
     }
   }
 
-  // Inherited folder permissions
+  // Inherited folder permissions (from parent folders).
+  // Skip redundant badges when the user already has the equivalent direct badge.
   for (const folder of inheritedFolders.value) {
     if (!folder.access) continue
-    for (const uid of folder.access.direct.users) addUser(uid, `📁 ${folder.name}`)
+    for (const uid of folder.access.direct.users) {
+      if (userMap.get(uid)?.sources.includes('สิทธิ์ตรง')) continue
+      addUser(uid, `📁 ${folder.name}`)
+    }
     for (const gid of folder.access.direct.groups) {
       const group = props.allGroups.find((g: any) => g.id === gid)
       if (!group) continue
-      for (const uid of group.members) addUser(uid, `📁 ${folder.name} › ${group.name}`)
+      for (const uid of group.members) {
+        if (userMap.get(uid)?.sources.includes(`กลุ่ม ${group.name}`)) continue
+        addUser(uid, `📁 ${folder.name} · กลุ่ม ${group.name}`)
+      }
     }
     for (const companyCode of folder.access.company) {
       for (const u of props.allUsers.filter(x => x.company === companyCode)) {
-        addUser(u.uid, `📁 ${folder.name} › ${companyCode}`)
+        if (userMap.get(u.uid)?.sources.includes(`บริษัท ${companyCode}`)) continue
+        addUser(u.uid, `📁 ${folder.name} · บริษัท ${companyCode}`)
       }
     }
   }
@@ -654,6 +661,10 @@ const resetEditor = () => {
 
 // ─── Mode switch ────────────────────────────────────────────────────────
 
+const hasSelection = computed(() => {
+  return editMode.value === 'dashboard' ? !!selectedDashboardId.value : !!selectedEditFolderId.value
+})
+
 const switchMode = (mode: 'dashboard' | 'folder') => {
   if (editMode.value === mode) return
   editMode.value = mode
@@ -689,6 +700,7 @@ watch(() => props.allFolders, (folders) => {
     }
   }
 }, { immediate: true })
+
 </script>
 
 <template>
@@ -704,113 +716,122 @@ watch(() => props.allFolders, (folders) => {
       </template>
 
       <template #filters>
-        <!-- Mode Toggle -->
-        <div class="mode-toggle">
-          <button
-            type="button"
-            class="mode-toggle__btn"
-            :class="{ 'mode-toggle__btn--active': editMode === 'dashboard' }"
-            @click="switchMode('dashboard')"
-          >
-            📊 แดชบอร์ด
-          </button>
-          <button
-            type="button"
-            class="mode-toggle__btn"
-            :class="{ 'mode-toggle__btn--active': editMode === 'folder' }"
-            @click="switchMode('folder')"
-          >
-            📁 โฟลเดอร์
-          </button>
-        </div>
-
-        <!-- Dashboard Selector (dashboard mode) -->
-        <div v-if="editMode === 'dashboard'" class="filter-group dashboard-search-wrapper">
-          <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
-            <input
-              ref="searchInputRef"
-              v-model="dashboardSearchQuery"
-              type="text"
-              class="theme-form-input"
-              :placeholder="selectedDashboardId ? '' : '🔍 ค้นหาแดชบอร์ด...'"
-              :disabled="isLoading"
-              @focus="isDropdownOpen = true"
-              @input="isDropdownOpen = true"
-            />
-            <div
-              v-if="selectedDashboardId && !dashboardSearchQuery"
-              class="dashboard-search__selected"
-              @click="focusSearch"
+        <div class="filter-bar">
+          <!-- Mode Toggle (Button Group) -->
+          <div class="mode-toggle">
+            <button
+              type="button"
+              class="mode-toggle__btn"
+              :class="{ 'mode-toggle__btn--active': editMode === 'dashboard' }"
+              @click="switchMode('dashboard')"
             >
-              <span class="dashboard-search__name">{{ currentDashboard?.name }}</span>
-              <span class="dashboard-search__folder">{{ currentDashboardFolder }}</span>
-              <button
-                type="button"
-                class="dashboard-search__clear"
-                @click.stop="clearSelection"
-                title="ล้างการเลือก"
-              >✕</button>
-            </div>
-            <div v-if="isDropdownOpen" class="dashboard-dropdown">
+              📊 แดชบอร์ด
+            </button>
+            <button
+              type="button"
+              class="mode-toggle__btn"
+              :class="{ 'mode-toggle__btn--active': editMode === 'folder' }"
+              @click="switchMode('folder')"
+            >
+              📁 โฟลเดอร์
+            </button>
+          </div>
+
+          <!-- Dashboard Selector (dashboard mode) -->
+          <div v-if="editMode === 'dashboard'" class="filter-search dashboard-search-wrapper">
+            <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
+              <input
+                ref="searchInputRef"
+                v-show="!selectedDashboardId || dashboardSearchQuery"
+                v-model="dashboardSearchQuery"
+                type="text"
+                class="theme-form-input"
+                :placeholder="'🔍 เลือกแดชบอร์ดเพื่อจัดการสิทธิ์... (พิมพ์เพื่อค้นหา)'"
+                :disabled="isLoading"
+                @focus="isDropdownOpen = true"
+                @input="isDropdownOpen = true"
+              />
               <div
-                v-for="dash in filteredDashboards"
-                :key="dash.id"
-                class="dashboard-dropdown__item"
-                :class="{ 'dashboard-dropdown__item--active': dash.id === selectedDashboardId }"
-                @mousedown.prevent="selectDashboard(dash.id)"
+                v-if="selectedDashboardId && !dashboardSearchQuery"
+                class="dashboard-search__selected"
+                @click="focusSearch"
               >
-                <span class="dashboard-dropdown__name">{{ dash.name }}</span>
-                <span class="dashboard-dropdown__folder">{{ getFolderBreadcrumb(dash.folderId) }}</span>
+                <span class="dashboard-search__name">{{ currentDashboard?.name }}</span>
+                <span class="dashboard-search__folder">{{ currentDashboardFolder }}</span>
+                <button
+                  type="button"
+                  class="dashboard-search__clear"
+                  @click.stop="clearSelection"
+                  title="ล้างการเลือก"
+                >✕</button>
               </div>
-              <div v-if="filteredDashboards.length === 0" class="dashboard-dropdown__empty">
-                ไม่พบแดชบอร์ด
+              <div v-if="isDropdownOpen" class="dashboard-dropdown">
+                <div
+                  v-for="dash in filteredDashboards"
+                  :key="dash.id"
+                  class="dashboard-dropdown__item"
+                  :class="{ 'dashboard-dropdown__item--active': dash.id === selectedDashboardId }"
+                  @mousedown.prevent="selectDashboard(dash.id)"
+                >
+                  <span class="dashboard-dropdown__name">{{ dash.name }}</span>
+                  <span class="dashboard-dropdown__folder">{{ getFolderBreadcrumb(dash.folderId) }}</span>
+                </div>
+                <div v-if="filteredDashboards.length === 0" class="dashboard-dropdown__empty">
+                  ไม่พบแดชบอร์ด
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Folder Selector (folder mode) -->
+          <div v-if="editMode === 'folder'" class="filter-search folder-search-wrapper">
+            <div class="dashboard-search" :class="{ 'dashboard-search--open': isFolderDropdownOpen }">
+              <input
+                ref="folderSearchInputRef"
+                v-show="!selectedEditFolderId || folderSearchQuery"
+                v-model="folderSearchQuery"
+                type="text"
+                class="theme-form-input"
+                :placeholder="'🔍 เลือกโฟลเดอร์เพื่อจัดการสิทธิ์... (พิมพ์เพื่อค้นหา)'"
+                @focus="isFolderDropdownOpen = true"
+                @input="isFolderDropdownOpen = true"
+              />
+              <div
+                v-if="selectedEditFolderId && !folderSearchQuery"
+                class="dashboard-search__selected"
+                @click="focusFolderSearch"
+              >
+                <span class="dashboard-search__name">📁 {{ currentEditFolder?.name }}</span>
+                <span class="dashboard-search__folder">{{ getFolderBreadcrumb(selectedEditFolderId) }}</span>
+                <button
+                  type="button"
+                  class="dashboard-search__clear"
+                  @click.stop="clearFolderSelection"
+                  title="ล้างการเลือก"
+                >✕</button>
+              </div>
+              <div v-if="isFolderDropdownOpen" class="dashboard-dropdown">
+                <div
+                  v-for="folder in filteredEditFolders"
+                  :key="folder.id"
+                  class="dashboard-dropdown__item"
+                  :class="{ 'dashboard-dropdown__item--active': folder.id === selectedEditFolderId }"
+                  @mousedown.prevent="selectEditFolder(folder.id)"
+                >
+                  <span class="dashboard-dropdown__name">📁 {{ folder.name }}</span>
+                  <span class="dashboard-dropdown__folder">{{ getFolderBreadcrumb(folder.id) }}</span>
+                </div>
+                <div v-if="filteredEditFolders.length === 0" class="dashboard-dropdown__empty">
+                  ไม่พบโฟลเดอร์
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Folder Selector (folder mode) -->
-        <div v-if="editMode === 'folder'" class="filter-group folder-search-wrapper">
-          <div class="dashboard-search" :class="{ 'dashboard-search--open': isFolderDropdownOpen }">
-            <input
-              ref="folderSearchInputRef"
-              v-model="folderSearchQuery"
-              type="text"
-              class="theme-form-input"
-              :placeholder="selectedEditFolderId ? '' : '🔍 ค้นหาโฟลเดอร์...'"
-              @focus="isFolderDropdownOpen = true"
-              @input="isFolderDropdownOpen = true"
-            />
-            <div
-              v-if="selectedEditFolderId && !folderSearchQuery"
-              class="dashboard-search__selected"
-              @click="focusFolderSearch"
-            >
-              <span class="dashboard-search__name">📁 {{ currentEditFolder?.name }}</span>
-              <span class="dashboard-search__folder">{{ getFolderBreadcrumb(selectedEditFolderId) }}</span>
-              <button
-                type="button"
-                class="dashboard-search__clear"
-                @click.stop="clearFolderSelection"
-                title="ล้างการเลือก"
-              >✕</button>
-            </div>
-            <div v-if="isFolderDropdownOpen" class="dashboard-dropdown">
-              <div
-                v-for="folder in filteredEditFolders"
-                :key="folder.id"
-                class="dashboard-dropdown__item"
-                :class="{ 'dashboard-dropdown__item--active': folder.id === selectedEditFolderId }"
-                @mousedown.prevent="selectEditFolder(folder.id)"
-              >
-                <span class="dashboard-dropdown__name">📁 {{ folder.name }}</span>
-                <span class="dashboard-dropdown__folder">{{ getFolderBreadcrumb(folder.id) }}</span>
-              </div>
-              <div v-if="filteredEditFolders.length === 0" class="dashboard-dropdown__empty">
-                ไม่พบโฟลเดอร์
-              </div>
-            </div>
-          </div>
+        <!-- Hint bar (shown when nothing selected) -->
+        <div v-if="!hasSelection" class="filter-hint">
+          💡 เลือกโหมด <strong>แดชบอร์ด</strong> หรือ <strong>โฟลเดอร์</strong> ด้านซ้าย แล้วค้นหารายการที่ต้องการจัดการสิทธิ์
         </div>
       </template>
 
@@ -928,8 +949,9 @@ watch(() => props.allFolders, (folders) => {
                 class="effective-row"
               >
                 <span class="effective-row__name">{{ entry.name }}</span>
-                <span class="effective-row__company">{{ entry.company }}</span>
-                <span class="effective-row__sources">{{ entry.sources.join(', ') }}</span>
+                <span class="effective-row__sources">
+                  <span v-for="(src, i) in entry.sources" :key="i" class="effective-row__source-badge">{{ src }}</span>
+                </span>
               </div>
               <div v-if="effectiveAccess.length === 0" class="effective-section__empty">ไม่มีผู้ใช้ที่มีสิทธิ์เข้าถึง</div>
             </div>
@@ -1043,8 +1065,9 @@ watch(() => props.allFolders, (folders) => {
                 class="effective-row"
               >
                 <span class="effective-row__name">{{ entry.name }}</span>
-                <span class="effective-row__company">{{ entry.company }}</span>
-                <span class="effective-row__sources">{{ entry.sources.join(', ') }}</span>
+                <span class="effective-row__sources">
+                  <span v-for="(src, i) in entry.sources" :key="i" class="effective-row__source-badge">{{ src }}</span>
+                </span>
               </div>
               <div v-if="effectiveAccess.length === 0" class="effective-section__empty">ไม่มีผู้ใช้ที่มีสิทธิ์เข้าถึง</div>
             </div>
@@ -1063,39 +1086,70 @@ watch(() => props.allFolders, (folders) => {
 </template>
 
 <style scoped>
-/* Mode Toggle */
-.mode-toggle {
+/* Filter Bar */
+.filter-bar {
   display: flex;
-  gap: 0;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
+  align-items: center;
+  gap: var(--spacing-sm, 0.5rem);
+  width: 100%;
+}
+
+.filter-search {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Mode Toggle (Button Group — Bootstrap btn-outline-primary style) */
+.mode-toggle {
+  display: inline-flex;
+  border-radius: 0.5rem;
   overflow: hidden;
-  width: fit-content;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-primary, #2d3389);
+  flex-shrink: 0;
 }
 
 .mode-toggle__btn {
+  position: relative;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   border: none;
+  border-right: 1px solid var(--color-primary, #2d3389);
   background: var(--color-bg-primary, white);
-  color: var(--color-text-secondary);
-  transition: all 0.15s ease;
+  color: var(--color-primary, #2d3389);
+  transition: background-color 0.15s ease, color 0.15s ease;
   font-family: inherit;
+  white-space: nowrap;
+}
+
+.mode-toggle__btn:last-child {
+  border-right: none;
 }
 
 .mode-toggle__btn:hover:not(.mode-toggle__btn--active) {
-  background: var(--color-bg-secondary, #f3f4f6);
+  background: var(--color-primary-lightest, #e0e5f3);
 }
 
 .mode-toggle__btn--active {
   background: var(--color-primary);
   color: white;
+  z-index: 1;
 }
 
-.mode-toggle__btn + .mode-toggle__btn {
-  border-left: 1px solid var(--color-border-default);
+/* Filter Hint */
+.filter-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--color-primary-dark, #1e3a5f);
+  background-color: var(--color-primary-lightest, #eff6ff);
+  border: 1px solid var(--color-primary-lighter, #bfdbfe);
+  border-radius: 0.5rem;
+  margin-top: var(--spacing-xs, 0.25rem);
 }
 
 /* Dashboard / Folder Search Dropdown */
@@ -1106,6 +1160,11 @@ watch(() => props.allFolders, (folders) => {
 
 .dashboard-search {
   position: relative;
+  height: 2.375rem;
+}
+
+.dashboard-search .theme-form-input {
+  height: 100%;
 }
 
 .dashboard-search__selected {
@@ -1113,14 +1172,16 @@ watch(() => props.allFolders, (folders) => {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: 0 2.5rem 0 var(--spacing-md);
+  gap: var(--spacing-sm, 0.5rem);
+  padding: 0 2.25rem 0 var(--spacing-md, 0.75rem);
   cursor: pointer;
-  background: white;
-  border-radius: var(--radius-md);
+  background: var(--color-bg-primary, white);
+  border: 1px solid var(--color-border-default, #d1d5db);
+  border-radius: 0.5rem;
+  overflow: hidden;
 }
 
 .dashboard-search__name {
@@ -1139,14 +1200,18 @@ watch(() => props.allFolders, (folders) => {
 
 .dashboard-search__clear {
   position: absolute;
-  right: var(--spacing-sm);
+  right: 0.375rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   color: var(--color-text-secondary);
   font-size: 0.875rem;
-  padding: 0.25rem;
+  padding: 0.25rem 0.375rem;
   line-height: 1;
+  border-radius: 0.25rem;
+  z-index: 1;
 }
 
 .dashboard-search__clear:hover {
@@ -1479,17 +1544,22 @@ watch(() => props.allFolders, (folders) => {
   min-width: 8rem;
 }
 
-.effective-row__company {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-  min-width: 4rem;
+.effective-row__sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  flex: 1;
+  justify-content: flex-end;
 }
 
-.effective-row__sources {
-  font-size: 0.75rem;
-  color: var(--color-text-tertiary, #9ca3af);
-  flex: 1;
-  text-align: right;
+.effective-row__source-badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-primary-lightest, #eff6ff);
+  color: var(--color-primary-dark, #1e3a5f);
+  white-space: nowrap;
 }
 
 /* Alerts */
@@ -1586,12 +1656,22 @@ watch(() => props.allFolders, (folders) => {
     width: 100%;
   }
 
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .mode-toggle {
     width: 100%;
+    display: flex;
   }
 
   .mode-toggle__btn {
     flex: 1;
+  }
+
+  .filter-search {
+    width: 100%;
   }
 
   .inherited-row {

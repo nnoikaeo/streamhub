@@ -5,6 +5,8 @@ import { getStorage } from 'firebase/storage'
 import { getFirebaseConfig } from '~/utils/firebase'
 
 export default defineNuxtPlugin(() => {
+  if (!import.meta.client) return
+
   console.log('🔥 Initializing Firebase...')
 
   try {
