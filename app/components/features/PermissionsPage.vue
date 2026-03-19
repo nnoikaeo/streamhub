@@ -67,6 +67,9 @@ const goBackToExplorer = () => {
 
 // ─── State ──────────────────────────────────────────────────────────────
 
+// Non-admin users (admin has implicit access to everything by role)
+const nonAdminUsers = computed(() => props.allUsers.filter(u => u.role !== 'admin'))
+
 const selectedDashboardId = ref<string>('')
 const currentDashboard = ref<Dashboard | null>(null)
 const currentDashboardFolder = ref<string>('')
@@ -305,8 +308,8 @@ const getInheritedUserCount = (folder: Folder): number => {
   }
   for (const companyCode of folder.access.company) {
     const usersForCode = companyCode === 'ALL'
-      ? props.allUsers.filter(u => props.allCompanies.some((c: any) => c.code === u.company && c.isActive))
-      : props.allUsers.filter(u => u.company === companyCode)
+      ? nonAdminUsers.value.filter(u => props.allCompanies.some((c: any) => c.code === u.company && c.isActive))
+      : nonAdminUsers.value.filter(u => u.company === companyCode)
     usersForCode.forEach(u => uids.add(u.uid))
   }
   return uids.size
@@ -419,7 +422,7 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   const userMap = new Map<string, EffectiveAccessEntry>()
 
   const addUser = (uid: string, source: string) => {
-    const u = props.allUsers.find(x => x.uid === uid)
+    const u = nonAdminUsers.value.find(x => x.uid === uid)
     if (!u) return
     if (!userMap.has(uid)) {
       userMap.set(uid, { uid, name: u.name, company: u.company, sources: [] })
@@ -439,8 +442,8 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
 
   for (const companyCode of perms.access.company) {
     const usersForCode = companyCode === 'ALL'
-      ? props.allUsers.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
-      : props.allUsers.filter(x => x.company === companyCode)
+      ? nonAdminUsers.value.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
+      : nonAdminUsers.value.filter(x => x.company === companyCode)
     const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
     for (const u of usersForCode) {
       addUser(u.uid, label)
@@ -465,8 +468,8 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
     }
     for (const companyCode of folder.access.company) {
       const usersForCode = companyCode === 'ALL'
-        ? props.allUsers.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
-        : props.allUsers.filter(x => x.company === companyCode)
+        ? nonAdminUsers.value.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
+        : nonAdminUsers.value.filter(x => x.company === companyCode)
       const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
       for (const u of usersForCode) {
         if (userMap.get(u.uid)?.sources.includes(label)) continue

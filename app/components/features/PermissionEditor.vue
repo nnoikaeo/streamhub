@@ -494,8 +494,11 @@ function getGroupMemberCount(gid: string): number {
   return props.allGroups.find((g) => g.id === gid)?.members.length ?? 0
 }
 
+// Non-admin users (admin has access to everything by role — no need to grant)
+const nonAdminUsers = computed(() => props.allUsers.filter((u) => u.role !== 'admin'))
+
 function getCompanyUserCount(code: string): number {
-  return props.allUsers.filter((u) => u.company === code).length
+  return nonAdminUsers.value.filter((u) => u.company === code).length
 }
 
 function formatDate(date: Date | string): string {
@@ -556,7 +559,7 @@ function isUserAdded(uid: string): boolean {
 }
 
 const filteredUsers = computed(() => {
-  let list = props.allUsers
+  let list = nonAdminUsers.value
   if (grantSearch.value) {
     const q = grantSearch.value.toLowerCase()
     list = list.filter(
@@ -635,7 +638,7 @@ const isAllCompaniesSelected = computed(() =>
 
 const totalAllCompanyUsers = computed(() => {
   const activeCodes = new Set(activeCompanies.value.map((c) => c.code))
-  return props.allUsers.filter((u) => activeCodes.has(u.company)).length
+  return nonAdminUsers.value.filter((u) => activeCodes.has(u.company)).length
 })
 
 function isCompanySelected(code: string): boolean {
@@ -698,7 +701,7 @@ const filteredRestrictionUsers = computed(() => {
     ...localRestrictions.value.revoke,
     ...Object.keys(localRestrictions.value.expiry),
   ]
-  let list = props.allUsers.filter((u) => !excludeUids.includes(u.uid))
+  let list = nonAdminUsers.value.filter((u) => !excludeUids.includes(u.uid))
   if (restrictionSearch.value) {
     const q = restrictionSearch.value.toLowerCase()
     list = list.filter(
