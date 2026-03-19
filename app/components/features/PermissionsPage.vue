@@ -180,7 +180,11 @@ const clearSelection = () => {
 }
 
 const focusSearch = () => {
-  searchInputRef.value?.focus()
+  dashboardSearchQuery.value = ''
+  isDropdownOpen.value = true
+  nextTick(() => {
+    searchInputRef.value?.focus()
+  })
 }
 
 // Close dropdown on click outside
@@ -233,7 +237,11 @@ const clearFolderSelection = () => {
 }
 
 const focusFolderSearch = () => {
-  folderSearchInputRef.value?.focus()
+  folderSearchQuery.value = ''
+  isFolderDropdownOpen.value = true
+  nextTick(() => {
+    folderSearchInputRef.value?.focus()
+  })
 }
 
 const handleFolderClickOutside = (e: MouseEvent) => {
@@ -758,7 +766,7 @@ watch(() => props.allFolders, (folders) => {
             <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
               <input
                 ref="searchInputRef"
-                v-show="!selectedDashboardId || dashboardSearchQuery"
+                v-show="!selectedDashboardId || dashboardSearchQuery || isDropdownOpen"
                 v-model="dashboardSearchQuery"
                 type="text"
                 class="theme-form-input"
@@ -768,7 +776,7 @@ watch(() => props.allFolders, (folders) => {
                 @input="isDropdownOpen = true"
               />
               <div
-                v-if="selectedDashboardId && !dashboardSearchQuery"
+                v-if="selectedDashboardId && !dashboardSearchQuery && !isDropdownOpen"
                 class="dashboard-search__selected"
                 @click="focusSearch"
               >
@@ -804,7 +812,7 @@ watch(() => props.allFolders, (folders) => {
             <div class="dashboard-search" :class="{ 'dashboard-search--open': isFolderDropdownOpen }">
               <input
                 ref="folderSearchInputRef"
-                v-show="!selectedEditFolderId || folderSearchQuery"
+                v-show="!selectedEditFolderId || folderSearchQuery || isFolderDropdownOpen"
                 v-model="folderSearchQuery"
                 type="text"
                 class="theme-form-input"
@@ -813,7 +821,7 @@ watch(() => props.allFolders, (folders) => {
                 @input="isFolderDropdownOpen = true"
               />
               <div
-                v-if="selectedEditFolderId && !folderSearchQuery"
+                v-if="selectedEditFolderId && !folderSearchQuery && !isFolderDropdownOpen"
                 class="dashboard-search__selected"
                 @click="focusFolderSearch"
               >
