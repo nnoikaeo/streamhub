@@ -304,7 +304,10 @@ const getInheritedUserCount = (folder: Folder): number => {
     if (group) group.members.forEach((uid: string) => uids.add(uid))
   }
   for (const companyCode of folder.access.company) {
-    props.allUsers.filter(u => u.company === companyCode).forEach(u => uids.add(u.uid))
+    const usersForCode = companyCode === 'ALL'
+      ? props.allUsers.filter(u => props.allCompanies.some((c: any) => c.code === u.company && c.isActive))
+      : props.allUsers.filter(u => u.company === companyCode)
+    usersForCode.forEach(u => uids.add(u.uid))
   }
   return uids.size
 }
@@ -331,10 +334,10 @@ const conflicts = computed<ConflictWarning[]>(() => {
   for (const uid of perms.access.direct.users) {
     const u = props.allUsers.find(x => x.uid === uid)
     if (!u) continue
-    if (perms.access.company.includes(u.company)) {
+    if (perms.access.company.includes(u.company) || perms.access.company.includes('ALL')) {
       warnings.push({
         type: 'redundant-grant',
-        message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — บริษัท ${u.company} มีสิทธิ์อยู่แล้ว`,
+        message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — ${perms.access.company.includes('ALL') ? 'ทุกบริษัท' : `บริษัท ${u.company}`} มีสิทธิ์อยู่แล้ว`,
       })
     }
     for (const gid of perms.access.direct.groups) {
@@ -358,6 +361,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
       const hasInheritedAccess =
         folder.access.direct.users.includes(uid) ||
         folder.access.company.includes(u.company) ||
+        folder.access.company.includes('ALL') ||
         folder.access.direct.groups.some((gid: string) => {
           const g = props.allGroups.find((g: any) => g.id === gid)
           return g?.members.includes(uid)
@@ -381,6 +385,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
       const hasDirectAccess =
         perms.access.direct.users.includes(uid) ||
         perms.access.company.includes(u.company) ||
+        perms.access.company.includes('ALL') ||
         perms.access.direct.groups.some((gid: string) => {
           const g = props.allGroups.find((g: any) => g.id === gid)
           return g?.members.includes(uid)
@@ -433,8 +438,12 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   }
 
   for (const companyCode of perms.access.company) {
-    for (const u of props.allUsers.filter(x => x.company === companyCode)) {
-      addUser(u.uid, `บริษัท ${companyCode}`)
+    const usersForCode = companyCode === 'ALL'
+      ? props.allUsers.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
+      : props.allUsers.filter(x => x.company === companyCode)
+    const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
+    for (const u of usersForCode) {
+      addUser(u.uid, label)
     }
   }
 
@@ -455,9 +464,13 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
       }
     }
     for (const companyCode of folder.access.company) {
-      for (const u of props.allUsers.filter(x => x.company === companyCode)) {
-        if (userMap.get(u.uid)?.sources.includes(`บริษัท ${companyCode}`)) continue
-        addUser(u.uid, `📁 ${folder.name} · บริษัท ${companyCode}`)
+      const usersForCode = companyCode === 'ALL'
+        ? props.allUsers.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
+        : props.allUsers.filter(x => x.company === companyCode)
+      const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
+      for (const u of usersForCode) {
+        if (userMap.get(u.uid)?.sources.includes(label)) continue
+        addUser(u.uid, `📁 ${folder.name} · ${label}`)
       }
     }
   }
