@@ -36,12 +36,12 @@ const breadcrumbs = computed(() => {
     return [
       { label: 'จัดการ', to: '/manage/explorer' },
       { label: 'Explorer', to: '/manage/explorer' },
-      { label: 'สิทธิ์' },
+      { label: 'กำหนดสิทธิ์' },
     ]
   }
   return [
     { label: 'จัดการ', to: '/manage/explorer' },
-    { label: 'สิทธิ์' },
+    { label: 'กำหนดสิทธิ์' },
   ]
 })
 

@@ -53,7 +53,7 @@ export function useAdminBreadcrumbs() {
     ],
     '/admin/permissions': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
-      { label: 'สิทธิ์' },
+      { label: 'กำหนดสิทธิ์' },
     ],
   }
 
@@ -69,7 +69,7 @@ export function useAdminBreadcrumbs() {
         return [
           { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
           { label: 'Explorer', to: '/admin/explorer' },
-          { label: 'สิทธิ์' },
+          { label: 'กำหนดสิทธิ์' },
         ]
       }
     }
