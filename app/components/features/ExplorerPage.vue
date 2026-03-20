@@ -260,6 +260,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
         <DashboardForm
           ref="dashboardFormRef"
           :dashboard="explorer.selectedDashboard.value"
+          :default-folder-id="explorer.currentFolderId.value"
           :show-tag-selector="showTagSelector"
           :can-create-tag="canCreateTag"
           :available-tags="availableTags"

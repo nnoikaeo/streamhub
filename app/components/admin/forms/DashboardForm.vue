@@ -19,6 +19,7 @@ import { onMounted } from 'vue'
 interface Props {
   dashboard?: Dashboard | null
   lockedFolderId?: string
+  defaultFolderId?: string | null
   showTagSelector?: boolean
   canCreateTag?: boolean
   availableTags?: Tag[]
@@ -81,7 +82,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     name: props.dashboard?.name || '',
     description: props.dashboard?.description || '',
     type: 'looker' as const,
-    folderId: props.lockedFolderId || props.dashboard?.folderId || '',
+    folderId: props.lockedFolderId || props.dashboard?.folderId || props.defaultFolderId || '',
     lookerDashboardId: props.dashboard?.lookerDashboardId || '',
     lookerEmbedUrl: props.dashboard?.lookerEmbedUrl || '',
     isArchived: props.dashboard?.isArchived ?? false,
