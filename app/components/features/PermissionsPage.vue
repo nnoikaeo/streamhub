@@ -189,6 +189,8 @@ const focusSearch = () => {
 
 // Close dropdown on click outside
 const handleClickOutside = (e: MouseEvent) => {
+  // Ignore clicks on elements detached from DOM (e.g. v-if unmounted on same click)
+  if (!document.contains(e.target as Node)) return
   const wrapper = (e.target as HTMLElement)?.closest('.dashboard-search-wrapper')
   if (!wrapper) isDropdownOpen.value = false
 }
@@ -245,6 +247,8 @@ const focusFolderSearch = () => {
 }
 
 const handleFolderClickOutside = (e: MouseEvent) => {
+  // Ignore clicks on elements detached from DOM (e.g. v-if unmounted on same click)
+  if (!document.contains(e.target as Node)) return
   const wrapper = (e.target as HTMLElement)?.closest('.folder-search-wrapper')
   if (!wrapper) isFolderDropdownOpen.value = false
 }
