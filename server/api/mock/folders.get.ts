@@ -17,9 +17,26 @@ export default defineEventHandler(async (event) => {
       const user = await findById('users.json', uid)
       if (user && (user as any).role !== 'admin') {
         if ((user as any).role === 'moderator') {
-          // Moderator: only assigned folders
-          filtered = filtered.filter((f: any) => f.assignedModerators?.includes(uid))
-          console.log(`  🔍 After moderator filter: ${filtered.length}`)
+          // Moderator: directly assigned folders + all their descendants
+          const assignedIds = new Set<string>(
+            (folders as any[])
+              .filter((f: any) => f.assignedModerators?.includes(uid))
+              .map((f: any) => f.id)
+          )
+          // Recursively walk down the tree to include all child folders
+          const addDescendants = (parentId: string) => {
+            for (const f of folders as any[]) {
+              if (f.parentId === parentId && !assignedIds.has(f.id)) {
+                assignedIds.add(f.id)
+                addDescendants(f.id)
+              }
+            }
+          }
+          for (const id of [...assignedIds]) {
+            addDescendants(id)
+          }
+          filtered = filtered.filter((f: any) => assignedIds.has(f.id))
+          console.log(`  🔍 After moderator filter (with descendants): ${filtered.length}`)
         }
         // User: sees all folders (dashboard access filtered separately)
       }
