@@ -22,6 +22,7 @@ definePageMeta({
 })
 
 const router = useRouter()
+const route = useRoute()
 const { user } = useAuth()
 
 const { assignedFolderTree, allFolders, fetchFolders: fetchModFolders, canManageFolder } = useModeratorFolders()
