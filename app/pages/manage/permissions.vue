@@ -30,10 +30,20 @@ const { users: allUsers, fetchUsers } = useAdminUsers()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { groups, fetchGroups } = useAdminGroups()
 
-const breadcrumbs = computed(() => [
-  { label: 'จัดการ', to: '/manage/explorer' },
-  { label: 'สิทธิ์' },
-])
+const breadcrumbs = computed(() => {
+  const cameFromExplorer = !!(route.query.dashboard || route.query.folder)
+  if (cameFromExplorer) {
+    return [
+      { label: 'จัดการ', to: '/manage/explorer' },
+      { label: 'Explorer', to: '/manage/explorer' },
+      { label: 'สิทธิ์' },
+    ]
+  }
+  return [
+    { label: 'จัดการ', to: '/manage/explorer' },
+    { label: 'สิทธิ์' },
+  ]
+})
 
 // Lifecycle
 onMounted(async () => {

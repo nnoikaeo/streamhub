@@ -60,8 +60,19 @@ export function useAdminBreadcrumbs() {
   /**
    * Computed breadcrumbs based on current route.
    * Explorer sub-routes (/admin/explorer/:folderId) match by prefix.
+   * Permissions page adds Explorer when arrived via ?dashboard or ?folder query.
    */
   const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+    if (route.path === '/admin/permissions') {
+      const cameFromExplorer = !!(route.query.dashboard || route.query.folder)
+      if (cameFromExplorer) {
+        return [
+          { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
+          { label: 'Explorer', to: '/admin/explorer' },
+          { label: 'สิทธิ์' },
+        ]
+      }
+    }
     if (route.path in routeMap) return routeMap[route.path]!
     if (route.path.startsWith('/admin/explorer/')) return routeMap['/admin/explorer']
     return [
