@@ -41,6 +41,13 @@ export interface Folder {
   updatedBy: string // uid
   assignedModerators?: string[] // UIDs of moderators who can manage this folder
 
+  // Folder-level access control (optional)
+  // When inheritPermissions is true, these cascade to all dashboards inside this folder
+  access?: AccessControl
+  restrictions?: AccessRestrictions
+  inheritPermissions?: boolean // Default: false (no effect on dashboards)
+  permissionMeta?: PermissionMetadata
+
   // Optional: for client-side hierarchy rendering
   children?: Folder[]
   level?: number // depth in hierarchy (0 = root)
@@ -84,6 +91,7 @@ export interface Dashboard {
   // Access control (3-layer permission model)
   access: AccessControl
   restrictions: AccessRestrictions
+  permissionMeta?: PermissionMetadata
 }
 
 // ============================================================================
@@ -93,33 +101,31 @@ export interface Dashboard {
 /**
  * Layer 1: Direct Access
  * Logic: OR condition
- * If user.uid OR user.role OR user.group matches, user gets access
+ * If user.uid OR user.group matches, user gets access
  */
 export interface DirectAccess {
   users: string[] // Array of user UIDs
-  roles: string[] // Array of role names
   groups: string[] // Array of group names
 }
 
 /**
- * Layer 2: Company-Scoped Access
- * Logic: AND condition (company + (role OR group))
- * User's company must match AND (user.role OR user.group) must match
- */
-export interface CompanyAccess {
-  [companyId: string]: {
-    roles: string[] // Roles in this company that can access
-    groups: string[] // Groups in this company that can access
-  }
-}
-
-/**
- * Combined access control structure
+ * Combined access control structure (v6.0)
  * Final logic: (Layer1 OR Layer2) AND NOT(Layer3_Restrictions)
+ *
+ * company: string[] — selecting a company grants access to ALL users in that company
  */
 export interface AccessControl {
   direct: DirectAccess
-  company: CompanyAccess
+  company: string[] // Company IDs — all users in these companies get access
+}
+
+/**
+ * Permission Metadata — records who set permissions and when
+ */
+export interface PermissionMetadata {
+  setBy: string       // UID of the user who set the permission
+  setByName?: string  // Display name (denormalized)
+  setAt: string       // ISO date string
 }
 
 /**
@@ -143,8 +149,8 @@ export interface PermissionCheckResult {
   reason?: 'layer1_direct' | 'layer2_company' | 'revoked' | 'expired' | 'no_match'
   grantedBy?: {
     layer: 1 | 2
-    type: 'user' | 'role' | 'group' // What matched (layer1)
-    name: string // Which role/group/user
+    type: 'user' | 'group' | 'company' // What matched
+    name: string // Which group/user/company
   }
 }
 
@@ -165,7 +171,7 @@ export interface DashboardCardData extends Dashboard {
   // Additional UI-specific fields
   accessReason: {
     layer: 1 | 2 | 3
-    type: 'user' | 'role' | 'group'
+    type: 'user' | 'group' | 'company'
     name: string
   }
   isOwner: boolean // Current user is owner
@@ -226,6 +232,21 @@ export interface SavePermissionsRequest {
   access: AccessControl
   restrictions: AccessRestrictions
   updatedBy: string
+}
+
+export interface SaveFolderPermissionsRequest {
+  folderId: string
+  access: AccessControl
+  restrictions: AccessRestrictions
+  inheritPermissions: boolean
+  permissionMeta: PermissionMetadata
+}
+
+export interface FolderPermissionsResponse {
+  access: AccessControl
+  restrictions: AccessRestrictions
+  inheritPermissions: boolean
+  permissionMeta?: PermissionMetadata
 }
 
 export interface SavePermissionsResponse {

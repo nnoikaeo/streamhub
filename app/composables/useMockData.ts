@@ -123,70 +123,111 @@ export function getFolderPath(
 }
 
 /**
+ * Get ancestor folder IDs for a given folder (walking up to root).
+ * Only returns ancestors that have inheritPermissions=true.
+ */
+export function getInheritingAncestorFolders(
+  folderId: string,
+  folders: Folder[]
+): Folder[] {
+  const ancestors: Folder[] = []
+  let currentId: string | null | undefined = folderId
+
+  while (currentId) {
+    const folder = folders.find((f) => f.id === currentId)
+    if (!folder) break
+
+    if (folder.inheritPermissions && folder.access) {
+      ancestors.push(folder)
+    }
+
+    currentId = folder.parentId
+  }
+
+  return ancestors
+}
+
+/**
+ * Check if access/restrictions from a single source grant access to a user.
+ * Returns true if Layer 1 or Layer 2 matches.
+ */
+function checkAccessRules(
+  access: { direct: { users: string[]; groups: string[] }; company: string[] },
+  user: User
+): boolean {
+  // Layer 1: Direct access (OR logic)
+  if (access.direct.users.includes(user.uid)) return true
+  for (const group of user.groups) {
+    if (access.direct.groups.includes(group)) return true
+  }
+  // Layer 2: Company-scoped
+  if (access.company.includes(user.company)) return true
+  return false
+}
+
+/**
+ * Check if any restriction (revoke/expiry) blocks a user.
+ */
+function checkRestrictions(
+  restrictions: { revoke: string[]; expiry: { [userId: string]: Date } },
+  userId: string
+): boolean {
+  if (restrictions.revoke.includes(userId)) return true
+  const expiryDate = restrictions.expiry[userId]
+  if (expiryDate && new Date() > new Date(expiryDate as any)) return true
+  return false
+}
+
+/**
  * Get all dashboards accessible to a user
- * (Based on 3-layer permission model)
+ * (Based on 3-layer permission model with folder inheritance)
+ *
+ * OR-merge formula:
+ *   Final = (DashboardPerms OR FolderPerms) AND NOT (DashboardRestrictions OR FolderRestrictions)
  */
 export function getAccessibleDashboards(
   user: User,
-  dashboards: Dashboard[]
+  dashboards: Dashboard[],
+  folders?: Folder[]
 ): Dashboard[] {
   return dashboards.filter((dashboard) => {
     // Admins can see all dashboards (except they still respect explicit revocation for security)
     if (user.role === 'admin') {
-      // Even admins are blocked by explicit revocation
       if (dashboard.restrictions.revoke.includes(user.uid)) {
         return false
       }
       return true
     }
 
-    // Check if archived - non-admins cannot see archived dashboards
-    // (admins already returned above)
+    // Non-admins cannot see archived dashboards
     if (dashboard.isArchived) {
       return false
     }
 
-    const access = dashboard.access
-    const restrictions = dashboard.restrictions
+    // Collect inheriting ancestor folders for this dashboard
+    const ancestorFolders = folders
+      ? getInheritingAncestorFolders(dashboard.folderId, folders)
+      : []
 
-    // Layer 3: Check restrictions first (explicit deny)
-    if (restrictions.revoke.includes(user.uid)) {
-      return false // User is explicitly revoked
+    // Check ALL restrictions first (dashboard + folder) — deny overrides
+    // Dashboard restrictions
+    if (checkRestrictions(dashboard.restrictions, user.uid)) {
+      return false
     }
-
-    const expiryDate = restrictions.expiry[user.uid]
-    if (expiryDate) {
-      if (new Date() > expiryDate) {
-        return false // User's access has expired
+    // Folder restrictions
+    for (const folder of ancestorFolders) {
+      if (folder.restrictions && checkRestrictions(folder.restrictions, user.uid)) {
+        return false
       }
     }
 
-    // Layer 1: Direct access (OR logic)
-    if (access.direct.users.includes(user.uid)) {
+    // OR-merge: Dashboard permissions OR any ancestor folder permissions
+    if (checkAccessRules(dashboard.access, user)) {
       return true
     }
-
-    if (access.direct.roles.includes(user.role)) {
-      return true
-    }
-
-    for (const group of user.groups) {
-      if (access.direct.groups.includes(group)) {
+    for (const folder of ancestorFolders) {
+      if (folder.access && checkAccessRules(folder.access, user)) {
         return true
-      }
-    }
-
-    // Layer 2: Company-scoped (AND logic: company + (role OR group))
-    const companyAccess = access.company[user.company]
-    if (companyAccess) {
-      if (companyAccess.roles.includes(user.role)) {
-        return true
-      }
-
-      for (const group of user.groups) {
-        if (companyAccess.groups.includes(group)) {
-          return true
-        }
       }
     }
 

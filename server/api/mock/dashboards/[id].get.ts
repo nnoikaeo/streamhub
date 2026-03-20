@@ -1,4 +1,4 @@
-import { findById } from '../../../utils/jsonDatabase'
+import { findById, readJSON } from '../../../utils/jsonDatabase'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -30,7 +30,8 @@ export default defineEventHandler(async (event) => {
         return sendForbidden(event, accessResult.reason)
       }
 
-      const access = checkDashboardAccess(dashboard, accessResult.user)
+      const folders = await readJSON('folders.json')
+      const access = checkDashboardAccess(dashboard, accessResult.user, folders as any[])
       if (!access.allowed) {
         return sendForbidden(event, access.reason)
       }

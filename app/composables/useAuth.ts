@@ -84,6 +84,12 @@ export const useAuth = () => {
     return new Promise<any>((resolve) => {
       console.log('📡 Initializing auth listener...')
 
+      // Firebase is client-only — resolve immediately on server
+      if (!$firebase?.auth) {
+        authStore.setLoading(false)
+        return resolve(null)
+      }
+
       let resolved = false
       const timeoutId = setTimeout(() => {
         if (!resolved) {
@@ -94,15 +100,20 @@ export const useAuth = () => {
         }
       }, 5000)
 
-      onAuthStateChanged($firebase.auth, (user) => {
+      onAuthStateChanged($firebase.auth, async (user) => {
         if (resolved) return
 
         console.log('🔍 Auth state changed:', user?.email || 'not logged in')
 
         if (user) {
-          // Fetch role from mock data
+          // Fetch role from API
           try {
-            const mockUser = getMockUserByUid(user.uid)
+            const response = await fetch(`/api/mock/users/${user.uid}`)
+            if (!response.ok) {
+              throw new Error(`User with UID "${user.uid}" not found in system. Please contact administrator to create an account.`)
+            }
+            const data = await response.json()
+            const mockUser = data.data
             console.log(`🔍 [useAuth.initAuth] Got mock user with role: ${mockUser.role}`)
 
             const userData: UserData = {
