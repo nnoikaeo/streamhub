@@ -67,6 +67,9 @@ const goBackToExplorer = () => {
 
 // ─── State ──────────────────────────────────────────────────────────────
 
+// Non-admin users (admin has implicit access to everything by role)
+const nonAdminUsers = computed(() => props.allUsers.filter(u => u.role !== 'admin'))
+
 const selectedDashboardId = ref<string>('')
 const currentDashboard = ref<Dashboard | null>(null)
 const currentDashboardFolder = ref<string>('')
@@ -177,11 +180,17 @@ const clearSelection = () => {
 }
 
 const focusSearch = () => {
-  searchInputRef.value?.focus()
+  dashboardSearchQuery.value = ''
+  isDropdownOpen.value = true
+  nextTick(() => {
+    searchInputRef.value?.focus()
+  })
 }
 
 // Close dropdown on click outside
 const handleClickOutside = (e: MouseEvent) => {
+  // Ignore clicks on elements detached from DOM (e.g. v-if unmounted on same click)
+  if (!document.contains(e.target as Node)) return
   const wrapper = (e.target as HTMLElement)?.closest('.dashboard-search-wrapper')
   if (!wrapper) isDropdownOpen.value = false
 }
@@ -230,10 +239,16 @@ const clearFolderSelection = () => {
 }
 
 const focusFolderSearch = () => {
-  folderSearchInputRef.value?.focus()
+  folderSearchQuery.value = ''
+  isFolderDropdownOpen.value = true
+  nextTick(() => {
+    folderSearchInputRef.value?.focus()
+  })
 }
 
 const handleFolderClickOutside = (e: MouseEvent) => {
+  // Ignore clicks on elements detached from DOM (e.g. v-if unmounted on same click)
+  if (!document.contains(e.target as Node)) return
   const wrapper = (e.target as HTMLElement)?.closest('.folder-search-wrapper')
   if (!wrapper) isFolderDropdownOpen.value = false
 }
@@ -304,7 +319,10 @@ const getInheritedUserCount = (folder: Folder): number => {
     if (group) group.members.forEach((uid: string) => uids.add(uid))
   }
   for (const companyCode of folder.access.company) {
-    props.allUsers.filter(u => u.company === companyCode).forEach(u => uids.add(u.uid))
+    const usersForCode = companyCode === 'ALL'
+      ? nonAdminUsers.value.filter(u => props.allCompanies.some((c: any) => c.code === u.company && c.isActive))
+      : nonAdminUsers.value.filter(u => u.company === companyCode)
+    usersForCode.forEach(u => uids.add(u.uid))
   }
   return uids.size
 }
@@ -331,10 +349,10 @@ const conflicts = computed<ConflictWarning[]>(() => {
   for (const uid of perms.access.direct.users) {
     const u = props.allUsers.find(x => x.uid === uid)
     if (!u) continue
-    if (perms.access.company.includes(u.company)) {
+    if (perms.access.company.includes(u.company) || perms.access.company.includes('ALL')) {
       warnings.push({
         type: 'redundant-grant',
-        message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — บริษัท ${u.company} มีสิทธิ์อยู่แล้ว`,
+        message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — ${perms.access.company.includes('ALL') ? 'ทุกบริษัท' : `บริษัท ${u.company}`} มีสิทธิ์อยู่แล้ว`,
       })
     }
     for (const gid of perms.access.direct.groups) {
@@ -358,6 +376,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
       const hasInheritedAccess =
         folder.access.direct.users.includes(uid) ||
         folder.access.company.includes(u.company) ||
+        folder.access.company.includes('ALL') ||
         folder.access.direct.groups.some((gid: string) => {
           const g = props.allGroups.find((g: any) => g.id === gid)
           return g?.members.includes(uid)
@@ -381,6 +400,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
       const hasDirectAccess =
         perms.access.direct.users.includes(uid) ||
         perms.access.company.includes(u.company) ||
+        perms.access.company.includes('ALL') ||
         perms.access.direct.groups.some((gid: string) => {
           const g = props.allGroups.find((g: any) => g.id === gid)
           return g?.members.includes(uid)
@@ -414,7 +434,7 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   const userMap = new Map<string, EffectiveAccessEntry>()
 
   const addUser = (uid: string, source: string) => {
-    const u = props.allUsers.find(x => x.uid === uid)
+    const u = nonAdminUsers.value.find(x => x.uid === uid)
     if (!u) return
     if (!userMap.has(uid)) {
       userMap.set(uid, { uid, name: u.name, company: u.company, sources: [] })
@@ -433,8 +453,12 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   }
 
   for (const companyCode of perms.access.company) {
-    for (const u of props.allUsers.filter(x => x.company === companyCode)) {
-      addUser(u.uid, `บริษัท ${companyCode}`)
+    const usersForCode = companyCode === 'ALL'
+      ? nonAdminUsers.value.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
+      : nonAdminUsers.value.filter(x => x.company === companyCode)
+    const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
+    for (const u of usersForCode) {
+      addUser(u.uid, label)
     }
   }
 
@@ -455,9 +479,13 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
       }
     }
     for (const companyCode of folder.access.company) {
-      for (const u of props.allUsers.filter(x => x.company === companyCode)) {
-        if (userMap.get(u.uid)?.sources.includes(`บริษัท ${companyCode}`)) continue
-        addUser(u.uid, `📁 ${folder.name} · บริษัท ${companyCode}`)
+      const usersForCode = companyCode === 'ALL'
+        ? nonAdminUsers.value.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
+        : nonAdminUsers.value.filter(x => x.company === companyCode)
+      const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
+      for (const u of usersForCode) {
+        if (userMap.get(u.uid)?.sources.includes(label)) continue
+        addUser(u.uid, `📁 ${folder.name} · ${label}`)
       }
     }
   }
@@ -742,7 +770,7 @@ watch(() => props.allFolders, (folders) => {
             <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
               <input
                 ref="searchInputRef"
-                v-show="!selectedDashboardId || dashboardSearchQuery"
+                v-show="!selectedDashboardId || dashboardSearchQuery || isDropdownOpen"
                 v-model="dashboardSearchQuery"
                 type="text"
                 class="theme-form-input"
@@ -752,7 +780,7 @@ watch(() => props.allFolders, (folders) => {
                 @input="isDropdownOpen = true"
               />
               <div
-                v-if="selectedDashboardId && !dashboardSearchQuery"
+                v-if="selectedDashboardId && !dashboardSearchQuery && !isDropdownOpen"
                 class="dashboard-search__selected"
                 @click="focusSearch"
               >
@@ -788,7 +816,7 @@ watch(() => props.allFolders, (folders) => {
             <div class="dashboard-search" :class="{ 'dashboard-search--open': isFolderDropdownOpen }">
               <input
                 ref="folderSearchInputRef"
-                v-show="!selectedEditFolderId || folderSearchQuery"
+                v-show="!selectedEditFolderId || folderSearchQuery || isFolderDropdownOpen"
                 v-model="folderSearchQuery"
                 type="text"
                 class="theme-form-input"
@@ -797,7 +825,7 @@ watch(() => props.allFolders, (folders) => {
                 @input="isFolderDropdownOpen = true"
               />
               <div
-                v-if="selectedEditFolderId && !folderSearchQuery"
+                v-if="selectedEditFolderId && !folderSearchQuery && !isFolderDropdownOpen"
                 class="dashboard-search__selected"
                 @click="focusFolderSearch"
               >

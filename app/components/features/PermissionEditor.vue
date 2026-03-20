@@ -122,22 +122,38 @@
             </template>
             <!-- Companies mode -->
             <template v-else>
+              <!-- ทั้งหมด row (hidden when search is active and doesn't include "ทั้งหมด") -->
+              <button
+                v-if="!grantSearch || 'ทั้งหมด'.includes(grantSearch.toLowerCase())"
+                type="button"
+                class="user-item user-item--all"
+                :class="{ 'user-item--added': isAllCompaniesSelected }"
+                @click="toggleAllCompanies"
+              >
+                <div class="user-item__info">
+                  <span class="user-item__name">ทั้งหมด</span>
+                  <span class="user-item__email">ทุกบริษัท · {{ totalAllCompanyUsers }} คน</span>
+                </div>
+                <span v-if="isAllCompaniesSelected" class="user-item__check">✓</span>
+                <span v-else class="user-item__add">+</span>
+              </button>
               <button
                 v-for="c in filteredCompanies"
                 :key="c.code"
                 type="button"
                 class="user-item"
-                :class="{ 'user-item--added': isCompanySelected(c.code) }"
-                @click="toggleCompany(c.code)"
+                :class="{ 'user-item--added': isCompanySelected(c.code) || isAllCompaniesSelected }"
+                :disabled="isAllCompaniesSelected"
+                @click="!isAllCompaniesSelected && toggleCompany(c.code)"
               >
                 <div class="user-item__info">
                   <span class="user-item__name">{{ c.code }}</span>
                   <span class="user-item__email">{{ c.name }} · {{ getCompanyUserCount(c.code) }} คน</span>
                 </div>
-                <span v-if="isCompanySelected(c.code)" class="user-item__check">✓</span>
+                <span v-if="isCompanySelected(c.code) || isAllCompaniesSelected" class="user-item__check">✓</span>
                 <span v-else class="user-item__add">+</span>
               </button>
-              <div v-if="filteredCompanies.length === 0" class="panel__empty">
+              <div v-if="filteredCompanies.length === 0 && !((!grantSearch || 'ทั้งหมด'.includes(grantSearch.toLowerCase())))" class="panel__empty">
                 {{ grantSearch ? 'ไม่พบบริษัทที่ตรงกัน' : 'ไม่มีบริษัทที่ใช้งาน' }}
               </div>
             </template>
@@ -211,8 +227,10 @@
               <div class="selected-item__info">
                 <span class="selected-item__icon">🏢</span>
                 <div class="selected-item__text">
-                  <span class="selected-item__name">{{ code }}</span>
-                  <span class="selected-item__badge">ตามบริษัท ({{ getCompanyUserCount(code) }} คน)</span>
+                  <span class="selected-item__name">{{ code === 'ALL' ? 'ทั้งหมด' : code }}</span>
+                  <span class="selected-item__badge">
+                    {{ code === 'ALL' ? `ตามบริษัท (ทุกบริษัท · ${totalAllCompanyUsers} คน)` : `ตามบริษัท (${getCompanyUserCount(code)} คน)` }}
+                  </span>
                 </div>
               </div>
               <button
@@ -476,8 +494,11 @@ function getGroupMemberCount(gid: string): number {
   return props.allGroups.find((g) => g.id === gid)?.members.length ?? 0
 }
 
+// Non-admin users (admin has access to everything by role — no need to grant)
+const nonAdminUsers = computed(() => props.allUsers.filter((u) => u.role !== 'admin'))
+
 function getCompanyUserCount(code: string): number {
-  return props.allUsers.filter((u) => u.company === code).length
+  return nonAdminUsers.value.filter((u) => u.company === code).length
 }
 
 function formatDate(date: Date | string): string {
@@ -538,7 +559,7 @@ function isUserAdded(uid: string): boolean {
 }
 
 const filteredUsers = computed(() => {
-  let list = props.allUsers
+  let list = nonAdminUsers.value
   if (grantSearch.value) {
     const q = grantSearch.value.toLowerCase()
     list = list.filter(
@@ -596,6 +617,8 @@ function removeDirectGroup(gid: string) {
 
 // ── Companies ──
 
+const ALL_COMPANIES = 'ALL'
+
 const activeCompanies = computed(() => props.allCompanies.filter((c) => c.isActive))
 
 const filteredCompanies = computed(() => {
@@ -609,6 +632,15 @@ const filteredCompanies = computed(() => {
   return list
 })
 
+const isAllCompaniesSelected = computed(() =>
+  localAccess.value.company.includes(ALL_COMPANIES),
+)
+
+const totalAllCompanyUsers = computed(() => {
+  const activeCodes = new Set(activeCompanies.value.map((c) => c.code))
+  return nonAdminUsers.value.filter((u) => activeCodes.has(u.company)).length
+})
+
 function isCompanySelected(code: string): boolean {
   return localAccess.value.company.includes(code)
 }
@@ -618,6 +650,19 @@ function toggleCompany(code: string) {
     removeCompany(code)
   } else {
     localAccess.value.company.push(code)
+    emitUpdate()
+  }
+}
+
+function toggleAllCompanies() {
+  if (isAllCompaniesSelected.value) {
+    removeCompany(ALL_COMPANIES)
+  } else {
+    // Remove individual company selections and add ALL sentinel
+    localAccess.value.company = localAccess.value.company.filter(
+      (c) => !activeCompanies.value.some((ac) => ac.code === c),
+    )
+    localAccess.value.company.push(ALL_COMPANIES)
     emitUpdate()
   }
 }
@@ -656,7 +701,7 @@ const filteredRestrictionUsers = computed(() => {
     ...localRestrictions.value.revoke,
     ...Object.keys(localRestrictions.value.expiry),
   ]
-  let list = props.allUsers.filter((u) => !excludeUids.includes(u.uid))
+  let list = nonAdminUsers.value.filter((u) => !excludeUids.includes(u.uid))
   if (restrictionSearch.value) {
     const q = restrictionSearch.value.toLowerCase()
     list = list.filter(

@@ -63,11 +63,11 @@ const filteredAvailable = computed(() => {
   return available
 })
 
-// Resolve assigned UIDs to user objects
+// Resolve assigned UIDs to user objects (exclude admins — they have implicit access)
 const assignedUsers = computed(() =>
   localAssigned.value
     .map(uid => props.allUsers.find(u => u.uid === uid))
-    .filter(Boolean) as User[]
+    .filter((u): u is User => !!u && u.role !== 'admin')
 )
 
 const addModerator = (uid: string) => {
