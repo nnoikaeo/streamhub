@@ -17,6 +17,7 @@ import { onMounted } from 'vue'
 interface Props {
   folder?: Folder | null
   allFolders?: Folder[]
+  parentFolderId?: string | null
 }
 
 const props = defineProps<Props>()
@@ -42,7 +43,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     id: props.folder?.id || `folder_${Date.now()}`,
     name: props.folder?.name || '',
     description: props.folder?.description || '',
-    parentId: props.folder?.parentId ?? '',
+    parentId: props.folder?.parentId ?? props.parentFolderId ?? '',
   },
   validate,
   onSubmit: async (values) => {

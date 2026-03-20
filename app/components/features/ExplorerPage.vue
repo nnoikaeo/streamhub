@@ -244,6 +244,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
           ref="folderFormRef"
           :folder="explorer.selectedFolder.value"
           :all-folders="folderFormFolders"
+          :parent-folder-id="explorer.currentFolderId.value"
           @submit="explorer.handleSaveFolder"
         />
       </FormModal>
