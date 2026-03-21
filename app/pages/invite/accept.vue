@@ -12,7 +12,7 @@ const code = route.query.code as string
 const authStore = useAuthStore()
 const invitation = ref<any>(null)
 const errorMessage = ref('')
-const status = ref<'loading' | 'valid' | 'invalid' | 'already_accepted' | 'email_mismatch' | 'processing' | 'success' | 'error'>('loading')
+const status = ref<'loading' | 'valid' | 'invalid' | 'expired' | 'cancelled' | 'already_accepted' | 'email_mismatch' | 'processing' | 'success' | 'error'>('loading')
 
 // Phase 1: Verify invitation (read-only)
 const verifyInvitation = async () => {
@@ -33,11 +33,9 @@ const verifyInvitation = async () => {
     } else if (response.status === 'already_accepted') {
       status.value = 'already_accepted'
     } else if (response.status === 'expired') {
-      status.value = 'invalid'
-      errorMessage.value = 'คำเชิญนี้หมดอายุแล้ว'
+      status.value = 'expired'
     } else if (response.status === 'cancelled') {
-      status.value = 'invalid'
-      errorMessage.value = 'คำเชิญนี้ถูกยกเลิกแล้ว'
+      status.value = 'cancelled'
     } else {
       status.value = 'invalid'
       errorMessage.value = 'ไม่พบคำเชิญหรือคำเชิญไม่ถูกต้อง'
@@ -318,7 +316,41 @@ onMounted(() => {
           </NuxtLink>
         </div>
 
-        <!-- Invalid / Expired / Error -->
+        <!-- Expired -->
+        <div v-else-if="status === 'expired'" class="text-center">
+          <div class="mb-4">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-50 mb-3">
+              <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold text-slate-900 mb-2">คำเชิญหมดอายุแล้ว</h2>
+            <p class="text-slate-600 mb-5">คำเชิญนี้หมดอายุแล้ว กรุณาติดต่อผู้ดูแลระบบเพื่อขอคำเชิญใหม่</p>
+          </div>
+
+          <NuxtLink to="/login" class="invite-link">
+            กลับไปหน้าเข้าสู่ระบบ
+          </NuxtLink>
+        </div>
+
+        <!-- Cancelled -->
+        <div v-else-if="status === 'cancelled'" class="text-center">
+          <div class="mb-4">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-slate-100 mb-3">
+              <svg class="w-7 h-7 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold text-slate-900 mb-2">คำเชิญถูกยกเลิกแล้ว</h2>
+            <p class="text-slate-600 mb-5">คำเชิญนี้ถูกยกเลิกแล้ว กรุณาติดต่อผู้ดูแลระบบ</p>
+          </div>
+
+          <NuxtLink to="/login" class="invite-link">
+            กลับไปหน้าเข้าสู่ระบบ
+          </NuxtLink>
+        </div>
+
+        <!-- Invalid / Error -->
         <div v-else class="text-center">
           <div class="mb-4">
             <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-50 mb-3">
@@ -327,7 +359,7 @@ onMounted(() => {
               </svg>
             </div>
             <h2 class="text-xl font-bold text-slate-900 mb-2">คำเชิญไม่ถูกต้อง</h2>
-            <p class="text-slate-600 mb-5">{{ errorMessage || 'คำเชิญนี้ไม่ถูกต้องหรือหมดอายุแล้ว' }}</p>
+            <p class="text-slate-600 mb-5">{{ errorMessage || 'ไม่พบคำเชิญหรือคำเชิญไม่ถูกต้อง' }}</p>
           </div>
 
           <NuxtLink to="/login" class="invite-link">
