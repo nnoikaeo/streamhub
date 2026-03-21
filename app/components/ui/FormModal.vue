@@ -37,6 +37,8 @@ interface Props {
   submitText?: string
   /** Cancel button text */
   cancelText?: string
+  /** Hide the cancel button */
+  hideCancel?: boolean
   /** Disable submit button (e.g. after successful submission) */
   submitDisabled?: boolean
 }
@@ -47,6 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
   submitText: 'บันทึก',
   cancelText: 'ยกเลิก',
   submitDisabled: false,
+  hideCancel: false,
 })
 
 const emit = defineEmits<{
@@ -100,6 +103,7 @@ const handleCancel = () => {
     <template #footer>
       <div class="form-modal__footer">
         <button
+          v-if="!hideCancel"
           type="button"
           class="theme-btn theme-btn--secondary"
           :disabled="loading"

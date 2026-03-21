@@ -12,6 +12,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // Firebase auth is client-only — skip all auth checks during SSR
   if (import.meta.server) return
 
+  // Allow invitation acceptance page without auth — user may not be logged in yet
+  if (to.path.startsWith('/invite/')) {
+    return
+  }
+
   try {
     const authStore = useAuthStore()
     const { initAuth } = useAuth()
