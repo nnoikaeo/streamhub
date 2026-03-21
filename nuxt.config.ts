@@ -88,6 +88,11 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    // Server-only (never exposed to client)
+    resendApiKey: process.env.RESEND_API_KEY || '',
+    resendFromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@streamhub.app',
+    appUrl: process.env.APP_URL || 'http://localhost:3000',
+
     public: {
       // Mock Data Service Configuration
       useJsonMock: process.env.NUXT_PUBLIC_USE_JSON_MOCK !== 'false',
