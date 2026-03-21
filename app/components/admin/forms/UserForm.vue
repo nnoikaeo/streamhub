@@ -136,18 +136,6 @@ defineExpose({ submit: handleSubmit })
 <template>
   <div class="user-form">
     <FormField
-      v-model="formData.uid"
-      type="text"
-      label="UID"
-      placeholder="เช่น user_john_doe"
-      :error="errors.uid"
-      :disabled="isEditMode"
-      :required="true"
-      :description="!isEditMode ? 'UID ไม่สามารถเปลี่ยนแปลงหลังสร้างได้' : undefined"
-      @blur="setFieldTouched('uid')"
-    />
-
-    <FormField
       v-model="formData.email"
       type="email"
       label="อีเมล"

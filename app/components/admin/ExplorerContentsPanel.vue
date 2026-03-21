@@ -89,8 +89,8 @@ const gridColumns = computed(() =>
         </button>
       </div>
       <span class="contents-count">
-        {{ subfolders.length }} folder{{ subfolders.length !== 1 ? 's' : '' }},
-        {{ dashboards.length }} dashboard{{ dashboards.length !== 1 ? 's' : '' }}
+        {{ subfolders.length }} โฟลเดอร์,
+        {{ dashboards.length }} แดชบอร์ด
       </span>
     </div>
 
@@ -101,21 +101,21 @@ const gridColumns = computed(() =>
 
     <!-- Empty State (no items at all) -->
     <div v-else-if="isEmpty" class="contents-state">
-      <p class="state-text">ยังไม่มีเนื้อหาใน folder นี้</p>
+      <p class="state-text">ยังไม่มีเนื้อหาในโฟลเดอร์นี้</p>
       <div class="state-actions">
         <button
           v-if="isAdmin"
           class="theme-btn theme-btn--ghost"
           @click="emit('new-folder')"
         >
-          สร้าง Folder
+          + โฟลเดอร์ใหม่
         </button>
         <button
           v-if="canCreateDashboard"
           class="theme-btn theme-btn--ghost"
           @click="emit('new-dashboard')"
         >
-          สร้าง Dashboard
+          + แดชบอร์ดใหม่
         </button>
       </div>
     </div>
@@ -165,11 +165,11 @@ const gridColumns = computed(() =>
           <span v-else class="moderator-empty">&mdash;</span>
         </span>
         <span class="col-type">
-          <span class="badge badge--folder">Folder</span>
+          <span class="badge badge--folder">โฟลเดอร์</span>
         </span>
         <span class="col-status">
           <span :class="['badge', folder.isActive ? 'badge--active' : 'badge--inactive']">
-            {{ folder.isActive ? 'Active' : 'Inactive' }}
+            {{ folder.isActive ? 'ใช้งาน' : 'ไม่ใช้งาน' }}
           </span>
         </span>
         <span class="col-actions row-actions">
@@ -219,11 +219,11 @@ const gridColumns = computed(() =>
         </span>
         <span v-if="showModeratorColumn" class="col-moderators" />
         <span class="col-type">
-          <span class="badge badge--dashboard">Dashboard</span>
+          <span class="badge badge--dashboard">แดชบอร์ด</span>
         </span>
         <span class="col-status">
           <span :class="['badge', dashboard.isArchived ? 'badge--archived' : 'badge--active']">
-            {{ dashboard.isArchived ? 'Archived' : 'Active' }}
+            {{ dashboard.isArchived ? 'เก็บถาวร' : 'ใช้งาน' }}
           </span>
         </span>
         <span class="col-actions row-actions">

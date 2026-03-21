@@ -9,7 +9,7 @@
  * - Uses FormField component for consistent styling
  */
 
-import type { Dashboard, Folder } from '~/types/dashboard'
+import type { Dashboard, Folder, User } from '~/types/dashboard'
 import type { Tag } from '~/types/tag'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAuthStore } from '~/stores/auth'
@@ -24,6 +24,7 @@ interface Props {
   canCreateTag?: boolean
   availableTags?: Tag[]
   availableFolders?: Folder[]
+  allUsers?: User[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -90,11 +91,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     tags: props.dashboard?.tags ?? [],
   },
   validate: (values) => {
-    const validationErrors = baseValidate(values)
-    if (!values.lookerDashboardId?.trim()) {
-      validationErrors.lookerDashboardId = 'Looker Dashboard ID จำเป็นต้องกรอก'
-    }
-    return validationErrors
+    return baseValidate(values)
   },
   onSubmit: async (values) => {
     emit('submit', values)
@@ -102,6 +99,11 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
 })
 
 const isEditMode = computed(() => !!props.dashboard)
+
+const ownerDisplayName = computed(() => {
+  if (!formData.owner) return '-'
+  return props.allUsers?.find(u => u.uid === formData.owner)?.name || formData.owner
+})
 
 // Allow parent to trigger validation + submission via template ref (same pattern as FolderForm)
 defineExpose({ submit: handleSubmit })
@@ -151,11 +153,13 @@ onMounted(async () => {
     <FormField
       v-model="formData.folderId"
       type="select"
-      label="โฟลเดอร์"
+      label="โฟลเดอร์หลัก"
       :options="folderOptions"
       :error="errors.folderId"
       :required="true"
       :disabled="!!lockedFolderId"
+      :hide-blank-option="true"
+      :description="'เลือกโฟลเดอร์หลักสำหรับสร้างลำดับชั้น'"
       @blur="setFieldTouched('folderId')"
     />
 
@@ -169,38 +173,31 @@ onMounted(async () => {
       />
     </div>
 
-    <FormField
-      v-model="formData.lookerDashboardId"
-      type="text"
-      label="Looker Dashboard ID"
-      placeholder="เช่น dashboard_123"
-      :error="errors.lookerDashboardId"
-      :required="true"
-      @blur="setFieldTouched('lookerDashboardId')"
-    />
+    <!-- Looker fields: show only in edit mode -->
+    <template v-if="isEditMode">
+      <FormField
+        v-model="formData.lookerEmbedUrl"
+        type="text"
+        label="Looker Embed URL"
+        placeholder="https://looker.example.com/dashboards/123"
+      />
 
-    <FormField
-      v-model="formData.lookerEmbedUrl"
-      type="text"
-      label="Looker Embed URL"
-      placeholder="https://looker.example.com/dashboards/123"
-    />
+      <FormField
+        v-model="formData.isArchived"
+        type="toggle"
+        label="เก็บถาวร (Archived)"
+      />
 
-    <FormField
-      v-model="formData.isArchived"
-      type="checkbox"
-      label="เก็บถาวร (Archived)"
-    />
-
-    <p v-if="formData.isArchived" class="form-warning">
-      แดชบอร์ดที่ถูกเก็บถาวรจะถูกซ่อนจากผู้ใช้ทั่วไป
-    </p>
+      <p v-if="formData.isArchived" class="form-warning">
+        แดชบอร์ดที่ถูกเก็บถาวรจะถูกซ่อนจากผู้ใช้ทั่วไป
+      </p>
+    </template>
 
     <!-- Info Section -->
     <div v-if="isEditMode" class="form-info">
       <div class="info-row">
         <span class="info-label">เจ้าของ:</span>
-        <span class="info-value">{{ formData.owner }}</span>
+        <span class="info-value">{{ ownerDisplayName }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">สร้างเมื่อ:</span>

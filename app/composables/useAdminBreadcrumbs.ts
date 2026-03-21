@@ -49,7 +49,7 @@ export function useAdminBreadcrumbs() {
     ],
     '/admin/groups': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
-      { label: 'กลุ่ม' },
+      { label: 'กลุ่มผู้ใช้' },
     ],
     '/admin/permissions': [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
