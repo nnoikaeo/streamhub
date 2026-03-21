@@ -69,6 +69,7 @@ export function useRoleNavigation() {
     items: [
       { path: '/admin/overview', label: 'ภาพรวม', icon: '📊' },
       { path: '/admin/users', label: 'ผู้ใช้', icon: '👥' },
+      { path: '/admin/invitations', label: 'คำเชิญ', icon: '✉️' },
       { path: '/admin/explorer', label: 'Explorer', icon: '🗂️' },
       { path: '/admin/companies', label: 'บริษัท', icon: '🏢' },
       { path: '/admin/regions', label: 'กลุ่มธุรกิจ/เขตพื้นที่', icon: '🌏' },
