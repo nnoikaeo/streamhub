@@ -70,6 +70,15 @@ const assignedUsers = computed(() =>
     .filter((u): u is User => !!u && u.role !== 'admin')
 )
 
+const getRoleLabel = (role: User['role']): string => {
+  const labels: Record<User['role'], string> = {
+    admin: 'Admin',
+    moderator: 'Moderator',
+    user: 'User',
+  }
+  return labels[role] ?? role
+}
+
 const addModerator = (uid: string) => {
   if (!localAssigned.value.includes(uid)) {
     localAssigned.value.push(uid)
@@ -130,7 +139,7 @@ const handleCancel = () => {
           >
             <div class="user-info">
               <span class="user-name">{{ user.name }}</span>
-              <span class="user-company">{{ user.company }}</span>
+              <span class="user-company">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
             </div>
             <span class="user-action user-action--add">&gt;&gt;</span>
           </button>
@@ -154,7 +163,7 @@ const handleCancel = () => {
           >
             <div class="user-info">
               <span class="user-name">{{ user.name }}</span>
-              <span class="user-company">{{ user.company }}</span>
+              <span class="user-company">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
             </div>
             <button
               type="button"

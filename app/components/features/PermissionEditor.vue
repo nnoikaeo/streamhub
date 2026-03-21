@@ -90,7 +90,7 @@
               >
                 <div class="user-item__info">
                   <span class="user-item__name">{{ u.name }}</span>
-                  <span class="user-item__email">{{ u.company }}</span>
+                  <span class="user-item__email">{{ u.role ? ({ admin: 'Admin', moderator: 'Moderator', user: 'User' }[u.role] ?? u.role) + ' · ' + u.company : u.company }}</span>
                 </div>
                 <span v-if="isUserAdded(u.uid)" class="user-item__check">✓</span>
                 <span v-else class="user-item__add">+</span>
@@ -183,8 +183,11 @@
               <div class="selected-item__info">
                 <span class="selected-item__icon">👤</span>
                 <div class="selected-item__text">
-                  <span class="selected-item__name">{{ getUserName(uid) }}</span>
-                  <span class="selected-item__badge">สิทธิ์ตรง · {{ getUserCompany(uid) }}</span>
+                  <div class="selected-item__name-row">
+                    <span class="selected-item__name">{{ getUserName(uid) }}</span>
+                    <span class="selected-item__type-badge">สิทธิ์ตรง</span>
+                  </div>
+                  <span class="selected-item__badge">{{ getUserRoleCompany(uid) }}</span>
                 </div>
               </div>
               <button
@@ -301,9 +304,9 @@
               @click="handleRestrictionClick(u.uid)"
             >
               <div class="user-item__info">
-                <span class="user-item__name">{{ u.name }}</span>
-                <span class="user-item__email">{{ u.company }}</span>
-              </div>
+                  <span class="user-item__name">{{ u.name }}</span>
+                  <span class="user-item__email">{{ u.role ? ({ admin: 'Admin', moderator: 'Moderator', user: 'User' }[u.role] ?? u.role) + ' · ' + u.company : u.company }}</span>
+                </div>
               <span class="user-item__add">+</span>
             </button>
             <div v-if="filteredRestrictionUsers.length === 0" class="panel__empty">
@@ -484,6 +487,20 @@ function getUserName(uid: string): string {
 
 function getUserCompany(uid: string): string {
   return props.allUsers.find((u) => u.uid === uid)?.company ?? ''
+}
+
+function getRoleLabel(uid: string): string {
+  const role = props.allUsers.find((u) => u.uid === uid)?.role
+  if (!role) return ''
+  const labels: Record<string, string> = { admin: 'Admin', moderator: 'Moderator', user: 'User' }
+  return labels[role] ?? role
+}
+
+function getUserRoleCompany(uid: string): string {
+  const user = props.allUsers.find((u) => u.uid === uid)
+  if (!user) return ''
+  const labels: Record<string, string> = { admin: 'Admin', moderator: 'Moderator', user: 'User' }
+  return `${labels[user.role] ?? user.role} · ${user.company}`
 }
 
 function getGroupName(gid: string): string {
@@ -1102,6 +1119,24 @@ function clearAllRestrictions() {
   flex-direction: column;
   gap: 0.1rem;
   min-width: 0;
+}
+
+.selected-item__name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.selected-item__type-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-primary, #3b82f6);
+  background-color: rgba(59, 130, 246, 0.1);
+  border-radius: 0.25rem;
+  padding: 0.05rem 0.35rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .selected-item__name {

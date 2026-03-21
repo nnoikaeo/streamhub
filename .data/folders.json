@@ -20,11 +20,11 @@
     "description": "Financial reports and dashboards",
     "isActive": true,
     "assignedModerators": [
-      "user_somchai_mod"
+      "9c7TScfkuGX7W4dq9P8GHjhrbIu1"
     ],
     "createdBy": "user-1",
     "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2026-03-18T00:00:00.000Z",
+    "updatedAt": "2026-03-19T01:40:20.048Z",
     "updatedBy": "user-1",
     "inheritPermissions": true,
     "access": {
@@ -32,7 +32,9 @@
         "users": [],
         "groups": []
       },
-      "company": ["STTH"]
+      "company": [
+        "STTH"
+      ]
     },
     "restrictions": {
       "revoke": [],
@@ -243,7 +245,7 @@
     "assignedModerators": [],
     "createdBy": "61JSdbE674TqRBHHUu9ezdzFul93",
     "createdAt": "2024-01-05T00:00:00.000Z",
-    "updatedAt": "2024-01-05T00:00:00.000Z",
+    "updatedAt": "2026-03-20T02:32:23.234Z",
     "updatedBy": "61JSdbE674TqRBHHUu9ezdzFul93"
   }
 ]

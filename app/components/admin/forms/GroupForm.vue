@@ -17,6 +17,15 @@ import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { createObjectValidator, validators } from '~/utils/formValidators'
 import { onMounted, computed, ref } from 'vue'
 
+const getRoleLabel = (role: User['role']): string => {
+  const labels: Record<User['role'], string> = {
+    admin: 'Admin',
+    moderator: 'Moderator',
+    user: 'User',
+  }
+  return labels[role] ?? role
+}
+
 interface Props {
   group?: AdminGroup | null
   members?: User[]
@@ -218,7 +227,7 @@ defineExpose({ submit: handleSubmit })
             >
               <div class="user-item__info">
                 <span class="user-item__name">{{ user.name }}</span>
-                <span class="user-item__email">{{ user.company }}</span>
+                <span class="user-item__email">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
               </div>
               <span class="user-item__add">+</span>
             </button>
@@ -249,7 +258,7 @@ defineExpose({ submit: handleSubmit })
             >
               <div class="selected-item__info">
                 <span class="selected-item__name">{{ user.name }}</span>
-                <span class="selected-item__company">{{ user.company }}</span>
+                <span class="selected-item__company">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
               </div>
               <button
                 type="button"
