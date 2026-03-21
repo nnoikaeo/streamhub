@@ -65,19 +65,6 @@
     "updatedAt": "2024-02-01T00:00:00.000Z"
   },
   {
-    "uid": "rHdLmTdB1LSKLeUZ2j45KjS2OBl2",
-    "email": "survey.streamwash@gmail.com",
-    "name": "Survey Streamwash",
-    "role": "user",
-    "company": "STTH",
-    "groups": [
-      "operations"
-    ],
-    "isActive": true,
-    "createdAt": "2024-01-25T00:00:00.000Z",
-    "updatedAt": "2026-03-15T03:10:09.523Z"
-  },
-  {
     "uid": "user_somchai_mod",
     "email": "somchai@streamwash.com",
     "name": "Somchai Moderator",
@@ -89,5 +76,19 @@
     "isActive": true,
     "createdAt": "2024-01-10T00:00:00.000Z",
     "updatedAt": "2024-02-01T00:00:00.000Z"
+  },
+  {
+    "uid": "nvWqA4V84cMCNBNFzXTo3XxhXL93",
+    "email": "survey.streamwash@gmail.com",
+    "name": "Survey Streamwash",
+    "role": "user",
+    "company": "INFE",
+    "groups": [
+      "operations"
+    ],
+    "isActive": true,
+    "createdAt": "2026-03-21T18:06:35.648Z",
+    "updatedAt": "2026-03-21T19:51:48.026Z",
+    "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocK_PruiSCrZlqsHWjEgBny343vuBiIWn2AsuMUZBW-243p_BKs=s96-c"
   }
 ]

@@ -49,17 +49,17 @@ const filteredInvitations = computed(() => {
         if (!inv.email.toLowerCase().includes(q) && !inv.invitedByName.toLowerCase().includes(q)) return false
       }
       if (filterCompany.value && inv.company !== filterCompany.value) return false
-      if (filterStatus.value && inv.status !== filterStatus.value) return false
+      if (filterStatus.value && effectiveStatus(inv) !== filterStatus.value) return false
       return true
     })
 })
 
 const stats = computed(() => ({
   total: invitations.value.length,
-  pending: invitations.value.filter(i => i.status === 'pending').length,
-  accepted: invitations.value.filter(i => i.status === 'accepted').length,
-  expired: invitations.value.filter(i => i.status === 'expired').length,
-  cancelled: invitations.value.filter(i => i.status === 'cancelled').length,
+  pending: invitations.value.filter(i => effectiveStatus(i) === 'pending').length,
+  accepted: invitations.value.filter(i => effectiveStatus(i) === 'accepted').length,
+  expired: invitations.value.filter(i => effectiveStatus(i) === 'expired').length,
+  cancelled: invitations.value.filter(i => effectiveStatus(i) === 'cancelled').length,
 }))
 
 
@@ -71,6 +71,14 @@ function statusBadgeClass(status: InvitationStatus) {
     'status-badge status-badge--red': status === 'expired',
     'status-badge status-badge--gray': status === 'cancelled',
   }
+}
+
+/** Get effective status — detect expired invitations client-side */
+function effectiveStatus(inv: Invitation): InvitationStatus {
+  if (inv.status === 'pending' && new Date(inv.expiresAt) <= new Date()) {
+    return 'expired'
+  }
+  return inv.status
 }
 
 function statusLabel(status: InvitationStatus) {
@@ -283,8 +291,8 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                 </td>
                 <td>{{ inv.company }}</td>
                 <td>
-                  <span :class="statusBadgeClass(inv.status)">
-                    {{ statusLabel(inv.status) }}
+                  <span :class="statusBadgeClass(effectiveStatus(inv))">
+                    {{ statusLabel(effectiveStatus(inv)) }}
                   </span>
                 </td>
                 <td class="text-sm text-gray-600">{{ inv.invitedByName }}</td>
@@ -295,7 +303,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                 <td>
                   <div class="action-buttons">
                     <!-- Pending actions -->
-                    <template v-if="inv.status === 'pending'">
+                    <template v-if="effectiveStatus(inv) === 'pending'">
                       <button @click="copyInviteLink(inv)" class="action-btn action-btn--ghost" title="คัดลอกลิงก์">
                         🔗 คัดลอก
                       </button>
@@ -307,7 +315,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                       </button>
                     </template>
                     <!-- Expired / Cancelled actions -->
-                    <template v-else-if="inv.status === 'expired' || inv.status === 'cancelled'">
+                    <template v-else-if="effectiveStatus(inv) === 'expired' || effectiveStatus(inv) === 'cancelled'">
                       <button @click="handleResendInvitation(inv)" class="action-btn action-btn--primary" title="ส่งอีกครั้ง">
                         📨 ส่งอีกครั้ง
                       </button>

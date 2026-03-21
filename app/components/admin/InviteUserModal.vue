@@ -150,9 +150,12 @@ async function handleReactivate() {
     await $fetch('/api/mock/invitations/reactivate', {
       method: 'POST',
       body: {
-        userId: existingInactiveUser.value.id,
-        reactivatedBy: authStore.user?.uid ?? 'admin',
-        reactivatedByName: authStore.user?.displayName ?? 'Admin',
+        email: (existingInactiveUser.value as any).email ?? form.value.email.trim(),
+        role: form.value.role,
+        company: form.value.company,
+        groups: form.value.assignedGroups.length ? form.value.assignedGroups : undefined,
+        performedBy: authStore.user?.uid ?? 'admin',
+        performedByEmail: authStore.user?.email ?? 'admin',
       },
     })
     showReactivateDialog.value = false
