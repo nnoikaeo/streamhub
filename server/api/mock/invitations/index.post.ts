@@ -1,5 +1,6 @@
 import { readJSON, createItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
+import { sendInvitationEmail } from '../../../utils/emailService'
 import type { Invitation } from '~/types/invitation'
 
 interface UserRecord {
@@ -78,19 +79,31 @@ export default defineEventHandler(async (event) => {
 
     const created = await createItem('invitations.json', invitation)
 
+    // Send invitation email (best-effort — failure does not block invitation creation)
+    const emailSent = await sendInvitationEmail({
+      to: invitation.email,
+      inviterName: invitation.invitedByName,
+      role: invitation.role,
+      company: invitation.company,
+      invitationCode: invitation.invitationCode,
+      message: invitation.message,
+      expiresAt: invitation.expiresAt
+    })
+
     // Audit log
     await logActivity({
       action: 'INVITE_USER',
       performedBy: body.invitedBy || 'system',
       performedByEmail: body.invitedByName || 'System',
       target: body.email,
-      metadata: { role: body.role, company: body.company, invitationId: invitation.id }
+      metadata: { role: body.role, company: body.company, invitationId: invitation.id, emailSent }
     })
 
     return {
       success: true,
       data: created,
-      action: 'created'
+      action: 'created',
+      emailSent
     }
   } catch (error: any) {
     console.error('[API] Error creating invitation:', error.message)

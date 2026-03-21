@@ -37,6 +37,8 @@ interface Props {
   submitText?: string
   /** Cancel button text */
   cancelText?: string
+  /** Disable submit button (e.g. after successful submission) */
+  submitDisabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -44,6 +46,7 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   submitText: 'บันทึก',
   cancelText: 'ยกเลิก',
+  submitDisabled: false,
 })
 
 const emit = defineEmits<{
@@ -61,7 +64,7 @@ const isOpen = computed({
 
 const handleSubmit = async (e: Event) => {
   e.preventDefault()
-  if (props.loading) return
+  if (props.loading || props.submitDisabled) return
 
   let formData: any
   if (formRef.value) {
@@ -108,7 +111,7 @@ const handleCancel = () => {
         <button
           type="submit"
           class="theme-btn theme-btn--primary"
-          :disabled="loading"
+          :disabled="loading || submitDisabled"
           @click="handleSubmit"
         >
           <span v-if="loading" class="form-modal__spinner" />

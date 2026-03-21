@@ -1,5 +1,6 @@
 import { readJSON, createItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
+import { sendInvitationEmail } from '../../../utils/emailService'
 import type { Invitation } from '~/types/invitation'
 
 interface UserRecord {
@@ -75,6 +76,29 @@ export default defineEventHandler(async (event) => {
       created.push(item as Invitation)
     }
 
+    // Send emails for each created invitation (best-effort, in parallel)
+    let emailsSent = 0
+    let emailsFailed = 0
+    if (created.length > 0) {
+      const emailResults = await Promise.allSettled(
+        created.map(inv =>
+          sendInvitationEmail({
+            to: inv.email,
+            inviterName: inv.invitedByName,
+            role: inv.role,
+            company: inv.company,
+            invitationCode: inv.invitationCode,
+            message: inv.message,
+            expiresAt: inv.expiresAt
+          })
+        )
+      )
+      for (const result of emailResults) {
+        if (result.status === 'fulfilled' && result.value) emailsSent++
+        else emailsFailed++
+      }
+    }
+
     // Audit log
     if (created.length > 0) {
       await logActivity({
@@ -85,7 +109,9 @@ export default defineEventHandler(async (event) => {
         metadata: {
           count: created.length,
           emails: created.map(inv => inv.email),
-          skippedCount: skipped.length
+          skippedCount: skipped.length,
+          emailsSent,
+          emailsFailed
         }
       })
     }
@@ -94,7 +120,9 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: {
         created,
-        skipped
+        skipped,
+        emailsSent,
+        emailsFailed
       }
     }
   } catch (error: any) {
