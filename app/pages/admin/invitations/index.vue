@@ -108,9 +108,15 @@ const handleCancelInvitation = (inv: Invitation) => {
 
 const confirmCancel = async () => {
   if (!invitationToCancel.value) return
-  await cancelInvitation(invitationToCancel.value.id)
-  showCancelDialog.value = false
-  invitationToCancel.value = null
+  const email = invitationToCancel.value.email
+  try {
+    await cancelInvitation(invitationToCancel.value.id)
+    showCancelDialog.value = false
+    invitationToCancel.value = null
+    showToast(`ยกเลิกคำเชิญของ '${email}' เรียบร้อยแล้ว`)
+  } catch {
+    showToast('เกิดข้อผิดพลาดในการยกเลิกคำเชิญ', 'error')
+  }
 }
 
 const handleResendInvitation = (inv: Invitation) => {
@@ -120,9 +126,25 @@ const handleResendInvitation = (inv: Invitation) => {
 
 const confirmResend = async () => {
   if (!invitationToResend.value) return
-  await resendInvitation(invitationToResend.value.id)
-  showResendDialog.value = false
-  invitationToResend.value = null
+  const email = invitationToResend.value.email
+  try {
+    await resendInvitation(invitationToResend.value.id)
+    showResendDialog.value = false
+    invitationToResend.value = null
+    showToast(`ส่งคำเชิญใหม่ไปยัง '${email}' เรียบร้อยแล้ว`)
+  } catch {
+    showToast('เกิดข้อผิดพลาดในการส่งคำเชิญใหม่', 'error')
+  }
+}
+
+// Toast notification
+const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { message, type }
+  toastTimer = setTimeout(() => { toast.value = null }, 3500)
 }
 
 const clearFilters = () => {
@@ -137,16 +159,23 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <template>
+  <!-- Toast notification -->
+  <Transition name="toast">
+    <div v-if="toast" class="toast-notification" :class="`toast-notification--${toast.type}`">
+      {{ toast.type === 'success' ? '✅' : '❌' }} {{ toast.message }}
+    </div>
+  </Transition>
+
   <PageLayout :folders="folderTree" :allow-search="true" :allow-create="false" :breadcrumbs="breadcrumbs">
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">User Invitations</h1>
         <div class="flex gap-2">
           <button @click="showBulkModal = true" class="theme-btn theme-btn--ghost">
-            📨 Bulk Invite
+            📨 เชิญหลายคน
           </button>
           <button @click="showInviteModal = true" class="page-header-action-btn">
-            ➕ Invite User
+            ➕ เชิญผู้ใช้
           </button>
         </div>
       </template>
@@ -192,6 +221,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       </template>
 
       <template #table>
+
         <!-- Stats bar -->
         <div class="stats-bar">
           <span>ทั้งหมด <strong>{{ stats.total }}</strong></span>
@@ -205,8 +235,8 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 
         <!-- Empty state -->
         <div v-else-if="filteredInvitations.length === 0" class="table-empty">
-          <p>ไม่พบ invitations</p>
-          <p class="text-sm text-gray-500">คลิก "Invite User" เพื่อเริ่มต้นเชิญผู้ใช้</p>
+          <p>ไม่พบคำเชิญ</p>
+          <p class="text-sm text-gray-500">คลิก "เชิญผู้ใช้" เพื่อเริ่มต้นเชิญผู้ใช้</p>
         </div>
 
         <!-- Table -->
@@ -214,14 +244,14 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           <table class="data-table">
             <thead>
               <tr>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Company</th>
-                <th>Status</th>
-                <th>Invited By</th>
+                <th>อีเมล</th>
+                <th>บทบาท</th>
+                <th>บริษัท</th>
+                <th>สถานะ</th>
+                <th>ผู้เชิญ</th>
                 <th>วันที่ส่ง</th>
                 <th>หมดอายุ</th>
-                <th>Actions</th>
+                <th>การดำเนินการ</th>
               </tr>
             </thead>
             <tbody>
@@ -247,20 +277,20 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                   <div class="action-buttons">
                     <!-- Pending actions -->
                     <template v-if="inv.status === 'pending'">
-                      <button @click="copyInviteLink(inv)" class="action-btn action-btn--ghost" title="Copy Link">
-                        🔗
+                      <button @click="copyInviteLink(inv)" class="action-btn action-btn--ghost" title="คัดลอกลิงก์">
+                        🔗 คัดลอก
                       </button>
-                      <button @click="handleResendInvitation(inv)" class="action-btn action-btn--primary" title="Resend">
-                        📨
+                      <button @click="handleResendInvitation(inv)" class="action-btn action-btn--primary" title="ส่งอีกครั้ง">
+                        📨 ส่งอีกครั้ง
                       </button>
-                      <button @click="handleCancelInvitation(inv)" class="action-btn action-btn--danger" title="Cancel">
-                        ✕
+                      <button @click="handleCancelInvitation(inv)" class="action-btn action-btn--danger" title="ยกเลิก">
+                        ✕ ยกเลิก
                       </button>
                     </template>
                     <!-- Expired / Cancelled actions -->
                     <template v-else-if="inv.status === 'expired' || inv.status === 'cancelled'">
-                      <button @click="handleResendInvitation(inv)" class="action-btn action-btn--primary" title="Resend">
-                        📨 Resend
+                      <button @click="handleResendInvitation(inv)" class="action-btn action-btn--primary" title="ส่งอีกครั้ง">
+                        📨 ส่งอีกครั้ง
                       </button>
                     </template>
                   </div>
@@ -287,9 +317,10 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       <!-- Cancel Confirmation -->
       <ConfirmDialog
         :is-open="showCancelDialog"
-        title="ยกเลิก Invitation"
-        :message="`ยืนยันการยกเลิก invitation ของ '${invitationToCancel?.email}'?`"
-        confirm-text="ยกเลิก Invitation"
+        title="ยืนยันการยกเลิกคำเชิญ"
+        :message="`ต้องการยกเลิกคำเชิญของ '${invitationToCancel?.email}' ใช่หรือไม่?`"
+        confirm-text="ยกเลิกคำเชิญ"
+        cancel-text="ไม่ยกเลิก"
         :is-danger="true"
         :loading="loading"
         @confirm="confirmCancel"
@@ -299,9 +330,10 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       <!-- Resend Confirmation -->
       <ConfirmDialog
         :is-open="showResendDialog"
-        title="ส่ง Invitation อีกครั้ง"
-        :message="`ส่ง invitation ใหม่ไปยัง '${invitationToResend?.email}'? วันหมดอายุจะถูกรีเซ็ตเป็น 14 วัน`"
-        confirm-text="ส่งอีกครั้ง"
+        title="ส่งคำเชิญใหม่อีกครั้ง"
+        :message="`ต้องการส่งคำเชิญใหม่ไปยัง '${invitationToResend?.email}' ใช่หรือไม่? วันหมดอายุจะถูกรีเซ็ตเป็น 14 วัน`"
+        confirm-text="ส่งคำเชิญใหม่"
+        cancel-text="ยกเลิก"
         :loading="loading"
         @confirm="confirmResend"
         @cancel="showResendDialog = false; invitationToResend = null"
@@ -374,19 +406,38 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 }
 .data-table tr:hover td { background: var(--color-surface-hover, #f9fafb); }
 
-.action-buttons { display: flex; gap: 0.25rem; align-items: center; }
+.action-buttons { display: flex; gap: 0.375rem; align-items: center; flex-wrap: wrap; }
 .action-btn {
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 0.625rem;
   border-radius: 0.375rem;
   font-size: 0.75rem;
   border: 1px solid transparent;
   cursor: pointer;
   transition: opacity 0.15s;
+  white-space: nowrap;
 }
 .action-btn:hover { opacity: 0.8; }
-.action-btn--ghost   { background: transparent; border-color: var(--color-border, #e5e7eb); }
-.action-btn--primary { background: #3b82f6; color: white; }
+.action-btn--ghost   { background: transparent; border-color: var(--color-border, #e5e7eb); color: var(--color-text-primary, #374151); }
+.action-btn--primary { background: #2d3389; color: white; }
 .action-btn--danger  { background: #ef4444; color: white; }
+
+/* Toast notification */
+.toast-notification {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  max-width: 22rem;
+}
+.toast-notification--success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.toast-notification--error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(0.5rem); }
 
 .table-loading, .table-empty {
   text-align: center;

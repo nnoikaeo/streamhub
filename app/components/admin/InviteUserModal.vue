@@ -29,6 +29,7 @@ const submitting = ref(false)
 const error = ref('')
 const successCode = ref('')
 const pendingWarning = ref(false)
+const domainWarning = ref('')
 
 // Reactivation dialog
 const showReactivateDialog = ref(false)
@@ -60,12 +61,34 @@ async function loadDropdownData() {
   }
 }
 
+const GOOGLE_DOMAINS = ['gmail.com', 'googlemail.com']
+
+function isLikelyGoogleAccount(email: string): boolean {
+  const domain = email.split('@')[1]?.toLowerCase()
+  if (!domain) return false
+  return GOOGLE_DOMAINS.includes(domain)
+}
+
 function checkPendingWarning() {
   if (!form.value.email) return
   const hasPending = invitations.value.some(
     inv => inv.email.toLowerCase() === form.value.email.toLowerCase() && inv.status === 'pending'
   )
   pendingWarning.value = hasPending
+}
+
+function checkDomainWarning() {
+  const email = form.value.email.trim()
+  if (!email || !email.includes('@')) {
+    domainWarning.value = ''
+    return
+  }
+  if (!isLikelyGoogleAccount(email)) {
+    const domain = email.split('@')[1]
+    domainWarning.value = `อีเมล @${domain} อาจไม่ใช่ Google Account — ผู้ใช้อาจไม่สามารถเข้าดู Looker Dashboard ได้ หากบริษัทใช้ Google Workspace กับ domain นี้ สามารถเพิกเฉยคำเตือนนี้ได้`
+  } else {
+    domainWarning.value = ''
+  }
 }
 
 async function handleSubmit() {
@@ -98,6 +121,13 @@ async function handleSubmit() {
     } else if (res.success && res.data?.invitationCode) {
       successCode.value = res.data.invitationCode
       emit('invited')
+    } else if (!res.success) {
+      const apiErr = (res as any).error as string | undefined
+      if (apiErr === 'User already active') {
+        error.value = 'ผู้ใช้ email นี้มีบัญชีในระบบอยู่แล้ว'
+      } else {
+        error.value = res.message ?? apiErr ?? 'เกิดข้อผิดพลาด'
+      }
     } else {
       error.value = res.message ?? 'เกิดข้อผิดพลาด'
     }
@@ -147,6 +177,7 @@ function reset() {
   error.value = ''
   successCode.value = ''
   pendingWarning.value = false
+  domainWarning.value = ''
   showReactivateDialog.value = false
   existingInactiveUser.value = null
   submitting.value = false
@@ -165,14 +196,15 @@ onMounted(loadDropdownData)
     title="เชิญผู้ใช้ใหม่"
     size="lg"
     :loading="submitting"
-    :submit-text="'ส่ง Invitation'"
+    :submit-text="successCode ? 'ส่งเรียบร้อยแล้ว' : 'ส่งคำเชิญ'"
+    :submit-disabled="!!successCode"
     @update:model-value="emit('update:modelValue', $event)"
     @save="handleSubmit"
     @cancel="close"
   >
     <!-- Success state -->
     <div v-if="successCode" class="invite-success">
-      <p class="text-green-600 font-medium mb-3">✅ ส่ง Invitation เรียบร้อยแล้ว!</p>
+      <p class="text-green-600 font-medium mb-3">✅ ส่งคำเชิญเรียบร้อยแล้ว!</p>
       <p class="text-sm text-gray-600 mb-2">ลิงก์สำหรับยืนยัน:</p>
       <div class="invite-link-box">
         <code class="invite-link-text">{{ inviteLink }}</code>
@@ -180,7 +212,6 @@ onMounted(loadDropdownData)
           {{ copied ? '✅ คัดลอกแล้ว' : '📋 คัดลอก' }}
         </button>
       </div>
-      <button @click="close" class="theme-btn theme-btn--primary mt-4 w-full">ปิด</button>
     </div>
 
     <!-- Form -->
@@ -188,6 +219,11 @@ onMounted(loadDropdownData)
       <!-- Pending warning -->
       <div v-if="pendingWarning" class="alert-warning">
         ⚠️ Email นี้มี invitation ที่ยังรอตอบรับอยู่แล้ว
+      </div>
+
+      <!-- Domain warning -->
+      <div v-if="domainWarning" class="alert-domain-warning">
+        ⚠️ {{ domainWarning }}
       </div>
 
       <!-- Error -->
@@ -202,7 +238,7 @@ onMounted(loadDropdownData)
             type="email"
             class="theme-form-input"
             placeholder="user@company.com"
-            @blur="checkPendingWarning"
+            @blur="checkPendingWarning(); checkDomainWarning()"
           />
         </div>
 
@@ -310,6 +346,15 @@ onMounted(loadDropdownData)
   border-radius: 0.375rem;
   font-size: 0.875rem;
   color: #a16207;
+}
+.alert-domain-warning {
+  padding: 0.75rem;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 0.375rem;
+  font-size: 0.813rem;
+  color: #9a3412;
+  line-height: 1.5;
 }
 .alert-error {
   padding: 0.75rem;
