@@ -24,6 +24,13 @@ export const useAuth = () => {
         const data = await response.json()
         const mockUser = data.data?.find((u: any) => u.uid === userCredential.user.uid)
 
+        // Check if user is deactivated
+        if (mockUser && mockUser.isActive === false) {
+          // Sign out from Firebase since user is deactivated
+          await $firebase.auth.signOut()
+          throw new Error('บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ')
+        }
+
         if (!mockUser) {
           // Auto-detect: Check for pending invitation (Flow B)
           // Skip if called from accept page (which handles acceptance explicitly)

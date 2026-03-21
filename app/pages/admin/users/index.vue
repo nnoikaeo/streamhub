@@ -65,8 +65,18 @@ const { regions, fetchRegions } = useAdminRegions()
 const { folders } = useAdminFolders()
 const showUserModal = ref(false)
 const showConfirmDialog = ref(false)
+const showToggleDialog = ref(false)
 const selectedUser = ref<User | null>(null)
 const userToDelete = ref<User | null>(null)
+const userToToggle = ref<User | null>(null)
+const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { message, type }
+  toastTimer = setTimeout(() => { toast.value = null }, 3500)
+}
 
 // Ref to UserForm — triggers its internal useForm validation + submission via defineExpose
 const userFormRef = ref<{ submit: () => Promise<void> } | null>(null)
@@ -165,12 +175,29 @@ const handleDeleteUser = (user: User) => {
   showConfirmDialog.value = true
 }
 
-const handleToggleActive = async (user: User) => {
+const handleToggleActive = (user: User) => {
+  userToToggle.value = user
+  showToggleDialog.value = true
+}
+
+const confirmToggleActive = async () => {
+  if (!userToToggle.value) return
+  const user = userToToggle.value
+  const newStatus = !user.isActive
   try {
-    await updateUser(user.uid, { isActive: !user.isActive })
-    console.log(`✅ User ${user.email} status toggled`)
+    await updateUser(user.uid, { isActive: newStatus })
+    showToggleDialog.value = false
+    showToast(
+      newStatus
+        ? `เปิดใช้งาน ${user.name || user.email} เรียบร้อยแล้ว`
+        : `ปิดใช้งาน ${user.name || user.email} เรียบร้อยแล้ว`
+    )
+    userToToggle.value = null
   } catch (error) {
     console.error('❌ Error toggling user status:', error)
+    showToggleDialog.value = false
+    showToast('เกิดข้อผิดพลาดในการเปลี่ยนสถานะผู้ใช้', 'error')
+    userToToggle.value = null
   }
 }
 
@@ -373,6 +400,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             :loading="loading"
             :actions="actions"
             empty-message="ไม่พบผู้ใช้"
+            @toggle-active="handleToggleActive"
           />
         </div>
 
@@ -396,6 +424,29 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           @confirm="confirmDeleteUser"
           @cancel="showConfirmDialog = false"
         />
+
+        <!-- Toggle Active Confirmation Dialog -->
+        <ConfirmDialog
+          :is-open="showToggleDialog"
+          :title="userToToggle?.isActive ? 'ปิดใช้งานผู้ใช้' : 'เปิดใช้งานผู้ใช้'"
+          :message="userToToggle?.isActive
+            ? `คุณแน่ใจว่าต้องการปิดใช้งาน ${userToToggle?.name} (${userToToggle?.email}) หรือไม่? ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้`
+            : `คุณแน่ใจว่าต้องการเปิดใช้งาน ${userToToggle?.name} (${userToToggle?.email}) หรือไม่?`"
+          :loading="loading"
+          :is-danger="userToToggle?.isActive"
+          :confirm-text="userToToggle?.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน'"
+          @confirm="confirmToggleActive"
+          @cancel="showToggleDialog = false; userToToggle = null"
+        />
+
+        <!-- Toast Notification -->
+        <Teleport to="body">
+          <Transition name="toast">
+            <div v-if="toast" class="toast-notification" :class="`toast--${toast.type}`">
+              {{ toast.message }}
+            </div>
+          </Transition>
+        </Teleport>
       </div>
   </PageLayout>
 </template>
@@ -488,4 +539,24 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     min-width: auto;
   }
 }
+
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.toast--success { background: #10b981; }
+.toast--error { background: #ef4444; }
+.toast-enter-active { transition: all 0.3s ease; }
+.toast-leave-active { transition: all 0.3s ease; }
+.toast-enter-from { opacity: 0; transform: translateY(-12px); }
+.toast-leave-to { opacity: 0; transform: translateY(-12px); }
 </style>
