@@ -156,7 +156,7 @@ const formatDate = (dateStr?: string): string => {
             </div>
             <div class="group-view__member-info">
               <span class="group-view__member-name">{{ user.name }}</span>
-              <span class="group-view__member-email">{{ user.company }}</span>
+              <span class="group-view__member-email">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
             </div>
             <span
               class="group-view__role-badge"

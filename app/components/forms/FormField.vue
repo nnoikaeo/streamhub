@@ -5,12 +5,12 @@
  * Supports multiple input types with unified styling and validation
  * Used across all admin forms for consistency
  *
- * Types: text, email, number, select, textarea, checkbox, multi-select
+ * Types: text, email, number, select, textarea, checkbox, toggle, multi-select
  */
 
 interface Props {
   modelValue: string | number | boolean | string[]
-  type?: 'text' | 'email' | 'number' | 'select' | 'grouped-select' | 'textarea' | 'checkbox' | 'multi-select'
+  type?: 'text' | 'email' | 'number' | 'select' | 'grouped-select' | 'textarea' | 'checkbox' | 'toggle' | 'multi-select'
   label?: string
   placeholder?: string
   error?: string
@@ -48,8 +48,8 @@ const fieldId = computed(() => `field-${Math.random().toString(36).substr(2, 9)}
 
 <template>
   <div class="form-field">
-    <!-- Label -->
-    <label v-if="label" :for="fieldId" class="form-label">
+    <!-- Label (skip for toggle — label is shown inline next to the switch) -->
+    <label v-if="label && type !== 'toggle'" :for="fieldId" class="form-label">
       {{ label }}
       <span v-if="required" class="required-badge">*</span>
     </label>
@@ -143,6 +143,23 @@ const fieldId = computed(() => `field-${Math.random().toString(36).substr(2, 9)}
         class="form-checkbox"
       />
       <label :for="fieldId" class="form-checkbox-label">{{ label }}</label>
+    </div>
+
+    <!-- Toggle Switch (iOS style) -->
+    <div v-else-if="type === 'toggle'" class="form-toggle-wrapper">
+      <label :for="fieldId" class="form-toggle-label">{{ label }}</label>
+      <button
+        type="button"
+        role="switch"
+        :id="fieldId"
+        :aria-checked="!!inputValue"
+        :disabled="disabled"
+        class="form-toggle"
+        :class="{ 'form-toggle--active': !!inputValue }"
+        @click="inputValue = !inputValue"
+      >
+        <span class="form-toggle-thumb" />
+      </button>
     </div>
 
     <!-- Multi-Select -->
@@ -282,6 +299,59 @@ const fieldId = computed(() => `field-${Math.random().toString(36).substr(2, 9)}
 }
 
 .form-checkbox-label {
+  cursor: pointer;
+  user-select: none;
+  font-weight: normal;
+}
+
+/* Toggle Switch (iOS style) */
+.form-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--spacing-sm, 0.5rem);
+}
+
+.form-toggle {
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  background-color: var(--color-text-secondary, #9ca3af);
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.form-toggle--active {
+  background-color: var(--color-primary, #3b82f6);
+}
+
+.form-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.form-toggle-thumb {
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.form-toggle--active .form-toggle-thumb {
+  transform: translateX(1.25rem);
+}
+
+.form-toggle-label {
   cursor: pointer;
   user-select: none;
   font-weight: normal;

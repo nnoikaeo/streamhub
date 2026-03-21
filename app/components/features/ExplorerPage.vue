@@ -147,7 +147,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
             v-model="explorer.globalSearch.value"
             type="search"
             class="explorer-search-input"
-            placeholder="ค้นหา folder หรือ dashboard ทั้งหมด..."
+            placeholder="ค้นหาโฟลเดอร์หรือแดชบอร์ดทั้งหมด..."
             aria-label="ค้นหาทั้งหมด"
           />
         </div>
@@ -265,6 +265,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
           :can-create-tag="canCreateTag"
           :available-tags="availableTags"
           :available-folders="availableFolders"
+          :all-users="allUsers"
           @submit="explorer.handleSaveDashboard"
         />
       </FormModal>

@@ -70,24 +70,24 @@ export interface Dashboard {
   folderId: string // Which folder this dashboard belongs to
   type: 'looker' // Only Looker dashboards are supported
   description?: string
-  
+
   // Looker-specific fields
   lookerDashboardId?: string
   lookerEmbedUrl?: string
-  
+
   // Metadata
   owner: string // uid of creator
   createdAt: Date
   updatedAt: Date
   updatedBy: string // uid
-  
+
   // Tags
   tags: string[]
 
   // Status
   isArchived: boolean
   archivedAt?: Date
-  
+
   // Access control (3-layer permission model)
   access: AccessControl
   restrictions: AccessRestrictions
