@@ -6,7 +6,7 @@ import type { Invitation } from '~/types/invitation'
 export default defineEventHandler(async (event) => {
   try {
     const id = getRouterParam(event, 'id')
-    const body = await readBody(event)
+    const body = await readBody<Partial<Invitation> & { resend?: boolean; performedBy?: string; performedByEmail?: string }>(event)
     console.log('[API] PUT /api/mock/invitations/:id -', id, '| body.status:', body.status)
 
     if (!id) {
@@ -20,10 +20,10 @@ export default defineEventHandler(async (event) => {
 
     console.log('[API] Existing invitation:', { id: existing.id, email: existing.email, status: existing.status })
 
-    const updates: Partial<Invitation> = { ...body }
+    const { resend: isResendFlag, ...bodyWithoutResend } = body
+    const updates: Partial<Invitation> = { ...bodyWithoutResend }
     let emailSent = false
-    const isResend = body.resend === true
-    delete updates.resend
+    const isResend = isResendFlag === true
 
     // Handle resend: reset expiry + new invitation code + send email
     if (body.status === 'pending' && (existing.status !== 'pending' || isResend)) {

@@ -121,14 +121,14 @@ function generateInvitationHtml(data: {
 
       ${data.message ? `<div class="message">"${data.message}"</div>` : ''}
 
-      <div class="info">
-        <div class="info-row"><span class="info-label">บทบาท</span><span>${data.role}</span></div>
-        <div class="info-row"><span class="info-label">บริษัท</span><span>${data.company}</span></div>
-        <div class="info-row"><span class="info-label">หมดอายุ</span><span>${data.expiryDate}</span></div>
-      </div>
+      <table class="info" width="100%" cellpadding="0" cellspacing="0" style="background: white; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #e0e5f3;">
+        <tr style="border-bottom: 1px solid #e0e5f3;"><td style="padding: 8px 0; font-weight: 600; color: #2d3389;">บทบาท:&nbsp;</td><td style="padding: 8px 0;">${data.role}</td></tr>
+        <tr style="border-bottom: 1px solid #e0e5f3;"><td style="padding: 8px 0; font-weight: 600; color: #2d3389;">บริษัท:&nbsp;</td><td style="padding: 8px 0;">${data.company}</td></tr>
+        <tr><td style="padding: 8px 0; font-weight: 600; color: #2d3389;">หมดอายุ:&nbsp;</td><td style="padding: 8px 0;">${data.expiryDate}</td></tr>
+      </table>
 
       <div style="text-align: center;">
-        <a href="${data.acceptUrl}" class="btn">ยืนยันคำเชิญ</a>
+        <a href="${data.acceptUrl}" class="btn" style="color: #ffffff !important; display: inline-block; background: #2d3389; text-decoration: none; padding: 12px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 16px 0;">ยืนยันคำเชิญ</a>
       </div>
 
       <div style="margin-top: 20px; padding: 16px; background: white; border-radius: 8px; border: 1px solid #e0e5f3;">

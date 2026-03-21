@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useAdminInvitations } from '~/composables/useAdminInvitations'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAuthStore } from '~/stores/auth'
 
 const props = defineProps<{
@@ -13,6 +15,8 @@ const emit = defineEmits<{
 }>()
 
 const { invitations } = useAdminInvitations()
+const { companies: adminCompanies, fetchCompanies } = useAdminCompanies()
+const { regions, fetchRegions } = useAdminRegions()
 const authStore = useAuthStore()
 
 // Form state
@@ -36,7 +40,6 @@ const showReactivateDialog = ref(false)
 const existingInactiveUser = ref<Record<string, unknown> | null>(null)
 
 // Data for selects
-const companies = ref<{ code: string; name: string }[]>([])
 const folders = ref<{ id: string; name: string }[]>([])
 const groups = ref<{ id: string; name: string }[]>([])
 
@@ -48,12 +51,12 @@ const inviteLink = computed(() =>
 
 async function loadDropdownData() {
   try {
-    const [companiesRes, foldersRes, groupsRes] = await Promise.all([
-      $fetch<{ data: { code: string; name: string }[] }>('/api/mock/companies'),
+    const [, , foldersRes, groupsRes] = await Promise.all([
+      fetchCompanies(),
+      fetchRegions(),
       $fetch<{ data: { id: string; name: string }[] }>('/api/mock/folders'),
       $fetch<{ data: { id: string; name: string }[] }>('/api/mock/groups'),
     ])
-    companies.value = companiesRes?.data ?? []
     folders.value = (foldersRes?.data ?? []).filter((f: any) => f.isActive !== false)
     groups.value = (groupsRes?.data ?? []).filter((g: any) => g.isActive !== false)
   } catch {
@@ -196,10 +199,11 @@ onMounted(loadDropdownData)
     title="เชิญผู้ใช้ใหม่"
     size="lg"
     :loading="submitting"
-    :submit-text="successCode ? 'ส่งเรียบร้อยแล้ว' : 'ส่งคำเชิญ'"
-    :submit-disabled="!!successCode"
+    :submit-text="successCode ? 'ปิด' : 'ส่งคำเชิญ'"
+    :submit-disabled="false"
+    :hide-cancel="!!successCode"
     @update:model-value="emit('update:modelValue', $event)"
-    @save="handleSubmit"
+    @save="successCode ? close() : handleSubmit()"
     @cancel="close"
   >
     <!-- Success state -->
@@ -230,38 +234,70 @@ onMounted(loadDropdownData)
       <div v-if="error" class="alert-error">{{ error }}</div>
 
       <div class="form-fields">
-        <!-- Email -->
-        <div class="form-field">
-          <label class="form-label">Email <span class="required">*</span></label>
-          <input
-            v-model="form.email"
-            type="email"
-            class="theme-form-input"
-            placeholder="user@company.com"
-            @blur="checkPendingWarning(); checkDomainWarning()"
-          />
+        <!-- Row 1: Email + Role + Company -->
+        <div class="form-row form-row--3col">
+          <!-- Email -->
+          <div class="form-field form-field--email">
+            <label class="form-label">Email <span class="required">*</span></label>
+            <input
+              v-model="form.email"
+              type="email"
+              class="theme-form-input"
+              placeholder="user@company.com"
+              @blur="checkPendingWarning(); checkDomainWarning()"
+            />
+          </div>
+
+          <!-- Role -->
+          <div class="form-field">
+            <label class="form-label">Role <span class="required">*</span></label>
+            <select v-model="form.role" class="theme-form-select">
+              <option value="user">User</option>
+              <option value="moderator">Moderator</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <!-- Company -->
+          <div class="form-field">
+            <label class="form-label">บริษัท <span class="required">*</span></label>
+            <CompanyDropdownFilter
+              v-model="form.company"
+              :companies="adminCompanies"
+              :regions="regions"
+              :show-icon="false"
+              placeholder="-- เลือกบริษัท --"
+            />
+          </div>
         </div>
 
-        <!-- Role -->
-        <div class="form-field">
-          <label class="form-label">Role <span class="required">*</span></label>
-          <select v-model="form.role" class="theme-form-select">
-            <option value="user">User</option>
-            <option value="moderator">Moderator</option>
-            <option value="admin">Admin</option>
-          </select>
+        <!-- Row 2: Groups + Message -->
+        <div class="form-row form-row--2col form-row--stretch">
+          <!-- Groups -->
+          <div class="form-field">
+            <label class="form-label">กลุ่มผู้ใช้</label>
+            <div class="multi-select-list">
+              <label v-for="group in groups" :key="group.id" class="multi-select-item">
+                <input type="checkbox" :value="group.id" v-model="form.assignedGroups" />
+                {{ group.name }}
+              </label>
+              <p v-if="groups.length === 0" class="text-sm text-gray-400">ไม่มี group</p>
+            </div>
+          </div>
+
+          <!-- Message -->
+          <div class="form-field">
+            <label class="form-label">ข้อความเพิ่มเติม</label>
+            <textarea
+              v-model="form.message"
+              class="theme-form-input message-textarea"
+              maxlength="500"
+              placeholder="ข้อความถึงผู้รับ invitation (ไม่บังคับ)"
+            />
+          </div>
         </div>
 
-        <!-- Company -->
-        <div class="form-field">
-          <label class="form-label">บริษัท <span class="required">*</span></label>
-          <select v-model="form.company" class="theme-form-select">
-            <option value="">-- เลือกบริษัท --</option>
-            <option v-for="c in companies" :key="c.code" :value="c.code">{{ c.name }}</option>
-          </select>
-        </div>
-
-        <!-- Folders (moderator only) -->
+        <!-- Folders (moderator only) — full width -->
         <div v-if="form.role === 'moderator'" class="form-field">
           <label class="form-label">Folders ที่ดูแล</label>
           <div class="multi-select-list">
@@ -271,31 +307,6 @@ onMounted(loadDropdownData)
             </label>
             <p v-if="folders.length === 0" class="text-sm text-gray-400">ไม่มี folder</p>
           </div>
-        </div>
-
-        <!-- Groups -->
-        <div class="form-field">
-          <label class="form-label">กลุ่มผู้ใช้</label>
-          <div class="multi-select-list">
-            <label v-for="group in groups" :key="group.id" class="multi-select-item">
-              <input type="checkbox" :value="group.id" v-model="form.assignedGroups" />
-              {{ group.name }}
-            </label>
-            <p v-if="groups.length === 0" class="text-sm text-gray-400">ไม่มี group</p>
-          </div>
-        </div>
-
-        <!-- Message -->
-        <div class="form-field">
-          <label class="form-label">ข้อความเพิ่มเติม</label>
-          <textarea
-            v-model="form.message"
-            class="theme-form-input"
-            rows="3"
-            maxlength="500"
-            placeholder="ข้อความถึงผู้รับ invitation (ไม่บังคับ)"
-          />
-          <p class="form-hint">{{ form.message.length }}/500</p>
         </div>
       </div>
     </template>
@@ -316,7 +327,15 @@ onMounted(loadDropdownData)
 
 <style scoped>
 .form-fields { display: flex; flex-direction: column; gap: 1rem; }
-.form-field { display: flex; flex-direction: column; gap: 0.25rem; }
+.form-field { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; min-width: 0; }
+.form-row { display: flex; gap: 1rem; }
+.form-row--3col { display: flex; gap: 1rem; }
+.form-row--3col .form-field--email { flex: 2; }
+.form-row--2col { display: flex; gap: 1rem; }
+.form-row--stretch { align-items: stretch; }
+.form-row--stretch .form-field { display: flex; flex-direction: column; }
+.form-row--stretch .multi-select-list { flex: 1; }
+.form-row--stretch .message-textarea { flex: 1; resize: none; }
 .form-label { font-size: 0.875rem; font-weight: 500; color: var(--color-text, #111827); }
 .required { color: #ef4444; }
 .form-hint { font-size: 0.75rem; color: #9ca3af; text-align: right; }

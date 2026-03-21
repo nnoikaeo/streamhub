@@ -5,6 +5,8 @@ import type { Invitation, InvitationStatus } from '~/types/invitation'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminInvitations } from '~/composables/useAdminInvitations'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminCompanies } from '~/composables/useAdminCompanies'
+import { useAdminRegions } from '~/composables/useAdminRegions'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -14,6 +16,8 @@ definePageMeta({
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { invitations, loading, fetchInvitations, cancelInvitation, resendInvitation, delete: deleteInvitation } = useAdminInvitations()
 const { folders, buildFolderTree } = useAdminFolders()
+const { companies, fetchCompanies } = useAdminCompanies()
+const { regions, fetchRegions } = useAdminRegions()
 
 // Modal state
 const showInviteModal = ref(false)
@@ -58,10 +62,7 @@ const stats = computed(() => ({
   cancelled: invitations.value.filter(i => i.status === 'cancelled').length,
 }))
 
-const uniqueCompanies = computed(() => {
-  const codes = [...new Set(invitations.value.map(inv => inv.company))]
-  return codes.sort()
-})
+
 
 function statusBadgeClass(status: InvitationStatus) {
   return {
@@ -153,7 +154,7 @@ const clearFilters = () => {
   filterStatus.value = ''
 }
 
-onMounted(() => fetchInvitations())
+onMounted(() => Promise.all([fetchInvitations(), fetchCompanies(), fetchRegions()]))
 
 const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
@@ -169,7 +170,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   <PageLayout :folders="folderTree" :allow-search="true" :allow-create="false" :breadcrumbs="breadcrumbs">
     <AdminPageContent>
       <template #header>
-        <h1 class="page-header__title">User Invitations</h1>
+        <h1 class="page-header__title">คำเชิญผู้ใช้</h1>
         <div class="flex gap-2">
           <button @click="showBulkModal = true" class="theme-btn theme-btn--ghost">
             📨 เชิญหลายคน
@@ -193,41 +194,59 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 
         <!-- Company filter -->
         <div class="filter-group">
-          <select v-model="filterCompany" class="theme-form-select">
-            <option value="">-- ทุกบริษัท --</option>
-            <option v-for="code in uniqueCompanies" :key="code" :value="code">{{ code }}</option>
-          </select>
+          <CompanyDropdownFilter
+            v-model="filterCompany"
+            :companies="companies"
+            :regions="regions"
+            :show-icon="false"
+            placeholder="-- ทุกบริษัท --"
+          />
         </div>
 
-        <!-- Status tabs -->
-        <div class="filter-group flex gap-1">
-          <button
-            v-for="tab in statusTabs"
-            :key="tab.value"
-            class="theme-btn theme-btn--sm"
-            :class="filterStatus === tab.value ? 'theme-btn--primary' : 'theme-btn--ghost'"
-            @click="filterStatus = tab.value as any"
-          >
-            {{ tab.label }}
-            <span v-if="tab.value === 'pending' && stats.pending > 0" class="ml-1 badge-count">
-              {{ stats.pending }}
-            </span>
-          </button>
-        </div>
-
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+        <button @click="clearFilters" class="theme-btn theme-btn--ghost theme-btn--sm">
           🔄 ล้างตัวกรอง
         </button>
       </template>
 
       <template #table>
 
-        <!-- Stats bar -->
+        <!-- Stats bar (clickable filters) -->
         <div class="stats-bar">
-          <span>ทั้งหมด <strong>{{ stats.total }}</strong></span>
-          <span class="text-yellow-600">รอตอบรับ <strong>{{ stats.pending }}</strong></span>
-          <span class="text-green-600">ยอมรับแล้ว <strong>{{ stats.accepted }}</strong></span>
-          <span class="text-red-600">หมดอายุ <strong>{{ stats.expired }}</strong></span>
+          <button
+            class="stats-bar__item stats-bar__item--default"
+            :class="{ 'stats-bar__item--active': filterStatus === '' }"
+            @click="filterStatus = ''"
+          >
+            ทั้งหมด <span class="stats-count stats-count--default">{{ stats.total }}</span>
+          </button>
+          <button
+            class="stats-bar__item stats-bar__item--pending"
+            :class="{ 'stats-bar__item--active': filterStatus === 'pending' }"
+            @click="filterStatus = filterStatus === 'pending' ? '' : 'pending'"
+          >
+            รอตอบรับ <span class="stats-count stats-count--pending">{{ stats.pending }}</span>
+          </button>
+          <button
+            class="stats-bar__item stats-bar__item--accepted"
+            :class="{ 'stats-bar__item--active': filterStatus === 'accepted' }"
+            @click="filterStatus = filterStatus === 'accepted' ? '' : 'accepted'"
+          >
+            ยอมรับแล้ว <span class="stats-count stats-count--accepted">{{ stats.accepted }}</span>
+          </button>
+          <button
+            class="stats-bar__item stats-bar__item--expired"
+            :class="{ 'stats-bar__item--active': filterStatus === 'expired' }"
+            @click="filterStatus = filterStatus === 'expired' ? '' : 'expired'"
+          >
+            หมดอายุ <span class="stats-count stats-count--expired">{{ stats.expired }}</span>
+          </button>
+          <button
+            class="stats-bar__item stats-bar__item--cancelled"
+            :class="{ 'stats-bar__item--active': filterStatus === 'cancelled' }"
+            @click="filterStatus = filterStatus === 'cancelled' ? '' : 'cancelled'"
+          >
+            ยกเลิก <span class="stats-count stats-count--cancelled">{{ stats.cancelled }}</span>
+          </button>
         </div>
 
         <!-- Loading -->
@@ -345,13 +364,70 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 <style scoped>
 .stats-bar {
   display: flex;
-  gap: 1.5rem;
-  padding: 0.75rem 1rem;
+  gap: 0.5rem;
+  padding: 0.5rem;
   background: var(--color-surface, #f9fafb);
   border-radius: 0.5rem;
   margin-bottom: 1rem;
   font-size: 0.875rem;
 }
+
+.stats-bar__item {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  font-size: 0.875rem;
+}
+
+/* Status-matching colors (same as status badges) */
+.stats-bar__item--default  { color: var(--color-text-primary, #212121); }
+.stats-bar__item--pending  { color: #a16207; }
+.stats-bar__item--accepted { color: #166534; }
+.stats-bar__item--expired  { color: #991b1b; }
+.stats-bar__item--cancelled { color: #6b7280; }
+
+.stats-bar__item:hover {
+  opacity: 0.85;
+}
+.stats-bar__item--default:hover  { background: #f3f4f6; }
+.stats-bar__item--pending:hover  { background: #fef9c3; }
+.stats-bar__item--accepted:hover { background: #dcfce7; }
+.stats-bar__item--expired:hover  { background: #fee2e2; }
+.stats-bar__item--cancelled:hover { background: #f3f4f6; }
+
+/* Active state — use badge background color */
+.stats-bar__item--active.stats-bar__item--default  { background: #e0e5f3; border-color: #bdc5db; }
+.stats-bar__item--active.stats-bar__item--pending  { background: #fef9c3; border-color: #f5d96e; }
+.stats-bar__item--active.stats-bar__item--accepted { background: #dcfce7; border-color: #86efac; }
+.stats-bar__item--active.stats-bar__item--expired  { background: #fee2e2; border-color: #fca5a5; }
+.stats-bar__item--active.stats-bar__item--cancelled { background: #f3f4f6; border-color: #d1d5db; }
+
+.stats-bar__item--active {
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Pill badge for counts (matches Explorer folder-dashboard-count) */
+.stats-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-left: 0.25rem;
+}
+.stats-count--default   { background: #e5e7eb; color: #6b7280; }
+.stats-count--pending   { background: #fde68a; color: #92400e; }
+.stats-count--accepted  { background: #bbf7d0; color: #14532d; }
+.stats-count--expired   { background: #fecaca; color: #7f1d1d; }
+.stats-count--cancelled { background: #e5e7eb; color: #6b7280; }
 
 .badge-count {
   display: inline-flex;

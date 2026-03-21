@@ -84,7 +84,8 @@ export default defineNuxtConfig({
   // Disable SSR for admin/manage routes (Firebase auth only works on client-side)
   routeRules: {
     '/admin/**': { ssr: false },
-    '/manage/**': { ssr: false }
+    '/manage/**': { ssr: false },
+    '/invite/**': { ssr: false }
   },
 
   runtimeConfig: {

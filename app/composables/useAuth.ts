@@ -7,7 +7,7 @@ export const useAuth = () => {
   const authStore = useAuthStore()
   const permissionsStore = usePermissionsStore()
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (options?: { skipAutoAccept?: boolean }) => {
     try {
       console.log('🔐 Starting Google Sign-in...')
       console.log('Auth object:', $firebase.auth)
@@ -25,6 +25,59 @@ export const useAuth = () => {
         const mockUser = data.data?.find((u: any) => u.uid === userCredential.user.uid)
 
         if (!mockUser) {
+          // Auto-detect: Check for pending invitation (Flow B)
+          // Skip if called from accept page (which handles acceptance explicitly)
+          if (!options?.skipAutoAccept) try {
+            const invResponse = await $fetch<any>('/api/mock/invitations/check', {
+              query: { email: userCredential.user.email }
+            })
+
+            if (invResponse.found && invResponse.data?.status === 'pending') {
+              const acceptResponse = await $fetch<any>('/api/mock/invitations/accept', {
+                method: 'POST',
+                body: {
+                  invitationCode: invResponse.data.invitationCode,
+                  uid: userCredential.user.uid,
+                  email: userCredential.user.email,
+                  displayName: userCredential.user.displayName,
+                  photoURL: userCredential.user.photoURL
+                }
+              })
+
+              if (acceptResponse.success) {
+                const newUser = acceptResponse.data.user
+                const userData: UserData = {
+                  uid: userCredential.user.uid,
+                  email: userCredential.user.email,
+                  displayName: userCredential.user.displayName,
+                  photoURL: userCredential.user.photoURL,
+                  role: newUser.role,
+                  company: newUser.company
+                }
+                authStore.setUser(userData)
+                authStore.setAuthError(null)
+                permissionsStore.initializePermissions(userData)
+                return { success: true }
+              }
+            }
+          } catch (invError) {
+            console.log('No pending invitation found for:', userCredential.user.email)
+          }
+
+          // Original error: user not found, no invitation
+          // If skipAutoAccept, return success anyway — accept page will handle user creation
+          if (options?.skipAutoAccept) {
+            const userData: UserData = {
+              uid: userCredential.user.uid,
+              email: userCredential.user.email,
+              displayName: userCredential.user.displayName,
+              photoURL: userCredential.user.photoURL,
+              role: '',
+              company: ''
+            }
+            authStore.setUser(userData)
+            return { success: true }
+          }
           throw new Error(`User with UID "${userCredential.user.uid}" not found in system. Please contact administrator to create an account.`)
         }
 

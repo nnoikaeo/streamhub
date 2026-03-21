@@ -35,19 +35,20 @@ export default defineEventHandler(async (event) => {
       return { success: false, error: 'Invitation not found' }
     }
 
-    // Security Check — Email Matching (Pattern 2)
-    if (email !== invitation.email) {
-      return { success: false, error: 'Email mismatch' }
+    // Security Check 1 — Email Matching (Pattern 2, case-insensitive)
+    if (email.toLowerCase() !== invitation.email.toLowerCase()) {
+      return { success: false, error: 'Email mismatch', message: 'The email you signed in with does not match the invitation email' }
     }
 
-    // Race Condition Prevention — check status again
+    // Security Check 2 — Race Condition Prevention
     if (invitation.status !== 'pending') {
-      return { success: false, error: `Invitation is ${invitation.status}, not pending` }
+      return { success: false, error: 'Already processed', message: 'This invitation has already been ' + invitation.status }
     }
 
-    // Server-side Expiry Check
+    // Security Check 3 — Server-side Expiry
     if (new Date(invitation.expiresAt) <= new Date()) {
-      return { success: false, error: 'Invitation has expired' }
+      await updateItem('invitations.json', invitation.id, { status: 'expired' as any })
+      return { success: false, error: 'Expired', message: 'This invitation has expired' }
     }
 
     const now = new Date().toISOString()
