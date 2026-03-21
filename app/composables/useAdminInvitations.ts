@@ -38,9 +38,9 @@ export function useAdminInvitations() {
   const resendInvitation = async (id: string) => {
     return resource.update(id, {
       status: 'pending' as any,
-      resend: true as any,
+      resend: true,
       expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() as any
-    })
+    } as any)
   }
 
   const bulkInvite = async (input: any) => {
