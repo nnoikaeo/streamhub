@@ -248,8 +248,8 @@ export function useAdminResource<T extends Record<string, any>>(
         ...updates
       }
 
-      const response = await $fetch<MutationResponse<T>>(`/api/mock/${resourceName}`, {
-        method: 'POST',
+      const response = await $fetch<MutationResponse<T>>(`/api/mock/${resourceName}/${id}`, {
+        method: 'PUT',
         body: requestBody
       })
 
