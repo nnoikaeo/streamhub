@@ -13,6 +13,7 @@ import ExplorerPage from '~/components/features/ExplorerPage.vue'
 import { useAdminFolders, computeRecursiveDashboardCounts } from '~/composables/useAdminFolders'
 import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminUsers } from '~/composables/useAdminUsers'
+import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useExplorer } from '~/composables/useExplorer'
 import { useAuthStore } from '~/stores/auth'
@@ -25,6 +26,7 @@ definePageMeta({
 const authStore = useAuthStore()
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { users, fetchUsers } = useAdminUsers()
+const { tags, fetchTags } = useAdminTags()
 
 const {
   folders,
@@ -87,7 +89,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
 // ─── Lifecycle ──────────────────────────────────────────────────────────
 
 onMounted(async () => {
-  await Promise.all([fetchFolders(), fetchDashboards(), fetchUsers()])
+  await Promise.all([fetchFolders(), fetchDashboards(), fetchUsers(), fetchTags()])
 })
 </script>
 
@@ -106,6 +108,10 @@ onMounted(async () => {
     :show-moderator-column="true"
     :all-users="users"
     :on-save-moderators="handleSaveModerators"
+    :show-tag-selector="true"
+    :can-create-tag="true"
+    :available-tags="tags"
+    :available-folders="folders"
     :dashboard-counts="dashboardCounts"
   />
 </template>

@@ -20,6 +20,7 @@ import type { Dashboard } from '~/types/dashboard'
 import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminUsers } from '~/composables/useAdminUsers'
+import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 
 definePageMeta({
@@ -31,6 +32,7 @@ const { breadcrumbs } = useAdminBreadcrumbs()
 const { dashboards, loading, fetchDashboards, createDashboard, updateDashboard, deleteDashboard } = useAdminDashboards()
 const { folders, fetchFolders } = useAdminFolders()
 const { users, fetchUsers } = useAdminUsers()
+const { tags, fetchTags } = useAdminTags()
 
 console.log('📄 [admin/dashboards/index.vue] Dashboards management page mounted')
 const showDashboardModal = ref(false)
@@ -184,7 +186,7 @@ const actions = [
 
 onMounted(async () => {
   try {
-    await Promise.all([fetchDashboards(), fetchFolders(), fetchUsers()])
+    await Promise.all([fetchDashboards(), fetchFolders(), fetchUsers(), fetchTags()])
   } catch (error) {
     console.error('Error loading dashboards:', error)
   }
@@ -301,7 +303,15 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           @save="handleSaveDashboard"
           @cancel="showDashboardModal = false"
         >
-          <DashboardForm :dashboard="selectedDashboard" @submit="handleSaveDashboard" />
+          <DashboardForm
+            :dashboard="selectedDashboard"
+            :show-tag-selector="true"
+            :can-create-tag="true"
+            :available-tags="tags"
+            :available-folders="folders"
+            :all-users="users"
+            @submit="handleSaveDashboard"
+          />
         </FormModal>
 
         <!-- Delete Confirmation Dialog -->

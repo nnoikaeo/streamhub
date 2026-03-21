@@ -15,6 +15,7 @@ import { useModeratorFolders } from '~/composables/useModeratorFolders'
 import { computeRecursiveDashboardCounts } from '~/composables/useAdminFolders'
 import { useModeratorDashboards } from '~/composables/useModeratorDashboards'
 import { useAdminTags } from '~/composables/useAdminTags'
+import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useExplorer } from '~/composables/useExplorer'
 import { useAuth } from '~/composables/useAuth'
 
@@ -50,6 +51,7 @@ const {
 } = useModeratorDashboards()
 
 const { tags, fetchTags } = useAdminTags()
+const { users, fetchUsers } = useAdminUsers()
 
 // ─── Shared explorer logic ──────────────────────────────────────────────
 
@@ -136,7 +138,7 @@ onMounted(async () => {
   }
 
   try {
-    await Promise.all([fetchFolders(), fetchDashboards(), fetchTags()])
+    await Promise.all([fetchFolders(), fetchDashboards(), fetchTags(), fetchUsers()])
   } catch (error) {
     console.error('❌ Error loading manage explorer page:', error)
   }
@@ -160,6 +162,7 @@ onMounted(async () => {
     :can-create-tag="false"
     :available-tags="tags"
     :available-folders="manageableFolders"
+    :all-users="users"
     :dashboard-counts="dashboardCounts"
   />
 </template>
