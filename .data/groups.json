@@ -3,6 +3,7 @@
     "id": "sales",
     "name": "Sales",
     "description": "ทีมขายและพัฒนาธุรกิจ ดูแลลูกค้าและเป้าหมายรายได้",
+    "sortOrder": 1,
     "members": [
       "user_teerak_user",
       "user_janine_user"
@@ -15,6 +16,7 @@
     "id": "finance",
     "name": "Finance",
     "description": "ทีมการเงินและบัญชี ดูแลงบประมาณและรายงานทางการเงิน",
+    "sortOrder": 2,
     "members": [
       "user_somchai_mod",
       "user_nattha_mod",
@@ -28,6 +30,7 @@
     "id": "operations",
     "name": "Operations",
     "description": "ทีมปฏิบัติการ ดูแลกระบวนการทำงานและประสิทธิภาพองค์กร",
+    "sortOrder": 3,
     "members": [
       "user_janine_user",
       "user_sombat_user"
@@ -40,6 +43,7 @@
     "id": "hr",
     "name": "Human Resources",
     "description": "ทีมทรัพยากรบุคคล ดูแลการสรรหา พัฒนา และสวัสดิการพนักงาน",
+    "sortOrder": 4,
     "members": [
       "user_somchai_mod",
       "user_janine_user",
@@ -53,6 +57,7 @@
     "id": "it",
     "name": "IT",
     "description": "ทีมเทคโนโลยีสารสนเทศ ดูแลโครงสร้างพื้นฐานและระบบสารสนเทศ",
+    "sortOrder": 5,
     "members": [
       "61JSdbE674TqRBHHUu9ezdzFul93",
       "user_somchai_mod"
@@ -65,6 +70,7 @@
     "id": "marketing",
     "name": "Marketing",
     "description": "ทีมการตลาด ดูแลแบรนด์และกลยุทธ์สื่อสารการตลาด",
+    "sortOrder": 6,
     "members": [
       "user_teerak_user",
       "user_janine_user",
@@ -78,6 +84,7 @@
     "id": "management",
     "name": "Management",
     "description": "ทีมผู้บริหาร ดูแลกลยุทธ์และทิศทางการดำเนินธุรกิจ",
+    "sortOrder": 7,
     "members": [
       "user_somchai_mod",
       "user_nattha_mod"
@@ -90,6 +97,7 @@
     "id": "analytics",
     "name": "Analytics",
     "description": "ทีมวิเคราะห์ข้อมูล ดูแลการรายงานและ Business Intelligence",
+    "sortOrder": 8,
     "members": [
       "61JSdbE674TqRBHHUu9ezdzFul93",
       "user_teerak_user",

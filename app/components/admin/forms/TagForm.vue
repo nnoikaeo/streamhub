@@ -17,6 +17,7 @@ import TagBadge from '~/components/features/TagBadge.vue'
 
 interface Props {
   tag?: Tag | null
+  nextSortOrder?: number
 }
 
 const props = defineProps<Props>()
@@ -46,6 +47,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     slug: props.tag?.slug || '',
     color: props.tag?.color || PRESET_COLORS[0],
     description: props.tag?.description || '',
+    sortOrder: props.tag?.sortOrder ?? props.nextSortOrder ?? 0,
     isActive: props.tag?.isActive ?? true,
   },
   validate,
@@ -70,6 +72,8 @@ watch(() => formData.name as string, () => {
 })
 
 // Preview tag object for TagBadge
+const isEditMode = computed(() => !!props.tag)
+
 const previewTag = computed<Tag>(() => ({
   id: 'preview',
   name: (formData.name as string) || 'Preview',
@@ -104,7 +108,8 @@ defineExpose({ submit: handleSubmit })
       type="text"
       label="Slug"
       placeholder="เช่น sales"
-      description="ใช้สำหรับอ้างอิงภายใน (auto-generate จากชื่อ)"
+      :disabled="isEditMode"
+      :description="!isEditMode ? 'ใช้สำหรับอ้างอิงภายใน (auto-generate จากชื่อ)' : 'Slug ไม่สามารถเปลี่ยนแปลงหลังสร้างได้'"
     />
 
     <!-- Color Swatches -->
@@ -133,20 +138,14 @@ defineExpose({ submit: handleSubmit })
       :rows="2"
     />
 
-    <!-- isActive toggle -->
-    <div class="tag-form__field tag-form__field--inline">
-      <label class="tag-form__label">สถานะ</label>
-      <label class="tag-form__toggle">
-        <input
-          v-model="formData.isActive"
-          type="checkbox"
-          class="tag-form__toggle-input"
-        />
-        <span class="tag-form__toggle-label">
-          {{ formData.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
-        </span>
-      </label>
-    </div>
+    <FormField
+      v-model="formData.sortOrder"
+      type="number"
+      label="ลำดับการแสดงผล (Sort Order)"
+      placeholder="เช่น 1, 2, 3"
+      :disabled="true"
+      description="ปรับลำดับได้ด้วยปุ่ม ⬆️ / ⬇️ ในหน้าจัดการแท็ก"
+    />
 
     <!-- Preview -->
     <div class="tag-form__preview">
