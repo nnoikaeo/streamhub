@@ -354,8 +354,7 @@
 | **Admin Permissions** | Permission management | [admin-permission-management-page.md](./admin-permission-management-page.md) |
 | **User Management** | User CRUD page | [admin-user-management-page.md](./admin-user-management-page.md) |
 | **Company Management** | Company CRUD page | [admin-company-management-page.md](./admin-company-management-page.md) |
-| **Folder Management** | Folder CRUD page | [admin-folder-management-page.md](./admin-folder-management-page.md) |
-| **Firestore Setup** | Firebase configuration | [firestore-setup.md](../../GUIDES/firestore-setup.md) |
+| **Explorer** | Folder + Dashboard management | [admin-explorer-page.md](./admin-explorer-page.md) |
 | **Design System** | Colors, typography | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
 
 ---

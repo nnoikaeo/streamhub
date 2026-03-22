@@ -141,9 +141,8 @@ service cloud.firestore {
 
 ## 📚 Next Steps
 
-1. [Monitor your app](../../OPERATIONS/monitoring.md)
-2. [Update version](../../OPERATIONS/versioning.md)
-3. [Add more features](../../GUIDES/README.md)
+1. [Update version](../../OPERATIONS/versioning.md)
+2. [View roadmap](../../OPERATIONS/roadmap.md)
 
 ---
 

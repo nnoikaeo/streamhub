@@ -484,7 +484,7 @@ Admins MUST have `company` field (their home company), but can access all compan
 - [Roles & Permissions Guide](roles-and-permissions.md)
 - [Database Schema](database-schema.md)
 - [Development Roadmap](../OPERATIONS/roadmap.md)
-- [Firestore Setup Guide](firestore-setup.md) (TBD)
+- [Database Schema](database-schema.md)
 
 ---
 

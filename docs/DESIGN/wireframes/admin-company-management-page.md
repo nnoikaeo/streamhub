@@ -232,7 +232,7 @@ For each company, track:
 |----------|---------|------|
 | **Admin Dashboard** | Admin overview | [admin-dashboard-home-page.md](./admin-dashboard-home-page.md) |
 | **User Management** | User CRUD page | [admin-user-management-page.md](./admin-user-management-page.md) |
-| **Folder Management** | Folder CRUD page | [admin-folder-management-page.md](./admin-folder-management-page.md) |
+| **Explorer** | Folder + Dashboard management | [admin-explorer-page.md](./admin-explorer-page.md) |
 | **Company Guide** | Company architecture and setup | [company-management.md](../../GUIDES/company-management.md) |
 | **Database Schema** | Company data structure | [database-schema.md](../../GUIDES/database-schema.md) |
 | **Design System** | Colors, typography | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
