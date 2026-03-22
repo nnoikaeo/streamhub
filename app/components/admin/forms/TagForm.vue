@@ -72,6 +72,8 @@ watch(() => formData.name as string, () => {
 })
 
 // Preview tag object for TagBadge
+const isEditMode = computed(() => !!props.tag)
+
 const previewTag = computed<Tag>(() => ({
   id: 'preview',
   name: (formData.name as string) || 'Preview',
@@ -106,7 +108,8 @@ defineExpose({ submit: handleSubmit })
       type="text"
       label="Slug"
       placeholder="เช่น sales"
-      description="ใช้สำหรับอ้างอิงภายใน (auto-generate จากชื่อ)"
+      :disabled="isEditMode"
+      :description="!isEditMode ? 'ใช้สำหรับอ้างอิงภายใน (auto-generate จากชื่อ)' : 'Slug ไม่สามารถเปลี่ยนแปลงหลังสร้างได้'"
     />
 
     <!-- Color Swatches -->
@@ -143,21 +146,6 @@ defineExpose({ submit: handleSubmit })
       :disabled="true"
       description="ปรับลำดับได้ด้วยปุ่ม ⬆️ / ⬇️ ในหน้าจัดการแท็ก"
     />
-
-    <!-- isActive toggle -->
-    <div class="tag-form__field tag-form__field--inline">
-      <label class="tag-form__label">สถานะ</label>
-      <label class="tag-form__toggle">
-        <input
-          v-model="formData.isActive"
-          type="checkbox"
-          class="tag-form__toggle-input"
-        />
-        <span class="tag-form__toggle-label">
-          {{ formData.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}
-        </span>
-      </label>
-    </div>
 
     <!-- Preview -->
     <div class="tag-form__preview">
