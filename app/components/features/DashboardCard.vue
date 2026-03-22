@@ -1,5 +1,14 @@
 <template>
   <div class="dashboard-card">
+    <!-- Dashboard Preview Thumbnail -->
+    <DashboardPreview
+      :embed-url="dashboard.lookerEmbedUrl"
+      :title="dashboard.name"
+      :dashboard-id="dashboard.id"
+      mode="thumbnail"
+      :height="160"
+    />
+
     <!-- Card Header with Icon -->
     <div class="card-header">
       <h3 class="card-title">{{ dashboard.name }}</h3>
@@ -170,14 +179,36 @@ const dashboardIcon = computed(() => {
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-md);
-  transition: all var(--transition-base);
+  padding: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .dashboard-card:hover {
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
   border-color: var(--color-border-default);
+}
+
+/* Card content below preview uses padding */
+.card-header,
+.card-companies,
+.card-tags,
+.open-button {
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
+}
+
+.card-header {
+  padding-top: var(--spacing-md);
+}
+
+.open-button {
+  padding-bottom: var(--spacing-md);
+  margin-left: var(--spacing-md);
+  margin-right: var(--spacing-md);
+  width: calc(100% - 2 * var(--spacing-md));
 }
 
 /* ========== CARD HEADER ========== */
@@ -271,7 +302,6 @@ const dashboardIcon = computed(() => {
   align-items: center;
   justify-content: center;
   gap: var(--spacing-xs);
-  width: 100%;
   padding: 0.65rem var(--spacing-md);
   background: var(--color-primary);
   color: var(--color-text-inverse);
@@ -306,10 +336,6 @@ const dashboardIcon = computed(() => {
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
-  .dashboard-card {
-    padding: var(--spacing-sm);
-  }
-
   .card-title {
     font-size: 0.875rem;
   }
