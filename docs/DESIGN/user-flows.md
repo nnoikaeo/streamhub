@@ -1,7 +1,7 @@
 # User Flow Diagrams
 
 > **Document Status:** UI/UX Design Document  
-> **Last Updated:** 2026-03
+> **Last Updated:** 2026-03-22 (v2.0)
 > **Document Owner:** Development Team
 
 ---
@@ -13,8 +13,9 @@
 3. [MODERATOR Role Flow](#moderator-role-flow)
 4. [ADMIN Role Flow](#admin-role-flow)
 5. [Authentication Flow](#authentication-flow)
-6. [Company Switching Flow](#company-switching-flow)
-7. [Permission Denied Scenarios](#permission-denied-scenarios)
+6. [Invitation Acceptance Flow](#invitation-acceptance-flow)
+7. [Company Switching Flow](#company-switching-flow)
+8. [Permission Denied Scenarios](#permission-denied-scenarios)
 
 ---
 
@@ -54,7 +55,7 @@ A regular user (Employee) can view dashboards within their company and those sha
        ▼
 ┌─────────────────────────┐
 │  StreamHub Login Page   │
-│  (app/pages/index.vue)  │
+│  (app/pages/login.vue)  │
 └──────┬──────────────────┘
        │
        ├─────────────────────────┐
@@ -298,7 +299,7 @@ See [Moderator Dual-View Model](../GUIDES/roles-and-permissions.md#-moderator-du
        ▼
 ┌─────────────────────────────────────────┐
 │  Folder Management Page                 │
-│  (app/pages/manage/folders/:id)         │
+│  (app/pages/manage/explorer)            │
 │                                         │
 │  📁 Sales > Dashboard List              │
 │                                         │
@@ -402,8 +403,8 @@ An admin (System Administrator) has full control over companies, users, folders,
        │
        ▼
 ┌─────────────────────────────────┐
-│  Admin Dashboard (Home Page)    │
-│  (app/pages/admin/dashboard)    │
+│  Admin Overview Page             │
+│  (app/pages/admin/overview.vue)  │
 │                                 │
 │  Quick Stats:                   │
 │  - Total companies              │
@@ -418,18 +419,21 @@ An admin (System Administrator) has full control over companies, users, folders,
 ┌─────────────────────────────┐                │
 │ Navigate Admin Menu         │                │
 │                             │                │
-│ 1. Companies Management     │                │
-│ 2. Users Management         │                │
-│ 3. Folders Management       │                │
-│ 4. Dashboards Management    │                │
-│ 5. Tags Management (NEW)    │                │
-│ 6. Audit & Activity Logs    │                │
-│ 7. System Settings          │                │
+│  1. Overview                │                │
+│  2. Companies               │                │
+│  3. Regions & Biz Groups    │                │
+│  4. User Groups             │                │
+│  5. Users                   │                │
+│  6. Invitations             │                │
+│  7. Explorer (Folder Tree)  │                │
+│  8. Dashboards              │                │
+│  9. Folders                 │                │
+│ 10. Tags                    │                │
 └──────┬──────────────────────┘                │
        │                                       │
        ├──────────────────────────────────────┤
-       │  │  │  │  │  │                       │
-       ▼  ▼  ▼  ▼  ▼  ▼                       │
+       │  │  │  │  │  │  │  │  │  │           │
+       ▼  ▼  ▼  ▼  ▼  ▼  ▼  ▼  ▼  ▼           │
        
    ┌─────────────────────────────────────────────────────────────┐
    │ 1. COMPANIES MANAGEMENT                                     │
@@ -637,50 +641,111 @@ An admin (System Administrator) has full control over companies, users, folders,
                                      │
                                      │
    ┌────────────────────────────────────────────────────────────┐
-   │ 6. AUDIT & ACTIVITY LOGS                                   │
-   │    (app/pages/admin/audit-logs)                            │
+   │ 6. INVITATIONS                                             │
+   │    (app/pages/admin/invitations/index.vue)                 │
    └────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-                            ┌──────────────────────────┐
-                            │ View Activity Log        │
-                            │ (Filter by date/user)    │
-                            │                          │
-                            │ - Timestamp              │
-                            │ - User                   │
-                            │ - Action                 │
-                            │ - Resource               │
-                            │ - Changes                │
-                            │ - IP Address             │
-                            └──────┬───────────────────┘
-                                   │
-                                   │
-   ┌────────────────────────────────────────────────────────────┐
-   │ 7. SYSTEM SETTINGS                                         │
-   │    (app/pages/admin/settings)                              │
-   └────────────────────────────────────────────────────────────┘
-                                   │
-                                   ▼
-                            ┌──────────────────────────┐
-                            │ System Settings          │
-                            │                          │
-                            │ - Email notifications    │
-                            │ - Default permissions    │
-                            │ - Backup settings        │
-                            │ - Security settings      │
-                            │ - Rate limiting          │
-                            └──────┬───────────────────┘
-                                   │
-                                   ▼
-                            ┌──────────────────────────┐
-                            │ View Profile / Logout    │
-                            └────────┬─────────────────┘
                                      │
                                      ▼
-                            ┌────────────────────────┐
-                            │ End Session            │
-                            │ (END)                  │
-                            └────────────────────────┘
+                              ┌──────────────────────────┐
+                              │ View All Invitations     │
+                              │                          │
+                              │ - Email                  │
+                              │ - Role assigned          │
+                              │ - Company                │
+                              │ - Status (pending/       │
+                              │   accepted/expired)      │
+                              │ - Sent date              │
+                              │ - Actions (resend/cancel)│
+                              └────────┬─────────────────┘
+                                       │
+                                       ├──────────────┬────────────┐
+                                       ▼              ▼            ▼
+                                 ┌──────────┐  ┌──────────┐  ┌──────────┐
+                                 │ Invite   │  │ Resend   │  │ Cancel   │
+                                 │ New User │  │ Existing │  │ Invite   │
+                                 │          │  │ Invite   │  │          │
+                                 │ - Email  │  │ - New    │  │ - Confirm│
+                                 │ - Role   │  │   email  │  │          │
+                                 │ - Company│  │   link   │  │          │
+                                 └────┬─────┘  └────┬─────┘  └────┬─────┘
+                                      └─────────────┴─────────────┘
+                                                    │
+                                                    ▼
+                                     ┌──────────────────────────┐
+                                     │ Back to Invitations List │
+                                     └──────┬───────────────────┘
+                                            │
+                                            │
+   ┌────────────────────────────────────────────────────────────┐
+   │ 7. REGIONS & BUSINESS GROUPS                               │
+   │    (app/pages/admin/regions/index.vue)                     │
+   └────────────────────────────────────────────────────────────┘
+                                            │
+                                            ▼
+                                     ┌──────────────────────────┐
+                                     │ View All Regions         │
+                                     │                          │
+                                     │ - Region/Group name      │
+                                     │ - Companies in region    │
+                                     │ - Actions (create/edit/  │
+                                     │   delete)                │
+                                     └──────┬───────────────────┘
+                                            │
+                                            ▼
+                                     ┌──────────────────────────┐
+                                     │ Create / Edit Region     │
+                                     │ - Name, description      │
+                                     │ - Assign companies       │
+                                     └──────┬───────────────────┘
+                                            │
+                                            │
+   ┌────────────────────────────────────────────────────────────┐
+   │ 8. USER GROUPS                                             │
+   │    (app/pages/admin/groups/index.vue)                      │
+   └────────────────────────────────────────────────────────────┘
+                                            │
+                                            ▼
+                                     ┌──────────────────────────┐
+                                     │ View All User Groups     │
+                                     │                          │
+                                     │ - Group name             │
+                                     │ - Member count           │
+                                     │ - Company scope          │
+                                     │ - Actions (create/edit/  │
+                                     │   delete)                │
+                                     └──────┬───────────────────┘
+                                            │
+                                            │
+   ┌────────────────────────────────────────────────────────────┐
+   │ 9. EXPLORER (FOLDER TREE)                                  │
+   │    (app/pages/admin/explorer/[[folderId]].vue)             │
+   └────────────────────────────────────────────────────────────┘
+                                            │
+                                            ▼
+                                     ┌──────────────────────────┐
+                                     │ Browse Folder Tree       │
+                                     │ (All companies)          │
+                                     │                          │
+                                     │ Default: root folders    │
+                                     │ Click folder → navigate  │
+                                     │   into subfolder         │
+                                     │                          │
+                                     │ Per folder/dashboard:    │
+                                     │ - Edit / Delete          │
+                                     │ - Assign moderators      │
+                                     │ - Manage permissions     │
+                                     └──────┬───────────────────┘
+                                            │
+                                            ▼
+                                     ┌──────────────────────────┐
+                                     │ View Profile / Logout    │
+                                     └────────┬─────────────────┘
+                                              │
+                                              ▼
+                                     ┌────────────────────────┐
+                                     │ End Session            │
+                                     │ (END)                  │
+                                     └────────────────────────┘
 ```
 
 ### ADMIN Flow Decision Points
@@ -688,13 +753,14 @@ An admin (System Administrator) has full control over companies, users, folders,
 | Decision Point | Outcome | Next Step |
 |---|---|---|
 | **Global Admin?** | ✅ Yes | Access all companies |
-| | ❌ No (Limited) | Filter by assigned companies |
 | **Can create company?** | ✅ Yes | Show creation form |
-| | ❌ No | Show request button |
 | **Delete company?** | ✅ Confirmed | Cascade delete users/folders/dashboards |
 | | ❌ Cancelled | Stay on company list |
 | **Modify user role?** | ✅ Yes | Update DB + re-authenticate |
 | | ❌ No (Permission denied) | Show error message |
+| **Invite status?** | pending | Show resend/cancel actions |
+| | accepted | Read-only display |
+| | expired | Show resend option |
 | **Delete tag?** | ✅ Confirmed | Remove tag from all dashboards + delete tag |
 | | ❌ Cancelled | Stay on tags list |
 | **Tag in use by dashboards?** | ✅ Yes (N dashboards) | Show warning with count before delete |
@@ -747,21 +813,20 @@ All three roles follow the same authentication flow:
      │          │
      │          ▼
      │   ┌──────────────────────────┐
-     │   │ Fetch User Doc from      │
-     │   │ /users/{uid}             │
-     │   │ - Check if exists        │
+     │   │ Check /api/mock/users    │
+     │   │ by user UID              │
+     │   │ - Check if user exists   │
      │   └──────┬───────────────────┘
      │          │
      │          ├───YES──────┐
      │          │            │NO
      │          ▼            ▼
      │    ┌──────────┐  ┌──────────────┐
-     │    │User found│  │Create user   │
-     │    │Load role │  │with pending  │
-     │    │company   │  │status        │
-     │    │perms     │  │Admin must    │
-     │    └────┬─────┘  │verify        │
-     │         │        └──────┬───────┘
+     │    │User found│  │Check pending │
+     │    │Load role,│  │invitation    │
+     │    │company,  │  │(/api/mock/   │
+     │    │perms     │  │invitations)  │
+     │    └────┬─────┘  └──────┬───────┘
      │         │               │
      └─────────┴───────────────┘
              │
@@ -798,6 +863,111 @@ All three roles follow the same authentication flow:
                     │or Login again  │
                     └────────────────┘
 ```
+
+---
+
+## 🎫 Invitation Acceptance Flow
+
+New users without accounts are invited by Admin and access StreamHub via a one-time invitation link.
+
+**Route:** `/invite/accept?code={invitationCode}`  
+**Page:** `app/pages/invite/accept.vue`  
+**Layout:** Custom (no default layout)  
+**Middleware:** None — public, no auth required
+
+```
+┌─────────────────────────────────────────┐
+│  User opens invitation email link       │
+│  /invite/accept?code=ABC123             │
+└──────┬──────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│  PHASE 1: Verify Invitation Code        │
+│  GET /api/mock/invitations/verify       │
+│      ?code={code}                       │
+└──────┬──────────────────────────────────┘
+       │
+       ├─── expired ──────────────────────┐
+       │                                  │
+       ├─── cancelled ────────────────────┤
+       │                                  │
+       ├─── already_accepted ─────────────┤
+       │                                  │
+       ├─── invalid ──────────────────────┤
+       │                                  ▼
+       │                          ┌──────────────────────┐
+       │                          │  Show Error State    │
+       │                          │  (cannot proceed)    │
+       │                          └──────────────────────┘
+       │
+       ▼ valid
+┌─────────────────────────────────────────┐
+│  PHASE 2: Email Matching                │
+│  Is current user signed in?             │
+└──────┬──────────────────────────────────┘
+       │
+       ├─── signed in + email matches ────────────────────┐
+       │                                                  ▼
+       │                                         ┌──────────────────┐
+       │                                         │ Status = valid   │
+       │                                         │ → Accept button  │
+       │                                         └──────┬───────────┘
+       ├─── not signed in ─────────────┐               │
+       │                               │               │
+       └─── email mismatch ────────────┤               │
+                                       ▼               │
+                               ┌──────────────────┐    │
+                               │ Prompt to sign   │    │
+                               │ in with matching │    │
+                               │ email account    │    │
+                               └──────────────────┘    │
+                                                        │
+                                                        ▼
+                               ┌──────────────────────────────────┐
+                               │  PHASE 3: Accept Invitation      │
+                               │  User clicks "Accept" button     │
+                               │                                  │
+                               │  POST /api/mock/invitations/     │
+                               │       accept                     │
+                               │  Body: {                         │
+                               │    invitationCode,               │
+                               │    uid, email,                   │
+                               │    displayName, photoURL         │
+                               │  }                               │
+                               └──────┬───────────────────────────┘
+                                      │
+                                      ├─── ERROR ─────┐
+                                      │               ▼
+                                      │       ┌──────────────┐
+                                      │       │ Show error   │
+                                      │       │ message      │
+                                      │       └──────────────┘
+                                      │
+                                      ▼ SUCCESS
+                               ┌──────────────────────────────────┐
+                               │  Update authStore.user           │
+                               │  - role + company from invite    │
+                               │  - Init permissionsStore         │
+                               └──────┬───────────────────────────┘
+                                      │
+                                      ▼ (after 2s delay)
+                               ┌──────────────────────────────────┐
+                               │  Redirect to                     │
+                               │  /dashboard/discover             │
+                               └──────────────────────────────────┘
+```
+
+### Invitation Status States
+
+| Status | Meaning | UI |
+|--------|---------|-----|
+| `valid` | Active and unused | Show Accept button |
+| `expired` | Code has expired | Show expired message |
+| `cancelled` | Cancelled by Admin | Show cancelled message |
+| `already_accepted` | Already used once | Show "already accepted" |
+| `invalid` | Code not found | Show "invalid code" |
+| `email_mismatch` | Signed in with wrong email | Prompt to switch account |
 
 ---
 
@@ -974,33 +1144,30 @@ For MODERATOR and ADMIN users who work across companies:
 
 | Role | Entry Point | Sidebar Menus | Main Actions | Tag Actions | Key Checks | Restrictions |
 |---|---|---|---|---|---|---|
-| **USER** | `/dashboard` | Dashboard (View All, Search) | View dashboards, Filter by tag/folder | View tags, Filter | `dashboard.permissions` | View-only, no management |
-| **MODERATOR (View 1)** | `/dashboard` | Dashboard (View All, Search) | Same as User | View tags, Filter | `dashboard.permissions` | Read-only |
-| **MODERATOR (View 2)** | `/manage/folders/:id` | Manage Folders (assigned) | CRUD dashboards/subfolders in assigned folders | Assign/unassign tags | `assignedFolders` | Only assigned folders, cannot create tags |
-| **ADMIN** | `/admin` | Dashboard + Admin (all menus) | Full CRUD on all entities + Tag management | Full CRUD tags, Assign to any | Role check | None (global access) |
+| **USER** | `/dashboard/discover` | Dashboard (Home, View All) | View dashboards, Filter by tag/folder | View tags, Filter | `dashboard.permissions` | View-only, no management |
+| **MODERATOR (View 1)** | `/dashboard/discover` | Dashboard (Home, View All) | Same as User | View tags, Filter | `dashboard.permissions` | Read-only |
+| **MODERATOR (View 2)** | `/manage/explorer` | Manage (Explorer) | CRUD dashboards/subfolders in assigned folders | Assign/unassign tags | `assignedFolders` | Only assigned folders, cannot create tags |
+| **ADMIN** | `/admin/overview` | Dashboard + Admin (10 pages) | Full CRUD all entities + Tag management | Full CRUD tags, Assign to any | `canAccessAdmin` permission | None (global access) |
+| **INVITE** | `/invite/accept?code=...` | None (custom layout) | Accept invitation, become active user | — | Invitation code validity + email match | One-time use only |
 
 ---
 
 ## 🎯 Next Steps
 
-1. **Create Wireframes** for key pages
-   - ✅ [Dashboard Discover Page](./wireframes/dashboard-discover-page.md) - USER role
-   - ✅ [Sidebar Navigation](./wireframes/sidebar-navigation.md) - Role-based sidebar
-   - ✅ [Tag Management Page](./wireframes/tag-management-page.md) - Admin tag CRUD + Tag filter UI
-   - [ ] Folder Management Page (Moderator Manager mode)
-   - [ ] User Management Page (ADMIN)
-   - [ ] Company Selector
-   - [ ] Permission Modal
+1. **Wireframes** (completed)
+   - ✅ [Dashboard Discover Page](./wireframes/dashboard-discover-page.md)
+   - ✅ [Dashboard View Page](./wireframes/dashboard-view-page.md)
+   - ✅ [Sidebar Navigation](./wireframes/sidebar-navigation.md)
+   - ✅ [Tag Management Page](./wireframes/tag-management-page.md)
+   - ✅ [Admin Permission Management](./wireframes/admin-permission-management-page.md)
+   - ✅ [Moderator Quick Share Dialog](./wireframes/moderator-quick-share-dialog.md)
 
-2. **Design Navigation** structure
-   - ✅ Sidebar layout for each role — see [Sidebar Navigation](./wireframes/sidebar-navigation.md)
-   - Breadcrumb patterns
-   - Menu visibility by role
+2. **Pending wireframes**
+   - [ ] Regions & Business Groups page (Admin)
+   - [ ] User Groups page (Admin)
+   - [ ] Company Selector component
 
-3. **Create Component Breakdown**
-   - ✅ Tag components (TagBadge, TagSelector, TagFilter, TagManager)
-   - Identify reusable components
-   - Plan component hierarchy
+3. **Implementation tracking** — see [Development Roadmap](../OPERATIONS/roadmap.md)
 
 ---
 
@@ -1018,5 +1185,5 @@ For MODERATOR and ADMIN users who work across companies:
 ---
 
 **Document Maintainer:** Development Team  
-**Last Updated:** 2024-01-21  
-**Version:** 1.0
+**Last Updated:** 2026-03-22  
+**Version:** 2.0

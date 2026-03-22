@@ -43,4 +43,3 @@ firebase hosting:clone FROM TO
 ## See Also
 
 - [Versioning](versioning.md)
-- [Monitoring](monitoring.md)
