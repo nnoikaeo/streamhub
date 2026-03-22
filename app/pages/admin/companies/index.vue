@@ -21,6 +21,7 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -34,16 +35,29 @@ const { companies, loading, fetchCompanies, createCompany, updateCompany, delete
 const { regions, fetchRegions } = useAdminRegions()
 const { folders, buildFolderTree } = useAdminFolders()
 
-// Modal & dialog state
-const showCompanyModal = ref(false)
-const showConfirmDialog = ref(false)
-const showToggleDialog = ref(false)
-const selectedCompany = ref<Company | null>(null)
-const companyToDelete = ref<Company | null>(null)
-const companyToToggle = ref<Company | null>(null)
-
-// Ref to CompanyForm — triggers its internal useForm validation + submission via defineExpose
-const companyFormRef = ref<{ submit: () => Promise<void> } | null>(null)
+// CRUD page state (modal, dialog, handlers)
+const {
+  showFormModal: showCompanyModal,
+  showConfirmDialog,
+  showToggleDialog,
+  selectedItem: selectedCompany,
+  itemToDelete: companyToDelete,
+  itemToToggle: companyToToggle,
+  formRef: companyFormRef,
+  handleAdd: handleAddCompany,
+  handleEdit: handleEditCompany,
+  handleDelete: handleDeleteCompany,
+  handleToggleActive,
+  confirmToggleActive,
+  handleSave: handleSaveCompany,
+  confirmDelete: confirmDeleteCompany,
+} = useAdminCrudPage<Company>({
+  idKey: 'code',
+  displayKey: 'name',
+  createFn: createCompany,
+  updateFn: updateCompany,
+  deleteFn: deleteCompany,
+})
 
 // Filters
 const searchQuery = ref('')
@@ -160,89 +174,10 @@ const handleMoveDown = async (company: Company) => {
   await updateCompany(next.code, { sortOrder: currentOrder })
 }
 
-/**
- * Action handlers
- */
-const handleAddCompany = () => {
-  console.log('➕ [Action] Add new company')
-  selectedCompany.value = null
-  showCompanyModal.value = true
-}
-
-const handleEditCompany = (company: Company) => {
-  console.log('✏️ [Action] Edit company:', company.code)
-  selectedCompany.value = company
-  showCompanyModal.value = true
-}
-
-const handleDeleteCompany = (company: Company) => {
-  console.log('🗑️ [Action] Delete company:', company.code)
-  companyToDelete.value = company
-  showConfirmDialog.value = true
-}
-
-const handleToggleActive = (company: Company) => {
-  console.log(`🔄 [Action] Toggle active for company: ${company.code} (current: ${company.isActive})`)
-  companyToToggle.value = company
-  showToggleDialog.value = true
-}
-
-const confirmToggleActive = async () => {
-  if (!companyToToggle.value) return
-  try {
-    const newStatus = !companyToToggle.value.isActive
-    console.log(`🔄 [Toggle] Updating company ${companyToToggle.value.code} isActive → ${newStatus}`)
-    await updateCompany(companyToToggle.value.code, { isActive: newStatus })
-    console.log(`✅ [Toggle] Company ${companyToToggle.value.code} status updated to ${newStatus}`)
-    showToggleDialog.value = false
-    companyToToggle.value = null
-  } catch (error) {
-    console.error('❌ [Toggle] Error updating company status:', error)
-  }
-}
-
-const handleSaveCompany = async (formData: Partial<Company>) => {
-  try {
-    console.log('💾 [Save] Saving company data:', formData)
-    if (selectedCompany.value) {
-      console.log(`📤 [Save] Updating company: ${selectedCompany.value.code}`)
-      await updateCompany(selectedCompany.value.code, formData)
-      console.log(`✅ [Save] Company updated: ${selectedCompany.value.code}`)
-    } else {
-      console.log('➕ [Save] Creating new company:', formData.code)
-      await createCompany(formData)
-      console.log(`✅ [Save] Company created: ${formData.code}`)
-    }
-    showCompanyModal.value = false
-    console.log('🔚 [Save] Modal closed')
-  } catch (error) {
-    console.error('❌ [Save] Error saving company:', error)
-  }
-}
-
-const confirmDeleteCompany = async () => {
-  if (!companyToDelete.value) {
-    console.warn('⚠️ [Delete] No company selected for deletion')
-    return
-  }
-  try {
-    console.log(`🗑️ [Delete] Deleting company: ${companyToDelete.value.code}`)
-    await deleteCompany(companyToDelete.value.code)
-    console.log(`✅ [Delete] Company deleted: ${companyToDelete.value.code}`)
-    showConfirmDialog.value = false
-    companyToDelete.value = null
-    console.log('🔚 [Delete] Dialog closed')
-  } catch (error) {
-    console.error('❌ [Delete] Error deleting company:', error)
-  }
-}
-
 const clearFilters = () => {
-  console.log('🔄 [Filters] Clearing all filters')
   searchQuery.value = ''
   filterActive.value = null
   filterRegion.value = null
-  console.log('✅ [Filters] All filters cleared')
 }
 
 /**

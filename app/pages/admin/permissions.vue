@@ -28,7 +28,7 @@ const route = useRoute()
 const { user } = useAuth()
 const dashboardService = useDashboardService()
 const { breadcrumbs } = useAdminBreadcrumbs()
-const { folders, fetchFolders, getFolderPath } = useAdminFolders()
+const { folders, fetchFolders, getFolderPath, buildFolderTree } = useAdminFolders()
 const { users: allUsers, fetchUsers } = useAdminUsers()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { groups, fetchGroups } = useAdminGroups()
@@ -36,27 +36,6 @@ const { groups, fetchGroups } = useAdminGroups()
 // State
 const dashboards = ref<Dashboard[]>([])
 const isLoading = ref(false)
-
-// Build folder tree
-const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
-  const folderMap = new Map<string, Folder & { children: Folder[] }>()
-  for (const folder of flatFolders) {
-    folderMap.set(folder.id, { ...folder, children: [] })
-  }
-  const rootFolders: (Folder & { children: Folder[] })[] = []
-  for (const folder of flatFolders) {
-    const enhancedFolder = folderMap.get(folder.id)!
-    if (folder.parentId) {
-      const parentFolder = folderMap.get(folder.parentId)
-      if (parentFolder) {
-        parentFolder.children.push(enhancedFolder)
-      }
-    } else {
-      rootFolders.push(enhancedFolder)
-    }
-  }
-  return rootFolders
-}
 
 const folderTree = computed(() => buildFolderTree(folders.value))
 

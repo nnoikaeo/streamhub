@@ -22,6 +22,7 @@ import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
+import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -30,15 +31,28 @@ definePageMeta({
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { dashboards, loading, fetchDashboards, createDashboard, updateDashboard, deleteDashboard } = useAdminDashboards()
-const { folders, fetchFolders } = useAdminFolders()
+const { folders, fetchFolders, buildFolderTree } = useAdminFolders()
 const { users, fetchUsers } = useAdminUsers()
 const { tags, fetchTags } = useAdminTags()
 
-console.log('📄 [admin/dashboards/index.vue] Dashboards management page mounted')
-const showDashboardModal = ref(false)
-const showConfirmDialog = ref(false)
-const selectedDashboard = ref<Dashboard | null>(null)
-const dashboardToDelete = ref<Dashboard | null>(null)
+// CRUD page state (modal, dialog, handlers)
+const {
+  showFormModal: showDashboardModal,
+  showConfirmDialog,
+  selectedItem: selectedDashboard,
+  itemToDelete: dashboardToDelete,
+  handleAdd: handleAddDashboard,
+  handleEdit: handleEditDashboard,
+  handleDelete: handleDeleteDashboard,
+  handleSave: handleSaveDashboard,
+  confirmDelete: confirmDeleteDashboard,
+} = useAdminCrudPage<Dashboard>({
+  idKey: 'id',
+  displayKey: 'name',
+  createFn: createDashboard,
+  updateFn: updateDashboard,
+  deleteFn: deleteDashboard,
+})
 
 // Filters
 const searchQuery = ref('')
@@ -104,63 +118,16 @@ const displayDashboards = computed(() =>
 )
 
 /**
- * Action handlers
+ * Toggle archive status (page-specific — not a generic active toggle)
  */
-const handleAddDashboard = () => {
-  selectedDashboard.value = null
-  showDashboardModal.value = true
-}
-
-const handleEditDashboard = (dashboard: Dashboard) => {
-  selectedDashboard.value = dashboard
-  showDashboardModal.value = true
-}
-
-const handleDeleteDashboard = (dashboard: Dashboard) => {
-  dashboardToDelete.value = dashboard
-  showConfirmDialog.value = true
-}
-
 const handleToggleArchive = async (dashboard: Dashboard) => {
   try {
     await updateDashboard(dashboard.id, {
       isArchived: !dashboard.isArchived,
       archivedAt: !dashboard.isArchived ? new Date() : undefined
     })
-
-    console.log(`✅ Dashboard ${dashboard.name} archived status toggled`)
   } catch (error) {
     console.error('❌ Error toggling dashboard:', error)
-  }
-}
-
-const handleSaveDashboard = async (formData: any) => {
-  try {
-    if (selectedDashboard.value) {
-      await updateDashboard(selectedDashboard.value.id, formData)
-      console.log(`✅ Dashboard updated: ${formData.name}`)
-    } else {
-      await createDashboard(formData)
-      console.log(`✅ Dashboard created: ${formData.name}`)
-    }
-
-    showDashboardModal.value = false
-  } catch (error) {
-    console.error('❌ Error saving dashboard:', error)
-  }
-}
-
-const confirmDeleteDashboard = async () => {
-  if (!dashboardToDelete.value) return
-
-  try {
-    await deleteDashboard(dashboardToDelete.value.id)
-    console.log(`✅ Dashboard deleted: ${dashboardToDelete.value.name}`)
-
-    showConfirmDialog.value = false
-    dashboardToDelete.value = null
-  } catch (error) {
-    console.error('❌ Error deleting dashboard:', error)
   }
 }
 
@@ -192,43 +159,6 @@ onMounted(async () => {
   }
 })
 
-/**
- * Build folder tree hierarchy with children from flat folders array
- * Converts flat folders to tree structure for FolderTree component
- */
-const buildFolderTree = (flatFolders: any[]): any[] => {
-  const folderMap = new Map<string, any>()
-
-  // First pass: create enhanced folder objects with empty children arrays
-  for (const folder of flatFolders) {
-    folderMap.set(folder.id, {
-      ...folder,
-      children: []
-    })
-  }
-
-  // Second pass: build parent-child relationships
-  const rootFolders: any[] = []
-  for (const folder of flatFolders) {
-    const enhancedFolder = folderMap.get(folder.id)!
-    if (folder.parentId) {
-      // This folder has a parent
-      const parentFolder = folderMap.get(folder.parentId)
-      if (parentFolder) {
-        parentFolder.children.push(enhancedFolder)
-      }
-    } else {
-      // Root folder (no parent)
-      rootFolders.push(enhancedFolder)
-    }
-  }
-
-  return rootFolders
-}
-
-/**
- * Folder tree with hierarchy built from flat folders array
- */
 const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 

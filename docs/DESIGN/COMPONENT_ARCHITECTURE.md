@@ -1,10 +1,11 @@
 # Component Architecture & Layout System
 
-> **Purpose:** Component hierarchy, structure, and layout patterns for StreamHub
-> **Strategy:** Strategy 4 (Hybrid Approach) using Pinia stores + composables
+> **Purpose:** Component hierarchy, architecture strategy, and layout patterns for StreamHub
+> **Strategy:** Strategy 4 (Hybrid Approach) — Pinia stores + composables + permission-based UI
 > **Current Implementation:** `app/components/` directory with 4-layer architecture
-> **Last Updated:** 2026-03-14
-> **Version:** 5.0 (Tag System + Role-Based Sidebar)
+> **Last Updated:** 2026-03-22
+> **Version:** 5.1 (Merged Strategy 4 + Tag System + Role-Based Sidebar)
+> **Replaces:** `STRATEGY_4_HYBRID_APPROACH.md` (merged into this document)
 
 ---
 
@@ -441,20 +442,125 @@ app/types/
 
 ---
 
-## ✨ Key Differences from v3.x
+## 🛠️ Implementation Guide (Strategy 4)
 
-- ✅ Consolidated from 1,448 lines (separate docs) to ~350 lines
-- ✅ Merged LAYOUT_COMPONENTS.md content into COMPONENT_ARCHITECTURE.md
-- ✅ Removed duplicate layout descriptions
-- ✅ Removed verbose code examples
-- ✅ Simplified to focus on structure and purpose
-- ✅ Added cross-references (Single Source of Truth)
-- ✅ Updated to match Strategy 4 implementation
-- ✅ Removed implementation checklists and detailed phase-by-phase instructions
+### Creating a New Feature with Strategy 4
+
+**Step 1: Pinia Store** — Centralized state:
+```typescript
+// stores/myFeature.ts
+export const useMyFeatureStore = defineStore('myFeature', () => {
+  const items = ref([])
+  const selectedId = ref(null)
+  const setItems = (newItems) => { items.value = newItems }
+  const selectedItem = computed(() => items.value.find(i => i.id === selectedId.value))
+  return { items, selectedId, selectedItem, setItems }
+})
+```
+
+**Step 2: Composable** — Reusable logic:
+```typescript
+// composables/useMyFeaturePage.ts
+export const useMyFeaturePage = () => {
+  const store = useMyFeatureStore()
+  const service = useMyFeatureService()
+  const loadItems = async () => { /* fetch → store.setItems */ }
+  onMounted(() => loadItems())
+  return { items: computed(() => store.items), isLoading: computed(() => store.isLoading), loadItems }
+}
+```
+
+**Step 3: Page** — Thin presentation:
+```vue
+<template>
+  <MyLayout>
+    <MyGrid :items="items" :loading="isLoading" />
+  </MyLayout>
+</template>
+<script setup lang="ts">
+const { items, isLoading } = useMyFeaturePage()
+</script>
+```
+
+---
+
+## 🔑 Permission-Based UI Control
+
+### Permission Flow
+
+```
+Auth Change → permissionsStore.initializePermissions(user) → computed permissions
+     ↓
+Composable (data level)     →  if (!can('view')) return null
+Handler (action level)      →  if (!can('edit')) return error
+Template (UI level)         →  v-if="can('delete')"
+```
+
+### Example
+
+```vue
+<template>
+  <button v-if="canCreateDashboard" @click="create">Create</button>
+</template>
+<script setup lang="ts">
+const { canCreateDashboard } = useDashboardPage()
+</script>
+```
+
+---
+
+## ⚡ Performance
+
+- **Store Caching**: Avoid redundant API calls with `isDashboardsCacheValid()`
+- **Computed Properties**: Reactive and cached — only recompute when dependencies change
+- **Infinite Scroll** for browse/discover, **Traditional Pagination** for admin tables
+
+---
+
+## 🧪 Testing (Strategy 4)
+
+```typescript
+describe('useDashboardPage', () => {
+  it('loads dashboards on mount', async () => {
+    const { dashboards, isLoading } = useDashboardPage()
+    await flushPromises()
+    expect(dashboards.value).toHaveLength(1)
+    expect(isLoading.value).toBe(false)
+  })
+})
+```
+
+---
+
+## 📌 Best Practices
+
+1. **One Store per Domain** — `useDashboardStore`, `useUserStore` (not `useGlobalStore`)
+2. **Composable = Page Logic** — `useDashboardPage` (specific), `usePaginatedList` (generic)
+3. **Components = Presentation Only** — Template + minimal logic
+4. **Permissions at 3 Levels** — Data, Action, UI
+5. **Cache Invalidation** — Clear cache when permissions/role change
+
+---
+
+## 🔧 Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Store state not syncing across pages | Use `useDashboardStore()` — don't re-define stores |
+| Permissions not blocking actions | Ensure `permissionsStore.initializePermissions(user)` runs on auth change |
+| Memory leaks from watchers | Watchers in `<script setup>` are auto-cleaned on unmount |
+
+---
+
+## ✨ Changelog
+
+- **v5.0** (2026-03-22): Merged STRATEGY_4_HYBRID_APPROACH.md into this document (Single Source of Truth)
+- **v4.0** (2026-02-13): Consolidated from separate docs, merged LAYOUT_COMPONENTS.md
+- **v3.x**: Separate documents for layout, strategy, and components
 
 ---
 
 **Created:** 2024-01-25
-**Updated:** 2026-02-13 (v4.0 - Consolidated & Merged)
+**Updated:** 2026-03-22 (v5.0 — Merged Strategy 4 + Single Source of Truth)
 **Designer:** Development Team
-**Version:** 4.0
+**Version:** 5.0

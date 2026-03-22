@@ -47,6 +47,7 @@ import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 
@@ -62,13 +63,31 @@ console.log('📄 [admin/users/index.vue] Users management page initialized')
 const { users, loading, fetchUsers, createUser, updateUser, deleteUser } = useAdminUsers()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
-const { folders } = useAdminFolders()
-const showUserModal = ref(false)
-const showConfirmDialog = ref(false)
-const showToggleDialog = ref(false)
-const selectedUser = ref<User | null>(null)
-const userToDelete = ref<User | null>(null)
-const userToToggle = ref<User | null>(null)
+const { folders, buildFolderTree } = useAdminFolders()
+
+// CRUD page state (modal, dialog, handlers)
+const {
+  showFormModal: showUserModal,
+  showConfirmDialog,
+  showToggleDialog,
+  selectedItem: selectedUser,
+  itemToDelete: userToDelete,
+  itemToToggle: userToToggle,
+  formRef: userFormRef,
+  handleAdd: handleAddUser,
+  handleEdit: handleEditUser,
+  handleDelete: handleDeleteUser,
+  handleToggleActive,
+  handleSave: handleSaveUser,
+  confirmDelete: confirmDeleteUser,
+} = useAdminCrudPage<User>({
+  idKey: 'uid',
+  displayKey: 'email',
+  createFn: createUser,
+  updateFn: updateUser,
+  deleteFn: deleteUser,
+})
+
 const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -79,7 +98,7 @@ function showToast(message: string, type: 'success' | 'error' = 'success') {
 }
 
 // Ref to UserForm — triggers its internal useForm validation + submission via defineExpose
-const userFormRef = ref<{ submit: () => Promise<void> } | null>(null)
+// (userFormRef provided by useAdminCrudPage)
 
 // Debug: Log state changes
 watch(() => showUserModal.value, (newVal) => {
@@ -155,31 +174,8 @@ const filteredUsers = computed(() => {
 })
 
 /**
- * Action handlers
+ * Custom toggle with toast (page-specific override)
  */
-const handleAddUser = () => {
-  console.log('➕ [Action] Add new user')
-  selectedUser.value = null
-  showUserModal.value = true
-}
-
-const handleEditUser = (user: User) => {
-  console.log('✏️ [Action] Edit user:', user.email)
-  selectedUser.value = user
-  showUserModal.value = true
-}
-
-const handleDeleteUser = (user: User) => {
-  console.log('🗑️ [Action] Delete user:', user.email)
-  userToDelete.value = user
-  showConfirmDialog.value = true
-}
-
-const handleToggleActive = (user: User) => {
-  userToToggle.value = user
-  showToggleDialog.value = true
-}
-
 const confirmToggleActive = async () => {
   if (!userToToggle.value) return
   const user = userToToggle.value
@@ -201,49 +197,11 @@ const confirmToggleActive = async () => {
   }
 }
 
-const handleSaveUser = async (formData: any) => {
-  try {
-    console.log('💾 [Save] Saving user data:', formData)
-    if (selectedUser.value) {
-      console.log(`📤 [Save] Updating user: ${selectedUser.value.email}`)
-      await updateUser(selectedUser.value.uid, formData)
-      console.log(`✅ [Save] User updated: ${formData.email}`)
-    } else {
-      console.log('➕ [Save] Creating new user:', formData.uid)
-      await createUser(formData)
-      console.log(`✅ [Save] User created: ${formData.uid}`)
-    }
-    showUserModal.value = false
-    console.log('🔚 [Save] Modal closed')
-  } catch (error) {
-    console.error('❌ [Save] Error saving user:', error)
-  }
-}
-
-const confirmDeleteUser = async () => {
-  if (!userToDelete.value) {
-    console.warn('⚠️ [Delete] No user selected for deletion')
-    return
-  }
-  try {
-    console.log(`🗑️ [Delete] Deleting user: ${userToDelete.value.email}`)
-    await deleteUser(userToDelete.value.uid)
-    console.log(`✅ [Delete] User deleted: ${userToDelete.value.email}`)
-    showConfirmDialog.value = false
-    userToDelete.value = null
-    console.log('🔚 [Delete] Dialog closed')
-  } catch (error) {
-    console.error('❌ [Delete] Error deleting user:', error)
-  }
-}
-
 const clearFilters = () => {
-  console.log('🔄 [Filters] Clearing all filters')
   searchQuery.value = ''
   filterRole.value = null
   filterCompany.value = null
   filterActive.value = null
-  console.log('✅ [Filters] All filters cleared')
 }
 
 /**
@@ -278,43 +236,6 @@ onMounted(async () => {
   }
 })
 
-/**
- * Build folder tree hierarchy with children from flat folders array
- * Converts flat folders to tree structure for FolderTree component
- */
-const buildFolderTree = (flatFolders: any[]): any[] => {
-  const folderMap = new Map<string, any>()
-
-  // First pass: create enhanced folder objects with empty children arrays
-  for (const folder of flatFolders) {
-    folderMap.set(folder.id, {
-      ...folder,
-      children: []
-    })
-  }
-
-  // Second pass: build parent-child relationships
-  const rootFolders: any[] = []
-  for (const folder of flatFolders) {
-    const enhancedFolder = folderMap.get(folder.id)!
-    if (folder.parentId) {
-      // This folder has a parent
-      const parentFolder = folderMap.get(folder.parentId)
-      if (parentFolder) {
-        parentFolder.children.push(enhancedFolder)
-      }
-    } else {
-      // Root folder (no parent)
-      rootFolders.push(enhancedFolder)
-    }
-  }
-
-  return rootFolders
-}
-
-/**
- * Folder tree with hierarchy built from flat folders array
- */
 const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
