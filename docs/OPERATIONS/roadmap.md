@@ -1,6 +1,6 @@
 # StreamHub Development Roadmap
 
-**Project:** Dashboard Management System for StreamVoice (150+ employees)
+**Project:** Dashboard Management System for Streamwash (150+ employees)
 **Strategy:** Iterative — Features → QA → Deploy
 **Last Updated:** 2026-03-22
 
