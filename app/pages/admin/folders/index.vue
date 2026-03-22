@@ -42,6 +42,7 @@ import { ref, computed, onMounted } from 'vue'
 import type { Folder } from '~/types/admin'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -53,16 +54,29 @@ console.log('📄 [admin/folders/index.vue] Folders management page initialized'
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { folders, loading, fetchFolders, createFolder, updateFolder, deleteFolder, buildFolderTree } = useAdminFolders()
 
-// Modal & dialog state
-const showFolderModal = ref(false)
-const showConfirmDialog = ref(false)
-const showToggleDialog = ref(false)
-const selectedFolder = ref<Folder | null>(null)
-const folderToDelete = ref<Folder | null>(null)
-const folderToToggle = ref<Folder | null>(null)
-
-// Ref to FolderForm — triggers its internal useForm validation + submission via defineExpose
-const folderFormRef = ref<{ submit: () => Promise<void> } | null>(null)
+// CRUD page state (modal, dialog, handlers)
+const {
+  showFormModal: showFolderModal,
+  showConfirmDialog,
+  showToggleDialog,
+  selectedItem: selectedFolder,
+  itemToDelete: folderToDelete,
+  itemToToggle: folderToToggle,
+  formRef: folderFormRef,
+  handleAdd: handleAddFolder,
+  handleEdit: handleEditFolder,
+  handleDelete: handleDeleteFolder,
+  handleToggleActive,
+  confirmToggleActive,
+  handleSave: handleSaveFolder,
+  confirmDelete: confirmDeleteFolder,
+} = useAdminCrudPage<Folder>({
+  idKey: 'id',
+  displayKey: 'name',
+  createFn: createFolder,
+  updateFn: updateFolder,
+  deleteFn: deleteFolder,
+})
 
 // Filters
 const searchQuery = ref('')
@@ -114,78 +128,6 @@ const displayFolders = computed(() =>
     parentName: getParentFolderName(folder.parentId ?? null),
   }))
 )
-
-/**
- * Action handlers
- */
-const handleAddFolder = () => {
-  console.log('➕ [Action] Add new folder')
-  selectedFolder.value = null
-  showFolderModal.value = true
-}
-
-const handleEditFolder = (folder: Folder) => {
-  console.log('✏️ [Action] Edit folder:', folder.id)
-  selectedFolder.value = folder
-  showFolderModal.value = true
-}
-
-const handleDeleteFolder = (folder: Folder) => {
-  console.log('🗑️ [Action] Delete folder:', folder.id)
-  folderToDelete.value = folder
-  showConfirmDialog.value = true
-}
-
-const handleToggleActive = (folder: Folder) => {
-  console.log(`🔄 [Action] Toggle active for folder: ${folder.id} (current: ${folder.isActive})`)
-  folderToToggle.value = folder
-  showToggleDialog.value = true
-}
-
-const confirmToggleActive = async () => {
-  if (!folderToToggle.value) return
-  try {
-    const newStatus = !folderToToggle.value.isActive
-    console.log(`🔄 [Toggle] Updating folder ${folderToToggle.value.id} isActive → ${newStatus}`)
-    await updateFolder(folderToToggle.value.id, { isActive: newStatus })
-    console.log(`✅ [Toggle] Folder ${folderToToggle.value.name} status updated to ${newStatus}`)
-    showToggleDialog.value = false
-    folderToToggle.value = null
-  } catch (error) {
-    console.error('❌ [Toggle] Error updating folder status:', error)
-  }
-}
-
-const handleSaveFolder = async (formData: Partial<Folder>) => {
-  try {
-    console.log('💾 [Save] Saving folder data:', formData)
-    if (selectedFolder.value) {
-      console.log(`📤 [Save] Updating folder: ${selectedFolder.value.id}`)
-      await updateFolder(selectedFolder.value.id, formData)
-      console.log(`✅ [Save] Folder updated: ${selectedFolder.value.id}`)
-    } else {
-      console.log('➕ [Save] Creating new folder:', formData.name)
-      await createFolder(formData)
-      console.log(`✅ [Save] Folder created: ${formData.name}`)
-    }
-    showFolderModal.value = false
-  } catch (error) {
-    console.error('❌ [Save] Error saving folder:', error)
-  }
-}
-
-const confirmDeleteFolder = async () => {
-  if (!folderToDelete.value) return
-  try {
-    console.log(`🗑️ [Delete] Deleting folder: ${folderToDelete.value.id}`)
-    await deleteFolder(folderToDelete.value.id)
-    console.log(`✅ [Delete] Folder deleted: ${folderToDelete.value.name}`)
-    showConfirmDialog.value = false
-    folderToDelete.value = null
-  } catch (error) {
-    console.error('❌ [Delete] Error deleting folder:', error)
-  }
-}
 
 const clearFilters = () => {
   searchQuery.value = ''

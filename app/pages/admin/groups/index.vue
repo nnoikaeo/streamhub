@@ -48,6 +48,7 @@ import type { AdminGroup } from '~/types/admin'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminGroups } from '~/composables/useAdminGroups'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -60,18 +61,33 @@ const { breadcrumbs } = useAdminBreadcrumbs()
 const { groups, loading, fetchGroups, createGroup, updateGroup, deleteGroup } = useAdminGroups()
 const { folders, buildFolderTree } = useAdminFolders()
 
-// Modal & dialog state
-const showGroupModal = ref(false)
-const showViewModal = ref(false)
-const showConfirmDialog = ref(false)
-const showToggleDialog = ref(false)
-const selectedGroup = ref<AdminGroup | null>(null)
-const viewingGroup = ref<AdminGroup | null>(null)
-const groupToDelete = ref<AdminGroup | null>(null)
-const groupToToggle = ref<AdminGroup | null>(null)
+// CRUD page state (modal, dialog, handlers)
+const {
+  showFormModal: showGroupModal,
+  showConfirmDialog,
+  showToggleDialog,
+  selectedItem: selectedGroup,
+  itemToDelete: groupToDelete,
+  itemToToggle: groupToToggle,
+  formRef: groupFormRef,
+  handleAdd: handleAddGroup,
+  handleEdit: handleEditGroup,
+  handleDelete: handleDeleteGroup,
+  handleToggleActive,
+  confirmToggleActive,
+  handleSave: handleSaveGroup,
+  confirmDelete: confirmDeleteGroup,
+} = useAdminCrudPage<AdminGroup>({
+  idKey: 'id',
+  displayKey: 'name',
+  createFn: createGroup,
+  updateFn: updateGroup,
+  deleteFn: deleteGroup,
+})
 
-// Ref to GroupForm — triggers its internal useForm validation + submission via defineExpose
-const groupFormRef = ref<{ submit: () => Promise<void> } | null>(null)
+// Page-specific: view modal
+const showViewModal = ref(false)
+const viewingGroup = ref<AdminGroup | null>(null)
 
 // Filters
 const searchQuery = ref('')
@@ -123,81 +139,11 @@ const displayGroups = computed(() =>
 )
 
 /**
- * Action handlers
+ * Action handlers (page-specific: view)
  */
-const handleAddGroup = () => {
-  console.log('➕ [Action] Add new group')
-  selectedGroup.value = null
-  showGroupModal.value = true
-}
-
 const handleViewGroup = (group: AdminGroup) => {
-  console.log('👁️ [Action] View group:', group.id)
   viewingGroup.value = group
   showViewModal.value = true
-}
-
-const handleEditGroup = (group: AdminGroup) => {
-  console.log('✏️ [Action] Edit group:', group.id)
-  selectedGroup.value = group
-  showGroupModal.value = true
-}
-
-const handleDeleteGroup = (group: AdminGroup) => {
-  console.log('🗑️ [Action] Delete group:', group.id)
-  groupToDelete.value = group
-  showConfirmDialog.value = true
-}
-
-const handleToggleActive = (group: AdminGroup) => {
-  console.log(`🔄 [Action] Toggle active for group: ${group.id} (current: ${group.isActive})`)
-  groupToToggle.value = group
-  showToggleDialog.value = true
-}
-
-const confirmToggleActive = async () => {
-  if (!groupToToggle.value) return
-  try {
-    const newStatus = !groupToToggle.value.isActive
-    console.log(`🔄 [Toggle] Updating group ${groupToToggle.value.id} isActive → ${newStatus}`)
-    await updateGroup(groupToToggle.value.id, { isActive: newStatus })
-    console.log(`✅ [Toggle] Group ${groupToToggle.value.name} status updated to ${newStatus}`)
-    showToggleDialog.value = false
-    groupToToggle.value = null
-  } catch (error) {
-    console.error('❌ [Toggle] Error updating group status:', error)
-  }
-}
-
-const handleSaveGroup = async (formData: Partial<AdminGroup>) => {
-  try {
-    console.log('💾 [Save] Saving group data:', formData)
-    if (selectedGroup.value) {
-      console.log(`📤 [Save] Updating group: ${selectedGroup.value.id}`)
-      await updateGroup(selectedGroup.value.id, formData)
-      console.log(`✅ [Save] Group updated: ${selectedGroup.value.id}`)
-    } else {
-      console.log('➕ [Save] Creating new group:', formData.id)
-      await createGroup(formData)
-      console.log(`✅ [Save] Group created: ${formData.id}`)
-    }
-    showGroupModal.value = false
-  } catch (error) {
-    console.error('❌ [Save] Error saving group:', error)
-  }
-}
-
-const confirmDeleteGroup = async () => {
-  if (!groupToDelete.value) return
-  try {
-    console.log(`🗑️ [Delete] Deleting group: ${groupToDelete.value.id}`)
-    await deleteGroup(groupToDelete.value.id)
-    console.log(`✅ [Delete] Group deleted: ${groupToDelete.value.name}`)
-    showConfirmDialog.value = false
-    groupToDelete.value = null
-  } catch (error) {
-    console.error('❌ [Delete] Error deleting group:', error)
-  }
 }
 
 const clearFilters = () => {

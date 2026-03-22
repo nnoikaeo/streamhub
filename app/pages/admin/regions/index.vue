@@ -20,6 +20,7 @@ import type { Region } from '~/types/admin'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -32,16 +33,29 @@ const { breadcrumbs } = useAdminBreadcrumbs()
 const { regions, loading, fetchRegions, createRegion, updateRegion, deleteRegion } = useAdminRegions()
 const { folders, buildFolderTree } = useAdminFolders()
 
-// Modal & dialog state
-const showRegionModal = ref(false)
-const showConfirmDialog = ref(false)
-const showToggleDialog = ref(false)
-const selectedRegion = ref<Region | null>(null)
-const regionToDelete = ref<Region | null>(null)
-const regionToToggle = ref<Region | null>(null)
-
-// Ref to RegionForm
-const regionFormRef = ref<{ submit: () => Promise<void> } | null>(null)
+// CRUD page state (modal, dialog, handlers)
+const {
+  showFormModal: showRegionModal,
+  showConfirmDialog,
+  showToggleDialog,
+  selectedItem: selectedRegion,
+  itemToDelete: regionToDelete,
+  itemToToggle: regionToToggle,
+  formRef: regionFormRef,
+  handleAdd: handleAddRegion,
+  handleEdit: handleEditRegion,
+  handleDelete: handleDeleteRegion,
+  handleToggleActive,
+  confirmToggleActive,
+  handleSave: handleSaveRegion,
+  confirmDelete: confirmDeleteRegion,
+} = useAdminCrudPage<Region>({
+  idKey: 'code',
+  displayKey: 'name',
+  createFn: createRegion,
+  updateFn: updateRegion,
+  deleteFn: deleteRegion,
+})
 
 // Filters
 const searchQuery = ref('')
@@ -112,81 +126,8 @@ const handleMoveDown = async (region: Region) => {
 }
 
 /**
- * Action handlers
+ * Action handlers (page-specific: reorder)
  */
-const handleAddRegion = () => {
-  console.log('➕ [Action] Add new region')
-  selectedRegion.value = null
-  showRegionModal.value = true
-}
-
-const handleEditRegion = (region: Region) => {
-  console.log('✏️ [Action] Edit region:', region.code)
-  selectedRegion.value = region
-  showRegionModal.value = true
-}
-
-const handleDeleteRegion = (region: Region) => {
-  console.log('🗑️ [Action] Delete region:', region.code)
-  regionToDelete.value = region
-  showConfirmDialog.value = true
-}
-
-const handleToggleActive = (region: Region) => {
-  console.log(`🔄 [Action] Toggle active for region: ${region.code} (current: ${region.isActive})`)
-  regionToToggle.value = region
-  showToggleDialog.value = true
-}
-
-const confirmToggleActive = async () => {
-  if (!regionToToggle.value) return
-  try {
-    const newStatus = !regionToToggle.value.isActive
-    console.log(`🔄 [Toggle] Updating region ${regionToToggle.value.code} isActive → ${newStatus}`)
-    await updateRegion(regionToToggle.value.code, { isActive: newStatus })
-    console.log(`✅ [Toggle] Region ${regionToToggle.value.code} status updated to ${newStatus}`)
-    showToggleDialog.value = false
-    regionToToggle.value = null
-  } catch (error) {
-    console.error('❌ [Toggle] Error updating region status:', error)
-  }
-}
-
-const handleSaveRegion = async (formData: Partial<Region>) => {
-  try {
-    console.log('💾 [Save] Saving region data:', formData)
-    if (selectedRegion.value) {
-      console.log(`📤 [Save] Updating region: ${selectedRegion.value.code}`)
-      await updateRegion(selectedRegion.value.code, formData)
-      console.log(`✅ [Save] Region updated: ${selectedRegion.value.code}`)
-    } else {
-      console.log('➕ [Save] Creating new region:', formData.code)
-      await createRegion(formData)
-      console.log(`✅ [Save] Region created: ${formData.code}`)
-    }
-    showRegionModal.value = false
-    console.log('🔚 [Save] Modal closed')
-  } catch (error) {
-    console.error('❌ [Save] Error saving region:', error)
-  }
-}
-
-const confirmDeleteRegion = async () => {
-  if (!regionToDelete.value) {
-    console.warn('⚠️ [Delete] No region selected for deletion')
-    return
-  }
-  try {
-    console.log(`🗑️ [Delete] Deleting region: ${regionToDelete.value.code}`)
-    await deleteRegion(regionToDelete.value.code)
-    console.log(`✅ [Delete] Region deleted: ${regionToDelete.value.code}`)
-    showConfirmDialog.value = false
-    regionToDelete.value = null
-    console.log('🔚 [Delete] Dialog closed')
-  } catch (error) {
-    console.error('❌ [Delete] Error deleting region:', error)
-  }
-}
 
 const clearFilters = () => {
   console.log('🔄 [Filters] Clearing all filters')

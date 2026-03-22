@@ -23,7 +23,7 @@ import { useAuthStore } from '~/stores/auth'
 const authStore = useAuthStore()
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { users, fetchUsers } = useAdminUsers()
-const { folders, fetchFolders } = useAdminFolders()
+const { folders, fetchFolders, buildFolderTree } = useAdminFolders()
 const { dashboards, fetchDashboards } = useAdminDashboards()
 const { companies, fetchCompanies } = useAdminCompanies()
 
@@ -123,43 +123,6 @@ onMounted(async () => {
   loadStatistics()
 })
 
-/**
- * Build folder tree hierarchy with children from flat folders array
- * Converts flat folders to tree structure for FolderTree component
- */
-const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
-  const folderMap = new Map<string, Folder & { children: Folder[] }>()
-
-  // First pass: create enhanced folder objects with empty children arrays
-  for (const folder of flatFolders) {
-    folderMap.set(folder.id, {
-      ...folder,
-      children: []
-    })
-  }
-
-  // Second pass: build parent-child relationships
-  const rootFolders: (Folder & { children: Folder[] })[] = []
-  for (const folder of flatFolders) {
-    const enhancedFolder = folderMap.get(folder.id)!
-    if (folder.parentId) {
-      // This folder has a parent
-      const parentFolder = folderMap.get(folder.parentId)
-      if (parentFolder) {
-        parentFolder.children.push(enhancedFolder)
-      }
-    } else {
-      // Root folder (no parent)
-      rootFolders.push(enhancedFolder)
-    }
-  }
-
-  return rootFolders
-}
-
-/**
- * Folder tree with hierarchy built from flat folders array
- */
 const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
