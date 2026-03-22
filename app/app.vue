@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import '../assets/css/main.css'
 import '../assets/css/theme.css'
+import AppToast from '~/components/ui/AppToast.vue'
 import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
@@ -27,5 +28,6 @@ onMounted(async () => {
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <AppToast />
   </div>
 </template>

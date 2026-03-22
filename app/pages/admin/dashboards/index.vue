@@ -52,6 +52,7 @@ const {
   createFn: createDashboard,
   updateFn: updateDashboard,
   deleteFn: deleteDashboard,
+  resourceLabel: 'แดชบอร์ด',
 })
 
 // Filters

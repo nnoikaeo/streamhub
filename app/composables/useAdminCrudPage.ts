@@ -34,10 +34,13 @@ interface CrudPageConfig<T, K extends string | number = string> {
   onSaved?: () => void
   /** Optional callback after successful delete */
   onDeleted?: () => void
+  /** Label for the resource type (e.g., 'ผู้ใช้', 'บริษัท') — used in toast messages */
+  resourceLabel?: string
 }
 
 export function useAdminCrudPage<T extends Record<string, any>, K extends string | number = string>(config: CrudPageConfig<T, K>) {
-  const { idKey, displayKey, createFn, updateFn, deleteFn, onSaved, onDeleted } = config
+  const { idKey, displayKey, createFn, updateFn, deleteFn, onSaved, onDeleted, resourceLabel = 'รายการ' } = config
+  const { showToast } = useAppToast()
 
   // Modal state
   const showFormModal = ref(false)
@@ -74,39 +77,52 @@ export function useAdminCrudPage<T extends Record<string, any>, K extends string
 
   const confirmToggleActive = async () => {
     if (!itemToToggle.value) return
+    const display = getDisplayVal(itemToToggle.value)
     try {
       const newStatus = !(itemToToggle.value as any).isActive
       await updateFn(getId(itemToToggle.value), { isActive: newStatus } as unknown as Partial<T>)
       showToggleDialog.value = false
       itemToToggle.value = null
+      showToast(
+        newStatus
+          ? `เปิดใช้งาน ${display} เรียบร้อยแล้ว`
+          : `ปิดใช้งาน ${display} เรียบร้อยแล้ว`
+      )
     } catch (error) {
       console.error('Error toggling status:', error)
+      showToast(`เกิดข้อผิดพลาดในการเปลี่ยนสถานะ${resourceLabel}`, 'error')
     }
   }
 
   const handleSave = async (formData: Partial<T>) => {
+    const isEdit = !!selectedItem.value
     try {
-      if (selectedItem.value) {
-        await updateFn(getId(selectedItem.value), formData)
+      if (isEdit) {
+        await updateFn(getId(selectedItem.value!), formData)
       } else {
         await createFn(formData)
       }
       showFormModal.value = false
+      showToast(isEdit ? `แก้ไข${resourceLabel}เรียบร้อยแล้ว` : `เพิ่ม${resourceLabel}เรียบร้อยแล้ว`)
       onSaved?.()
     } catch (error) {
       console.error('Error saving:', error)
+      showToast(`เกิดข้อผิดพลาดในการบันทึก${resourceLabel}`, 'error')
     }
   }
 
   const confirmDelete = async () => {
     if (!itemToDelete.value) return
+    const display = getDisplayVal(itemToDelete.value)
     try {
       await deleteFn(getId(itemToDelete.value))
       showConfirmDialog.value = false
       itemToDelete.value = null
+      showToast(`ลบ ${display} เรียบร้อยแล้ว`)
       onDeleted?.()
     } catch (error) {
       console.error('Error deleting:', error)
+      showToast(`เกิดข้อผิดพลาดในการลบ${resourceLabel}`, 'error')
     }
   }
 

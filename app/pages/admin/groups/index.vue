@@ -83,6 +83,7 @@ const {
   createFn: createGroup,
   updateFn: updateGroup,
   deleteFn: deleteGroup,
+  resourceLabel: 'กลุ่ม',
 })
 
 // Page-specific: view modal
