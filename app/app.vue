@@ -27,5 +27,6 @@ onMounted(async () => {
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <UiAppToast />
   </div>
 </template>

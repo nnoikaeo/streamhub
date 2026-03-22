@@ -76,6 +76,7 @@ const {
   createFn: createFolder,
   updateFn: updateFolder,
   deleteFn: deleteFolder,
+  resourceLabel: 'โฟลเดอร์',
 })
 
 // Filters

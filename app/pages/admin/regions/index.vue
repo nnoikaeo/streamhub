@@ -55,6 +55,7 @@ const {
   createFn: createRegion,
   updateFn: updateRegion,
   deleteFn: deleteRegion,
+  resourceLabel: 'ภูมิภาค',
 })
 
 // Filters

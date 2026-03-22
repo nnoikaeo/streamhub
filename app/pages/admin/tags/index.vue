@@ -59,6 +59,7 @@ const {
   createFn: createTag,
   updateFn: updateTag,
   deleteFn: deleteTag,
+  resourceLabel: 'แท็ก',
 })
 
 // Filters

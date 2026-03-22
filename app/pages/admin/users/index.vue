@@ -86,16 +86,10 @@ const {
   createFn: createUser,
   updateFn: updateUser,
   deleteFn: deleteUser,
+  resourceLabel: 'ผู้ใช้',
 })
 
-const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
-let toastTimer: ReturnType<typeof setTimeout> | null = null
-
-function showToast(message: string, type: 'success' | 'error' = 'success') {
-  if (toastTimer) clearTimeout(toastTimer)
-  toast.value = { message, type }
-  toastTimer = setTimeout(() => { toast.value = null }, 3500)
-}
+const { showToast } = useAppToast()
 
 // Ref to UserForm — triggers its internal useForm validation + submission via defineExpose
 // (userFormRef provided by useAdminCrudPage)
@@ -360,14 +354,6 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           @cancel="showToggleDialog = false; userToToggle = null"
         />
 
-        <!-- Toast Notification -->
-        <Teleport to="body">
-          <Transition name="toast">
-            <div v-if="toast" class="toast-notification" :class="`toast--${toast.type}`">
-              {{ toast.message }}
-            </div>
-          </Transition>
-        </Teleport>
       </div>
   </PageLayout>
 </template>
@@ -461,23 +447,4 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   }
 }
 
-/* Toast Notification */
-.toast-notification {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 10000;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.toast--success { background: #10b981; }
-.toast--error { background: #ef4444; }
-.toast-enter-active { transition: all 0.3s ease; }
-.toast-leave-active { transition: all 0.3s ease; }
-.toast-enter-from { opacity: 0; transform: translateY(-12px); }
-.toast-leave-to { opacity: 0; transform: translateY(-12px); }
 </style>
