@@ -57,6 +57,7 @@ const {
   createFn: createCompany,
   updateFn: updateCompany,
   deleteFn: deleteCompany,
+  resourceLabel: 'บริษัท',
 })
 
 // Filters

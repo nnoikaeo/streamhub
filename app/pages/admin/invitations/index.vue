@@ -146,15 +146,7 @@ const confirmResend = async () => {
   }
 }
 
-// Toast notification
-const toast = ref<{ message: string; type: 'success' | 'error' } | null>(null)
-let toastTimer: ReturnType<typeof setTimeout> | null = null
-
-function showToast(message: string, type: 'success' | 'error' = 'success') {
-  if (toastTimer) clearTimeout(toastTimer)
-  toast.value = { message, type }
-  toastTimer = setTimeout(() => { toast.value = null }, 3500)
-}
+const { showToast } = useAppToast()
 
 const clearFilters = () => {
   searchQuery.value = ''
@@ -168,13 +160,6 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <template>
-  <!-- Toast notification -->
-  <Transition name="toast">
-    <div v-if="toast" class="toast-notification" :class="`toast-notification--${toast.type}`">
-      {{ toast.type === 'success' ? '✅' : '❌' }} {{ toast.message }}
-    </div>
-  </Transition>
-
   <PageLayout :folders="folderTree" :allow-search="true" :allow-create="false" :breadcrumbs="breadcrumbs">
     <AdminPageContent>
       <template #header>
@@ -504,24 +489,6 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 .action-btn--ghost   { background: transparent; border-color: var(--color-border, #e5e7eb); color: var(--color-text-primary, #374151); }
 .action-btn--primary { background: #2d3389; color: white; }
 .action-btn--danger  { background: #ef4444; color: white; }
-
-/* Toast notification */
-.toast-notification {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 9999;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  max-width: 22rem;
-}
-.toast-notification--success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-.toast-notification--error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(0.5rem); }
 
 .table-loading, .table-empty {
   text-align: center;
