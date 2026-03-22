@@ -4,6 +4,7 @@ export interface Tag {
   slug: string
   color: string
   description: string
+  sortOrder?: number
   createdBy: string
   isActive: boolean
   createdAt: string

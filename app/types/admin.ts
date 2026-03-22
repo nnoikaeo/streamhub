@@ -38,6 +38,7 @@ export interface AdminGroup {
   id: string
   name: string
   description?: string
+  sortOrder?: number
   members: string[]
   isActive: boolean
   createdAt?: string

@@ -17,6 +17,7 @@ import TagBadge from '~/components/features/TagBadge.vue'
 
 interface Props {
   tag?: Tag | null
+  nextSortOrder?: number
 }
 
 const props = defineProps<Props>()
@@ -46,6 +47,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     slug: props.tag?.slug || '',
     color: props.tag?.color || PRESET_COLORS[0],
     description: props.tag?.description || '',
+    sortOrder: props.tag?.sortOrder ?? props.nextSortOrder ?? 0,
     isActive: props.tag?.isActive ?? true,
   },
   validate,
@@ -131,6 +133,15 @@ defineExpose({ submit: handleSubmit })
       label="คำอธิบาย"
       placeholder="คำอธิบายเกี่ยวกับแท็กนี้"
       :rows="2"
+    />
+
+    <FormField
+      v-model="formData.sortOrder"
+      type="number"
+      label="ลำดับการแสดงผล (Sort Order)"
+      placeholder="เช่น 1, 2, 3"
+      :disabled="true"
+      description="ปรับลำดับได้ด้วยปุ่ม ⬆️ / ⬇️ ในหน้าจัดการแท็ก"
     />
 
     <!-- isActive toggle -->

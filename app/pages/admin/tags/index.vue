@@ -67,6 +67,7 @@ const searchQuery = ref('')
 const filterActive = ref<boolean | null>(null)
 
 const columns = [
+  { key: 'sortOrder', label: 'ลำดับ', sortable: true, width: '80px', align: 'center' as const },
   { key: 'name', label: 'แท็ก', sortable: true, width: '200px' },
   { key: 'slug', label: 'Slug', sortable: true, width: '150px' },
   { key: 'description', label: 'คำอธิบาย', width: '280px' },
@@ -74,14 +75,16 @@ const columns = [
 ]
 
 const filteredTags = computed(() => {
-  return tags.value.filter(tag => {
-    if (searchQuery.value) {
-      const q = searchQuery.value.toLowerCase()
-      if (!tag.name.toLowerCase().includes(q) && !tag.slug.toLowerCase().includes(q)) return false
-    }
-    if (filterActive.value !== null && tag.isActive !== filterActive.value) return false
-    return true
-  })
+  return tags.value
+    .filter(tag => {
+      if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase()
+        if (!tag.name.toLowerCase().includes(q) && !tag.slug.toLowerCase().includes(q)) return false
+      }
+      if (filterActive.value !== null && tag.isActive !== filterActive.value) return false
+      return true
+    })
+    .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
 })
 
 const clearFilters = () => {
@@ -89,7 +92,46 @@ const clearFilters = () => {
   filterActive.value = null
 }
 
+/**
+ * Reorder handlers — swap sortOrder with adjacent item
+ */
+const handleMoveUp = async (tag: Tag) => {
+  const sorted = filteredTags.value
+  const index = sorted.findIndex(t => t.id === tag.id)
+  if (index <= 0) return
+  const prev = sorted[index - 1]
+  const currentOrder = tag.sortOrder ?? index + 1
+  const prevOrder = prev.sortOrder ?? index
+  await updateTag(tag.id, { sortOrder: prevOrder })
+  await updateTag(prev.id, { sortOrder: currentOrder })
+  await fetchTags()
+}
+
+const handleMoveDown = async (tag: Tag) => {
+  const sorted = filteredTags.value
+  const index = sorted.findIndex(t => t.id === tag.id)
+  if (index < 0 || index >= sorted.length - 1) return
+  const next = sorted[index + 1]
+  const currentOrder = tag.sortOrder ?? index + 1
+  const nextOrder = next.sortOrder ?? index + 2
+  await updateTag(tag.id, { sortOrder: nextOrder })
+  await updateTag(next.id, { sortOrder: currentOrder })
+  await fetchTags()
+}
+
 const actions = [
+  {
+    label: 'เลื่อนขึ้น',
+    icon: '⬆️',
+    onClick: handleMoveUp,
+    variant: 'ghost' as const,
+  },
+  {
+    label: 'เลื่อนลง',
+    icon: '⬇️',
+    onClick: handleMoveDown,
+    variant: 'ghost' as const,
+  },
   {
     label: 'แก้ไข',
     icon: '✏️',
@@ -113,6 +155,11 @@ onMounted(async () => {
 })
 
 const folderTree = computed(() => buildFolderTree(folders.value))
+
+/** sortOrder ถัดไปสำหรับ tag ใหม่ */
+const nextTagSortOrder = computed(() =>
+  tags.value.reduce((max, t) => Math.max(max, t.sortOrder ?? 0), 0) + 1
+)
 </script>
 
 <template>
@@ -173,7 +220,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         @save="tagFormRef?.submit()"
         @cancel="showTagModal = false"
       >
-        <TagForm ref="tagFormRef" :tag="selectedTag" @submit="handleSaveTag" />
+        <TagForm ref="tagFormRef" :tag="selectedTag" :next-sort-order="nextTagSortOrder" @submit="handleSaveTag" />
       </FormModal>
 
       <!-- Delete Confirmation Dialog -->
