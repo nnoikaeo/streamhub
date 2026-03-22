@@ -93,6 +93,7 @@ export default defineNuxtConfig({
     resendApiKey: process.env.RESEND_API_KEY || '',
     resendFromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@streamhub.app',
     appUrl: process.env.APP_URL || 'http://localhost:3000',
+    googleServiceAccountKey: process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '',
 
     public: {
       // Mock Data Service Configuration
