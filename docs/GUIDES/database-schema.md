@@ -1,9 +1,9 @@
 # Database Schema Reference
 
 > **Document Status:** Technical Reference for Firestore Data Model
-> **Last Updated:** 2026-03-15
+> **Last Updated:** 2026-03-22
 > **Document Owner:** Development Team
-> **Version:** 4.0 (Region Groups + Remove country field)
+> **Version:** 5.0 (Sync with actual TypeScript interfaces)
 
 ---
 
@@ -13,6 +13,7 @@
 Firestore Database (Multi-Company)
 ├── companies/           (🏢 Subsidiary companies registry)
 ├── regions/             (🌏 Region groups for company grouping)
+├── groups/              (👫 User groups / teams)
 ├── users/              (👥 User accounts - company-scoped)
 ├── folders/            (📁 Dashboard folders - no company field)
 ├── dashboards/         (📊 Dashboard documents - no company field)
@@ -113,7 +114,50 @@ Firestore Database (Multi-Company)
 
 ---
 
-## 3. Users Collection
+## 3. Groups Collection
+
+**Path:** `/groups/{groupId}`  
+**Purpose:** User groups / teams for bulk dashboard access assignment
+
+**Document Structure:**
+
+```typescript
+{
+  id: string                     // Group ID (e.g., 'sales', 'finance')
+  name: string                   // Group display name
+  description?: string           // Optional description
+  members: string[]              // User UIDs in this group
+  isActive: boolean              // Active/inactive
+  createdAt?: Timestamp          // Creation date
+  updatedAt?: Timestamp          // Last update
+}
+```
+
+**Example:**
+```json
+{
+  "id": "sales",
+  "name": "ทีม Sales",
+  "description": "กลุ่มผู้ใช้งานฝ่ายขาย",
+  "members": ["uid_user1", "uid_user2", "uid_moderator1"],
+  "isActive": true,
+  "createdAt": "2026-01-20T00:00:00.000Z"
+}
+```
+
+**Current Groups:** `sales`, `finance`, `operations`, `hr`
+
+**Relationship with Dashboards:**
+```
+Group (1) ──── access given to ────► (many) Dashboards
+  - Dashboard.access.direct.groups[] stores group IDs
+  - User belongs to multiple groups
+  - Groups provide Layer 1b bulk access
+```
+
+---
+
+## 4. Users Collection
 
 **Path:** `/users/{userId}`  
 **Purpose:** User accounts with company assignment
@@ -122,70 +166,68 @@ Firestore Database (Multi-Company)
 
 ```typescript
 {
+  uid: string                    // Firebase Auth UID (document ID)
   email: string                  // Email address (unique)
-  displayName: string            // Display name
-  photoURL: string               // Profile photo URL
-  role: 'user'|'moderator'|'admin'  // Role
+  name: string                   // Display name
+  photoURL?: string              // Profile photo URL
+  role: 'user' | 'moderator' | 'admin'  // Role
   company: string                // Company code (STTH, STTN, etc.) - ALL users including admins
-  assignedFolders: string[]      // Folder IDs (moderators only)
+  groups: string[]               // Group IDs the user belongs to (e.g., ['sales', 'finance'])
+  assignedFolders: string[]      // Folder IDs (moderators only; empty for user/admin)
+  isActive: boolean              // Active/inactive status
   createdAt: Timestamp           // Account creation date
   updatedAt: Timestamp           // Last update date
-  isActive: boolean              // Active/inactive status
-  lastLogin: Timestamp           // Last login time
-  metadata: {
-    phone: string
-    position: string
-    department: string
-  }
+  lastLogin?: Timestamp          // Last login time
 }
 ```
 
 **Example Regular User:**
 ```json
 {
+  "uid": "uid_somchai",
   "email": "somchai@stth.com",
-  "displayName": "สมชาย",
+  "name": "สมชาย ใจดี",
   "photoURL": "https://...",
   "role": "user",
   "company": "STTH",
+  "groups": ["ops"],
   "assignedFolders": [],
-  "createdAt": Timestamp(2024-01-20),
   "isActive": true,
-  "metadata": {
-    "phone": "+66-XXX-XXXX",
-    "position": "Staff",
-    "department": "Operations"
-  }
+  "createdAt": "2026-01-20T00:00:00.000Z"
 }
 ```
 
 **Example Moderator:**
 ```json
 {
+  "uid": "uid_moderator1",
   "email": "moderator@stth.com",
-  "displayName": "สมชาย",
+  "name": "มนัส ผู้จัดการ",
   "role": "moderator",
   "company": "STTH",
-  "assignedFolders": ["folder_stth_operations", "folder_stth_reports"],
-  "createdAt": Timestamp(2024-01-20),
-  "isActive": true
+  "groups": ["sales"],
+  "assignedFolders": ["folder_sales", "folder_finance"],
+  "isActive": true,
+  "createdAt": "2026-01-20T00:00:00.000Z"
 }
 ```
 
 **Example Admin:**
 ```json
 {
-  "email": "admin@streamwash.com",
-  "displayName": "Admin Thailand",
+  "uid": "uid_admin1",
+  "email": "admin@streamvoice.com",
+  "name": "Admin Thailand",
   "role": "admin",
   "company": "STTH",
+  "groups": [],
   "assignedFolders": [],
-  "createdAt": Timestamp(2024-01-20),
-  "isActive": true
+  "isActive": true,
+  "createdAt": "2026-01-20T00:00:00.000Z"
 }
 ```
 
-**Important:** Admins MUST have a `company` field (representing their home company). Their `admin` role grants them access to all companies and folders, but they still need a company assignment for organizational purposes.
+**Important:** Admins MUST have a `company` field (representing their home company). Their `admin` role grants them access to all companies and folders via `canAccessAdmin` permission.
 
 **Firestore Rules:**
 ```firestore
@@ -200,63 +242,74 @@ match /users/{userId} {
 ## 4. Folders Collection
 
 **Path:** `/folders/{folderId}`  
-**Purpose:** Dashboard organization (not company-scoped - uses permissions instead)
+**Purpose:** Dashboard organization (not company-scoped — uses access control instead)
 
 **Document Structure:**
 
 ```typescript
 {
+  id: string                     // Folder ID (document ID)
   name: string                   // Folder name
-  description: string            // Description
-  createdBy: string              // Admin user ID
+  parentId?: string | null       // Parent folder ID (null = root level)
+  description?: string           // Optional description
+  isActive: boolean              // Active/inactive
+  createdBy: string              // Creator UID
   createdAt: Timestamp           // Creation date
   updatedAt: Timestamp           // Last update
-  assignedModerators: [{
-    userId: string
-    name: string
-    permissions: string[]
-  }]
-  subfolders: [{
-    id: string
-    name: string
-    createdBy: string
-    permissions: string[]
-  }]
-  isActive: boolean              // Active/inactive
-  color: string                  // Hex color for UI
-  displayOrder: number           // Sort order
+  updatedBy: string              // UID of who last updated
+  assignedModerators?: string[]  // Moderator UIDs (not objects)
+
+  // 3-Layer permission model (same as Dashboard)
+  access?: {
+    direct: {
+      users: string[]            // UIDs with direct access
+      groups: string[]           // Group IDs with access
+    }
+    company: string[]            // Company codes whose users get access
+  }
+  restrictions?: {
+    revoke: string[]             // Explicitly revoked UIDs
+    expiry: { [uid: string]: Timestamp }  // Time-based revocation
+  }
+  inheritPermissions?: boolean   // Cascade permissions to child dashboards
+  permissionMeta?: {
+    setBy: string
+    setAt: string
+  }
+
+  // Client-side only (not stored in DB)
+  // children?: Folder[]         // Populated at runtime for tree view
+  // level?: number              // Depth in hierarchy (0 = root)
 }
 ```
 
 **Example:**
 ```json
 {
-  "name": "Operations",
-  "description": "Operations dashboards",
-  "createdBy": "admin_uid",
-  "createdAt": Timestamp(2024-01-20),
-  "assignedModerators": [
-    {
-      "userId": "uid_somchai",
-      "name": "สมชาย",
-      "permissions": ["view", "create", "edit", "delete"]
-    }
-  ],
-  "subfolders": [
-    {
-      "id": "subfolder_ops_daily",
-      "name": "Daily Reports",
-      "createdBy": "uid_somchai",
-      "permissions": ["view", "edit"]
-    }
-  ],
+  "id": "folder_sales",
+  "name": "Sales",
+  "parentId": null,
+  "description": "Sales dashboards and reports",
+  "createdBy": "uid_admin1",
+  "createdAt": "2026-01-20T00:00:00.000Z",
   "isActive": true,
-  "color": "#3B82F6",
-  "displayOrder": 1
+  "assignedModerators": ["uid_moderator1"],
+  "access": {
+    "direct": {
+      "users": ["uid_somchai"],
+      "groups": ["sales"]
+    },
+    "company": ["STTH"]
+  },
+  "restrictions": {
+    "revoke": [],
+    "expiry": {}
+  },
+  "inheritPermissions": false
 }
 ```
 
-**Note:** No `company` field! Folders are not tied to a specific company — access is controlled via `assignedModerators`.
+**Note:** No `company` field — folders are not tied to a single company. Access is controlled via the `access` model.
 
 ---
 
@@ -265,31 +318,49 @@ match /users/{userId} {
 **Path:** `/dashboards/{dashboardId}`  
 **Purpose:** Dashboard metadata and configuration
 
-**⚠️ IMPORTANT:** For complete access control logic and permission structure details, **see [Roles & Permissions Guide > Permission Structure](./roles-and-permissions.md#permission-structure)**
+**⚠️ IMPORTANT:** For complete access control logic, **see [Roles & Permissions Guide > Permission Structure](./roles-and-permissions.md#permission-structure)**
 
 **Document Structure:**
 
 ```typescript
 {
-  title: string                  // Dashboard title
-  description: string            // Description
-  company: string                // Company code (REQUIRED!)
+  id: string                     // Dashboard ID (document ID)
+  name: string                   // Dashboard name
+  description?: string           // Optional description
   folderId: string               // Parent folder ID
-  lookerUrl: string              // Looker Studio embed URL
-  icon: string                   // Material icon name
-  createdBy: string              // Creator user ID
+  type: 'looker'                 // Dashboard type (only 'looker' supported)
+  lookerDashboardId?: string     // Looker Studio dashboard ID
+  lookerEmbedUrl?: string        // Looker Studio embed URL
+
+  // Metadata
+  owner: string                  // Creator UID
   createdAt: Timestamp           // Creation date
   updatedAt: Timestamp           // Last update
-  isActive: boolean              // Active/inactive
-  views: number                  // View count
+  updatedBy: string              // UID of who last updated
+
+  // Tags
   tags: string[]                 // Tag IDs (e.g., ["tag_sales", "tag_kpi"])
-  access: {                      // ← See roles-and-permissions.md for details
-    direct: {[key: string]: string[]}        // Direct access (no restrictions)
-    company: {[company: string]: {[key: string]: string[]}}  // Company-scoped
-  },
-  restrictions: {                // ← See roles-and-permissions.md for details
+
+  // Status
+  isArchived: boolean            // Archive status (replaces isActive)
+  archivedAt?: Timestamp         // When archived
+
+  // 3-Layer Permission Model ← See roles-and-permissions.md for full details
+  access: {
+    direct: {
+      users: string[]            // Layer 1a: UIDs with direct access
+      groups: string[]           // Layer 1b: Group IDs with access
+    }
+    company: string[]            // Layer 2: Company codes (all users in these companies)
+  }
+  restrictions: {                // Layer 3: Explicit deny (overrides layers 1 & 2)
     revoke: string[]             // Explicitly revoked UIDs
-    expiry: {[uid: string]: Timestamp}  // Time-based revocation
+    expiry: { [uid: string]: Timestamp }  // Time-based revocation
+  }
+  permissionMeta?: {
+    setBy: string                // UID of who set permissions
+    setByName?: string           // Display name (denormalized)
+    setAt: string                // ISO date string
   }
 }
 ```
@@ -297,27 +368,31 @@ match /users/{userId} {
 **Example:**
 ```json
 {
-  "title": "Daily Operations Report",
+  "id": "dash_sales_daily",
+  "name": "Daily Operations Report",
   "description": "Daily performance metrics",
-  "folderId": "folder_operations",
-  "lookerUrl": "https://lookerstudio.google.com/embed/reporting/...",
-  "icon": "bar_chart",
-  "createdBy": "uid_somchai",
-  "createdAt": Timestamp(2024-01-20),
-  "isActive": true,
-  "views": 143,
+  "folderId": "folder_sales",
+  "type": "looker",
+  "lookerEmbedUrl": "https://lookerstudio.google.com/embed/reporting/...",
+  "owner": "uid_moderator1",
+  "createdAt": "2026-01-20T00:00:00.000Z",
+  "isArchived": false,
   "tags": ["tag_sales", "tag_monthly", "tag_kpi"],
-  "permissions": {
-    "role:user": ["view"],
-    "role:moderator": ["view"],
-    "role:admin": ["view", "edit", "delete"],
-    "company:STTH": ["view"],
-    "uid:somchai": ["view", "edit"]
+  "access": {
+    "direct": {
+      "users": ["uid_somchai"],
+      "groups": ["sales"]
+    },
+    "company": ["STTH"]
+  },
+  "restrictions": {
+    "revoke": [],
+    "expiry": {}
   }
 }
 ```
 
-**Note:** No `company` field! Access is controlled via explicit `permissions` map instead.
+**Note:** No `company` field — access is controlled exclusively via the 3-layer `access`/`restrictions` model.
 
 **Firestore Rules:**
 ```firestore
@@ -339,46 +414,59 @@ match /dashboards/{dashboardId} {
 
 ```typescript
 {
+  id: string                     // Invitation ID (document ID)
   email: string                  // Invited email
-  sentBy: string                 // Admin user ID
-  role: string                   // Assigned role
-  company: string                // Company to invite to
-  status: 'pending'|'accepted'|'rejected'  // Invitation status
-  sentAt: Timestamp              // When sent
-  expiresAt: Timestamp           // When expires
-  invitationCode: string         // Unique code (unique)
-  customMessage: string          // Custom message
-  acceptedAt: Timestamp          // When accepted
-  acceptedBy: string             // User ID who accepted
-  metadata: {
-    browserInfo: string
-    ipAddress: string
-  }
+  role: 'user' | 'moderator' | 'admin'  // Assigned role
+  company: string                // Company code to invite to
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled'  // Status
+  invitedBy: string              // Admin UID who sent the invite
+  invitedByName: string          // Inviter display name (denormalized)
+  message?: string               // Optional custom message
+  assignedFolders?: string[]     // Folder IDs to assign on acceptance
+  assignedGroups?: string[]      // Group IDs to assign on acceptance
+
+  // Tracking
+  invitationCode: string         // UUID v4 — unique one-time code
+  expiresAt: Timestamp           // Expiry date
+  createdAt: Timestamp           // When created
+  updatedAt: Timestamp           // Last update
+
+  // Acceptance
+  acceptedAt?: Timestamp         // When accepted
+  acceptedByUid?: string         // UID of the user who accepted
 }
 ```
 
 **Example:**
 ```json
 {
+  "id": "inv_001",
   "email": "newuser@stth.com",
-  "sentBy": "admin_uid",
   "role": "moderator",
   "company": "STTH",
   "status": "pending",
-  "sentAt": Timestamp(2024-01-21),
-  "expiresAt": Timestamp(2024-02-07),
-  "invitationCode": "abc123xyz",
-  "customMessage": "Welcome to Operations team!",
+  "invitedBy": "uid_admin1",
+  "invitedByName": "Admin Thailand",
+  "message": "Welcome to the Operations team!",
+  "assignedFolders": ["folder_sales"],
+  "assignedGroups": ["sales"],
+  "invitationCode": "a1b2c3d4-e5f6-...",
+  "expiresAt": "2026-04-05T00:00:00.000Z",
+  "createdAt": "2026-03-22T00:00:00.000Z",
   "acceptedAt": null,
-  "acceptedBy": null,
-  "metadata": {
-    "browserInfo": "Chrome 120",
-    "ipAddress": "192.168.1.1"
-  }
+  "acceptedByUid": null
 }
 ```
 
+**Status Lifecycle:**
+```
+pending → accepted   (user clicks invite link and accepts)
+pending → expired    (expiresAt date passed)
+pending → cancelled  (admin cancels the invitation)
+```
+
 ---
+
 
 ## 7. Tags Collection
 
@@ -441,11 +529,13 @@ Tag (1) ←──── tagged by ────→ (many) Dashboards
 
 **Folders Index:**
 - Collection: `folders`
-- Fields: `company` (Asc), `createdAt` (Desc)
+- Fields: `isActive` (Asc), `createdAt` (Desc)
+- *(Folders have no `company` field)*
 
 **Dashboards Index:**
 - Collection: `dashboards`
-- Fields: `company` (Asc), `folderId` (Asc), `createdAt` (Desc)
+- Fields: `folderId` (Asc), `isArchived` (Asc), `createdAt` (Desc)
+- *(Dashboards have no `company` field)*
 
 **Users Index:**
 - Collection: `users`
@@ -453,18 +543,18 @@ Tag (1) ←──── tagged by ────→ (many) Dashboards
 
 **Invitations Index:**
 - Collection: `invitations`
-- Fields: `company` (Asc), `status` (Asc), `sentAt` (Desc)
+- Fields: `company` (Asc), `status` (Asc), `createdAt` (Desc)
 
 **Dashboards by Tag Index:**
 - Collection: `dashboards`
 - Fields: `tags` (Array Contains), `createdAt` (Desc)
 
-**Dashboards by Tag + Company Index:**
-- Collection: `dashboards`
-- Fields: `tags` (Array Contains), `company` (Asc), `createdAt` (Desc)
-
 **Tags Index:**
 - Collection: `tags`
+- Fields: `isActive` (Asc), `name` (Asc)
+
+**Groups Index:**
+- Collection: `groups`
 - Fields: `isActive` (Asc), `name` (Asc)
 
 ---
@@ -482,23 +572,29 @@ Company (1)
   │
   ├─ has (many) Users
   │   ├─ role: user/moderator/admin
+  │   ├─ groups: string[]      // group memberships
   │   └─ assignedFolders (if moderator)
   │
-  ├─ has (many) Invitations
-  │   └─ pending/accepted/rejected
-  │
-  └─ (Users access) Folders & Dashboards via permissions
+  └─ has (many) Invitations
+      └─ pending/accepted/expired/cancelled
+
+Groups (cross-company)
+  └─ has (many) members: string[]  // User UIDs
 
 Folders (no company field)
-  ├─ contains Subfolders
-  ├─ assigned to Moderators
-  └─ contains (many) Dashboards
-      ├─ has Permissions
-      └─ tagged with (many) Tags
+  ├─ parentId → parent Folder (null = root)
+  ├─ assignedModerators: string[]
+  └─ contains (many) Dashboards (via folderId on Dashboard)
+
+Dashboards (no company field)
+  ├─ folderId → parent Folder
+  ├─ access.direct.users[] → Users (direct access)
+  ├─ access.direct.groups[] → Groups (bulk access)
+  ├─ access.company[] → Company codes (all users in these companies)
+  └─ tags[] → Tags (many-to-many)
 
 Tags (cross-company, shared)
-  └─ tagged by (many) Dashboards
-      └─ Dashboard.tags[] stores tag IDs (many-to-many)
+  └─ tagged by Dashboards via Dashboard.tags[]
 ```
 
 ---
@@ -513,23 +609,32 @@ const users = await db.collection('users')
   .get()
 ```
 
-### Get all dashboards for a folder
+### Get all dashboards in a folder
 ```typescript
 const dashboards = await db.collection('dashboards')
-  .where('folderId', '==', 'folder_id')
+  .where('folderId', '==', 'folder_sales')
+  .where('isArchived', '==', false)
   .orderBy('createdAt', 'desc')
   .get()
 ```
 
-### Get all folders for a company
+### Get root folders
 ```typescript
+// Folders have no company field; filter by parentId for root level
 const folders = await db.collection('folders')
-  .where('company', '==', 'STTH')
+  .where('parentId', '==', null)
   .where('isActive', '==', true)
   .get()
 ```
 
-### Get moderators in company
+### Get subfolders for a parent
+```typescript
+const subfolders = await db.collection('folders')
+  .where('parentId', '==', 'folder_sales')
+  .get()
+```
+
+### Get moderators in a company
 ```typescript
 const mods = await db.collection('users')
   .where('company', '==', 'STTH')
@@ -549,49 +654,51 @@ const tags = await db.collection('tags')
 ```typescript
 const dashboards = await db.collection('dashboards')
   .where('tags', 'array-contains', 'tag_sales')
+  .where('isArchived', '==', false)
   .orderBy('createdAt', 'desc')
   .get()
 ```
 
-### Get dashboards by tag + company
+### Get group members
 ```typescript
-const dashboards = await db.collection('dashboards')
-  .where('tags', 'array-contains', 'tag_sales')
-  .where('company', '==', 'STTH')
-  .orderBy('createdAt', 'desc')
-  .get()
+const group = await db.collection('groups').doc('sales').get()
+const memberUids = group.data()?.members  // string[]
+```
 ```
 
 ---
 
 ## Naming Conventions
 
-- **Collection names:** `lowercase` (e.g., `users`, `dashboards`)
-- **Document IDs:** `snake_case` (e.g., `folder_stth_operations`)
-- **Field names:** `camelCase` (e.g., `displayName`)
+- **Collection names:** `lowercase` (e.g., `users`, `dashboards`, `groups`)
+- **Document IDs:** `snake_case` (e.g., `folder_sales`, `tag_kpi`)
+- **Field names:** `camelCase` (e.g., `isArchived`, `invitedBy`)
 - **Company codes:** `UPPERCASE` (e.g., `STTH`, `STTN`)
+- **Group IDs:** `lowercase_snake` (e.g., `sales`, `finance`, `hr`)
+- **Tag IDs:** `tag_` prefix (e.g., `tag_sales`, `tag_kpi`)
 
 ---
 
 ## Best Practices
 
 ✅ **DO:**
-- Always set `company` field on company-scoped docs
-- Filter by company in all queries
+- Always set `company` field on company-scoped docs (users, invitations)
+- Filter users/invitations by `company` in queries
+- Use `isArchived` (not `isActive`) for Dashboard soft-delete
+- Use `isActive` for Users, Folders, Tags, Companies, Groups
 - Use composite indexes for complex queries
-- Validate company ownership before updates
-- Use soft deletes (mark `isActive: false`)
+- Use 3-layer access model for Dashboard/Folder permissions (not a flat `permissions` map)
 
 ❌ **DON'T:**
-- Query without company filter
+- Add `company` field to `folders` or `dashboards` (they are not company-scoped)
+- Use the old flat `permissions: { "role:admin": [...] }` format (replaced by `access`/`restrictions`)
 - Store unencrypted sensitive data
-- Update `company` field after creation
+- Update `company` field on users after creation
 - Store large files directly in DB
-- Trust client-side validation alone
 
 ---
 
 ## See Also
 
 - [Company Management Guide](company-management.md)
-- [Roles & Permissions Guide](roles-and-permissions.md)
+- [Roles & Permissions Guide](roles-and-permissions.md) ⭐ Single Source of Truth for the access/restrictions model
