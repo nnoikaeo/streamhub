@@ -14,6 +14,8 @@ import type { Tag } from '~/types/tag'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAuthStore } from '~/stores/auth'
 import { createObjectValidator, validators } from '~/utils/formValidators'
+import { extractReportId } from '~/utils/lookerUrl'
+import LookerUrlInput from '~/components/features/LookerUrlInput.vue'
 import { onMounted } from 'vue'
 
 interface Props {
@@ -173,14 +175,17 @@ onMounted(async () => {
       />
     </div>
 
-    <!-- Looker fields: show only in edit mode -->
+    <!-- Looker URL Input -->
+    <LookerUrlInput
+      :model-value="formData.lookerEmbedUrl"
+      :show-preview="true"
+      :preview-height="300"
+      @update:model-value="formData.lookerEmbedUrl = $event"
+      @update:report-id="formData.lookerDashboardId = $event || ''"
+    />
+
+    <!-- Edit-only fields -->
     <template v-if="isEditMode">
-      <FormField
-        v-model="formData.lookerEmbedUrl"
-        type="text"
-        label="Looker Embed URL"
-        placeholder="https://looker.example.com/dashboards/123"
-      />
 
       <FormField
         v-model="formData.isArchived"

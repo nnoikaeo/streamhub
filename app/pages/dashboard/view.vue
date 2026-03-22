@@ -115,12 +115,19 @@
           <div class="dashboard-main">
             <!-- Looker Embed -->
             <div v-if="dashboard.lookerEmbedUrl" class="looker-embed">
+              <!-- Loading overlay -->
+              <div v-if="iframeLoading" class="iframe-loading">
+                <div class="loading-spinner" />
+                <p>Loading dashboard...</p>
+              </div>
               <iframe
                 :src="dashboard.lookerEmbedUrl"
                 class="embed-iframe"
                 title="Looker Dashboard"
                 frameborder="0"
-                allow="all"
+                sandbox="allow-scripts allow-same-origin allow-popups"
+                @load="iframeLoading = false"
+                @error="iframeError = true"
               />
             </div>
 
@@ -185,6 +192,8 @@ const menuOpen = ref(false)
 const shareDialogOpen = ref(false)
 const relatedDashboards = ref<Dashboard[]>([])
 const owner = ref<User | null>(null)
+const iframeLoading = ref(true)
+const iframeError = ref(false)
 
 // Computed properties
 const dashboardId = computed(() => route.params.id as string)
@@ -684,6 +693,25 @@ onMounted(async () => {
   flex: 1;
   background: white;
   overflow: hidden;
+  position: relative;
+}
+
+.iframe-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: white;
+  z-index: 1;
+}
+
+.iframe-loading p {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
 }
 
 .embed-iframe {
