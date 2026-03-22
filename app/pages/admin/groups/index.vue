@@ -103,6 +103,7 @@ const filterActive = ref<boolean | null>(null)
  * - Actions (icons only)
  */
 const columns = [
+  { key: 'sortOrder', label: 'ลำดับ', sortable: true, width: '80px', align: 'center' as const },
   { key: 'id', label: 'รหัสกลุ่ม', sortable: true, width: '150px' },
   { key: 'name', label: 'ชื่อกลุ่ม', sortable: true, width: '280px', subtitleKey: 'description' },
   { key: 'membersCount', label: 'สมาชิก', width: '100px' },
@@ -113,20 +114,22 @@ const columns = [
  * Filter and search groups
  */
 const filteredGroups = computed(() => {
-  return groups.value.filter(group => {
-    if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase()
-      const matchesId = group.id.toLowerCase().includes(query)
-      const matchesName = group.name.toLowerCase().includes(query)
-      if (!matchesId && !matchesName) return false
-    }
+  return groups.value
+    .filter(group => {
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        const matchesId = group.id.toLowerCase().includes(query)
+        const matchesName = group.name.toLowerCase().includes(query)
+        if (!matchesId && !matchesName) return false
+      }
 
-    if (filterActive.value !== null && group.isActive !== filterActive.value) {
-      return false
-    }
+      if (filterActive.value !== null && group.isActive !== filterActive.value) {
+        return false
+      }
 
-    return true
-  })
+      return true
+    })
+    .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
 })
 
 /**
@@ -147,6 +150,33 @@ const handleViewGroup = (group: AdminGroup) => {
   showViewModal.value = true
 }
 
+/**
+ * Reorder handlers — swap sortOrder with adjacent item
+ */
+const handleMoveUp = async (group: AdminGroup) => {
+  const sorted = filteredGroups.value
+  const index = sorted.findIndex(g => g.id === group.id)
+  if (index <= 0) return
+  const prev = sorted[index - 1]
+  const currentOrder = group.sortOrder ?? index + 1
+  const prevOrder = prev.sortOrder ?? index
+  await updateGroup(group.id, { sortOrder: prevOrder })
+  await updateGroup(prev.id, { sortOrder: currentOrder })
+  await fetchGroups()
+}
+
+const handleMoveDown = async (group: AdminGroup) => {
+  const sorted = filteredGroups.value
+  const index = sorted.findIndex(g => g.id === group.id)
+  if (index < 0 || index >= sorted.length - 1) return
+  const next = sorted[index + 1]
+  const currentOrder = group.sortOrder ?? index + 1
+  const nextOrder = next.sortOrder ?? index + 2
+  await updateGroup(group.id, { sortOrder: nextOrder })
+  await updateGroup(next.id, { sortOrder: currentOrder })
+  await fetchGroups()
+}
+
 const clearFilters = () => {
   searchQuery.value = ''
   filterActive.value = null
@@ -156,6 +186,18 @@ const clearFilters = () => {
  * Action buttons for table rows
  */
 const actions = [
+  {
+    label: 'เลื่อนขึ้น',
+    icon: '⬆️',
+    onClick: handleMoveUp,
+    variant: 'ghost' as const,
+  },
+  {
+    label: 'เลื่อนลง',
+    icon: '⬇️',
+    onClick: handleMoveDown,
+    variant: 'ghost' as const,
+  },
   {
     label: 'ดูข้อมูล',
     icon: '👁️',
@@ -190,6 +232,11 @@ onMounted(async () => {
  * Folder tree for sidebar — built via shared buildFolderTree from useAdminFolders
  */
 const folderTree = computed(() => buildFolderTree(folders.value))
+
+/** sortOrder ถัดไปสำหรับ group ใหม่ */
+const nextGroupSortOrder = computed(() =>
+  groups.value.reduce((max, g) => Math.max(max, g.sortOrder ?? 0), 0) + 1
+)
 </script>
 
 <template>
@@ -250,7 +297,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         @save="groupFormRef?.submit()"
         @cancel="showGroupModal = false"
       >
-        <GroupForm ref="groupFormRef" :group="selectedGroup" @submit="handleSaveGroup" />
+        <GroupForm ref="groupFormRef" :group="selectedGroup" :next-sort-order="nextGroupSortOrder" @submit="handleSaveGroup" />
       </FormModal>
 
       <!-- Delete Confirmation Dialog -->

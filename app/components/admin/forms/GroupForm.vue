@@ -29,6 +29,7 @@ const getRoleLabel = (role: User['role']): string => {
 interface Props {
   group?: AdminGroup | null
   members?: User[]
+  nextSortOrder?: number
 }
 
 const props = defineProps<Props>()
@@ -64,6 +65,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     id: props.group?.id || '',
     name: props.group?.name || '',
     description: props.group?.description || '',
+    sortOrder: props.group?.sortOrder ?? props.nextSortOrder ?? 0,
     members: [...(props.group?.members ?? [])] as string[],
   },
   validate,
@@ -164,6 +166,15 @@ defineExpose({ submit: handleSubmit })
       label="คำอธิบาย"
       placeholder="คำอธิบายเกี่ยวกับกลุ่มนี้"
       :rows="1"
+    />
+
+    <FormField
+      v-model="formData.sortOrder"
+      type="number"
+      label="ลำดับการแสดงผล (Sort Order)"
+      placeholder="เช่น 1, 2, 3"
+      :disabled="true"
+      description="ปรับลำดับได้ด้วยปุ่ม ⬆️ / ⬇️ ในหน้าจัดการกลุ่ม"
     />
 
     <!-- 3-Column Member Selector -->
