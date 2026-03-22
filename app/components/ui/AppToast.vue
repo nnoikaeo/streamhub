@@ -4,7 +4,7 @@
  *
  * Place once in app.vue. Renders all toasts from the useToast() composable.
  * Supports stacking multiple toasts with smooth enter/leave transitions.
- */import { useAppToast } from '~/composables/useToast'
+ */
 const { toasts, dismissToast } = useAppToast()
 </script>
 

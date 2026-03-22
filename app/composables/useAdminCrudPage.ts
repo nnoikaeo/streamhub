@@ -18,7 +18,6 @@
 
 import { ref } from 'vue'
 import type { Ref } from 'vue'
-import { useAppToast } from '~/composables/useToast'
 
 interface CrudPageConfig<T, K extends string | number = string> {
   /** Primary key field name (e.g., 'uid', 'code', 'id') */

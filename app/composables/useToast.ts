@@ -2,18 +2,16 @@
  * Centralized Toast Notification Composable
  *
  * Provides a global toast notification system that can be used from any component or composable.
- * Uses a shared reactive state so toasts triggered from composables (e.g., useAdminCrudPage)
- * are rendered by the global AppToast component in app.vue.
+ * Uses Nuxt useState() to guarantee a single shared state across the entire app,
+ * avoiding module-level ref issues where different imports may get separate instances.
  *
  * Usage:
  * ```typescript
- * const { showToast } = useToast()
+ * const { showToast } = useAppToast()
  * showToast('บันทึกสำเร็จ')
  * showToast('เกิดข้อผิดพลาด', 'error')
  * ```
  */
-
-import { ref } from 'vue'
 
 export interface ToastItem {
   id: number
@@ -22,12 +20,11 @@ export interface ToastItem {
 }
 
 const TOAST_DURATION = 3500
-
-// Global shared state (singleton across all useToast() calls)
-const toasts = ref<ToastItem[]>([])
 let nextId = 0
 
 export function useAppToast() {
+  const toasts = useState<ToastItem[]>('app-toasts', () => [])
+
   function showToast(message: string, type: 'success' | 'error' = 'success') {
     const id = nextId++
     toasts.value.push({ id, message, type })
