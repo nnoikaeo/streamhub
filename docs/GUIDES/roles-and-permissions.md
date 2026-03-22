@@ -1,9 +1,9 @@
 # 🔐 Roles & Permissions Guide
 
 > **Document Status:** Single Source of Truth for Roles & Access Control
-> **Last Updated:** 2026-03-19
+> **Last Updated:** 2026-03-22
 > **Document Owner:** Development Team
-> **Version:** 6.0 (Unified 3-Column Inline + Folder Permissions + Provenance)
+> **Version:** 6.1 (Updated checklist to reflect Phase 1–4 completion)
 
 **StreamHub Role-Based Access Control (RBAC) with Simplified Permissions (Direct + Company-Scoped)**
 
@@ -60,7 +60,7 @@
 
 ## 👥 Role Definitions
 
-### 1️⃣ USER (基本权限)
+### 1️⃣ USER
 
 **Definition:** Regular employee who can view dashboards based on assigned permissions
 
@@ -178,7 +178,7 @@ Moderator: นายหา (STTH)
 
 ---
 
-### 3️⃣ ADMIN (最高权限)
+### 3️⃣ ADMIN
 
 **Definition:** System administrator with global access across all companies
 
@@ -738,36 +738,37 @@ Effective access for "Budget Report":
 
 ## ✅ Implementation Checklist
 
-### Phase 1: Database Schema
-- [ ] Add `access.direct` to dashboards
-- [ ] Add `access.company` to dashboards
-- [ ] Add `restrictions` to dashboards
-- [ ] Create `groups` collection
-- [ ] Add `groups` array to users
-- [ ] Create `tags` collection
-- [ ] Add `tags: string[]` to dashboards
+### Phase 1: Database Schema ✅ COMPLETED
+- [x] Add `access.direct` to dashboards — `DirectAccess` interface in `types/dashboard.ts`
+- [x] Add `access.company` to dashboards — `CompanyAccess = string[]` in `types/dashboard.ts`
+- [x] Add `restrictions` to dashboards — `AccessRestrictions` interface in `types/dashboard.ts`
+- [x] Create `groups` collection — `.data/groups.json` + `server/api/mock/groups.*`
+- [x] Add `groups` array to users — in mock users data
+- [x] Create `tags` collection — `.data/tags.json` + `server/api/mock/tags/`
+- [x] Add `tags: string[]` to dashboards — in `Dashboard` type (`types/dashboard.ts`)
 
-### Phase 2: Firestore Rules
+### Phase 2: Firestore Rules ⏳ PENDING (Real Firebase)
+> Current implementation uses mock JSON API (`server/api/mock/`). Rules below apply when migrating to real Firestore.
 - [ ] Implement Layer 1 rules (direct)
 - [ ] Implement Layer 2 rules (company-scoped — simplified string[])
 - [ ] Implement Layer 3 rules (restrictions)
 - [ ] Implement tag collection rules (read: all auth, write: admin only)
 - [ ] Test all scenarios
 
-### Phase 3: Pinia Stores
-- [ ] Create `stores/permissions.ts`
-- [ ] Add `canManageTags` and `canAssignTags` to permissions
-- [ ] Create `stores/tags.ts` (tag CRUD + filtering)
-- [ ] Implement permission checking functions
-- [ ] Load user groups on login
+### Phase 3: Pinia Stores ✅ COMPLETED
+- [x] Create `stores/permissions.ts` — role-based permissions with `can()`, `hasAll()`, `hasAny()`
+- [x] Add `canManageTags` and `canAssignTags` to permissions — defined per role in permissions store
+- [x] Create `stores/tags.ts` — tag CRUD + `selectedTagIds` + filter toggle
+- [x] Implement permission checking functions — `initializePermissions(user)` in permissions store
+- [x] Load user groups on login — handled in `useAuth.ts`
 
-### Phase 4: UI Components
-- [ ] Create permission guard components
-- [ ] Update dashboard list filtering (add tag filter)
-- [ ] Add permission indicators
-- [ ] Create TagBadge, TagSelector, TagFilter, TagManager components
-- [ ] Restructure sidebar navigation (role-based menus)
-- [ ] Implement Moderator dual-view switching (Viewer/Manager)
+### Phase 4: UI Components ✅ COMPLETED
+- [x] Create permission guard components — permissions store used directly in components
+- [x] Update dashboard list filtering — `TagFilter.vue` component implemented
+- [x] Add permission indicators — role-based UI gating via permissions store
+- [x] Create TagBadge, TagSelector, TagFilter, TagManager components — all in `components/dashboard/`; TagManager via `/admin/tags` page + `TagForm.vue`
+- [x] Restructure sidebar navigation — `UnifiedSidebar.vue` + `useRoleNavigation.ts` composable
+- [x] Implement Moderator dual-view switching — `useModeratorFolders` + `useModeratorDashboards` + `/manage/explorer`
 - [x] Refactor PermissionEditor to unified 3-column layout (v6.0 — no tabs)
 - [x] Create `/manage/permissions` page (moderator permission editor)
 - [x] Create `/manage/explorer` page (unified folder + dashboard management)
@@ -794,5 +795,5 @@ Effective access for "Budget Report":
 
 ---
 
-**Last Updated:** 2026-03-19
-**Version:** 6.0 (Unified 3-Column Inline + Folder Permissions + Provenance)
+**Last Updated:** 2026-03-22
+**Version:** 6.1 (Phase 1–4 checklist updated to reflect completed implementation)
