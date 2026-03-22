@@ -3,7 +3,7 @@
 > **Purpose:** Unified File Explorer for managing folder hierarchy and dashboards in one place
 > **Users:** Admin (full access), Moderator (assigned folders only)
 > **Current Implementation:** `app/pages/admin/explorer/[[folderId]].vue` (to be created)
-> **Supersedes:** `admin-folder-management-page.md` (deprecated)
+> **Note:** Unified File Explorer replacing the previous folder management page
 > **Last Updated:** 2026-03-12
 > **Version:** 2.0
 
@@ -182,12 +182,11 @@ Admin Sidebar:
 |----------|---------|------|
 | **Admin Dashboard Home** | Admin overview hub | [admin-dashboard-home-page.md](./admin-dashboard-home-page.md) |
 | **Admin Dashboards** | Global dashboard list view | _(page ยังคงมีอยู่)_ |
-| **Folder Management (deprecated)** | เอกสารเดิม ถูกแทนที่โดย Explorer | [admin-folder-management-page.md](./admin-folder-management-page.md) |
 | **User Management** | User CRUD page | [admin-user-management-page.md](./admin-user-management-page.md) |
 | **Design System** | Colors, typography | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
 
 ---
 
 **Created:** 2026-03-12
-**Version:** 2.0 (Full File Explorer Style — supersedes admin-folder-management-page.md v1.0)
+**Version:** 2.0 (Full File Explorer Style)
 **Decision:** เปลี่ยนจาก Two-pane Folder+Detail เป็น Full File Explorer เพราะ admin/moderator คุ้นเคยกับ mental model นี้อยู่แล้ว

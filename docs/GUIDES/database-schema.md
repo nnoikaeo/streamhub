@@ -593,6 +593,5 @@ const dashboards = await db.collection('dashboards')
 
 ## See Also
 
-- [Firestore Setup Guide](firestore-setup.md)
 - [Company Management Guide](company-management.md)
 - [Roles & Permissions Guide](roles-and-permissions.md)

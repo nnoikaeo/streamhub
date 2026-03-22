@@ -789,7 +789,6 @@ Effective access for "Budget Report":
 ## 📚 Related Documents
 
 - [Database Schema](./database-schema.md) - For field definitions, **see Permission Structure section above**
-- [Firestore Setup](./firestore-setup.md) - For setup, **see Firestore Security Rules section above**
 - [Company Management](./company-management.md) - For company setup, **see Use Cases section above**
 - [User Flows](../DESIGN/user-flows.md) - For access flow diagrams
 

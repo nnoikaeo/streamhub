@@ -212,7 +212,7 @@ Shows users who have been invited but haven't accepted yet:
 |----------|---------|------|
 | **Admin Dashboard** | Admin overview page | [admin-dashboard-home-page.md](./admin-dashboard-home-page.md) |
 | **Admin Permissions** | Permission management | [admin-permission-management-page.md](./admin-permission-management-page.md) |
-| **Folder Management** | Folder CRUD page | [admin-folder-management-page.md](./admin-folder-management-page.md) |
+| **Explorer** | Folder + Dashboard management | [admin-explorer-page.md](./admin-explorer-page.md) |
 | **Company Management** | Company CRUD page | [admin-company-management-page.md](./admin-company-management-page.md) |
 | **Permissions Guide** | Role and permission logic | [roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
 | **Design System** | Colors, typography | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |

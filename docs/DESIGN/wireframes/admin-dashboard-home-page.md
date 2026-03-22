@@ -159,7 +159,7 @@
 | **Admin Permissions** | Permission management UI | [admin-permission-management-page.md](./admin-permission-management-page.md) |
 | **User Management** | User CRUD page | [admin-user-management-page.md](./admin-user-management-page.md) |
 | **Explorer** | Full File Explorer (folder + dashboard management) | [admin-explorer-page.md](./admin-explorer-page.md) |
-| **Folder Management** | _(Deprecated)_ ถูกแทนที่โดย Explorer | [admin-folder-management-page.md](./admin-folder-management-page.md) |
+| **Explorer** | Folder + Dashboard management | [admin-explorer-page.md](./admin-explorer-page.md) |
 | **Company Management** | Company CRUD page | [admin-company-management-page.md](./admin-company-management-page.md) |
 | **Design System** | Colors, typography, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
 

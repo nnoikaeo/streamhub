@@ -5,7 +5,7 @@
 > **Current Implementation:** `app/components/` directory with 4-layer architecture
 > **Last Updated:** 2026-03-22
 > **Version:** 5.1 (Merged Strategy 4 + Tag System + Role-Based Sidebar)
-> **Replaces:** `STRATEGY_4_HYBRID_APPROACH.md` (merged into this document)
+> **Note:** Includes Strategy 4 (Hybrid Approach) content, merged into this single document
 
 ---
 
@@ -438,7 +438,7 @@ app/types/
 | **Admin Permissions** | Admin permission management page | [admin-permission-management-page.md](wireframes/admin-permission-management-page.md) |
 | **Quick Share Dialog** | Moderator share dialog | [moderator-quick-share-dialog.md](wireframes/moderator-quick-share-dialog.md) |
 | **Design System** | Colors, typography, spacing, components | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
-| **Theme Implementation** | CSS variables, utility classes, best practices | [THEME_IMPLEMENTATION.md](THEME_IMPLEMENTATION.md) |
+| **Design System** | CSS variables, utility classes, best practices | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
 
 ---
 
@@ -554,7 +554,7 @@ describe('useDashboardPage', () => {
 
 ## ✨ Changelog
 
-- **v5.0** (2026-03-22): Merged STRATEGY_4_HYBRID_APPROACH.md into this document (Single Source of Truth)
+- **v5.0** (2026-03-22): Merged Strategy 4 Hybrid Approach into this document (Single Source of Truth)
 - **v4.0** (2026-02-13): Consolidated from separate docs, merged LAYOUT_COMPONENTS.md
 - **v3.x**: Separate documents for layout, strategy, and components
 
