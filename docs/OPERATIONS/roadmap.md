@@ -2,7 +2,7 @@
 
 **Project:** Dashboard Management System for Streamwash (150+ employees)
 **Strategy:** Iterative — Features → QA → Deploy
-**Last Updated:** 2026-03-22
+**Last Updated:** 2026-03-23
 
 ---
 
@@ -26,8 +26,8 @@
 - [x] UnifiedSidebar with role-based accordions
 - [x] Base styling & theme (CSS variables + Design System)
 - [x] Companies collection + Admin management page
-- [x] Regions collection + Admin management page
-- [x] Groups collection + Admin management page
+- [x] Regions collection + Admin management page (with sortOrder reordering ⬆️⬇️)
+- [x] Groups collection + Admin management page (with sortOrder reordering ⬆️⬇️)
 - [x] Firestore mock API (`server/api/mock/`)
 
 ---
@@ -46,6 +46,7 @@
 - [x] Moderator folder assignment — ModeratorAssignmentModal
 - [x] Permissions store (`canManageTags`, `canAssignTags`, role-based checks)
 - [x] Reusable admin patterns — `useAdminResource`, `useAdminCrudPage`
+- [x] Centralized toast notification system — `useAppToast` + `AppToast.vue` (auto-toast on save/delete/toggle)
 
 ---
 
@@ -75,7 +76,7 @@
 - [x] Tag Store — `stores/tags.ts` (CRUD + caching)
 - [x] Tag Composable — `useAdminTags` (admin CRUD via useAdminResource)
 - [x] Tag UI Components — TagBadge, TagFilter, TagSelector
-- [x] Tag Admin Page — `/admin/tags` + TagForm
+- [x] Tag Admin Page — `/admin/tags` + TagForm (with sortOrder reordering ⬆️⬇️)
 - [x] Tag API — full CRUD (`server/api/mock/tags/`)
 - [x] Sidebar Restructure — `useRoleNavigation`, UnifiedSidebar with role-based accordions
 - [x] Moderator Dual-View:
@@ -163,23 +164,23 @@ app/pages/
 | `permissions.ts` | Role-based permissions (canManageTags, canAssignTags, etc.) |
 | `tags.ts` | Tag CRUD + caching |
 
-### Composables (22 composables)
+### Composables (23 composables)
 
 | Category | Composables |
 |----------|-------------|
 | **Admin CRUD (11)** | useAdminBreadcrumbs, useAdminCompanies, useAdminCrudPage, useAdminDashboards, useAdminFolders, useAdminGroups, useAdminInvitations, useAdminRegions, useAdminResource, useAdminTags, useAdminUsers |
 | **Moderator (2)** | useModeratorFolders, useModeratorDashboards |
-| **Core (9)** | useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useMockData, usePaginatedList, useRoleNavigation, useSidebarVisibility |
+| **Core (10)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useMockData, usePaginatedList, useRoleNavigation, useSidebarVisibility |
 
 ### Mock API Endpoints
 
 All entities have REST endpoints under `server/api/mock/`:
-- **Companies** — GET, POST, DELETE
-- **Dashboards** — GET, POST, GET/:id, DELETE/:id
-- **Folders** — GET, POST, GET/:id, DELETE/:id
-- **Groups** — GET, POST, DELETE/:id
+- **Companies** — GET, POST, PUT/:code, DELETE/:code
+- **Dashboards** — GET, POST, GET/:id, PUT/:id, DELETE/:id
+- **Folders** — GET, POST, GET/:id, PUT/:id, DELETE/:id
+- **Groups** — GET, POST, PUT/:id, DELETE/:id
 - **Invitations** — GET, POST, PUT/:id, DELETE/:id, verify, accept, bulk, reactivate, check
-- **Regions** — GET, POST, DELETE/:code
+- **Regions** — GET, POST, PUT/:code, DELETE/:code
 - **Tags** — GET, POST, GET/:id, PUT/:id, DELETE/:id
 - **Users** — GET, POST, GET/:uid, PUT/:uid, DELETE/:uid
 

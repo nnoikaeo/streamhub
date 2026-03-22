@@ -3,8 +3,8 @@
 > **Purpose:** Component hierarchy, architecture strategy, and layout patterns for StreamHub
 > **Strategy:** Strategy 4 (Hybrid Approach) — Pinia stores + composables + permission-based UI
 > **Current Implementation:** `app/components/` directory with 4-layer architecture
-> **Last Updated:** 2026-03-22
-> **Version:** 5.1 (Merged Strategy 4 + Tag System + Role-Based Sidebar)
+> **Last Updated:** 2026-03-23
+> **Version:** 5.2 (Added AppToast + useAppToast toast system)
 > **Note:** Includes Strategy 4 (Hybrid Approach) content, merged into this single document
 
 ---
@@ -384,6 +384,7 @@ app/components/
 │  └── UnifiedSidebar.vue         # Role-based sidebar (uses useRoleNavigation)
 │
 ├── ui/                           # Design system (reusable)
+│  ├── AppToast.vue               # Global toast notifications (Teleport + TransitionGroup)
 │  ├── Button.vue
 │  ├── Card.vue
 │  ├── Modal.vue
@@ -412,6 +413,7 @@ app/components/
 
 app/composables/
 ├── ... existing ...
+├── useAppToast.ts                # (NEW) Centralized toast — useState singleton, auto-dismiss 3.5s
 ├── useTags.ts                    # (NEW) Tag CRUD + filtering logic
 └── useRoleNavigation.ts          # (NEW) Role-based sidebar menu config
 

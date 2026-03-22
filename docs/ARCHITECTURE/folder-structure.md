@@ -1,7 +1,7 @@
 ---
 title: Folder Structure
-version: 1.0
-updated: 2024-01-21
+version: 2.0
+updated: 2026-03-23
 ---
 
 # Folder Structure
@@ -14,87 +14,179 @@ Understanding how files are organized in StreamHub.
 streamhub/
 │
 ├── 📁 app/                          # Nuxt application
-│   ├── 📁 composables/
-│   │   └── useAuth.ts              # Authentication logic
 │   │
-│   ├── 📁 components/              # Reusable Vue components
-│   │   └── (coming soon)
+│   ├── 📁 composables/              # Vue 3 composables (business logic)
+│   │   ├── useAdminBreadcrumbs.ts   # Breadcrumb navigation for admin pages
+│   │   ├── useAdminCompanies.ts     # Company CRUD
+│   │   ├── useAdminCrudPage.ts      # Generic CRUD page state + toast integration
+│   │   ├── useAdminDashboards.ts    # Dashboard CRUD
+│   │   ├── useAdminFolders.ts       # Folder CRUD + tree building
+│   │   ├── useAdminGroups.ts        # Group CRUD
+│   │   ├── useAdminInvitations.ts   # Invitation management
+│   │   ├── useAdminRegions.ts       # Region CRUD
+│   │   ├── useAdminResource.ts      # Generic REST resource (base for all admin composables)
+│   │   ├── useAdminTags.ts          # Tag CRUD (wraps useAdminResource + syncs tag store)
+│   │   ├── useAdminUsers.ts         # User CRUD
+│   │   ├── useAppToast.ts           # Centralized toast notifications (useState singleton)
+│   │   ├── useAuth.ts               # Authentication (Firebase + Pinia)
+│   │   ├── useCompanyAccess.ts      # Company-scoped access control
+│   │   ├── useDashboardPage.ts      # Dashboard page state
+│   │   ├── useDashboardService.ts   # Dashboard service interface + mock implementation
+│   │   ├── useExplorer.ts           # Folder/dashboard explorer state
+│   │   ├── useForm.ts               # Generic form state + validation
+│   │   ├── useJSONMockService.ts    # JSON-based mock data service
+│   │   ├── useMockData.ts           # Static mock data (users, folders, dashboards)
+│   │   ├── useModeratorDashboards.ts # Moderator dashboard management
+│   │   ├── useModeratorFolders.ts   # Moderator folder management
+│   │   ├── usePaginatedList.ts      # Pagination logic
+│   │   ├── useRoleNavigation.ts     # Role-based sidebar menu config
+│   │   └── useSidebarVisibility.ts  # Sidebar show/hide state
+│   │
+│   ├── 📁 components/               # Reusable Vue components
+│   │   ├── ErrorDialog.vue          # Global error dialog
+│   │   │
+│   │   ├── 📁 admin/
+│   │   │   ├── 📁 forms/            # Admin form components
+│   │   │   │   ├── CompanyForm.vue
+│   │   │   │   ├── DashboardForm.vue
+│   │   │   │   ├── FolderForm.vue
+│   │   │   │   ├── GroupForm.vue
+│   │   │   │   ├── TagForm.vue
+│   │   │   │   └── UserForm.vue
+│   │   │   └── RegionForm.vue
+│   │   │
+│   │   ├── 📁 compositions/         # Composition patterns (multi-slot layouts)
+│   │   │   ├── AdminPageContent.vue # Admin page header + filters + table slots
+│   │   │   ├── DataTable.vue        # Generic sortable data table
+│   │   │   ├── FormModal.vue        # Generic form modal wrapper
+│   │   │   ├── ConfirmDialog.vue    # Confirmation dialog
+│   │   │   └── PageLayout.vue       # Standard two-pane page layout
+│   │   │
+│   │   ├── 📁 dashboard/            # Dashboard-specific components
+│   │   │   ├── DashboardCard.vue
+│   │   │   ├── DashboardGrid.vue
+│   │   │   └── QuickShareDialog.vue
+│   │   │
+│   │   ├── 📁 features/             # Feature components
+│   │   │   ├── FolderSidebar.vue
+│   │   │   ├── FolderTree.vue
+│   │   │   ├── TagBadge.vue
+│   │   │   ├── TagFilter.vue
+│   │   │   └── TagSelector.vue
+│   │   │
+│   │   ├── 📁 layouts/              # Layout components
+│   │   │   └── UnifiedSidebar.vue   # Role-based sidebar (uses useRoleNavigation)
+│   │   │
+│   │   └── 📁 ui/                   # Design system (global, no prefix)
+│   │       └── AppToast.vue         # Global toast notifications (Teleport + TransitionGroup)
 │   │
 │   ├── 📁 layouts/
-│   │   ├── auth.vue                # Auth page layout
-│   │   └── default.vue             # Main page layout
+│   │   ├── auth.vue                 # Auth page layout (centered card)
+│   │   └── default.vue              # Main app layout (sidebar + content)
 │   │
 │   ├── 📁 middleware/
-│   │   └── auth.ts                 # Route protection
+│   │   ├── admin.ts                 # Admin-only route guard
+│   │   └── auth.ts                  # Auth route protection
 │   │
 │   ├── 📁 pages/
-│   │   ├── index.vue               # Home page
-│   │   ├── login.vue               # Login page
-│   │   └── 📁 dashboard/
-│   │       ├── index.vue           # Dashboard home
-│   │       ├── users.vue           # (planned)
-│   │       └── settings.vue        # (planned)
+│   │   ├── index.vue                # Redirect to dashboard/discover
+│   │   ├── login.vue                # Google OAuth login
+│   │   │
+│   │   ├── 📁 admin/
+│   │   │   ├── index.vue            # Admin redirect
+│   │   │   ├── overview.vue         # Admin dashboard overview
+│   │   │   ├── permissions.vue      # Permission editor (3-layer)
+│   │   │   ├── 📁 companies/
+│   │   │   ├── 📁 dashboards/
+│   │   │   ├── 📁 folders/
+│   │   │   ├── 📁 groups/           # Group CRUD + sortOrder reordering
+│   │   │   ├── 📁 invitations/
+│   │   │   ├── 📁 regions/          # Region CRUD + sortOrder reordering
+│   │   │   ├── 📁 tags/             # Tag CRUD + sortOrder reordering
+│   │   │   └── 📁 users/
+│   │   │
+│   │   ├── 📁 dashboard/
+│   │   │   ├── index.vue            # Dashboard home
+│   │   │   ├── discover.vue         # Browse all dashboards
+│   │   │   └── view.vue             # Single dashboard view (Looker embed)
+│   │   │
+│   │   ├── 📁 manage/
+│   │   │   ├── permissions.vue      # Moderator permission editor
+│   │   │   └── 📁 explorer/         # Moderator folder explorer
+│   │   │
+│   │   └── 📁 invite/
+│   │       └── accept.vue           # Invitation acceptance page
 │   │
 │   ├── 📁 plugins/
-│   │   └── firebase.ts             # Firebase initialization
+│   │   └── firebase.ts              # Firebase initialization
 │   │
 │   ├── 📁 stores/
-│   │   ├── auth.ts                 # Auth state (Pinia)
-│   │   └── (app state stores)
+│   │   ├── auth.ts                  # Auth state + user session (Pinia)
+│   │   ├── dashboard.ts             # Dashboard state management
+│   │   ├── permissions.ts           # Role-based permissions (canManageTags, etc.)
+│   │   └── tags.ts                  # Tag CRUD + caching
+│   │
+│   ├── 📁 types/
+│   │   ├── admin.ts                 # Region, Company, AdminGroup types
+│   │   ├── dashboard.ts             # User, Folder, Dashboard, Permission types
+│   │   ├── invitation.ts            # Invitation types
+│   │   └── tag.ts                   # Tag interface
 │   │
 │   ├── 📁 utils/
-│   │   ├── firebase.ts             # Firebase config
-│   │   └── schemas.ts              # Validation schemas
+│   │   ├── errorMessages.ts         # Centralized error message strings
+│   │   ├── firebase.ts              # Firebase config + initialization
+│   │   ├── formValidators.ts        # Form validation helpers
+│   │   └── schemas.ts               # Zod validation schemas
 │   │
-│   └── app.vue                      # Root component
+│   └── app.vue                      # Root component (mounts AppToast globally)
 │
 ├── 📁 assets/
 │   ├── 📁 css/
-│   │   └── main.css               # Global styles
-│   └── (images, icons)
+│   │   ├── main.css                 # Global styles
+│   │   └── theme.css                # CSS variable definitions (design tokens)
+│   └── 📁 images/
+│
+├── 📁 .data/                        # Mock JSON data (runtime, gitignored in prod)
+│   ├── audit-log.json
+│   ├── companies.json
+│   ├── dashboards.json
+│   ├── folders.json
+│   ├── groups.json
+│   ├── invitations.json
+│   ├── regions.json
+│   ├── tags.json
+│   └── users.json
+│
+├── 📁 server/
+│   └── 📁 api/
+│       └── 📁 mock/                 # Nitro API handlers
+│           ├── companies/
+│           ├── dashboards/
+│           ├── folders/
+│           ├── groups/
+│           ├── invitations/
+│           ├── regions/
+│           ├── tags/
+│           └── users/
 │
 ├── 📁 docs/                         # 📖 Documentation
-│   ├── GETTING-STARTED/
+│   ├── README.md                    # Documentation index
 │   ├── ARCHITECTURE/
+│   ├── CONTRIBUTING/
+│   ├── DESIGN/
+│   ├── GETTING-STARTED/
 │   ├── GUIDES/
 │   ├── OPERATIONS/
-│   ├── TROUBLESHOOTING/
-│   ├── CONTRIBUTING/
-│   └── REFERENCE/
+│   ├── REFERENCE/
+│   └── TROUBLESHOOTING/
 │
-├── 📁 public/                       # Static files
-│   ├── favicon.ico
+├── 📁 public/
 │   └── robots.txt
 │
-├── 📁 .github/                      # GitHub config
-│   └── copilot-instructions.md
-│
-├── 📁 .nuxt/                        # Auto-generated build
-│   └── (gitignored)
-│
-├── 📁 .output/                      # Production build
-│   └── (gitignored)
-│
-├── 📄 .env                          # Environment variables
-│   └── (gitignored - secrets!)
-│
-├── 📄 .env.example                  # Template
-│
-├── 📄 .gitignore                    # Git exclusions
-│
-├── 📄 eslint.config.mjs             # Linting rules
-│
 ├── 📄 nuxt.config.ts                # Nuxt configuration
-│
-├── 📄 package.json                  # Dependencies
-│
-├── 📄 package-lock.json             # Lock file
-│
+├── 📄 tailwind.config.ts            # Tailwind + design tokens
 ├── 📄 tsconfig.json                 # TypeScript config
-│
-├── 📄 README.md                     # Project overview
-│
-└── 📄 LICENSE                       # MIT License
+└── 📄 package.json                  # Dependencies + scripts
 ```
 
 ---
@@ -193,10 +285,11 @@ Served as-is, no processing:
 ## Naming Conventions
 
 ### Files
-- **Components:** PascalCase (e.g., `UserCard.vue`)
-- **Pages:** kebab-case (e.g., `dashboard-users.vue`)
-- **Utilities:** camelCase (e.g., `formatDate.ts`)
-- **Stores:** camelCase (e.g., `authStore.ts`)
+- **Components:** PascalCase (e.g., `DataTable.vue`)
+- **Pages:** kebab-case for multi-word (e.g., `accept.vue`, `discover.vue`)
+- **Composables:** camelCase with `use` prefix (e.g., `useAdminGroups.ts`)
+- **Stores:** camelCase, named by domain (e.g., `auth.ts`, `permissions.ts`)
+- **Utilities:** camelCase (e.g., `errorMessages.ts`)
 
 ### Folders
 - **Parent:** PascalCase (e.g., `GETTING-STARTED/`)
