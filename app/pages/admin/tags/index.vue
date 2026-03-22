@@ -20,6 +20,7 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { usePermissionsStore } from '~/stores/permissions'
+import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -36,15 +37,29 @@ if (!permissions.can('canManageTags')) {
   navigateTo('/admin/overview')
 }
 
-// Modal & dialog state
-const showTagModal = ref(false)
-const showConfirmDialog = ref(false)
-const showToggleDialog = ref(false)
-const selectedTag = ref<Tag | null>(null)
-const tagToDelete = ref<Tag | null>(null)
-const tagToToggle = ref<Tag | null>(null)
-
-const tagFormRef = ref<{ submit: () => Promise<void> } | null>(null)
+// CRUD page state (modal, dialog, handlers)
+const {
+  showFormModal: showTagModal,
+  showConfirmDialog,
+  showToggleDialog,
+  selectedItem: selectedTag,
+  itemToDelete: tagToDelete,
+  itemToToggle: tagToToggle,
+  formRef: tagFormRef,
+  handleAdd: handleAddTag,
+  handleEdit: handleEditTag,
+  handleDelete: handleDeleteTag,
+  handleToggleActive,
+  confirmToggleActive,
+  handleSave: handleSaveTag,
+  confirmDelete: confirmDeleteTag,
+} = useAdminCrudPage<Tag>({
+  idKey: 'id',
+  displayKey: 'name',
+  createFn: createTag,
+  updateFn: updateTag,
+  deleteFn: deleteTag,
+})
 
 // Filters
 const searchQuery = ref('')
@@ -67,61 +82,6 @@ const filteredTags = computed(() => {
     return true
   })
 })
-
-const handleAddTag = () => {
-  selectedTag.value = null
-  showTagModal.value = true
-}
-
-const handleEditTag = (tag: Tag) => {
-  selectedTag.value = tag
-  showTagModal.value = true
-}
-
-const handleDeleteTag = (tag: Tag) => {
-  tagToDelete.value = tag
-  showConfirmDialog.value = true
-}
-
-const handleToggleActive = (tag: Tag) => {
-  tagToToggle.value = tag
-  showToggleDialog.value = true
-}
-
-const confirmToggleActive = async () => {
-  if (!tagToToggle.value) return
-  try {
-    await updateTag(tagToToggle.value.id, { isActive: !tagToToggle.value.isActive })
-    showToggleDialog.value = false
-    tagToToggle.value = null
-  } catch (error) {
-    console.error('❌ [Toggle] Error updating tag status:', error)
-  }
-}
-
-const handleSaveTag = async (formData: Partial<Tag>) => {
-  try {
-    if (selectedTag.value) {
-      await updateTag(selectedTag.value.id, formData)
-    } else {
-      await createTag(formData)
-    }
-    showTagModal.value = false
-  } catch (error) {
-    console.error('❌ [Save] Error saving tag:', error)
-  }
-}
-
-const confirmDeleteTag = async () => {
-  if (!tagToDelete.value) return
-  try {
-    await deleteTag(tagToDelete.value.id)
-    showConfirmDialog.value = false
-    tagToDelete.value = null
-  } catch (error) {
-    console.error('❌ [Delete] Error deleting tag:', error)
-  }
-}
 
 const clearFilters = () => {
   searchQuery.value = ''
