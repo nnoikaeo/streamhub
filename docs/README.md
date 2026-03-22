@@ -35,8 +35,7 @@ docs/
 │   └── company-management.md             Multi-company architecture
 │
 ├── DESIGN/                            ← How things look (UI/UX)
-│   ├── COMPONENT_ARCHITECTURE.md      ⭐ 4-layer system + Strategy 4 + Tag components
-│   ├── COMPONENT_CONVENTIONS.md          Component naming + auto-import
+│   ├── COMPONENT_ARCHITECTURE.md      ⭐ 4-layer system + Strategy 4 + Tag components + Auto-Import
 │   ├── DESIGN_SYSTEM.md                  CSS tokens, colors, spacing, theme
 │   ├── MOCK_DATA_STRUCTURE.md            Mock data for development
 │   ├── user-flows.md                  ⭐ All role flows + Tag filtering
@@ -81,7 +80,7 @@ docs/
     └── faq.md                            Frequently asked questions
 ```
 
-**Total: 41 files** (consolidated from 59 — removed 18 redundant/deprecated/placeholder files)
+**Total: 40 files** (consolidated from 59 — removed 19 redundant/deprecated/placeholder files)
 
 ---
 
@@ -97,8 +96,7 @@ docs/
 3. **[Tag Management Wireframe](DESIGN/wireframes/tag-management-page.md)** - Tag Filter + Selector + Manager UI
 
 ### "I want to create a new page"
-1. **[Component Architecture](DESIGN/COMPONENT_ARCHITECTURE.md)** - Strategy 4 step-by-step guide + available components
-2. **[Component Conventions](DESIGN/COMPONENT_CONVENTIONS.md)** - Layer structure + naming
+1. **[Component Architecture](DESIGN/COMPONENT_ARCHITECTURE.md)** - Strategy 4 step-by-step guide + available components + auto-import conventions
 
 ### "I need to customize styling"
 1. **[Design System](DESIGN/DESIGN_SYSTEM.md)** - CSS tokens, colors, spacing, theme variables

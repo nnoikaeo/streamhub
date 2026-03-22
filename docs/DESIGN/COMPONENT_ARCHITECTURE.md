@@ -427,6 +427,98 @@ app/types/
 
 ---
 
+## 🏷️ Auto-Import Conventions
+
+Nuxt auto-imports components based on their folder — each layer uses a specific prefix:
+
+| Layer | Folder | Prefix | Example |
+|-------|--------|--------|---------|
+| Layout | `components/layouts/` | `Layout` | `<LayoutAppLayout>` |
+| Composition | `components/compositions/` | `Composition` | `<CompositionTwoPaneLayout>` |
+| Feature | `components/features/` | `Feature` | `<FeatureDashboardCard>` |
+| UI | `components/ui/` | *(none)* | `<Button>`, `<Card>` |
+
+### nuxt.config.ts Registration
+
+```typescript
+components: [
+  { path: '~/components/layouts', prefix: 'Layout', global: false },
+  { path: '~/components/compositions', prefix: 'Composition', global: false },
+  { path: '~/components/ui', prefix: '', global: true },
+  { path: '~/components/features', prefix: 'Feature', global: false }
+]
+```
+
+### Common Mistakes
+
+**❌ Missing prefix** — Feature/Layout/Composition components require their prefix:
+
+```vue
+<!-- ❌ WRONG -->
+<DashboardCard />
+
+<!-- ✅ CORRECT -->
+<FeatureDashboardCard />
+```
+
+**❌ Manual imports conflict with auto-import:**
+
+```vue
+<!-- ❌ WRONG -->
+<script setup>
+import DashboardCard from '~/components/features/DashboardCard.vue'
+</script>
+<template>
+  <DashboardCard />  <!-- won't match FeatureDashboardCard -->
+</template>
+
+<!-- ✅ CORRECT — no import needed -->
+<template>
+  <FeatureDashboardCard />
+</template>
+```
+
+### Debugging Auto-Import
+
+1. **Verify the generated name:**
+   ```bash
+   cat .nuxt/components.d.ts | grep YourComponent
+   ```
+2. **Clear cache after changing nuxt.config.ts:**
+   ```bash
+   rm -rf .nuxt node_modules/.vite && npm run dev
+   ```
+3. **Browser console** — look for `[Vue warn]: Failed to resolve component: X`
+
+### Component Lifecycle Order
+
+Always follow this order inside `<script setup>`:
+
+```vue
+<script setup lang="ts">
+// 1. Props & emits
+const props = defineProps<{ title: string }>()
+const emit = defineEmits<{ action: [] }>()
+
+// 2. State
+const isOpen = ref(false)
+
+// 3. Computed
+const displayTitle = computed(() => props.title.toUpperCase())
+
+// 4. Watchers
+watch(() => props.loading, (val) => { if (!val) isOpen.value = false })
+
+// 5. Methods
+const handleAction = () => emit('action')
+
+// 6. Lifecycle
+onMounted(() => { /* setup */ })
+</script>
+```
+
+---
+
 ## 🔗 Related Documents
 
 | Document | Purpose | Link |
@@ -437,8 +529,7 @@ app/types/
 | **Tag Management Page** | Tag CRUD + filter + assignment UI | [tag-management-page.md](wireframes/tag-management-page.md) |
 | **Admin Permissions** | Admin permission management page | [admin-permission-management-page.md](wireframes/admin-permission-management-page.md) |
 | **Quick Share Dialog** | Moderator share dialog | [moderator-quick-share-dialog.md](wireframes/moderator-quick-share-dialog.md) |
-| **Design System** | Colors, typography, spacing, components | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
-| **Design System** | CSS variables, utility classes, best practices | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
+| **Design System** | CSS tokens, colors, spacing, theme variables | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
 
 ---
 
@@ -554,6 +645,7 @@ describe('useDashboardPage', () => {
 
 ## ✨ Changelog
 
+- **v5.2** (2026-03-22): Merged COMPONENT_CONVENTIONS.md — Auto-Import rules, common mistakes, debugging, lifecycle order
 - **v5.0** (2026-03-22): Merged Strategy 4 Hybrid Approach into this document (Single Source of Truth)
 - **v4.0** (2026-02-13): Consolidated from separate docs, merged LAYOUT_COMPONENTS.md
 - **v3.x**: Separate documents for layout, strategy, and components
@@ -561,6 +653,6 @@ describe('useDashboardPage', () => {
 ---
 
 **Created:** 2024-01-25
-**Updated:** 2026-03-22 (v5.0 — Merged Strategy 4 + Single Source of Truth)
+**Updated:** 2026-03-22 (v5.2 — Merged COMPONENT_CONVENTIONS.md into this document)
 **Designer:** Development Team
-**Version:** 5.0
+**Version:** 5.2
