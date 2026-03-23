@@ -1,5 +1,5 @@
 <template>
-  <ClientOnly>
+  <div class="discover-page-wrapper">
     <PageLayout
       v-if="!isInitializing"
       :breadcrumbs="breadcrumbItems"
@@ -239,7 +239,7 @@
         <p>Loading dashboard discovery...</p>
       </div>
     </div>
-  </ClientOnly>
+  </div>
 </template>
 
 <script setup lang="ts">
