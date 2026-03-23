@@ -5,6 +5,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-01-20',
   devtools: { enabled: true },
 
+  // SPA mode — Firebase SDK is client-only; all routes require auth.
+  // Disabling SSR eliminates hydration mismatches and avoids running
+  // Firebase/Pinia setup on the server.
+  ssr: false,
+
   alias: {
     '~': fileURLToPath(new URL('./app', import.meta.url))
   },

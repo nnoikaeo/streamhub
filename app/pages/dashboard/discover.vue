@@ -291,7 +291,6 @@ console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route
 definePageMeta({
   middleware: 'auth',
   layout: 'default',
-  ssr: false,
 })
 
 // ========== Strategy 4: Extract all logic to composable ==========
