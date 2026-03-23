@@ -94,7 +94,7 @@
 - [x] **Looker Studio API** — Google Sheets API service, 4 API routes, `useLookerApi` composable (`feat/looker-api-service` → PR #98)
 - [x] **Dashboard Preview Widget** — thumbnail generation, `DashboardPreview.vue`, `DashboardCard.vue` (`feat/dashboard-preview-widget` → PR #99)
 
-**Plan:** [looker-studio-api-plan.md](looker-studio-api-plan.md)
+**Plan:** [archive/looker-studio-api-plan.md](archive/looker-studio-api-plan.md) *(archived — completed)*
 
 ---
 
@@ -144,7 +144,7 @@
 
 **Plans:**
 - [company-access-control-plan.md](company-access-control-plan.md)
-- [user-invitations-plan.md](user-invitations-plan.md)
+- [archive/user-invitations-plan.md](archive/user-invitations-plan.md) *(archived — completed)*
 
 ---
 
@@ -192,13 +192,13 @@ app/pages/
 | `permissions.ts` | Role-based permissions (canManageTags, canAssignTags, etc.) |
 | `tags.ts` | Tag CRUD + caching |
 
-### Composables (23 composables)
+### Composables (24 composables)
 
 | Category | Composables |
-|----------|-------------|
+|----------|-----------|
 | **Admin CRUD (11)** | useAdminBreadcrumbs, useAdminCompanies, useAdminCrudPage, useAdminDashboards, useAdminFolders, useAdminGroups, useAdminInvitations, useAdminRegions, useAdminResource, useAdminTags, useAdminUsers |
 | **Moderator (2)** | useModeratorFolders, useModeratorDashboards |
-| **Core (10)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useMockData, usePaginatedList, useRoleNavigation, useSidebarVisibility |
+| **Core (11)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useLookerApi, useMockData, usePaginatedList, useRoleNavigation, useSidebarVisibility |
 
 ### Mock API Endpoints
 
@@ -212,6 +212,15 @@ All entities have REST endpoints under `server/api/mock/`:
 - **Tags** — GET, POST, GET/:id, PUT/:id, DELETE/:id
 - **Users** — GET, POST, GET/:uid, PUT/:uid, DELETE/:uid
 
+Looker Studio API proxy under `server/api/looker/`:
+- `GET /api/looker/status` — Check API credential status
+- `GET /api/looker/reports` — List available Looker reports
+- `GET /api/looker/reports/:id` — Get single report metadata
+- `POST /api/looker/sync` — Sync dashboard metadata from Looker
+
+Thumbnail API under `server/api/thumbnail/`:
+- `GET /api/thumbnail/:dashboardId` — Generate SVG placeholder thumbnail
+
 ### Mock Data (`.data/`)
 
 9 JSON files: audit-log, companies, dashboards, folders, groups, invitations, regions, tags, users
@@ -223,7 +232,7 @@ All entities have REST endpoints under `server/api/mock/`:
 - [ ] All 150 users can login with Google OAuth
 - [x] Users Management functional (CRUD + invitations)
 - [x] Dashboard Management working (CRUD + permissions)
-- [ ] Looker Studio embeds display correctly (mock only currently)
+- [x] Looker Studio URL input, validation, and live embed preview
 - [x] Role-based access control working (permissions store)
 - [x] Tag system: Admin CRUD, Moderator assign, User filter
 - [x] Sidebar navigation: role-based menus

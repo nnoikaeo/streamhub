@@ -1,9 +1,29 @@
 # Looker Studio API Integration — Implementation Plan
 
 > **Created:** 2026-03-15
+> **Completed:** 2026-03-23
 > **Purpose:** Step-by-step prompts สำหรับให้ Sonnet/Haiku ดำเนินการ
 > **Strategy:** แต่ละ Step = 1 feature branch → PR → merge to develop
 > **Approach:** Phase แรกทำ Manual URL → Phase สองเพิ่ม Google API
+
+## ✅ Completion Status
+
+| Step | Branch | PR | Status |
+|------|--------|----|--------|
+| Step 1: Manual URL Workflow | `feat/looker-manual-url` | #97 | ✅ Merged to main |
+| Step 2: Looker Studio API Service | `feat/looker-api-service` | #98 | ✅ Merged to main |
+| Step 3: Dashboard Preview Widget | `feat/dashboard-preview-widget` | #99 | ✅ Merged to main |
+
+**Files created:**
+- `app/utils/lookerUrl.ts` — URL validation + embed URL conversion
+- `app/components/features/LookerUrlInput.vue` — URL input + live preview component
+- `app/composables/useLookerApi.ts` — Looker API client (status, reports, sync)
+- `server/utils/lookerStudioApi.ts` — Google Sheets/Looker API service
+- `server/api/looker/reports.get.ts`, `status.get.ts`, `sync.post.ts`, `reports/[id].get.ts`
+- `server/api/thumbnail/[dashboardId].get.ts` — SVG placeholder thumbnail
+- `app/components/features/DashboardPreview.vue` — Quick view modal with live iframe
+
+---
 
 ---
 
@@ -853,27 +873,27 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
 
 หลัง implement ครบทุก step ให้ทดสอบ:
 
-### Step 1 — Manual URL
+### Step 1 — Manual URL ✅
 1. **URL Input**
-   - [ ] Paste Looker view URL → auto-convert เป็น embed URL
-   - [ ] Paste embed URL → ใช้ได้เลย
-   - [ ] Paste URL ผิด format → แสดง error
-   - [ ] แสดง Report ID เมื่อ valid
+   - [x] Paste Looker view URL → auto-convert เป็น embed URL
+   - [x] Paste embed URL → ใช้ได้เลย
+   - [x] Paste URL ผิด format → แสดง error
+   - [x] แสดง Report ID เมื่อ valid
 
 2. **Preview**
-   - [ ] กด Preview → แสดง iframe ของ Looker dashboard
-   - [ ] Dashboard view page แสดง iframe จริง (ไม่ใช่ placeholder)
+   - [x] กด Preview → แสดง iframe ของ Looker dashboard
+   - [x] Dashboard view page แสดง iframe จริง (ไม่ใช่ placeholder)
 
-### Step 2 — Looker API (ถ้า configure credentials)
+### Step 2 — Looker API ✅
 3. **API Integration**
-   - [ ] `/api/looker/status` → แสดง enabled/disabled
-   - [ ] `/api/looker/reports` → list reports จาก Looker
-   - [ ] Browse Reports dialog → เลือก report → auto-fill URL
-   - [ ] Sync → อัปเดต dashboard metadata จาก Looker
+   - [x] `/api/looker/status` → แสดง enabled/disabled
+   - [x] `/api/looker/reports` → list reports จาก Looker
+   - [x] Browse Reports dialog → เลือก report → auto-fill URL
+   - [x] Sync → อัปเดต dashboard metadata จาก Looker
 
-### Step 3 — Preview Widget
+### Step 3 — Preview Widget ✅
 4. **Thumbnails**
-   - [ ] Dashboard cards แสดง gradient placeholder
-   - [ ] Hover → แสดง Quick View overlay
-   - [ ] Click Quick View → เปิด modal กับ live iframe
-   - [ ] Modal มีปุ่ม "Open Full View" → navigate ไปหน้า view
+   - [x] Dashboard cards แสดง gradient placeholder
+   - [x] Hover → แสดง Quick View overlay
+   - [x] Click Quick View → เปิด modal กับ live iframe
+   - [x] Modal มีปุ่ม "Open Full View" → navigate ไปหน้า view
