@@ -159,20 +159,24 @@ const manageMenuItems = computed(() => {
     />
 
     <!-- Manage Accordion (Moderator only) -->
-    <AdminAccordion
-      v-if="showManageFolders"
-      v-model="isManageFoldersOpen"
-      title="จัดการ"
-      :items="manageMenuItems"
-    />
+    <ClientOnly>
+      <AdminAccordion
+        v-if="showManageFolders"
+        v-model="isManageFoldersOpen"
+        title="จัดการ"
+        :items="manageMenuItems"
+      />
+    </ClientOnly>
 
     <!-- Admin Accordion (Admin only) -->
-    <AdminAccordion
-      v-if="effectiveShowAdmin"
-      v-model="isAdminOpen"
-      title="ผู้ดูแลระบบ"
-      :items="adminMenuItems"
-    />
+    <ClientOnly>
+      <AdminAccordion
+        v-if="effectiveShowAdmin"
+        v-model="isAdminOpen"
+        title="ผู้ดูแลระบบ"
+        :items="adminMenuItems"
+      />
+    </ClientOnly>
 
     <!-- Footer Slot (Optional) -->
     <slot name="footer" />

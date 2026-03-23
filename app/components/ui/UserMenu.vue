@@ -6,8 +6,8 @@
       type="button"
       @click="toggleMenu"
     >
-      <span class="user-avatar">{{ userInitial }}</span>
-      <span class="user-name">{{ displayName }}</span>
+      <span class="user-avatar"><ClientOnly>{{ userInitial }}<template #fallback>U</template></ClientOnly></span>
+      <span class="user-name"><ClientOnly>{{ displayName }}<template #fallback>User</template></ClientOnly></span>
       <svg
         class="dropdown-icon"
         :class="{ open: isMenuOpen }"
@@ -26,10 +26,10 @@
         <!-- User Profile Section -->
         <div class="dropdown-header">
           <div class="user-info">
-            <div class="user-avatar-lg">{{ userInitial }}</div>
+            <div class="user-avatar-lg"><ClientOnly>{{ userInitial }}<template #fallback>U</template></ClientOnly></div>
             <div class="user-details">
-              <div class="user-name-lg">{{ displayName }}</div>
-              <div class="user-email">{{ userEmail }}</div>
+              <div class="user-name-lg"><ClientOnly>{{ displayName }}<template #fallback>User</template></ClientOnly></div>
+              <div class="user-email"><ClientOnly>{{ userEmail }}<template #fallback>&nbsp;</template></ClientOnly></div>
               <div v-if="userRoleCompany" class="user-role-company">{{ userRoleCompany }}</div>
             </div>
           </div>
