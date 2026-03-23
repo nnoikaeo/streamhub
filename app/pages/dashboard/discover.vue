@@ -148,17 +148,30 @@
             </button>
           </div>
 
-          <!-- List View Placeholder -->
-          <template v-if="viewMode === 'list'">
-            <div class="list-view-placeholder">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-              <p>List view coming soon</p>
-            </div>
-          </template>
+          <!-- List View — Grouped -->
+          <GroupedDashboardList
+            v-if="viewMode === 'list' && isGroupedView"
+            :groups="groupedDashboards"
+            :tags="tagStore.activeTags"
+            :loading="isLoading"
+            :user-map="userMap"
+            empty-message="ไม่พบแดชบอร์ด"
+            @view-dashboard="handleViewDashboard"
+            @share-dashboard="handleShareDashboard"
+            @menu-dashboard="handleMenuDashboard"
+          />
+
+          <!-- List View — Flat -->
+          <DashboardList
+            v-else-if="viewMode === 'list'"
+            :dashboards="filteredDashboards"
+            :tags="tagStore.activeTags"
+            :loading="isLoading"
+            empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+            @view-dashboard="handleViewDashboard"
+            @share-dashboard="handleShareDashboard"
+            @menu-dashboard="handleMenuDashboard"
+          />
 
           <!-- Grouped View (when showing all folders) -->
           <GroupedDashboardGrid
@@ -236,6 +249,8 @@ import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import GroupedDashboardGrid from '~/components/features/GroupedDashboardGrid.vue'
+import DashboardList from '~/components/features/DashboardList.vue'
+import GroupedDashboardList from '~/components/features/GroupedDashboardList.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
@@ -756,23 +771,6 @@ const dashboardCountText = computed(() => {
 .view-mode-btn svg {
   width: 18px;
   height: 18px;
-}
-
-/* ========== LIST VIEW PLACEHOLDER ========== */
-.list-view-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md, 1rem);
-  padding: var(--spacing-2xl, 3rem) var(--spacing-lg, 1.5rem);
-  color: var(--color-text-secondary, #6b7280);
-  text-align: center;
-}
-
-.list-view-placeholder p {
-  font-size: 0.95rem;
-  margin: 0;
 }
 
 /* ========== INFINITE SCROLL SENTINEL ========== */
