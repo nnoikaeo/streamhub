@@ -47,13 +47,21 @@
       <Transition name="folder-collapse">
         <div v-if="!collapsedFolders.has(group.folder.id)" class="folder-group__content">
           <DashboardGrid
-            :dashboards="group.dashboards"
+            :dashboards="maxPerFolder ? group.dashboards.slice(0, maxPerFolder) : group.dashboards"
             :loading="false"
             :view-mode="viewMode"
             @view-dashboard="(d) => $emit('view-dashboard', d)"
             @share-dashboard="(d) => $emit('share-dashboard', d)"
             @menu-dashboard="(d, e) => $emit('menu-dashboard', d, e)"
           />
+          <button
+            v-if="maxPerFolder && group.dashboards.length > maxPerFolder"
+            type="button"
+            class="view-all-link"
+            @click="$emit('view-folder', group.folder.id)"
+          >
+            ดูทั้งหมด {{ group.dashboards.length }} แดชบอร์ด →
+          </button>
         </div>
       </Transition>
     </section>
@@ -83,6 +91,7 @@ const props = withDefaults(defineProps<{
   userMap?: Record<string, User>
   viewMode?: ViewMode
   collapsedFolders?: Set<string>
+  maxPerFolder?: number
 }>(), {
   loading: false,
   emptyMessage: 'ไม่พบแดชบอร์ด',
@@ -108,6 +117,7 @@ defineEmits<{
   'share-dashboard': [dashboard: Dashboard]
   'menu-dashboard': [dashboard: Dashboard, event: MouseEvent]
   'toggle-folder': [folderId: string]
+  'view-folder': [folderId: string]
 }>()
 </script>
 
@@ -252,6 +262,23 @@ defineEmits<{
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* ========== VIEW ALL LINK ========== */
+.view-all-link {
+  display: block;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  padding-top: var(--spacing-sm);
+  text-align: right;
+  width: 100%;
+
+  &:hover {
+    text-decoration: underline;
   }
 }
 </style>
