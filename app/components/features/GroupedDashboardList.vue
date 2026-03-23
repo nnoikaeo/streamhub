@@ -20,7 +20,12 @@
       class="folder-group"
     >
       <!-- Folder Header -->
-      <div class="folder-group__header">
+      <button
+        type="button"
+        class="folder-group__header"
+        :aria-expanded="!collapsedFolders.has(group.folder.id)"
+        @click="$emit('toggle-folder', group.folder.id)"
+      >
         <svg class="folder-group__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
         </svg>
@@ -32,18 +37,32 @@
         >
           ผู้ดูแล: {{ getModeratorLabel(group.folder) }}
         </span>
-      </div>
+        <svg
+          class="folder-group__chevron"
+          :class="{ 'is-collapsed': collapsedFolders.has(group.folder.id) }"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
 
-      <!-- List for this group -->
-      <DashboardList
-        :dashboards="group.dashboards"
-        :tags="tags"
-        :loading="false"
-        empty-message="ไม่พบแดชบอร์ดในโฟลเดอร์นี้"
-        @view-dashboard="(d) => $emit('view-dashboard', d)"
-        @share-dashboard="(d) => $emit('share-dashboard', d)"
-        @menu-dashboard="(d, e) => $emit('menu-dashboard', d, e)"
-      />
+      <!-- Collapsible content -->
+      <Transition name="folder-collapse">
+        <div v-if="!collapsedFolders.has(group.folder.id)" class="folder-group__content">
+          <DashboardList
+            :dashboards="group.dashboards"
+            :tags="tags"
+            :loading="false"
+            empty-message="ไม่พบแดชบอร์ดในโฟลเดอร์นี้"
+            @view-dashboard="(d) => $emit('view-dashboard', d)"
+            @share-dashboard="(d) => $emit('share-dashboard', d)"
+            @menu-dashboard="(d, e) => $emit('menu-dashboard', d, e)"
+          />
+        </div>
+      </Transition>
     </section>
 
     <!-- Loading State -->
@@ -70,10 +89,12 @@ const props = withDefaults(defineProps<{
   loading?: boolean
   emptyMessage?: string
   userMap?: Record<string, User>
+  collapsedFolders?: Set<string>
 }>(), {
   loading: false,
   emptyMessage: 'ไม่พบแดชบอร์ด',
   userMap: () => ({}),
+  collapsedFolders: () => new Set<string>(),
 })
 
 const getModeratorLabel = (folder: Folder): string => {
@@ -92,6 +113,7 @@ defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
   'share-dashboard': [dashboard: Dashboard]
   'menu-dashboard': [dashboard: Dashboard, event: MouseEvent]
+  'toggle-folder': [folderId: string]
 }>()
 </script>
 
@@ -143,7 +165,62 @@ defineEmits<{
 .folder-group__moderator {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
+}
+
+/* ========== FOLDER GROUP HEADER (clickable) ========== */
+.folder-group__header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border-light);
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  padding-top: 0;
+  padding-left: 0;
+  padding-right: 0;
+  border-radius: 0;
+
+  &:hover .folder-group__name {
+    color: var(--color-primary);
+  }
+}
+
+.folder-group__chevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
   margin-left: auto;
+  transition: transform 200ms ease;
+
+  &.is-collapsed {
+    transform: rotate(-90deg);
+  }
+}
+
+.folder-group__content {
+  overflow: hidden;
+}
+
+/* ========== COLLAPSE TRANSITION ========== */
+.folder-collapse-enter-active,
+.folder-collapse-leave-active {
+  transition: opacity 200ms ease, max-height 200ms ease;
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.folder-collapse-enter-from,
+.folder-collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
 }
 
 /* ========== EMPTY STATE ========== */

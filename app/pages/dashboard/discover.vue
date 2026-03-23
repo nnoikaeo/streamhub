@@ -78,6 +78,13 @@
             </svg>
             <h2 class="dashboards-count">{{ dashboardCountText }}</h2>
 
+            <!-- Expand / Collapse All (only in grouped view) -->
+            <div v-if="isGroupedView" class="folder-collapse-controls">
+              <button type="button" class="collapse-ctrl-btn" @click="expandAllFolders">˂ ขยายทั้งหมด</button>
+              <span class="collapse-ctrl-divider">|</span>
+              <button type="button" class="collapse-ctrl-btn" @click="collapseAllFolders">˃ ย่อทั้งหมด</button>
+            </div>
+
             <!-- View Mode Switcher -->
             <div class="view-mode-switcher">
               <button
@@ -155,10 +162,12 @@
             :tags="tagStore.activeTags"
             :loading="isLoading"
             :user-map="userMap"
+            :collapsed-folders="collapsedFolders"
             empty-message="ไม่พบแดชบอร์ด"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
             @menu-dashboard="handleMenuDashboard"
+            @toggle-folder="toggleFolder"
           />
 
           <!-- List View — Flat -->
@@ -180,10 +189,12 @@
             :loading="isLoading"
             :user-map="userMap"
             :view-mode="viewMode"
+            :collapsed-folders="collapsedFolders"
             empty-message="ไม่พบแดชบอร์ด"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
             @menu-dashboard="handleMenuDashboard"
+            @toggle-folder="toggleFolder"
           />
 
           <!-- Flat View (when specific folder selected) -->
@@ -387,6 +398,45 @@ watch(viewMode, (mode) => {
     localStorage.setItem(VIEW_MODE_KEY, mode)
   }
 })
+
+// ========== Collapsible Folder Groups ==========
+const collapsedFolders = ref<Set<string>>(new Set())
+
+const initCollapsedFolders = () => {
+  const ids = groupedDashboards.value.map((g) => g.folder.id)
+  const newSet = new Set<string>()
+  if (ids.length > 5) {
+    // Collapse all except first 3
+    ids.slice(3).forEach((id) => newSet.add(id))
+  }
+  collapsedFolders.value = newSet
+}
+
+const toggleFolder = (folderId: string) => {
+  const next = new Set(collapsedFolders.value)
+  if (next.has(folderId)) {
+    next.delete(folderId)
+  } else {
+    next.add(folderId)
+  }
+  collapsedFolders.value = next
+}
+
+const expandAllFolders = () => {
+  collapsedFolders.value = new Set()
+}
+
+const collapseAllFolders = () => {
+  collapsedFolders.value = new Set(groupedDashboards.value.map((g) => g.folder.id))
+}
+
+// Initialise collapse state once groupedDashboards is ready
+watch(groupedDashboards, (groups, prevGroups) => {
+  // Only set defaults on first meaningful load (going from empty → populated)
+  if (!prevGroups?.length && groups.length > 0) {
+    initCollapsedFolders()
+  }
+}, { immediate: false })
 
 // ========== Users (for moderator display) ==========
 const { users, fetchUsers } = useAdminUsers()
@@ -741,6 +791,33 @@ const dashboardCountText = computed(() => {
   background: var(--color-bg-secondary, #f3f4f6);
   border-radius: var(--radius-md, 0.375rem);
   padding: 2px;
+}
+
+/* ========== FOLDER COLLAPSE CONTROLS ========== */
+.folder-collapse-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.25rem);
+  margin-left: var(--spacing-sm, 0.5rem);
+}
+
+.collapse-ctrl-btn {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  cursor: pointer;
+  border-radius: var(--radius-sm, 0.25rem);
+
+  &:hover {
+    background: var(--color-bg-secondary, #f3f4f6);
+  }
+}
+
+.collapse-ctrl-divider {
+  font-size: 0.75rem;
+  color: var(--color-border-light, #e5e7eb);
 }
 
 .view-mode-btn {
