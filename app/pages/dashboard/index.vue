@@ -14,7 +14,7 @@
       <!-- Page Content -->
       <div class="dashboard-page">
           <div class="dashboard-header">
-            <h1 class="dashboard-title">สวัสดี {{ user?.displayName || 'User' }}</h1>
+            <h1 class="dashboard-title">สวัสดี <ClientOnly>{{ user?.displayName || 'User' }}<template #fallback>User</template></ClientOnly></h1>
             <!-- <p class="dashboard-subtitle">{{ user?.email }}</p> -->
           </div>
 
@@ -39,18 +39,21 @@
 
       <div class="content-grid">
         <DashboardRecentDashboards :dashboards="recentDashboards" />
-        <DashboardQuickActions
-          :can-create="isModerator || isAdmin"
-          :can-share="isModerator || isAdmin"
-          :can-invite="false"
-          @view-dashboards="navigateTo('/dashboard/discover')"
-          @create-dashboard="navigateTo('/dashboard/create')"
-          @share-dashboard="handleShare"
-        />
+        <ClientOnly>
+          <DashboardQuickActions
+            :can-create="isModerator || isAdmin"
+            :can-share="isModerator || isAdmin"
+            :can-invite="false"
+            @view-dashboards="navigateTo('/dashboard/discover')"
+            @create-dashboard="navigateTo('/dashboard/create')"
+            @share-dashboard="handleShare"
+          />
+        </ClientOnly>
       </div>
     </section>
 
     <!-- Moderator + Admin Section -->
+    <ClientOnly>
     <section v-if="isModerator || isAdmin" class="dashboard-section">
       <h2 class="section-title">ภาพรวมบริษัท</h2>
 
@@ -75,6 +78,7 @@
         />
       </div>
     </section>
+    </ClientOnly>
         </div>
       </div>
   </PageLayout>

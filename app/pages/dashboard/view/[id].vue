@@ -26,24 +26,59 @@
       </div>
 
       <!-- Dashboard View -->
-      <div v-else-if="dashboard" class="dashboard-view-content">
+      <div v-else-if="dashboard" class="dashboard-view-content" :class="{ 'is-fullscreen': isFullscreen }">
         <!-- Top Navigation Bar -->
         <DashboardViewHeader
           :dashboard="dashboard"
           :folder-name="currentFolder?.name || 'Untitled'"
           :menu-open="menuOpen"
-          :show-manage-permissions="currentUserRole === 'admin'"
+          :show-share="currentUserRole === 'admin' || currentUserRole === 'moderator'"
           @go-back="handleGoBack"
-          @share="openShareDialog"
+          @share="handleShareNavigate"
           @toggle-menu="menuOpen = !menuOpen"
           @edit="handleEditInfo"
           @download="handleDownload"
-          @manage-permissions="handleManagePermissions"
           @archive="handleArchive"
-        />
+        >
+          <template #actions>
+            <button
+              v-if="currentUserRole === 'admin'"
+              type="button"
+              class="action-button toggle-sidebar-button"
+              :title="showInfoSidebar ? 'ซ่อนข้อมูลแดชบอร์ด' : 'แสดงข้อมูลแดชบอร์ด'"
+              @click="showInfoSidebar = !showInfoSidebar"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+              {{ showInfoSidebar ? 'ซ่อนข้อมูล' : 'แสดงข้อมูล' }}
+            </button>
+            <button
+              type="button"
+              class="action-button fullscreen-button"
+              :title="isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
+              @click="toggleFullscreen"
+            >
+              <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 3 21 3 21 9" />
+                <polyline points="9 21 3 21 3 15" />
+                <line x1="21" y1="3" x2="14" y2="10" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="4 14 10 14 10 20" />
+                <polyline points="20 10 14 10 14 4" />
+                <line x1="14" y1="10" x2="21" y2="3" />
+                <line x1="3" y1="21" x2="10" y2="14" />
+              </svg>
+              {{ isFullscreen ? 'ย่อ' : 'เต็มจอ' }}
+            </button>
+          </template>
+        </DashboardViewHeader>
 
         <!-- Main Content with TwoPane -->
-        <TwoPaneLayout :sidebar-width="320">
+        <TwoPaneLayout :sidebar-width="320" :show-sidebar="showInfoSidebar">
           <!-- Left Pane: Dashboard Info -->
           <template #sidebar>
             <div class="dashboard-sidebar">
@@ -149,27 +184,19 @@
       </div>
     </div>
 
-    <!-- Quick Share Dialog -->
-    <QuickShareDialog
-      v-if="shareDialogOpen && dashboard"
-      v-model="shareDialogOpen"
-      :dashboard-id="dashboard.id"
-      :available-users="[]"
-      @share="handleShare"
-    />
+    <!-- Quick Share Dialog removed — Share now navigates to permissions page -->
   </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '../../composables/useAuth'
-import { useDashboardService } from '../../composables/useDashboardService'
-import type { Dashboard, Folder, User } from '../../types/dashboard'
-import AppLayout from '../../components/layouts/AppLayout.vue'
-import TwoPaneLayout from '../../components/compositions/TwoPaneLayout.vue'
-import QuickShareDialog from '../../components/features/QuickShareDialog.vue'
-import DashboardViewHeader from '../../components/features/DashboardViewHeader.vue'
+import { useAuth } from '~/composables/useAuth'
+import { useDashboardService } from '~/composables/useDashboardService'
+import type { Dashboard, Folder, User } from '~/types/dashboard'
+import AppLayout from '~/components/layouts/AppLayout.vue'
+import TwoPaneLayout from '~/components/compositions/TwoPaneLayout.vue'
+import DashboardViewHeader from '~/components/features/DashboardViewHeader.vue'
 
 // Page metadata
 definePageMeta({
@@ -189,11 +216,12 @@ const currentFolder = ref<Folder | null>(null)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 const menuOpen = ref(false)
-const shareDialogOpen = ref(false)
 const relatedDashboards = ref<Dashboard[]>([])
 const owner = ref<User | null>(null)
 const iframeLoading = ref(true)
 const iframeError = ref(false)
+const showInfoSidebar = ref(false)
+const isFullscreen = ref(true)
 
 // Computed properties
 const dashboardId = computed(() => route.params.id as string)
@@ -289,30 +317,16 @@ const loadDashboard = async () => {
 
 // Event handlers
 const handleGoBack = async () => {
-  if (currentFolder.value) {
-    await router.push(`/dashboard/discover?folder=${currentFolder.value.id}`)
-  } else {
-    await router.push('/dashboard/discover')
-  }
+  await router.push('/dashboard/discover')
 }
 
 const handleViewRelated = async (relatedId: string) => {
   await router.push(`/dashboard/view/${relatedId}`)
 }
 
-const openShareDialog = () => {
-  menuOpen.value = false
-  shareDialogOpen.value = true
-}
-
-const handleShare = async (payload: { dashboardId: string; userIds: string[]; expiryDate?: string }) => {
-  try {
-    console.log('Share dashboard:', payload)
-    // API call would go here
-    error.value = null
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to share dashboard'
-    console.error('Error sharing dashboard:', err)
+const handleShareNavigate = async () => {
+  if (dashboard.value) {
+    await router.push(`/admin/permissions?dashboard=${dashboard.value.id}`)
   }
 }
 
@@ -328,22 +342,30 @@ const handleDownload = () => {
   // TODO: Implement download logic
 }
 
-const handleManagePermissions = async () => {
-  if (dashboard.value) {
-    await router.push(`/admin/permissions?dashboard=${dashboard.value.id}`)
-  }
-  menuOpen.value = false
-}
-
 const handleArchive = () => {
   console.log('Archive dashboard')
   menuOpen.value = false
   // TODO: Implement archive logic with confirmation
 }
 
+const toggleFullscreen = () => {
+  isFullscreen.value = !isFullscreen.value
+}
+
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && isFullscreen.value) {
+    isFullscreen.value = false
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
+  document.addEventListener('keydown', handleKeydown)
   await loadDashboard()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -773,5 +795,19 @@ onMounted(async () => {
   .dashboard-title {
     font-size: 1.25rem;
   }
+}
+
+/* ========== Fullscreen Mode ========== */
+.is-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: white;
+}
+
+.toggle-sidebar-button svg,
+.fullscreen-button svg {
+  width: 1rem;
+  height: 1rem;
 }
 </style>

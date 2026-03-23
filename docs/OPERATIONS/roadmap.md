@@ -87,14 +87,42 @@
 
 ---
 
-### Phase 5: Looker Integration ⏳ PENDING
+### Phase 5: Looker Integration ✅ COMPLETED
 **Goal:** Connect Looker Studio + advanced features
 
-- [ ] **Looker Studio Manual URL** — URL input + validation + live preview
-- [ ] **Looker Studio API** (optional) — fetch available reports, sync metadata
-- [ ] **Dashboard Preview Widget** — thumbnail, quick view modal
+- [x] **Looker Studio Manual URL** — URL input + validation + live preview (`feat/looker-manual-url` → PR #97)
+- [x] **Looker Studio API** — Google Sheets API service, 4 API routes, `useLookerApi` composable (`feat/looker-api-service` → PR #98)
+- [x] **Dashboard Preview Widget** — thumbnail generation, `DashboardPreview.vue`, `DashboardCard.vue` (`feat/dashboard-preview-widget` → PR #99)
 
 **Plan:** [looker-studio-api-plan.md](looker-studio-api-plan.md)
+
+---
+
+### Phase 5.5: Dashboard View UX ✅ COMPLETED
+**Goal:** Improve dashboard view page UX and navigation
+
+- [x] **Dashboard View Page restructure** — moved `view.vue` → `view/[id].vue` (dynamic route), fixed 404
+- [x] **Hydration mismatch fixes** — wrapped auth-dependent UI in `<ClientOnly>` (UserMenu, sidebar, QuickActions)
+- [x] **Dashboard Info sidebar** — toggle show/hide (admin only), hidden by default
+- [x] **Fullscreen mode** — expand embed to fullscreen, Esc to exit, default on open
+- [x] **Breadcrumb Thai** — "Dashboard" → "แดชบอร์ด"
+- [x] **Share button** — navigate to `/admin/permissions` (admin/moderator only)
+- [x] **⋮ Dropdown menu** — Thai labels (แก้ไขข้อมูล / ดาวน์โหลด / เก็บถาวร), z-index fix, hover fix
+- [x] **Go Back** — navigate to `/dashboard/discover` without folder filter
+- [x] **Dropdown styling** — fixed global button CSS override (added `.menu-item` to exclusion list in `main.css`)
+
+#### TODO (Dashboard View — ต้องทำต่อในอนาคต)
+
+- [ ] **แก้ไขข้อมูล** — implement dialog สำหรับแก้ไข name/description/tags ของ dashboard
+  - ไฟล์: `app/pages/dashboard/view/[id].vue` → `handleEditInfo()`
+  - ควรเปิด modal form คล้าย `DashboardForm.vue` แต่ inline บน view page
+- [ ] **ดาวน์โหลด** — implement export dashboard เป็น PDF หรือ screenshot
+  - ไฟล์: `app/pages/dashboard/view/[id].vue` → `handleDownload()`
+  - แนวทาง: ใช้ browser `window.print()` หรือ puppeteer API route
+- [ ] **เก็บถาวร** — implement confirm dialog แล้ว archive/soft-delete dashboard
+  - ไฟล์: `app/pages/dashboard/view/[id].vue` → `handleArchive()`
+  - ต้องเพิ่ม `status: 'archived'` field ใน Dashboard type + API
+  - เพิ่ม `isArchived` filter ใน discover page
 
 ---
 
@@ -132,7 +160,7 @@ app/pages/
 ├── dashboard/
 │   ├── index.vue                      Dashboard home
 │   ├── discover.vue                   Browse dashboards (all roles)
-│   └── view.vue                       Single dashboard view
+│   └── view/[id].vue                  Single dashboard view (dynamic route)
 │
 ├── admin/
 │   ├── index.vue                      Admin dashboard overview
