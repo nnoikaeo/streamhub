@@ -12,7 +12,7 @@
 | 1 | View Mode Switcher UI | 🟢 เสร็จแล้ว | `discover.vue` |
 | 2 | Compact Card Mode | 🟢 เสร็จแล้ว | `DashboardCard.vue`, `DashboardGrid.vue`, `DashboardPreview.vue` |
 | 3 | List View — Components | 🟢 เสร็จแล้ว | `DashboardListItem.vue`, `DashboardList.vue` (NEW) |
-| 4 | List View — Grouped & Wiring | ⬜ ยังไม่เริ่ม | `GroupedDashboardList.vue` (NEW), `discover.vue` |
+| 4 | List View — Grouped & Wiring | 🟢 เสร็จแล้ว | `GroupedDashboardList.vue` (NEW), `discover.vue` |
 | 5 | ย่อ/ขยาย Folder Groups | ⬜ ยังไม่เริ่ม | `GroupedDashboardGrid.vue`, `GroupedDashboardList.vue` |
 | 6 | จำกัดจำนวนการ์ดต่อโฟลเดอร์ | ⬜ ยังไม่เริ่ม | `GroupedDashboardGrid.vue`, `GroupedDashboardList.vue`, `discover.vue` |
 | 7 | ทดสอบ & ปรับแต่ง Responsive | ⬜ ยังไม่เริ่ม | ทุกไฟล์ที่แก้ไข |
