@@ -15,7 +15,7 @@
 | 4 | List View — Grouped & Wiring | 🟢 เสร็จแล้ว | `GroupedDashboardList.vue` (NEW), `discover.vue` |
 | 5 | ย่อ/ขยาย Folder Groups | 🟢 เสร็จแล้ว | `GroupedDashboardGrid.vue`, `GroupedDashboardList.vue`, `discover.vue` |
 | 6 | จำกัดจำนวนการ์ดต่อโฟลเดอร์ | 🟢 เสร็จแล้ว | `GroupedDashboardGrid.vue`, `GroupedDashboardList.vue`, `discover.vue` |
-| 7 | ทดสอบ & ปรับแต่ง Responsive | ⬜ ยังไม่เริ่ม | ทุกไฟล์ที่แก้ไข |
+| 7 | ทดสอบ & ปรับแต่ง Responsive | 🟢 เสร็จแล้ว | `discover.vue`, `DashboardCard.vue`, `GroupedDashboardGrid.vue`, `GroupedDashboardList.vue` |
 
 ---
 
