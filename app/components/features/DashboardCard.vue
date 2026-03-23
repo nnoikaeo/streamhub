@@ -110,6 +110,7 @@ import type { Dashboard } from '../../types/dashboard'
 import type { Tag } from '../../types/tag'
 import { useTagStore } from '~/stores/tags'
 import TagBadge from './TagBadge.vue'
+import DashboardPreview from './DashboardPreview.vue'
 
 /**
  * DashboardCard - Individual dashboard card component

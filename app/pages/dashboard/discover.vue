@@ -222,15 +222,13 @@
           <div ref="infiniteScrollSentinel" class="infinite-scroll-sentinel" />
 
           <!-- Quick Share Dialog -->
-          <ClientOnly>
-            <QuickShareDialog
-              v-if="shareDialogOpen && selectedDashboard"
-              v-model="shareDialogOpen"
-              :dashboard-id="selectedDashboard.id"
-              :available-users="availableUsers"
-              @share="handleShare"
-            />
-          </ClientOnly>
+          <QuickShareDialog
+            v-if="shareDialogOpen && selectedDashboard"
+            v-model="shareDialogOpen"
+            :dashboard-id="selectedDashboard.id"
+            :available-users="availableUsers"
+            @share="handleShare"
+          />
         </div>
     </PageLayout>
     <div v-else class="loading-wrapper">
@@ -275,7 +273,7 @@ import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
-import { computed, ref, watch, onMounted, Transition } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import type { ViewMode } from '~/types/dashboard'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'

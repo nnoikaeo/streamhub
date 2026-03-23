@@ -106,6 +106,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import Modal from '~/components/ui/Modal.vue'
 
 interface Props {
   embedUrl?: string
