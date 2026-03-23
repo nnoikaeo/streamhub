@@ -163,11 +163,13 @@
             :loading="isLoading"
             :user-map="userMap"
             :collapsed-folders="collapsedFolders"
+            :max-per-folder="maxPerFolder"
             empty-message="ไม่พบแดชบอร์ด"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
             @menu-dashboard="handleMenuDashboard"
             @toggle-folder="toggleFolder"
+            @view-folder="handleViewFolder"
           />
 
           <!-- List View — Flat -->
@@ -190,11 +192,13 @@
             :user-map="userMap"
             :view-mode="viewMode"
             :collapsed-folders="collapsedFolders"
+            :max-per-folder="maxPerFolder"
             empty-message="ไม่พบแดชบอร์ด"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
             @menu-dashboard="handleMenuDashboard"
             @toggle-folder="toggleFolder"
+            @view-folder="handleViewFolder"
           />
 
           <!-- Flat View (when specific folder selected) -->
@@ -428,6 +432,18 @@ const expandAllFolders = () => {
 
 const collapseAllFolders = () => {
   collapsedFolders.value = new Set(groupedDashboards.value.map((g) => g.folder.id))
+}
+
+// ========== Max Cards Per Folder ==========
+const maxPerFolder = computed<number | undefined>(() => {
+  if (viewMode.value === 'grid') return 4
+  if (viewMode.value === 'compact') return 6
+  if (viewMode.value === 'list') return 8
+  return undefined
+})
+
+const handleViewFolder = (folderId: string) => {
+  selectFolder(folderId)
 }
 
 // Initialise collapse state once groupedDashboards is ready
