@@ -575,6 +575,38 @@ export class JSONMockService implements IDashboardService {
       return []
     }
   }
+
+  async canAccessDashboard(dashboardId: string, userId: string): Promise<boolean> {
+    try {
+      this.log('canAccessDashboard:', dashboardId, userId)
+      const dashboard = await this.getDashboard(dashboardId)
+      const user = await this.getUser(userId)
+
+      if (!dashboard || !user) return false
+
+      // Admin bypass
+      if (user.role === 'admin') return true
+
+      // Check restrictions
+      if (dashboard.restrictions?.revoke?.includes(userId)) return false
+      if (dashboard.restrictions?.expiry?.[userId]) {
+        if (new Date() > new Date(dashboard.restrictions.expiry[userId])) return false
+      }
+
+      // Layer 1: direct access
+      const access = dashboard.access
+      if (access.direct.users.includes(userId)) return true
+      if (user.groups?.some((g: string) => access.direct.groups.includes(g))) return true
+
+      // Layer 2: company access
+      if (access.company.includes(user.company)) return true
+
+      return false
+    } catch (error) {
+      console.error('❌ [JSONMockService] canAccessDashboard error:', error)
+      return false
+    }
+  }
 }
 
 /**

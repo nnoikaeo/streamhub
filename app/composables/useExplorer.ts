@@ -14,6 +14,7 @@
 import { ref, computed, watch, type Ref, type ComputedRef } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import type { Folder, Dashboard } from '~/types/dashboard'
+import { useDashboardStore } from '~/stores/dashboard'
 
 export interface ExplorerOptions {
   /** Route prefix: '/admin/explorer' or '/manage/explorer' */
@@ -148,7 +149,7 @@ export function useExplorer(options: ExplorerOptions) {
   }
 
   const handleOpenDashboard = (dashboard: Dashboard) => {
-    router.push(`/dashboard/${dashboard.id}`)
+    router.push(`/dashboard/view/${dashboard.id}`)
   }
 
   // ─── Modal state ──────────────────────────────────────────────────────
@@ -217,6 +218,8 @@ export function useExplorer(options: ExplorerOptions) {
         await options.createFolder({ ...formData, parentId: currentFolderId.value })
       }
       showFolderModal.value = false
+      // Invalidate discover page cache so folder changes are reflected
+      useDashboardStore().clearCache()
     } catch (error) {
       console.error('❌ [Explorer] Error saving folder:', error)
     }
@@ -230,6 +233,8 @@ export function useExplorer(options: ExplorerOptions) {
         await options.createDashboard({ ...formData, folderId: formData.folderId || currentFolderId.value || '' })
       }
       showDashboardModal.value = false
+      // Invalidate discover page cache so new/updated dashboards are visible
+      useDashboardStore().clearCache()
     } catch (error) {
       console.error('❌ [Explorer] Error saving dashboard:', error)
     }
@@ -245,6 +250,8 @@ export function useExplorer(options: ExplorerOptions) {
       }
       showDeleteDialog.value = false
       deleteTarget.value = null
+      // Invalidate discover page cache so deletions are reflected
+      useDashboardStore().clearCache()
     } catch (error) {
       console.error('❌ [Explorer] Error deleting item:', error)
     }

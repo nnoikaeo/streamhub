@@ -20,7 +20,9 @@
         "users": [],
         "groups": []
       },
-      "company": ["STTH"]
+      "company": [
+        "STTH"
+      ]
     },
     "restrictions": {
       "revoke": [],
@@ -51,7 +53,9 @@
         ],
         "groups": []
       },
-      "company": ["STTH"]
+      "company": [
+        "STTH"
+      ]
     },
     "restrictions": {
       "revoke": [],
@@ -79,7 +83,9 @@
     "access": {
       "direct": {
         "users": [],
-        "groups": ["admin_group"]
+        "groups": [
+          "admin_group"
+        ]
       },
       "company": []
     },
@@ -109,7 +115,9 @@
         "users": [],
         "groups": []
       },
-      "company": ["STTH"]
+      "company": [
+        "STTH"
+      ]
     },
     "restrictions": {
       "revoke": [
@@ -172,7 +180,9 @@
           "sales"
         ]
       },
-      "company": ["STTH"]
+      "company": [
+        "STTH"
+      ]
     },
     "restrictions": {
       "revoke": [],
@@ -200,7 +210,9 @@
         "users": [],
         "groups": []
       },
-      "company": ["STTH"]
+      "company": [
+        "STTH"
+      ]
     },
     "restrictions": {
       "revoke": [],
@@ -230,5 +242,57 @@
       "revoke": [],
       "expiry": {}
     }
+  },
+  {
+    "type": "looker",
+    "isArchived": false,
+    "createdAt": "2026-03-22T21:56:15.805Z",
+    "updatedAt": "2026-03-22T21:56:15.805Z",
+    "access": {
+      "direct": {
+        "users": [],
+        "groups": []
+      },
+      "company": []
+    },
+    "restrictions": {
+      "revoke": [],
+      "expiry": {}
+    },
+    "id": "dash_1774216578264",
+    "name": "Master List",
+    "description": "แสดงข้อมูลสัญญาทั้งหมด",
+    "folderId": "folder_1774216466747",
+    "lookerDashboardId": "d95a3df9-e38b-4002-b5b4-89ba8585a5e3",
+    "lookerEmbedUrl": "https://lookerstudio.google.com/embed/reporting/d95a3df9-e38b-4002-b5b4-89ba8585a5e3/page/p_90bk1iqchd",
+    "owner": "61JSdbE674TqRBHHUu9ezdzFul93",
+    "tags": []
+  },
+  {
+    "type": "looker",
+    "isArchived": false,
+    "createdAt": "2026-03-22T22:14:11.433Z",
+    "updatedAt": "2026-03-22T22:14:11.433Z",
+    "access": {
+      "direct": {
+        "users": [
+          "61JSdbE674TqRBHHUu9ezdzFul93"
+        ],
+        "groups": []
+      },
+      "company": []
+    },
+    "restrictions": {
+      "revoke": [],
+      "expiry": {}
+    },
+    "id": "dash_1774217782974",
+    "name": "บอกเลิกสัญญา",
+    "description": "บอกเลิกสัญญาหลังจากถอดเครื่อง",
+    "folderId": "folder_1774216466747",
+    "lookerDashboardId": "e3ffc5e1-cf5f-4142-9657-17c07d4f9e32",
+    "lookerEmbedUrl": "https://lookerstudio.google.com/embed/reporting/e3ffc5e1-cf5f-4142-9657-17c07d4f9e32/page/5511E",
+    "owner": "61JSdbE674TqRBHHUu9ezdzFul93",
+    "tags": []
   }
 ]
