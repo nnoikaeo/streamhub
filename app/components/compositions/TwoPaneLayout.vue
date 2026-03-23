@@ -1,7 +1,7 @@
 <template>
   <div class="two-pane-layout">
     <!-- Sidebar Pane -->
-    <aside class="two-pane-sidebar">
+    <aside v-if="showSidebar" class="two-pane-sidebar">
       <div class="sidebar-content">
         <slot name="sidebar" />
       </div>

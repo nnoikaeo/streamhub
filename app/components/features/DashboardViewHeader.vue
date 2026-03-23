@@ -13,7 +13,7 @@
       <div>
         <h1 class="dashboard-title">{{ dashboard.name }}</h1>
         <div class="breadcrumb-nav">
-          <span>Dashboard</span>
+          <span>แดชบอร์ด</span>
           <span class="breadcrumb-sep">/</span>
           <span>{{ folderName }}</span>
         </div>
@@ -21,7 +21,11 @@
     </div>
 
     <div class="header-right">
+      <!-- Extra action buttons from parent -->
+      <slot name="actions" />
+
       <button
+        v-if="showShare"
         type="button"
         class="action-button share-button"
         @click="emit('share')"
@@ -50,23 +54,14 @@
       <!-- Dropdown Menu -->
       <div v-if="menuOpen" class="dropdown-menu" role="menu">
         <button type="button" role="menuitem" class="menu-item" @click="emit('edit')">
-          Edit Info
+          แก้ไขข้อมูล
         </button>
         <button type="button" role="menuitem" class="menu-item" @click="emit('download')">
-          Download
-        </button>
-        <button
-          v-if="showManagePermissions"
-          type="button"
-          role="menuitem"
-          class="menu-item"
-          @click="emit('manage-permissions')"
-        >
-          Manage Permissions
+          ดาวน์โหลด
         </button>
         <hr class="menu-divider" />
         <button type="button" role="menuitem" class="menu-item danger" @click="emit('archive')">
-          Archive
+          เก็บถาวร
         </button>
       </div>
     </div>
@@ -80,7 +75,7 @@ defineProps<{
   dashboard: Dashboard
   folderName: string
   menuOpen: boolean
-  showManagePermissions: boolean
+  showShare: boolean
 }>()
 
 const emit = defineEmits<{
@@ -89,7 +84,6 @@ const emit = defineEmits<{
   'toggle-menu': []
   'edit': []
   'download': []
-  'manage-permissions': []
   'archive': []
 }>()
 </script>
@@ -104,6 +98,9 @@ const emit = defineEmits<{
   align-items: center;
   gap: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
 }
 
 .header-left,
@@ -187,7 +184,7 @@ const emit = defineEmits<{
   border-radius: 0.375rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   min-width: 180px;
-  z-index: 10;
+  z-index: 200;
   margin-top: 0.5rem;
 }
 
@@ -195,25 +192,28 @@ const emit = defineEmits<{
   display: block;
   width: 100%;
   padding: 0.75rem 1rem;
-  background: none;
-  border: none;
+  background-color: white !important;
+  color: var(--color-text-primary) !important;
+  border: none !important;
   text-align: left;
   cursor: pointer;
-  color: var(--color-text-primary);
   font-size: 0.875rem;
-  transition: background 0.2s;
+  font-weight: 400 !important;
+  transition: background-color 0.2s;
+  border-radius: 0 !important;
 }
 
-.menu-item:hover:not(.danger) {
-  background: var(--color-bg-light);
+.menu-item:hover {
+  background-color: var(--color-bg-light, #f3f4f6) !important;
+  color: var(--color-text-primary) !important;
 }
 
 .menu-item.danger {
-  color: var(--color-error);
+  color: var(--color-error) !important;
 }
 
 .menu-item.danger:hover {
-  background: var(--color-bg-error);
+  background-color: var(--color-bg-error, #fef2f2) !important;
 }
 
 .menu-divider {

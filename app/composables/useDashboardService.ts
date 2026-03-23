@@ -889,6 +889,11 @@ export const useDashboardService = (): IDashboardService => {
           return service.getAuditLog(options)
         }
 
+        async canAccessDashboard(dashboardId: string, userId: string) {
+          const service = await this.initJsonService()
+          return service.canAccessDashboard(dashboardId, userId)
+        }
+
         async saveFolderPermissions(request: SaveFolderPermissionsRequest) {
           const service = await this.initJsonService()
           return service.saveFolderPermissions(request)
