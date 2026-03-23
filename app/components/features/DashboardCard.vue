@@ -371,6 +371,7 @@ const dashboardIcon = computed(() => {
 /* ========== COMPACT MODE ========== */
 .dashboard-card--compact {
   cursor: pointer;
+  padding-bottom: var(--spacing-sm);
 }
 
 .dashboard-card--compact .card-header,

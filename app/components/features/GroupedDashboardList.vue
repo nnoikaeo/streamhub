@@ -293,4 +293,15 @@ defineEmits<{
     text-decoration: underline;
   }
 }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .folder-group__moderator {
+    display: none;
+  }
+
+  .folder-group__header {
+    gap: var(--spacing-xs, 0.25rem);
+  }
+}
 </style>

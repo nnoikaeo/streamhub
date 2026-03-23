@@ -155,63 +155,68 @@
             </button>
           </div>
 
-          <!-- List View — Grouped -->
-          <GroupedDashboardList
-            v-if="viewMode === 'list' && isGroupedView"
-            :groups="groupedDashboards"
-            :tags="tagStore.activeTags"
-            :loading="isLoading"
-            :user-map="userMap"
-            :collapsed-folders="collapsedFolders"
-            :max-per-folder="maxPerFolder"
-            empty-message="ไม่พบแดชบอร์ด"
-            @view-dashboard="handleViewDashboard"
-            @share-dashboard="handleShareDashboard"
-            @menu-dashboard="handleMenuDashboard"
-            @toggle-folder="toggleFolder"
-            @view-folder="handleViewFolder"
-          />
+          <!-- View Content: crossfade 200ms when switching view mode -->
+          <Transition name="view-fade" mode="out-in">
+            <div :key="viewMode" class="view-content">
+              <!-- List View — Grouped -->
+              <GroupedDashboardList
+                v-if="viewMode === 'list' && isGroupedView"
+                :groups="groupedDashboards"
+                :tags="tagStore.activeTags"
+                :loading="isLoading"
+                :user-map="userMap"
+                :collapsed-folders="collapsedFolders"
+                :max-per-folder="maxPerFolder"
+                empty-message="ไม่พบแดชบอร์ด"
+                @view-dashboard="handleViewDashboard"
+                @share-dashboard="handleShareDashboard"
+                @menu-dashboard="handleMenuDashboard"
+                @toggle-folder="toggleFolder"
+                @view-folder="handleViewFolder"
+              />
 
-          <!-- List View — Flat -->
-          <DashboardList
-            v-else-if="viewMode === 'list'"
-            :dashboards="filteredDashboards"
-            :tags="tagStore.activeTags"
-            :loading="isLoading"
-            empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
-            @view-dashboard="handleViewDashboard"
-            @share-dashboard="handleShareDashboard"
-            @menu-dashboard="handleMenuDashboard"
-          />
+              <!-- List View — Flat -->
+              <DashboardList
+                v-else-if="viewMode === 'list'"
+                :dashboards="filteredDashboards"
+                :tags="tagStore.activeTags"
+                :loading="isLoading"
+                empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+                @view-dashboard="handleViewDashboard"
+                @share-dashboard="handleShareDashboard"
+                @menu-dashboard="handleMenuDashboard"
+              />
 
-          <!-- Grouped View (when showing all folders) -->
-          <GroupedDashboardGrid
-            v-else-if="isGroupedView"
-            :groups="groupedDashboards"
-            :loading="isLoading"
-            :user-map="userMap"
-            :view-mode="viewMode"
-            :collapsed-folders="collapsedFolders"
-            :max-per-folder="maxPerFolder"
-            empty-message="ไม่พบแดชบอร์ด"
-            @view-dashboard="handleViewDashboard"
-            @share-dashboard="handleShareDashboard"
-            @menu-dashboard="handleMenuDashboard"
-            @toggle-folder="toggleFolder"
-            @view-folder="handleViewFolder"
-          />
+              <!-- Grouped View (when showing all folders) -->
+              <GroupedDashboardGrid
+                v-else-if="isGroupedView"
+                :groups="groupedDashboards"
+                :loading="isLoading"
+                :user-map="userMap"
+                :view-mode="viewMode"
+                :collapsed-folders="collapsedFolders"
+                :max-per-folder="maxPerFolder"
+                empty-message="ไม่พบแดชบอร์ด"
+                @view-dashboard="handleViewDashboard"
+                @share-dashboard="handleShareDashboard"
+                @menu-dashboard="handleMenuDashboard"
+                @toggle-folder="toggleFolder"
+                @view-folder="handleViewFolder"
+              />
 
-          <!-- Flat View (when specific folder selected) -->
-          <DashboardGrid
-            v-else
-            :dashboards="filteredDashboards"
-            :loading="isLoading"
-            :view-mode="viewMode"
-            empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
-            @view-dashboard="handleViewDashboard"
-            @share-dashboard="handleShareDashboard"
-            @menu-dashboard="handleMenuDashboard"
-          />
+              <!-- Flat View (when specific folder selected) -->
+              <DashboardGrid
+                v-else
+                :dashboards="filteredDashboards"
+                :loading="isLoading"
+                :view-mode="viewMode"
+                empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+                @view-dashboard="handleViewDashboard"
+                @share-dashboard="handleShareDashboard"
+                @menu-dashboard="handleMenuDashboard"
+              />
+            </div>
+          </Transition>
 
           <!-- Infinite scroll sentinel (triggers load when visible) -->
           <div ref="infiniteScrollSentinel" class="infinite-scroll-sentinel" />
@@ -872,10 +877,30 @@ const dashboardCountText = computed(() => {
   visibility: hidden;
 }
 
-/* Responsive */
+/* ========== VIEW MODE FADE TRANSITION ========== */
+.view-fade-enter-active,
+.view-fade-leave-active {
+  transition: opacity 200ms ease;
+}
+
+.view-fade-enter-from,
+.view-fade-leave-to {
+  opacity: 0;
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .discover-main-content {
+    padding: var(--spacing-md) var(--spacing-lg) 0;
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .discover-main-content {
-    padding: 0 var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md) 0;
   }
 
   .discover-filters {
@@ -887,8 +912,42 @@ const dashboardCountText = computed(() => {
     width: 100%;
   }
 
+  /* Header: allow wrapping on small screens */
+  .dashboards-header {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-xs, 0.25rem);
+  }
+
+  .header-icon {
+    display: none;
+  }
+
   .dashboards-count {
-    font-size: 1.125rem;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Collapse controls: move to second row */
+  .folder-collapse-controls {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* View mode switcher stays on same row as count */
+  .view-mode-switcher {
+    flex-shrink: 0;
+  }
+
+  .view-mode-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .view-mode-btn svg {
+    width: 15px;
+    height: 15px;
   }
 }
 </style>
