@@ -9,7 +9,7 @@
 
 | # | งานย่อย | สถานะ | ไฟล์ที่เกี่ยวข้อง |
 |---|---------|--------|-------------------|
-| 1 | View Mode Switcher UI | ⬜ ยังไม่เริ่ม | `discover.vue` |
+| 1 | View Mode Switcher UI | 🟢 เสร็จแล้ว | `discover.vue` |
 | 2 | Compact Card Mode | ⬜ ยังไม่เริ่ม | `DashboardCard.vue`, `DashboardGrid.vue`, `DashboardPreview.vue` |
 | 3 | List View — Components | ⬜ ยังไม่เริ่ม | `DashboardListItem.vue`, `DashboardList.vue` (NEW) |
 | 4 | List View — Grouped & Wiring | ⬜ ยังไม่เริ่ม | `GroupedDashboardList.vue` (NEW), `discover.vue` |

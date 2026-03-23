@@ -77,6 +77,62 @@
               <line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
             <h2 class="dashboards-count">{{ dashboardCountText }}</h2>
+
+            <!-- View Mode Switcher -->
+            <div class="view-mode-switcher">
+              <button
+                type="button"
+                class="view-mode-btn"
+                :class="{ active: viewMode === 'grid' }"
+                title="Grid view"
+                aria-label="Grid view"
+                @click="viewMode = 'grid'"
+              >
+                <!-- Grid icon: 4 squares -->
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                  <rect x="3" y="3" width="8" height="8" rx="1" />
+                  <rect x="13" y="3" width="8" height="8" rx="1" />
+                  <rect x="3" y="13" width="8" height="8" rx="1" />
+                  <rect x="13" y="13" width="8" height="8" rx="1" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="view-mode-btn"
+                :class="{ active: viewMode === 'compact' }"
+                title="Compact view"
+                aria-label="Compact view"
+                @click="viewMode = 'compact'"
+              >
+                <!-- Compact icon: small grid -->
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                  <rect x="3" y="3" width="5" height="5" rx="0.5" />
+                  <rect x="10" y="3" width="5" height="5" rx="0.5" />
+                  <rect x="17" y="3" width="5" height="5" rx="0.5" />
+                  <rect x="3" y="10" width="5" height="5" rx="0.5" />
+                  <rect x="10" y="10" width="5" height="5" rx="0.5" />
+                  <rect x="17" y="10" width="5" height="5" rx="0.5" />
+                  <rect x="3" y="17" width="5" height="5" rx="0.5" />
+                  <rect x="10" y="17" width="5" height="5" rx="0.5" />
+                  <rect x="17" y="17" width="5" height="5" rx="0.5" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="view-mode-btn"
+                :class="{ active: viewMode === 'list' }"
+                title="List view"
+                aria-label="List view"
+                @click="viewMode = 'list'"
+              >
+                <!-- List icon: horizontal lines -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- Error Message -->
@@ -92,12 +148,25 @@
             </button>
           </div>
 
+          <!-- List View Placeholder -->
+          <template v-if="viewMode === 'list'">
+            <div class="list-view-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+              <p>List view coming soon</p>
+            </div>
+          </template>
+
           <!-- Grouped View (when showing all folders) -->
           <GroupedDashboardGrid
-            v-if="isGroupedView"
+            v-else-if="isGroupedView"
             :groups="groupedDashboards"
             :loading="isLoading"
             :user-map="userMap"
+            :view-mode="viewMode"
             empty-message="ไม่พบแดชบอร์ด"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
@@ -109,6 +178,7 @@
             v-else
             :dashboards="filteredDashboards"
             :loading="isLoading"
+            :view-mode="viewMode"
             empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
             @view-dashboard="handleViewDashboard"
             @share-dashboard="handleShareDashboard"
@@ -171,6 +241,7 @@ import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.v
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
 import { computed, ref, watch, onMounted } from 'vue'
+import type { ViewMode } from '~/types/dashboard'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
@@ -285,6 +356,22 @@ const { regions, fetchRegions } = useAdminRegions()
 const { isAdmin } = useCompanyAccess()
 const selectedCompanyCode = ref<string | null>(null)
 const searchQuery = ref('')
+
+// ========== View Mode Switcher ==========
+const VIEW_MODE_KEY = 'streamhub-discover-view-mode'
+const getInitialViewMode = (): ViewMode => {
+  if (import.meta.client) {
+    const saved = localStorage.getItem(VIEW_MODE_KEY)
+    if (saved === 'grid' || saved === 'compact' || saved === 'list') return saved
+  }
+  return 'grid'
+}
+const viewMode = ref<ViewMode>(getInitialViewMode())
+watch(viewMode, (mode) => {
+  if (import.meta.client) {
+    localStorage.setItem(VIEW_MODE_KEY, mode)
+  }
+})
 
 // ========== Users (for moderator display) ==========
 const { users, fetchUsers } = useAdminUsers()
@@ -627,6 +714,64 @@ const dashboardCountText = computed(() => {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* ========== VIEW MODE SWITCHER ========== */
+.view-mode-switcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  background: var(--color-bg-secondary, #f3f4f6);
+  border-radius: var(--radius-md, 0.375rem);
+  padding: 2px;
+}
+
+.view-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-sm, 0.25rem);
+  background: transparent;
+  color: var(--color-text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all var(--transition-base, 0.2s ease);
+}
+
+.view-mode-btn:hover {
+  color: var(--color-text-primary, #1f2937);
+  background: var(--color-bg-primary, #ffffff);
+}
+
+.view-mode-btn.active {
+  background: var(--color-primary, #3b82f6);
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.view-mode-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ========== LIST VIEW PLACEHOLDER ========== */
+.list-view-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md, 1rem);
+  padding: var(--spacing-2xl, 3rem) var(--spacing-lg, 1.5rem);
+  color: var(--color-text-secondary, #6b7280);
+  text-align: center;
+}
+
+.list-view-placeholder p {
+  font-size: 0.95rem;
   margin: 0;
 }
 
