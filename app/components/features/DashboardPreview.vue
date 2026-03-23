@@ -140,7 +140,7 @@ function openModal() {
 function openFullView() {
   showModal.value = false
   if (props.dashboardId) {
-    router.push(`/dashboard/view?id=${props.dashboardId}`)
+    router.push(`/dashboard/view/${props.dashboardId}`)
   }
 }
 

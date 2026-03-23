@@ -26,7 +26,22 @@ export default defineEventHandler(async (event) => {
         action: 'updated'
       }
     } else {
-      // Create new dashboard
+      // Create new dashboard — ensure owner has access
+      if (body.owner) {
+        if (!body.access) {
+          body.access = { direct: { users: [], groups: [] }, company: [] }
+        }
+        if (!body.access.direct) {
+          body.access.direct = { users: [], groups: [] }
+        }
+        if (!body.access.direct.users) {
+          body.access.direct.users = []
+        }
+        if (!body.access.direct.users.includes(body.owner)) {
+          body.access.direct.users.push(body.owner)
+        }
+      }
+
       const created = await createItem('dashboards.json', body)
       return {
         success: true,

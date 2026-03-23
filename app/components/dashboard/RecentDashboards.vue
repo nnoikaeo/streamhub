@@ -14,7 +14,7 @@
           <p class="dashboard-item__time">เปิดล่าสุด: {{ formatTime(dashboard.lastAccessed) }}</p>
         </div>
         <NuxtLink
-          :to="`/dashboard/view?id=${dashboard.id}`"
+          :to="`/dashboard/view/${dashboard.id}`"
           class="dashboard-item__link"
         >
           เปิด →
