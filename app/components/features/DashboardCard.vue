@@ -1,12 +1,20 @@
 <template>
-  <div class="dashboard-card">
+  <div
+    class="dashboard-card"
+    :class="{ 'dashboard-card--compact': compact }"
+    :role="compact ? 'button' : undefined"
+    :tabindex="compact ? 0 : undefined"
+    :title="compact ? companyTooltip : undefined"
+    @click="compact ? $emit('view') : undefined"
+    @keydown.enter="compact ? $emit('view') : undefined"
+  >
     <!-- Dashboard Preview Thumbnail -->
     <DashboardPreview
       :embed-url="dashboard.lookerEmbedUrl"
       :title="dashboard.name"
       :dashboard-id="dashboard.id"
       mode="thumbnail"
-      :height="160"
+      :height="compact ? 80 : 160"
     />
 
     <!-- Card Header with Icon -->
@@ -17,8 +25,8 @@
       </div>
     </div>
 
-    <!-- Company Badges -->
-    <div class="card-companies">
+    <!-- Company Badges (hidden in compact — shown as tooltip on card) -->
+    <div v-if="!compact" class="card-companies">
       <span
         v-if="companyKeys.length === 0"
         class="company-badge company-badge--global"
@@ -63,8 +71,8 @@
       <span v-if="hiddenCount > 0" class="card-tags__more">+{{ hiddenCount }}</span>
     </div>
 
-    <!-- Open Button - Using Primary Brand Color -->
-    <button class="open-button" @click="$emit('view')">
+    <!-- Open Button - Hidden in compact mode (whole card is clickable) -->
+    <button v-if="!compact" class="open-button" @click="$emit('view')">
       <span>เปิด</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="5" y1="12" x2="19" y2="12" />
@@ -89,11 +97,14 @@ import TagBadge from './TagBadge.vue'
 interface Props {
   dashboard: Dashboard
   tags?: Tag[]
+  compact?: boolean
 }
 
-const MAX_VISIBLE_TAGS = 3
+const props = withDefaults(defineProps<Props>(), {
+  compact: false,
+})
 
-const props = defineProps<Props>()
+const MAX_VISIBLE_TAGS = computed(() => props.compact ? 2 : 3)
 
 defineEmits<{
   view: []
@@ -116,8 +127,14 @@ const companyKeys = computed(() => {
   return Object.keys(access.company)
 })
 
-const visibleTags = computed(() => resolvedTags.value.slice(0, MAX_VISIBLE_TAGS))
-const hiddenCount = computed(() => Math.max(0, resolvedTags.value.length - MAX_VISIBLE_TAGS))
+const visibleTags = computed(() => resolvedTags.value.slice(0, MAX_VISIBLE_TAGS.value))
+const hiddenCount = computed(() => Math.max(0, resolvedTags.value.length - MAX_VISIBLE_TAGS.value))
+
+// Company tooltip text for compact mode
+const companyTooltip = computed(() => {
+  if (companyKeys.value.length === 0) return 'ทุกบริษัท'
+  return companyKeys.value.join(', ')
+})
 
 // Dashboard icon for card header
 const dashboardIcon = computed(() => {
@@ -349,5 +366,34 @@ const dashboardIcon = computed(() => {
     width: 1.25rem;
     height: 1.25rem;
   }
+}
+
+/* ========== COMPACT MODE ========== */
+.dashboard-card--compact {
+  cursor: pointer;
+}
+
+.dashboard-card--compact .card-header,
+.dashboard-card--compact .card-tags {
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+}
+
+.dashboard-card--compact .card-header {
+  padding-top: var(--spacing-sm);
+}
+
+.dashboard-card--compact .card-title {
+  font-size: 0.8rem;
+}
+
+.dashboard-card--compact .card-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.dashboard-card--compact .card-icon svg {
+  width: 1rem;
+  height: 1rem;
 }
 </style>

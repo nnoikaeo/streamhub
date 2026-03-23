@@ -11,11 +11,12 @@
     </div>
 
     <!-- Dashboard Cards Grid -->
-    <div v-else class="cards-grid">
+    <div v-else class="cards-grid" :class="gridClass">
       <DashboardCard
         v-for="dashboard in dashboards"
         :key="dashboard.id"
         :dashboard="dashboard"
+        :compact="viewMode === 'compact'"
         @view="$emit('view-dashboard', dashboard)"
         @share="$emit('share-dashboard', dashboard)"
         @menu="$emit('menu-dashboard', dashboard, $event)"
@@ -31,7 +32,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { type Dashboard } from '../../types/dashboard'
+import type { ViewMode } from '~/types/dashboard'
 import DashboardCard from './DashboardCard.vue'
 
 /**
@@ -59,31 +62,21 @@ import DashboardCard from './DashboardCard.vue'
  * />
  */
 
-defineProps({
-  /**
-   * Array of dashboards to display
-   */
-  dashboards: {
-    type: Array as () => Dashboard[],
-    default: () => [],
-  },
-
-  /**
-   * Loading state
-   */
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-
-  /**
-   * Message when no dashboards
-   */
-  emptyMessage: {
-    type: String,
-    default: 'No dashboards found in this folder',
-  },
+const props = withDefaults(defineProps<{
+  dashboards?: Dashboard[]
+  loading?: boolean
+  emptyMessage?: string
+  viewMode?: ViewMode
+}>(), {
+  dashboards: () => [],
+  loading: false,
+  emptyMessage: 'No dashboards found in this folder',
+  viewMode: 'grid',
 })
+
+const gridClass = computed(() => ({
+  'cards-grid--compact': props.viewMode === 'compact',
+}))
 
 defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
@@ -105,6 +98,12 @@ defineEmits<{
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   width: 100%;
+}
+
+/* ========== COMPACT GRID - 5-6 COLUMNS ========== */
+.cards-grid--compact {
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
 }
 
 /* ========== EMPTY STATE ========== */
@@ -168,6 +167,11 @@ defineEmits<{
     grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;
   }
+
+  .cards-grid--compact {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
 }
 
 /* Mobile - 1 column */
@@ -175,6 +179,11 @@ defineEmits<{
   .cards-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+
+  .cards-grid--compact {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
   }
 }
 </style>

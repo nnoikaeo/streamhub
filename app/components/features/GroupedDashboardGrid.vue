@@ -32,6 +32,7 @@
       <DashboardGrid
         :dashboards="group.dashboards"
         :loading="false"
+        :view-mode="viewMode"
         @view-dashboard="(d) => $emit('view-dashboard', d)"
         @share-dashboard="(d) => $emit('share-dashboard', d)"
         @menu-dashboard="(d, e) => $emit('menu-dashboard', d, e)"
@@ -48,6 +49,7 @@
 
 <script setup lang="ts">
 import type { Dashboard, Folder, User } from '~/types/dashboard'
+import type { ViewMode } from '~/types/dashboard'
 import DashboardGrid from './DashboardGrid.vue'
 
 export interface DashboardGroup {
@@ -60,10 +62,12 @@ const props = withDefaults(defineProps<{
   loading?: boolean
   emptyMessage?: string
   userMap?: Record<string, User>
+  viewMode?: ViewMode
 }>(), {
   loading: false,
   emptyMessage: 'ไม่พบแดชบอร์ด',
   userMap: () => ({}),
+  viewMode: 'grid',
 })
 
 const getModeratorLabel = (folder: Folder): string => {
