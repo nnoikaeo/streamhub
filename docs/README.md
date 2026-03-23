@@ -64,8 +64,9 @@ docs/
 │   ├── deployment.md                     Firebase Hosting deploy
 │   ├── versioning.md                     Versioning strategy
 │   ├── company-access-control-plan.md    (Pending) Server-side access control
-│   ├── looker-studio-api-plan.md         (Pending) Looker Studio integration
-│   └── user-invitations-plan.md          (Pending) Invitation system
+│   └── archive/                          ← Completed plans (historical reference)
+│       ├── looker-studio-api-plan.md     (✅ Done) Looker Studio integration
+│       └── user-invitations-plan.md      (✅ Done) Invitation system
 │
 ├── CONTRIBUTING/                      ← Development standards
 │   ├── workflow.md                       Git flow + branch strategy

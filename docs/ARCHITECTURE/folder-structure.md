@@ -35,6 +35,7 @@ streamhub/
 │   │   ├── useExplorer.ts           # Folder/dashboard explorer state
 │   │   ├── useForm.ts               # Generic form state + validation
 │   │   ├── useJSONMockService.ts    # JSON-based mock data service
+│   │   ├── useLookerApi.ts          # Looker Studio API client (status, reports, sync)
 │   │   ├── useMockData.ts           # Static mock data (users, folders, dashboards)
 │   │   ├── useModeratorDashboards.ts # Moderator dashboard management
 │   │   ├── useModeratorFolders.ts   # Moderator folder management
@@ -63,16 +64,24 @@ streamhub/
 │   │   │   └── PageLayout.vue       # Standard two-pane page layout
 │   │   │
 │   │   ├── 📁 dashboard/            # Dashboard-specific components
-│   │   │   ├── DashboardCard.vue
-│   │   │   ├── DashboardGrid.vue
-│   │   │   └── QuickShareDialog.vue
+│   │   │   ├── QuickActions.vue     # Dashboard homepage quick action buttons
+│   │   │   ├── RecentDashboards.vue # Recently viewed dashboards list
+│   │   │   └── StatCard.vue         # Stats card for admin/moderator overview
 │   │   │
 │   │   ├── 📁 features/             # Feature components
-│   │   │   ├── FolderSidebar.vue
-│   │   │   ├── FolderTree.vue
-│   │   │   ├── TagBadge.vue
-│   │   │   ├── TagFilter.vue
-│   │   │   └── TagSelector.vue
+│   │   │   ├── DashboardCard.vue    # Dashboard card with preview thumbnail + hover overlay
+│   │   │   ├── DashboardGrid.vue    # Responsive dashboard grid
+│   │   │   ├── DashboardHeader.vue  # Dashboard discover page header
+│   │   │   ├── DashboardPreview.vue # Quick view modal with live Looker iframe
+│   │   │   ├── DashboardViewHeader.vue # Top nav for dashboard view (breadcrumb + actions)
+│   │   │   ├── FolderSidebar.vue    # Folder tree sidebar for discover page
+│   │   │   ├── FolderTree.vue       # Recursive folder tree component
+│   │   │   ├── LookerUrlInput.vue   # Looker Studio URL input + validation + live preview
+│   │   │   ├── PermissionEditor.vue # 3-layer permission editor UI
+│   │   │   ├── QuickShareDialog.vue # Quick share modal
+│   │   │   ├── TagBadge.vue         # Tag chip display
+│   │   │   ├── TagFilter.vue        # Tag filter bar
+│   │   │   └── TagSelector.vue      # Multi-tag selector input
 │   │   │
 │   │   ├── 📁 layouts/              # Layout components
 │   │   │   └── UnifiedSidebar.vue   # Role-based sidebar (uses useRoleNavigation)
@@ -108,7 +117,8 @@ streamhub/
 │   │   ├── 📁 dashboard/
 │   │   │   ├── index.vue            # Dashboard home
 │   │   │   ├── discover.vue         # Browse all dashboards
-│   │   │   └── view.vue             # Single dashboard view (Looker embed)
+│   │   │   └── 📁 view/
+│   │   │       └── [id].vue         # Single dashboard view (dynamic route, Looker embed)
 │   │   │
 │   │   ├── 📁 manage/
 │   │   │   ├── permissions.vue      # Moderator permission editor
@@ -136,6 +146,7 @@ streamhub/
 │   │   ├── errorMessages.ts         # Centralized error message strings
 │   │   ├── firebase.ts              # Firebase config + initialization
 │   │   ├── formValidators.ts        # Form validation helpers
+│   │   ├── lookerUrl.ts             # Looker Studio URL validation + embed URL conversion
 │   │   └── schemas.ts               # Zod validation schemas
 │   │
 │   └── app.vue                      # Root component (mounts AppToast globally)
@@ -159,7 +170,15 @@ streamhub/
 │
 ├── 📁 server/
 │   └── 📁 api/
-│       └── 📁 mock/                 # Nitro API handlers
+│       ├── 📁 looker/               # Looker Studio API proxy endpoints
+│       │   ├── reports.get.ts       # List all Looker reports
+│       │   ├── status.get.ts        # Check Looker API credentials status
+│       │   ├── sync.post.ts         # Sync dashboard metadata from Looker
+│       │   └── 📁 reports/
+│       │       └── [id].get.ts      # Get single Looker report by ID
+│       ├── 📁 thumbnail/            # Dashboard thumbnail generation
+│       │   └── [dashboardId].get.ts # Generate SVG placeholder thumbnail
+│       └── 📁 mock/                 # Nitro mock API handlers
 │           ├── companies/
 │           ├── dashboards/
 │           ├── folders/
