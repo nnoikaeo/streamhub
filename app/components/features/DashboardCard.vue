@@ -21,7 +21,29 @@
     <div class="card-header">
       <h3 class="card-title">{{ dashboard.name }}</h3>
       <div class="card-icon">
-        <component :is="dashboardIcon" />
+        <!-- Performance -->
+        <svg v-if="dashboardIconType === 'performance'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+        <!-- Geographic -->
+        <svg v-else-if="dashboardIconType === 'geographic'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="9" />
+          <rect x="14" y="3" width="7" height="5" />
+          <rect x="14" y="12" width="7" height="9" />
+          <rect x="3" y="16" width="7" height="5" />
+        </svg>
+        <!-- Forecast -->
+        <svg v-else-if="dashboardIconType === 'forecast'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+          <polyline points="17 6 23 6 23 12" />
+        </svg>
+        <!-- Default: Analysis -->
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
       </div>
     </div>
 
@@ -83,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h } from 'vue'
+import { computed } from 'vue'
 import type { Dashboard } from '../../types/dashboard'
 import type { Tag } from '../../types/tag'
 import { useTagStore } from '~/stores/tags'
@@ -136,52 +158,8 @@ const companyTooltip = computed(() => {
   return companyKeys.value.join(', ')
 })
 
-// Dashboard icon for card header
-const dashboardIcon = computed(() => {
-  const iconMap: Record<string, any> = {
-    performance: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('polyline', { points: '22 12 18 12 15 21 9 3 6 12 2 12' })
-    ]),
-    geographic: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('rect', { x: '3', y: '3', width: '7', height: '9' }),
-      h('rect', { x: '14', y: '3', width: '7', height: '5' }),
-      h('rect', { x: '14', y: '12', width: '7', height: '9' }),
-      h('rect', { x: '3', y: '16', width: '7', height: '5' })
-    ]),
-    forecast: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('polyline', { points: '23 6 13.5 15.5 8.5 10.5 1 18' }),
-      h('polyline', { points: '17 6 23 6 23 12' })
-    ]),
-    analysis: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('rect', { x: '3', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '14', width: '7', height: '7' }),
-      h('rect', { x: '3', y: '14', width: '7', height: '7' })
-    ]),
-  }
-
-  return iconMap[props.dashboard.type] || iconMap.analysis
-})
+// Dashboard icon type for template v-if switch
+const dashboardIconType = computed(() => props.dashboard.type || 'analysis')
 </script>
 
 <style scoped>
