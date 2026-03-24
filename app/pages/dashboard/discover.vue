@@ -206,18 +206,18 @@
               <!-- Grouped View (when showing all folders) -->
               <GroupedDashboardGrid
                 v-else-if="isGroupedView"
-                :groups="groupedDashboards"
+                :groups="activeGroups"
                 :loading="isLoading"
                 :user-map="userMap"
                 :view-mode="viewMode"
-                :collapsed-folders="collapsedFolders"
-                :max-per-folder="maxPerFolder"
+                :collapsed-groups="collapsedFolders"
+                :max-per-group="maxPerFolder"
                 empty-message="ไม่พบแดชบอร์ด"
                 @view-dashboard="handleViewDashboard"
                 @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
-                @toggle-folder="toggleFolder"
-                @view-folder="handleViewFolder"
+                @toggle-group="toggleFolder"
+                @view-group="handleViewFolder"
               />
 
               <!-- Flat View (when specific folder selected) -->
@@ -473,7 +473,7 @@ const handleTagFilterUpdate = (ids: string[]) => {
 
 /**
  * Filtered dashboards by selected tags (AND logic) + company filter
- * NOTE: Must be declared before groupedDashboards and collapsible folder logic
+ * NOTE: Must be declared before collapsible folder logic
  */
 const filteredDashboards = computed<Dashboard[]>(() => {
   let result = dashboards.value
@@ -569,25 +569,6 @@ const handleDropdownChange = (folderId: string | null) => {
 const isGroupedView = computed(() =>
   !selectedFolderId.value && groupBy.value !== 'none' && activeGroups.value.length > 0
 )
-
-/**
- * Group filtered dashboards by folder (hide empty groups)
- * Used by existing GroupedDashboardList / GroupedDashboardGrid components
- */
-const groupedDashboards = computed(() => {
-  if (!isGroupedView.value) return []
-  const folderMap = new Map<string, { folder: Folder; dashboards: Dashboard[] }>()
-  for (const folder of folders.value) {
-    folderMap.set(folder.id, { folder, dashboards: [] })
-  }
-  for (const d of filteredDashboards.value) {
-    const group = folderMap.get(d.folderId)
-    if (group) group.dashboards.push(d)
-  }
-  return Array.from(folderMap.values())
-    .filter((g) => g.dashboards.length > 0)
-    .sort((a, b) => a.folder.name.localeCompare(b.folder.name, 'th'))
-})
 
 // ========== Group By: DisplayGroup computed ==========
 
@@ -720,7 +701,7 @@ const folderNameMap = computed<Record<string, string>>(() => {
 })
 
 // ========== Collapsible Folder Groups ==========
-// NOTE: Must come after groupedDashboards is declared
+// NOTE: Must come after activeGroups is declared
 const collapsedFolders = ref<Set<string>>(new Set())
 
 const initCollapsedFolders = () => {
