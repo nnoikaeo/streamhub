@@ -7,6 +7,8 @@
       { 'is-collapsed': collapsed }
     ]"
     :aria-expanded="!collapsed"
+    :aria-label="`กลุ่ม ${group.name} (${group.dashboards.length} แดชบอร์ด)`"
+    :title="`${group.name} — ${group.dashboards.length} แดชบอร์ด`"
     @click="$emit('toggle')"
   >
     <!-- Chevron -->

@@ -37,6 +37,8 @@
           type="button"
           class="tree-group-row"
           :aria-expanded="!collapsedGroups.has(group.id)"
+          :aria-label="`กลุ่ม ${group.name} (${group.dashboards.length} แดชบอร์ด)`"
+          :title="`${group.name} — ${group.dashboards.length} แดชบอร์ด`"
           @click="$emit('toggle-group', group.id)"
         >
           <!-- Chevron -->
@@ -446,6 +448,20 @@ const getGroupSubtitle = (group: DisplayGroup): string => {
 
   .tree-header__toggle {
     width: 16px;
+  }
+
+  /* Hide tags & folder columns on mobile */
+  .tree-header__tags,
+  .tree-header__folder {
+    display: none;
+  }
+
+  .tree-header__company {
+    min-width: 60px;
+  }
+
+  .tree-group-row__name {
+    font-size: 0.8125rem;
   }
 }
 </style>
