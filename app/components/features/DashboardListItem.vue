@@ -56,9 +56,13 @@ defineEmits<{ view: [] }>()
 const tagStore = useTagStore()
 
 const resolvedTags = computed<Tag[]>(() => {
-  if (props.tags && props.tags.length > 0) return props.tags
   const tagIds = props.dashboard.tags
   if (!tagIds || tagIds.length === 0) return []
+  // If parent provides a tags lookup array, filter to only this dashboard's tags
+  if (props.tags && props.tags.length > 0) {
+    const idSet = new Set(tagIds)
+    return props.tags.filter((t) => idSet.has(t.id))
+  }
   return tagStore.getTagsByIds(tagIds)
 })
 
@@ -67,8 +71,8 @@ const hiddenCount = computed(() => Math.max(0, resolvedTags.value.length - 2))
 
 const companyKeys = computed(() => {
   const access = props.dashboard.access
-  if (!access?.company) return []
-  return Object.keys(access.company)
+  if (!access?.company || access.company.length === 0) return []
+  return access.company
 })
 
 // Gradient swatch derived from dashboard name (same algorithm as DashboardPreview)

@@ -80,9 +80,9 @@
 
             <!-- Expand / Collapse All (only in grouped view) -->
             <div v-if="isGroupedView" class="folder-collapse-controls">
-              <button type="button" class="collapse-ctrl-btn" @click="expandAllFolders">˂ ขยายทั้งหมด</button>
+              <button type="button" class="collapse-ctrl-btn" @click="expandAllFolders">ขยายทั้งหมด</button>
               <span class="collapse-ctrl-divider">|</span>
-              <button type="button" class="collapse-ctrl-btn" @click="collapseAllFolders">˃ ย่อทั้งหมด</button>
+              <button type="button" class="collapse-ctrl-btn" @click="collapseAllFolders">ย่อทั้งหมด</button>
             </div>
 
             <!-- View Mode Switcher -->
@@ -222,15 +222,13 @@
           <div ref="infiniteScrollSentinel" class="infinite-scroll-sentinel" />
 
           <!-- Quick Share Dialog -->
-          <ClientOnly>
-            <QuickShareDialog
-              v-if="shareDialogOpen && selectedDashboard"
-              v-model="shareDialogOpen"
-              :dashboard-id="selectedDashboard.id"
-              :available-users="availableUsers"
-              @share="handleShare"
-            />
-          </ClientOnly>
+          <QuickShareDialog
+            v-if="shareDialogOpen && selectedDashboard"
+            v-model="shareDialogOpen"
+            :dashboard-id="selectedDashboard.id"
+            :available-users="availableUsers"
+            @share="handleShare"
+          />
         </div>
     </PageLayout>
     <div v-else class="loading-wrapper">
@@ -275,7 +273,7 @@ import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
-import { computed, ref, watch, onMounted, Transition } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import type { ViewMode } from '~/types/dashboard'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
@@ -398,7 +396,7 @@ const getInitialViewMode = (): ViewMode => {
     const saved = localStorage.getItem(VIEW_MODE_KEY)
     if (saved === 'grid' || saved === 'compact' || saved === 'list') return saved
   }
-  return 'grid'
+  return 'list'
 }
 const viewMode = ref<ViewMode>(getInitialViewMode())
 watch(viewMode, (mode) => {
@@ -406,57 +404,6 @@ watch(viewMode, (mode) => {
     localStorage.setItem(VIEW_MODE_KEY, mode)
   }
 })
-
-// ========== Collapsible Folder Groups ==========
-const collapsedFolders = ref<Set<string>>(new Set())
-
-const initCollapsedFolders = () => {
-  const ids = groupedDashboards.value.map((g) => g.folder.id)
-  const newSet = new Set<string>()
-  if (ids.length > 5) {
-    // Collapse all except first 3
-    ids.slice(3).forEach((id) => newSet.add(id))
-  }
-  collapsedFolders.value = newSet
-}
-
-const toggleFolder = (folderId: string) => {
-  const next = new Set(collapsedFolders.value)
-  if (next.has(folderId)) {
-    next.delete(folderId)
-  } else {
-    next.add(folderId)
-  }
-  collapsedFolders.value = next
-}
-
-const expandAllFolders = () => {
-  collapsedFolders.value = new Set()
-}
-
-const collapseAllFolders = () => {
-  collapsedFolders.value = new Set(groupedDashboards.value.map((g) => g.folder.id))
-}
-
-// ========== Max Cards Per Folder ==========
-const maxPerFolder = computed<number | undefined>(() => {
-  if (viewMode.value === 'grid') return 4
-  if (viewMode.value === 'compact') return 6
-  if (viewMode.value === 'list') return 8
-  return undefined
-})
-
-const handleViewFolder = (folderId: string) => {
-  selectFolder(folderId)
-}
-
-// Initialise collapse state once groupedDashboards is ready
-watch(groupedDashboards, (groups, prevGroups) => {
-  // Only set defaults on first meaningful load (going from empty → populated)
-  if (!prevGroups?.length && groups.length > 0) {
-    initCollapsedFolders()
-  }
-}, { immediate: false })
 
 // ========== Users (for moderator display) ==========
 const { users, fetchUsers } = useAdminUsers()
@@ -493,6 +440,7 @@ const handleTagFilterUpdate = (ids: string[]) => {
 
 /**
  * Filtered dashboards by selected tags (AND logic) + company filter
+ * NOTE: Must be declared before groupedDashboards and collapsible folder logic
  */
 const filteredDashboards = computed<Dashboard[]>(() => {
   let result = dashboards.value
@@ -604,6 +552,58 @@ const groupedDashboards = computed(() => {
     .filter((g) => g.dashboards.length > 0)
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name, 'th'))
 })
+
+// ========== Collapsible Folder Groups ==========
+// NOTE: Must come after groupedDashboards is declared
+const collapsedFolders = ref<Set<string>>(new Set())
+
+const initCollapsedFolders = () => {
+  const ids = groupedDashboards.value.map((g) => g.folder.id)
+  const newSet = new Set<string>()
+  if (ids.length > 5) {
+    // Collapse all except first 3
+    ids.slice(3).forEach((id) => newSet.add(id))
+  }
+  collapsedFolders.value = newSet
+}
+
+const toggleFolder = (folderId: string) => {
+  const next = new Set(collapsedFolders.value)
+  if (next.has(folderId)) {
+    next.delete(folderId)
+  } else {
+    next.add(folderId)
+  }
+  collapsedFolders.value = next
+}
+
+const expandAllFolders = () => {
+  collapsedFolders.value = new Set()
+}
+
+const collapseAllFolders = () => {
+  collapsedFolders.value = new Set(groupedDashboards.value.map((g) => g.folder.id))
+}
+
+// ========== Max Cards Per Folder ==========
+const maxPerFolder = computed<number | undefined>(() => {
+  if (viewMode.value === 'grid') return 4
+  if (viewMode.value === 'compact') return 6
+  if (viewMode.value === 'list') return 8
+  return undefined
+})
+
+const handleViewFolder = (folderId: string) => {
+  selectFolder(folderId)
+}
+
+// Initialise collapse state once groupedDashboards is ready
+watch(groupedDashboards, (groups, prevGroups) => {
+  // Only set defaults on first meaningful load (going from empty → populated)
+  if (!prevGroups?.length && groups.length > 0) {
+    initCollapsedFolders()
+  }
+}, { immediate: false })
 
 /**
  * Status text showing count + active tag names + company filter
