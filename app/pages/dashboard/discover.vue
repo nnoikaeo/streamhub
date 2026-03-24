@@ -169,9 +169,9 @@
             </button>
           </div>
 
-          <!-- View Content: crossfade 200ms when switching view mode -->
+          <!-- View Content: crossfade 200ms when switching view mode or group-by -->
           <Transition name="view-fade" mode="out-in">
-            <div :key="viewMode" class="view-content">
+            <div :key="`${viewMode}-${groupBy}`" class="view-content">
               <!-- List View — Grouped (Tree Table) -->
               <TreeDashboardList
                 v-if="viewMode === 'list' && isGroupedView"
@@ -189,7 +189,7 @@
                 @view-group="handleViewFolder"
               />
 
-              <!-- List View — Flat -->
+              <!-- List View — Flat (groupBy=none or specific folder) -->
               <DashboardList
                 v-else-if="viewMode === 'list'"
                 :dashboards="filteredDashboards"
@@ -197,7 +197,7 @@
                 :loading="isLoading"
                 :visible-columns="visibleColumns"
                 :folder-map="folderNameMap"
-                empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+                :empty-message="flatEmptyMessage"
                 @view-dashboard="handleViewDashboard"
                 @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
@@ -220,13 +220,13 @@
                 @view-group="handleViewFolder"
               />
 
-              <!-- Flat View (when specific folder selected) -->
+              <!-- Flat View (groupBy=none or specific folder) -->
               <DashboardGrid
                 v-else
                 :dashboards="filteredDashboards"
                 :loading="isLoading"
                 :view-mode="viewMode"
-                empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+                :empty-message="flatEmptyMessage"
                 @view-dashboard="handleViewDashboard"
                 @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
@@ -690,6 +690,11 @@ const visibleColumns = computed<ListColumn[]>(() => {
     default:       return ['tags', 'company']
   }
 })
+
+/** Contextual empty message — folder-specific or generic */
+const flatEmptyMessage = computed(() =>
+  selectedFolderId.value ? 'ไม่มีแดชบอร์ดในโฟลเดอร์นี้' : 'ไม่พบแดชบอร์ด'
+)
 
 /** Map folderId → folder name for displaying folder chips in list items */
 const folderNameMap = computed<Record<string, string>>(() => {
