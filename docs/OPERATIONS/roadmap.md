@@ -2,7 +2,7 @@
 
 **Project:** Dashboard Management System for Streamwash (150+ employees)
 **Strategy:** Iterative — Features → QA → Deploy
-**Last Updated:** 2026-03-23
+**Last Updated:** 2026-03-24
 
 ---
 
@@ -126,14 +126,25 @@
 
 ---
 
+### Phase 5.7: Discover Page Compact & Multi-View Redesign ✅ COMPLETED
+**Goal:** Multi-view modes (Grid/Compact/List), collapsible folder groups, card limits
+
+- [x] **View Mode Switcher UI** — 3-mode toggle (Grid/Compact/List) with localStorage persistence
+- [x] **Compact Card Mode** — smaller cards (80px thumbnail), 5-6 column grid, whole-card clickable
+- [x] **List View Components** — `DashboardListItem.vue`, `DashboardList.vue` (horizontal row layout, ~48px/row)
+- [x] **List View Grouped & Wiring** — `GroupedDashboardList.vue`, integrated into `discover.vue`
+- [x] **Collapsible Folder Groups** — collapse/expand with chevron animation, expand/collapse all buttons
+- [x] **Card Limit Per Folder** — max 4 (grid), 6 (compact), 8 (list) with "ดูทั้งหมด" link
+- [x] **Responsive Testing** — Desktop/Tablet/Mobile breakpoints, 200ms transitions
+
+**Plan:** ~~[discover-redesign-tasks.md](discover-redesign-tasks.md)~~ *(archived — completed)*
+
+---
+
 ### Phase 6: Enhancement & Polish ⏳ PENDING
 **Goal:** UX improvements, real Firebase integration, deploy
 
-- [ ] **Dashboard "View All" Enhancement**
-  - Tag filter chips on discover page
-  - Folder dropdown filter
-  - Lazy load (Intersection Observer, 12 items/batch)
-  - Group dashboards by folder
+- [ ] **Dashboard Lazy Loading** — Intersection Observer, 12 items/batch
 - [ ] **Server-Side Company Access Control**
   - Middleware validation
   - API endpoint enforcement
@@ -237,7 +248,8 @@ Thumbnail API under `server/api/thumbnail/`:
 - [x] Tag system: Admin CRUD, Moderator assign, User filter
 - [x] Sidebar navigation: role-based menus
 - [x] Moderator dual-view: Viewer mode + Manager mode
-- [ ] Dashboard "View All": tag filter + folder filter + lazy load
+- [x] Dashboard discovery: multi-view modes (Grid/Compact/List), collapsible folders, card limits
+- [ ] Dashboard lazy loading (Intersection Observer)
 - [ ] Performance: Page load < 2 seconds
 - [x] Mobile responsive
 - [ ] Replace mock API with real Firestore
