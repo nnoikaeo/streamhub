@@ -100,7 +100,11 @@ function matchesAccessRules(access: any, user: any): boolean {
   if (access.direct?.users?.includes(user.uid)) return true
   if (user.groups?.some((g: string) => access.direct?.groups?.includes(g))) return true
   // Layer 2: Company-scoped
-  if (Array.isArray(access.company) && access.company.includes(user.company)) return true
+  // Empty company array means "all companies" — everyone has access
+  if (Array.isArray(access.company)) {
+    if (access.company.length === 0) return true
+    if (access.company.includes(user.company)) return true
+  }
   return false
 }
 

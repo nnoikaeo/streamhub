@@ -161,6 +161,8 @@ function checkAccessRules(
     if (access.direct.groups.includes(group)) return true
   }
   // Layer 2: Company-scoped
+  // Empty company array means "all companies" — everyone has access
+  if (access.company.length === 0) return true
   if (access.company.includes(user.company)) return true
   return false
 }
