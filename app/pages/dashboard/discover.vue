@@ -172,23 +172,21 @@
           <!-- View Content: crossfade 200ms when switching view mode -->
           <Transition name="view-fade" mode="out-in">
             <div :key="viewMode" class="view-content">
-              <!-- List View — Grouped -->
-              <GroupedDashboardList
+              <!-- List View — Grouped (Tree Table) -->
+              <TreeDashboardList
                 v-if="viewMode === 'list' && isGroupedView"
-                :groups="groupedDashboards"
+                :groups="activeGroups"
                 :tags="tagStore.activeTags"
                 :loading="isLoading"
                 :user-map="userMap"
-                :collapsed-folders="collapsedFolders"
-                :max-per-folder="maxPerFolder"
+                :collapsed-groups="collapsedFolders"
+                :max-per-group="maxPerFolder"
                 :visible-columns="visibleColumns"
                 :folder-map="folderNameMap"
                 empty-message="ไม่พบแดชบอร์ด"
                 @view-dashboard="handleViewDashboard"
-                @share-dashboard="handleShareDashboard"
-                @menu-dashboard="handleMenuDashboard"
-                @toggle-folder="toggleFolder"
-                @view-folder="handleViewFolder"
+                @toggle-group="toggleFolder"
+                @view-group="handleViewFolder"
               />
 
               <!-- List View — Flat -->
@@ -286,7 +284,7 @@ import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import GroupedDashboardGrid from '~/components/features/GroupedDashboardGrid.vue'
 import DashboardList, { type ListColumn } from '~/components/features/DashboardList.vue'
-import GroupedDashboardList from '~/components/features/GroupedDashboardList.vue'
+import TreeDashboardList from '~/components/features/TreeDashboardList.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
@@ -566,10 +564,10 @@ const handleDropdownChange = (folderId: string | null) => {
 }
 
 /**
- * Grouped view — active when no folder is selected and groupBy is 'folder'
+ * Grouped view — active when no folder is selected and a group-by mode is active
  */
 const isGroupedView = computed(() =>
-  !selectedFolderId.value && groupBy.value === 'folder' && folders.value.length > 0
+  !selectedFolderId.value && groupBy.value !== 'none' && activeGroups.value.length > 0
 )
 
 /**
@@ -726,7 +724,7 @@ const folderNameMap = computed<Record<string, string>>(() => {
 const collapsedFolders = ref<Set<string>>(new Set())
 
 const initCollapsedFolders = () => {
-  const ids = groupedDashboards.value.map((g) => g.folder.id)
+  const ids = activeGroups.value.map((g) => g.id)
   const newSet = new Set<string>()
   if (ids.length > 5) {
     // Collapse all except first 3
@@ -750,7 +748,7 @@ const expandAllFolders = () => {
 }
 
 const collapseAllFolders = () => {
-  collapsedFolders.value = new Set(groupedDashboards.value.map((g) => g.folder.id))
+  collapsedFolders.value = new Set(activeGroups.value.map((g) => g.id))
 }
 
 // ========== Max Cards Per Folder ==========
@@ -765,8 +763,8 @@ const handleViewFolder = (folderId: string) => {
   selectFolder(folderId)
 }
 
-// Initialise collapse state once groupedDashboards is ready
-watch(groupedDashboards, (groups, prevGroups) => {
+// Initialise collapse state once activeGroups is ready
+watch(activeGroups, (groups, prevGroups) => {
   // Only set defaults on first meaningful load (going from empty → populated)
   if (!prevGroups?.length && groups.length > 0) {
     initCollapsedFolders()
