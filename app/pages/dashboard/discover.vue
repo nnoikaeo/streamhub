@@ -11,35 +11,37 @@
       @select-folder="(folder) => selectFolder(folder.id)"
       @create-folder="handleCreateFolder"
     >
+      <!-- Search Bar in breadcrumb row -->
+      <template #breadcrumb-actions>
+        <div class="discover-search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="search-input"
+            placeholder="ค้นหาแดชบอร์ด..."
+            aria-label="ค้นหาแดชบอร์ด"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="search-clear"
+            aria-label="ล้างการค้นหา"
+            @click="searchQuery = ''"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </template>
+
       <!-- Main: Dashboard Grid -->
       <div class="discover-main-content">
-
-          <!-- Search Bar -->
-          <div class="discover-search">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              v-model="searchQuery"
-              type="text"
-              class="search-input"
-              placeholder="ค้นหาแดชบอร์ด..."
-              aria-label="ค้นหาแดชบอร์ด"
-            />
-            <button
-              v-if="searchQuery"
-              type="button"
-              class="search-clear"
-              aria-label="ล้างการค้นหา"
-              @click="searchQuery = ''"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
 
           <!-- Filters: Tag + Folder -->
           <div class="discover-filters">
@@ -709,11 +711,14 @@ const dashboardCountText = computed(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm, 0.5rem);
-  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
+  padding: var(--spacing-xs, 0.25rem) var(--spacing-md, 1rem);
   background-color: var(--color-bg-secondary, #f3f4f6);
   border: 1px solid var(--color-border-light, #e5e7eb);
   border-radius: var(--radius-md, 0.375rem);
   transition: border-color var(--transition-base, 0.2s ease);
+  max-width: 320px;
+  width: 100%;
+  margin-left: auto;
 }
 
 .discover-search:focus-within {
@@ -898,6 +903,11 @@ const dashboardCountText = computed(() => {
 
 /* Mobile */
 @media (max-width: 768px) {
+  .discover-search {
+    max-width: 100%;
+    flex-basis: 100%;
+  }
+
   .discover-main-content {
     padding: var(--spacing-sm) var(--spacing-md) 0;
   }
