@@ -1,19 +1,49 @@
 <template>
-  <div class="dashboard-card">
+  <div
+    class="dashboard-card"
+    :class="{ 'dashboard-card--compact': compact }"
+    :role="compact ? 'button' : undefined"
+    :tabindex="compact ? 0 : undefined"
+    :title="compact ? companyTooltip : undefined"
+    @click="compact ? $emit('view') : undefined"
+    @keydown.enter="compact ? $emit('view') : undefined"
+  >
     <!-- Dashboard Preview Thumbnail -->
     <DashboardPreview
       :embed-url="dashboard.lookerEmbedUrl"
       :title="dashboard.name"
       :dashboard-id="dashboard.id"
       mode="thumbnail"
-      :height="160"
+      :height="compact ? 80 : 160"
     />
 
     <!-- Card Header with Icon -->
     <div class="card-header">
       <h3 class="card-title">{{ dashboard.name }}</h3>
       <div class="card-icon">
-        <component :is="dashboardIcon" />
+        <!-- Performance -->
+        <svg v-if="dashboardIconType === 'performance'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+        </svg>
+        <!-- Geographic -->
+        <svg v-else-if="dashboardIconType === 'geographic'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="9" />
+          <rect x="14" y="3" width="7" height="5" />
+          <rect x="14" y="12" width="7" height="9" />
+          <rect x="3" y="16" width="7" height="5" />
+        </svg>
+        <!-- Forecast -->
+        <svg v-else-if="dashboardIconType === 'forecast'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+          <polyline points="17 6 23 6 23 12" />
+        </svg>
+        <!-- Default: Analysis -->
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
       </div>
     </div>
 
@@ -63,8 +93,8 @@
       <span v-if="hiddenCount > 0" class="card-tags__more">+{{ hiddenCount }}</span>
     </div>
 
-    <!-- Open Button - Using Primary Brand Color -->
-    <button class="open-button" @click="$emit('view')">
+    <!-- Open Button - Hidden in compact mode (whole card is clickable) -->
+    <button v-if="!compact" class="open-button" @click="$emit('view')">
       <span>เปิด</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="5" y1="12" x2="19" y2="12" />
@@ -75,11 +105,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h } from 'vue'
+import { computed } from 'vue'
 import type { Dashboard } from '../../types/dashboard'
 import type { Tag } from '../../types/tag'
 import { useTagStore } from '~/stores/tags'
 import TagBadge from './TagBadge.vue'
+import DashboardPreview from './DashboardPreview.vue'
 
 /**
  * DashboardCard - Individual dashboard card component
@@ -89,11 +120,14 @@ import TagBadge from './TagBadge.vue'
 interface Props {
   dashboard: Dashboard
   tags?: Tag[]
+  compact?: boolean
 }
 
-const MAX_VISIBLE_TAGS = 3
+const props = withDefaults(defineProps<Props>(), {
+  compact: false,
+})
 
-const props = defineProps<Props>()
+const MAX_VISIBLE_TAGS = computed(() => props.compact ? 2 : 3)
 
 defineEmits<{
   view: []
@@ -103,68 +137,33 @@ const tagStore = useTagStore()
 
 // Resolve tags: use prop if provided, otherwise resolve from store via dashboard.tags (string[])
 const resolvedTags = computed<Tag[]>(() => {
-  if (props.tags && props.tags.length > 0) return props.tags
   const tagIds = props.dashboard.tags
   if (!tagIds || tagIds.length === 0) return []
+  if (props.tags && props.tags.length > 0) {
+    const idSet = new Set(tagIds)
+    return props.tags.filter((t) => idSet.has(t.id))
+  }
   return tagStore.getTagsByIds(tagIds)
 })
 
-// Company keys from access.company object
+// Company codes from access.company array
 const companyKeys = computed(() => {
   const access = props.dashboard.access
-  if (!access?.company) return []
-  return Object.keys(access.company)
+  if (!access?.company || access.company.length === 0) return []
+  return access.company
 })
 
-const visibleTags = computed(() => resolvedTags.value.slice(0, MAX_VISIBLE_TAGS))
-const hiddenCount = computed(() => Math.max(0, resolvedTags.value.length - MAX_VISIBLE_TAGS))
+const visibleTags = computed(() => resolvedTags.value.slice(0, MAX_VISIBLE_TAGS.value))
+const hiddenCount = computed(() => Math.max(0, resolvedTags.value.length - MAX_VISIBLE_TAGS.value))
 
-// Dashboard icon for card header
-const dashboardIcon = computed(() => {
-  const iconMap: Record<string, any> = {
-    performance: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('polyline', { points: '22 12 18 12 15 21 9 3 6 12 2 12' })
-    ]),
-    geographic: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('rect', { x: '3', y: '3', width: '7', height: '9' }),
-      h('rect', { x: '14', y: '3', width: '7', height: '5' }),
-      h('rect', { x: '14', y: '12', width: '7', height: '9' }),
-      h('rect', { x: '3', y: '16', width: '7', height: '5' })
-    ]),
-    forecast: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('polyline', { points: '23 6 13.5 15.5 8.5 10.5 1 18' }),
-      h('polyline', { points: '17 6 23 6 23 12' })
-    ]),
-    analysis: () => h('svg', {
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      strokeWidth: '2',
-    }, [
-      h('rect', { x: '3', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '3', width: '7', height: '7' }),
-      h('rect', { x: '14', y: '14', width: '7', height: '7' }),
-      h('rect', { x: '3', y: '14', width: '7', height: '7' })
-    ]),
-  }
-
-  return iconMap[props.dashboard.type] || iconMap.analysis
+// Company tooltip text for compact mode
+const companyTooltip = computed(() => {
+  if (companyKeys.value.length === 0) return 'ทุกบริษัท'
+  return companyKeys.value.join(', ')
 })
+
+// Dashboard icon type for template v-if switch
+const dashboardIconType = computed(() => props.dashboard.type || 'analysis')
 </script>
 
 <style scoped>
@@ -349,5 +348,35 @@ const dashboardIcon = computed(() => {
     width: 1.25rem;
     height: 1.25rem;
   }
+}
+
+/* ========== COMPACT MODE ========== */
+.dashboard-card--compact {
+  cursor: pointer;
+  padding-bottom: var(--spacing-sm);
+}
+
+.dashboard-card--compact .card-header,
+.dashboard-card--compact .card-tags {
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+}
+
+.dashboard-card--compact .card-header {
+  padding-top: var(--spacing-sm);
+}
+
+.dashboard-card--compact .card-title {
+  font-size: 0.8rem;
+}
+
+.dashboard-card--compact .card-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.dashboard-card--compact .card-icon svg {
+  width: 1rem;
+  height: 1rem;
 }
 </style>

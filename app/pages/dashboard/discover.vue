@@ -1,5 +1,5 @@
 <template>
-  <ClientOnly>
+  <div class="discover-page-wrapper">
     <PageLayout
       v-if="!isInitializing"
       :breadcrumbs="breadcrumbItems"
@@ -77,6 +77,69 @@
               <line x1="3" y1="18" x2="3.01" y2="18" />
             </svg>
             <h2 class="dashboards-count">{{ dashboardCountText }}</h2>
+
+            <!-- Expand / Collapse All (only in grouped view) -->
+            <div v-if="isGroupedView" class="folder-collapse-controls">
+              <button type="button" class="collapse-ctrl-btn" @click="expandAllFolders">ขยายทั้งหมด</button>
+              <span class="collapse-ctrl-divider">|</span>
+              <button type="button" class="collapse-ctrl-btn" @click="collapseAllFolders">ย่อทั้งหมด</button>
+            </div>
+
+            <!-- View Mode Switcher -->
+            <div class="view-mode-switcher">
+              <button
+                type="button"
+                class="view-mode-btn"
+                :class="{ active: viewMode === 'grid' }"
+                title="Grid view"
+                aria-label="Grid view"
+                @click="viewMode = 'grid'"
+              >
+                <!-- Grid icon: 4 squares -->
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                  <rect x="3" y="3" width="8" height="8" rx="1" />
+                  <rect x="13" y="3" width="8" height="8" rx="1" />
+                  <rect x="3" y="13" width="8" height="8" rx="1" />
+                  <rect x="13" y="13" width="8" height="8" rx="1" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="view-mode-btn"
+                :class="{ active: viewMode === 'compact' }"
+                title="Compact view"
+                aria-label="Compact view"
+                @click="viewMode = 'compact'"
+              >
+                <!-- Compact icon: small grid -->
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                  <rect x="3" y="3" width="5" height="5" rx="0.5" />
+                  <rect x="10" y="3" width="5" height="5" rx="0.5" />
+                  <rect x="17" y="3" width="5" height="5" rx="0.5" />
+                  <rect x="3" y="10" width="5" height="5" rx="0.5" />
+                  <rect x="10" y="10" width="5" height="5" rx="0.5" />
+                  <rect x="17" y="10" width="5" height="5" rx="0.5" />
+                  <rect x="3" y="17" width="5" height="5" rx="0.5" />
+                  <rect x="10" y="17" width="5" height="5" rx="0.5" />
+                  <rect x="17" y="17" width="5" height="5" rx="0.5" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="view-mode-btn"
+                :class="{ active: viewMode === 'list' }"
+                title="List view"
+                aria-label="List view"
+                @click="viewMode = 'list'"
+              >
+                <!-- List icon: horizontal lines -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- Error Message -->
@@ -92,42 +155,80 @@
             </button>
           </div>
 
-          <!-- Grouped View (when showing all folders) -->
-          <GroupedDashboardGrid
-            v-if="isGroupedView"
-            :groups="groupedDashboards"
-            :loading="isLoading"
-            :user-map="userMap"
-            empty-message="ไม่พบแดชบอร์ด"
-            @view-dashboard="handleViewDashboard"
-            @share-dashboard="handleShareDashboard"
-            @menu-dashboard="handleMenuDashboard"
-          />
+          <!-- View Content: crossfade 200ms when switching view mode -->
+          <Transition name="view-fade" mode="out-in">
+            <div :key="viewMode" class="view-content">
+              <!-- List View — Grouped -->
+              <GroupedDashboardList
+                v-if="viewMode === 'list' && isGroupedView"
+                :groups="groupedDashboards"
+                :tags="tagStore.activeTags"
+                :loading="isLoading"
+                :user-map="userMap"
+                :collapsed-folders="collapsedFolders"
+                :max-per-folder="maxPerFolder"
+                empty-message="ไม่พบแดชบอร์ด"
+                @view-dashboard="handleViewDashboard"
+                @share-dashboard="handleShareDashboard"
+                @menu-dashboard="handleMenuDashboard"
+                @toggle-folder="toggleFolder"
+                @view-folder="handleViewFolder"
+              />
 
-          <!-- Flat View (when specific folder selected) -->
-          <DashboardGrid
-            v-else
-            :dashboards="filteredDashboards"
-            :loading="isLoading"
-            empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
-            @view-dashboard="handleViewDashboard"
-            @share-dashboard="handleShareDashboard"
-            @menu-dashboard="handleMenuDashboard"
-          />
+              <!-- List View — Flat -->
+              <DashboardList
+                v-else-if="viewMode === 'list'"
+                :dashboards="filteredDashboards"
+                :tags="tagStore.activeTags"
+                :loading="isLoading"
+                empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+                @view-dashboard="handleViewDashboard"
+                @share-dashboard="handleShareDashboard"
+                @menu-dashboard="handleMenuDashboard"
+              />
+
+              <!-- Grouped View (when showing all folders) -->
+              <GroupedDashboardGrid
+                v-else-if="isGroupedView"
+                :groups="groupedDashboards"
+                :loading="isLoading"
+                :user-map="userMap"
+                :view-mode="viewMode"
+                :collapsed-folders="collapsedFolders"
+                :max-per-folder="maxPerFolder"
+                empty-message="ไม่พบแดชบอร์ด"
+                @view-dashboard="handleViewDashboard"
+                @share-dashboard="handleShareDashboard"
+                @menu-dashboard="handleMenuDashboard"
+                @toggle-folder="toggleFolder"
+                @view-folder="handleViewFolder"
+              />
+
+              <!-- Flat View (when specific folder selected) -->
+              <DashboardGrid
+                v-else
+                :dashboards="filteredDashboards"
+                :loading="isLoading"
+                :view-mode="viewMode"
+                empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+                @view-dashboard="handleViewDashboard"
+                @share-dashboard="handleShareDashboard"
+                @menu-dashboard="handleMenuDashboard"
+              />
+            </div>
+          </Transition>
 
           <!-- Infinite scroll sentinel (triggers load when visible) -->
           <div ref="infiniteScrollSentinel" class="infinite-scroll-sentinel" />
 
           <!-- Quick Share Dialog -->
-          <ClientOnly>
-            <QuickShareDialog
-              v-if="shareDialogOpen && selectedDashboard"
-              v-model="shareDialogOpen"
-              :dashboard-id="selectedDashboard.id"
-              :available-users="availableUsers"
-              @share="handleShare"
-            />
-          </ClientOnly>
+          <QuickShareDialog
+            v-if="shareDialogOpen && selectedDashboard"
+            v-model="shareDialogOpen"
+            :dashboard-id="selectedDashboard.id"
+            :available-users="availableUsers"
+            @share="handleShare"
+          />
         </div>
     </PageLayout>
     <div v-else class="loading-wrapper">
@@ -136,7 +237,7 @@
         <p>Loading dashboard discovery...</p>
       </div>
     </div>
-  </ClientOnly>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -166,11 +267,14 @@ import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import GroupedDashboardGrid from '~/components/features/GroupedDashboardGrid.vue'
+import DashboardList from '~/components/features/DashboardList.vue'
+import GroupedDashboardList from '~/components/features/GroupedDashboardList.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
 import { computed, ref, watch, onMounted } from 'vue'
+import type { ViewMode } from '~/types/dashboard'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
@@ -185,7 +289,6 @@ console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route
 definePageMeta({
   middleware: 'auth',
   layout: 'default',
-  ssr: false,
 })
 
 // ========== Strategy 4: Extract all logic to composable ==========
@@ -286,6 +389,22 @@ const { isAdmin } = useCompanyAccess()
 const selectedCompanyCode = ref<string | null>(null)
 const searchQuery = ref('')
 
+// ========== View Mode Switcher ==========
+const VIEW_MODE_KEY = 'streamhub-discover-view-mode'
+const getInitialViewMode = (): ViewMode => {
+  if (import.meta.client) {
+    const saved = localStorage.getItem(VIEW_MODE_KEY)
+    if (saved === 'grid' || saved === 'compact' || saved === 'list') return saved
+  }
+  return 'list'
+}
+const viewMode = ref<ViewMode>(getInitialViewMode())
+watch(viewMode, (mode) => {
+  if (import.meta.client) {
+    localStorage.setItem(VIEW_MODE_KEY, mode)
+  }
+})
+
 // ========== Users (for moderator display) ==========
 const { users, fetchUsers } = useAdminUsers()
 
@@ -321,6 +440,7 @@ const handleTagFilterUpdate = (ids: string[]) => {
 
 /**
  * Filtered dashboards by selected tags (AND logic) + company filter
+ * NOTE: Must be declared before groupedDashboards and collapsible folder logic
  */
 const filteredDashboards = computed<Dashboard[]>(() => {
   let result = dashboards.value
@@ -432,6 +552,58 @@ const groupedDashboards = computed(() => {
     .filter((g) => g.dashboards.length > 0)
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name, 'th'))
 })
+
+// ========== Collapsible Folder Groups ==========
+// NOTE: Must come after groupedDashboards is declared
+const collapsedFolders = ref<Set<string>>(new Set())
+
+const initCollapsedFolders = () => {
+  const ids = groupedDashboards.value.map((g) => g.folder.id)
+  const newSet = new Set<string>()
+  if (ids.length > 5) {
+    // Collapse all except first 3
+    ids.slice(3).forEach((id) => newSet.add(id))
+  }
+  collapsedFolders.value = newSet
+}
+
+const toggleFolder = (folderId: string) => {
+  const next = new Set(collapsedFolders.value)
+  if (next.has(folderId)) {
+    next.delete(folderId)
+  } else {
+    next.add(folderId)
+  }
+  collapsedFolders.value = next
+}
+
+const expandAllFolders = () => {
+  collapsedFolders.value = new Set()
+}
+
+const collapseAllFolders = () => {
+  collapsedFolders.value = new Set(groupedDashboards.value.map((g) => g.folder.id))
+}
+
+// ========== Max Cards Per Folder ==========
+const maxPerFolder = computed<number | undefined>(() => {
+  if (viewMode.value === 'grid') return 4
+  if (viewMode.value === 'compact') return 6
+  if (viewMode.value === 'list') return 8
+  return undefined
+})
+
+const handleViewFolder = (folderId: string) => {
+  selectFolder(folderId)
+}
+
+// Initialise collapse state once groupedDashboards is ready
+watch(groupedDashboards, (groups, prevGroups) => {
+  // Only set defaults on first meaningful load (going from empty → populated)
+  if (!prevGroups?.length && groups.length > 0) {
+    initCollapsedFolders()
+  }
+}, { immediate: false })
 
 /**
  * Status text showing count + active tag names + company filter
@@ -630,16 +802,104 @@ const dashboardCountText = computed(() => {
   margin: 0;
 }
 
+/* ========== VIEW MODE SWITCHER ========== */
+.view-mode-switcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  background: var(--color-bg-secondary, #f3f4f6);
+  border-radius: var(--radius-md, 0.375rem);
+  padding: 2px;
+}
+
+/* ========== FOLDER COLLAPSE CONTROLS ========== */
+.folder-collapse-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.25rem);
+  margin-left: var(--spacing-sm, 0.5rem);
+}
+
+.collapse-ctrl-btn {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  cursor: pointer;
+  border-radius: var(--radius-sm, 0.25rem);
+
+  &:hover {
+    background: var(--color-bg-secondary, #f3f4f6);
+  }
+}
+
+.collapse-ctrl-divider {
+  font-size: 0.75rem;
+  color: var(--color-border-light, #e5e7eb);
+}
+
+.view-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-sm, 0.25rem);
+  background: transparent;
+  color: var(--color-text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all var(--transition-base, 0.2s ease);
+}
+
+.view-mode-btn:hover {
+  color: var(--color-text-primary, #1f2937);
+  background: var(--color-bg-primary, #ffffff);
+}
+
+.view-mode-btn.active {
+  background: var(--color-primary, #3b82f6);
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.view-mode-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* ========== INFINITE SCROLL SENTINEL ========== */
 .infinite-scroll-sentinel {
   height: 1px;
   visibility: hidden;
 }
 
-/* Responsive */
+/* ========== VIEW MODE FADE TRANSITION ========== */
+.view-fade-enter-active,
+.view-fade-leave-active {
+  transition: opacity 200ms ease;
+}
+
+.view-fade-enter-from,
+.view-fade-leave-to {
+  opacity: 0;
+}
+
+/* ========== RESPONSIVE ========== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .discover-main-content {
+    padding: var(--spacing-md) var(--spacing-lg) 0;
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .discover-main-content {
-    padding: 0 var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md) 0;
   }
 
   .discover-filters {
@@ -651,8 +911,42 @@ const dashboardCountText = computed(() => {
     width: 100%;
   }
 
+  /* Header: allow wrapping on small screens */
+  .dashboards-header {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-xs, 0.25rem);
+  }
+
+  .header-icon {
+    display: none;
+  }
+
   .dashboards-count {
-    font-size: 1.125rem;
+    font-size: 1rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Collapse controls: move to second row */
+  .folder-collapse-controls {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  /* View mode switcher stays on same row as count */
+  .view-mode-switcher {
+    flex-shrink: 0;
+  }
+
+  .view-mode-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .view-mode-btn svg {
+    width: 15px;
+    height: 15px;
   }
 }
 </style>

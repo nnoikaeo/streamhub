@@ -272,15 +272,14 @@ export class MockDashboardService implements IDashboardService {
   // Load data from API
   private async loadData() {
     try {
-      const { $fetch } = useNuxtApp()
       const [usersResp, foldersResp, dashboardsResp] = await Promise.all([
         $fetch('/api/mock/users'),
         $fetch('/api/mock/folders'),
         $fetch('/api/mock/dashboards'),
       ])
-      this.users = usersResp.data || []
-      this.folders = foldersResp.data || []
-      this.dashboards = dashboardsResp.data || []
+      this.users = (usersResp as any).data || []
+      this.folders = (foldersResp as any).data || []
+      this.dashboards = (dashboardsResp as any).data || []
     } catch (error) {
       console.error('Error loading data:', error)
     }
@@ -493,6 +492,8 @@ export class MockDashboardService implements IDashboardService {
     }
 
     // Check layer 2: any user from a listed company gets access
+    // Empty company array means "all companies" — everyone has access
+    if (access.company.length === 0) return true
     if (access.company.includes(user.company)) return true
 
     return false
@@ -790,9 +791,6 @@ export const useDashboardService = (): IDashboardService => {
 
     if (useJsonMock) {
       console.log('🔷 [useDashboardService] Using JSON Mock Service')
-      // Import and use JSON Mock Service
-      const { useJSONMockService } = import('~/composables/useJSONMockService')
-
       // Use dynamic import approach for lazy loading
       dashboardServiceInstance = new (class implements IDashboardService {
         private jsonService: any = null
@@ -856,9 +854,14 @@ export const useDashboardService = (): IDashboardService => {
           return service.getDashboardCard(dashboardId)
         }
 
-        async saveDashboard(dashboard: Dashboard) {
+        async createDashboard(name: string, folderId: string, userId: string, description?: string) {
           const service = await this.initJsonService()
-          return service.saveDashboard(dashboard)
+          return service.createDashboard(name, folderId, userId, description)
+        }
+
+        async updateDashboard(dashboard: Dashboard) {
+          const service = await this.initJsonService()
+          return service.updateDashboard(dashboard)
         }
 
         async deleteDashboard(dashboardId: string) {
@@ -879,7 +882,7 @@ export const useDashboardService = (): IDashboardService => {
           })
         }
 
-        async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: string) {
+        async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: Date) {
           const service = await this.initJsonService()
           return service.quickShareDashboard(dashboardId, userIds, expiryDate)
         }
@@ -912,6 +915,36 @@ export const useDashboardService = (): IDashboardService => {
         ) {
           const service = await this.initJsonService()
           return service.resolveEffectiveUsers(access, restrictions, allUsers, allGroups)
+        }
+
+        async getAccessReason(dashboardId: string, userId: string) {
+          const service = await this.initJsonService()
+          return service.getAccessReason(dashboardId, userId)
+        }
+
+        async getAccessibleUsers(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.getAccessibleUsers(dashboardId)
+        }
+
+        async getDirectAccessUsers(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.getDirectAccessUsers(dashboardId)
+        }
+
+        async removeDirectAccess(dashboardId: string, userId: string) {
+          const service = await this.initJsonService()
+          return service.removeDirectAccess(dashboardId, userId)
+        }
+
+        async archiveDashboard(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.archiveDashboard(dashboardId)
+        }
+
+        async unarchiveDashboard(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.unarchiveDashboard(dashboardId)
         }
       })()
     } else {

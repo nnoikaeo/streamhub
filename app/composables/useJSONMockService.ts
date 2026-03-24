@@ -599,6 +599,8 @@ export class JSONMockService implements IDashboardService {
       if (user.groups?.some((g: string) => access.direct.groups.includes(g))) return true
 
       // Layer 2: company access
+      // Empty company array means "all companies" — everyone has access
+      if (access.company.length === 0) return true
       if (access.company.includes(user.company)) return true
 
       return false
