@@ -1,4 +1,5 @@
 import { readJSON, findById } from '../../utils/jsonDatabase'
+import { filterAccessibleDashboards } from '../../utils/companyAccess'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,13 +18,12 @@ export default defineEventHandler(async (event) => {
       const user = await findById('users.json', uid)
       if (user && (user as any).role !== 'admin') {
         if ((user as any).role === 'moderator') {
-          // Moderator: directly assigned folders + all their descendants
+          // Step 1: Assigned folders + all their descendants
           const assignedIds = new Set<string>(
             (folders as any[])
               .filter((f: any) => f.assignedModerators?.includes(uid))
               .map((f: any) => f.id)
           )
-          // Recursively walk down the tree to include all child folders
           const addDescendants = (parentId: string) => {
             for (const f of folders as any[]) {
               if (f.parentId === parentId && !assignedIds.has(f.id)) {
@@ -35,8 +35,19 @@ export default defineEventHandler(async (event) => {
           for (const id of [...assignedIds]) {
             addDescendants(id)
           }
+
+          // Step 2: Also include folders that contain accessible dashboards
+          // (e.g. dashboards with access.company=[] meaning "all companies")
+          const dashboards = await readJSON('dashboards.json')
+          const accessible = filterAccessibleDashboards(dashboards as any[], user as any, folders as any[])
+          for (const d of accessible) {
+            if (d.folderId && !assignedIds.has(d.folderId)) {
+              assignedIds.add(d.folderId)
+            }
+          }
+
           filtered = filtered.filter((f: any) => assignedIds.has(f.id))
-          console.log(`  🔍 After moderator filter (with descendants): ${filtered.length}`)
+          console.log(`  🔍 After moderator filter (assigned + accessible): ${filtered.length}`)
         }
         // User: sees all folders (dashboard access filtered separately)
       }
