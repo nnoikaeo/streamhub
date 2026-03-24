@@ -118,17 +118,17 @@ defineEmits<{
 
 .list-header__folder {
   flex-shrink: 0;
-  min-width: 100px;
+  width: 100px;
 }
 
 .list-header__tags {
   flex-shrink: 0;
-  min-width: 120px;
+  width: 180px;
 }
 
 .list-header__company {
   flex-shrink: 0;
-  min-width: 80px;
+  width: 80px;
 }
 
 .list-header__arrow {

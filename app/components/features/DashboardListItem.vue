@@ -153,7 +153,7 @@ const swatchGradient = computed(() => {
 /* ---- Folder ---- */
 .list-item__folder {
   flex-shrink: 0;
-  min-width: 100px;
+  width: 100px;
 }
 
 .folder-chip {
@@ -176,7 +176,20 @@ const swatchGradient = computed(() => {
   align-items: center;
   gap: 0.25rem;
   flex-shrink: 0;
-  min-width: 120px;
+  width: 180px;
+  overflow: hidden;
+  flex-wrap: nowrap;
+}
+
+.list-item__tags :deep(.tag-badge) {
+  max-width: 82px;
+  overflow: hidden;
+}
+
+.list-item__tags :deep(.tag-badge__name) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .list-item__tags-more {
@@ -187,7 +200,7 @@ const swatchGradient = computed(() => {
 /* ---- Company ---- */
 .list-item__company {
   flex-shrink: 0;
-  min-width: 80px;
+  width: 80px;
 }
 
 .company-chip {
