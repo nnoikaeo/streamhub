@@ -181,6 +181,8 @@
                 :user-map="userMap"
                 :collapsed-folders="collapsedFolders"
                 :max-per-folder="maxPerFolder"
+                :visible-columns="visibleColumns"
+                :folder-map="folderNameMap"
                 empty-message="ไม่พบแดชบอร์ด"
                 @view-dashboard="handleViewDashboard"
                 @share-dashboard="handleShareDashboard"
@@ -195,6 +197,8 @@
                 :dashboards="filteredDashboards"
                 :tags="tagStore.activeTags"
                 :loading="isLoading"
+                :visible-columns="visibleColumns"
+                :folder-map="folderNameMap"
                 empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
                 @view-dashboard="handleViewDashboard"
                 @share-dashboard="handleShareDashboard"
@@ -281,7 +285,7 @@ import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import GroupedDashboardGrid from '~/components/features/GroupedDashboardGrid.vue'
-import DashboardList from '~/components/features/DashboardList.vue'
+import DashboardList, { type ListColumn } from '~/components/features/DashboardList.vue'
 import GroupedDashboardList from '~/components/features/GroupedDashboardList.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
@@ -693,6 +697,28 @@ const activeGroups = computed<DisplayGroup[]>(() => {
     case 'company': return groupedByCompany.value
     default: return []
   }
+})
+
+// ========== Adaptive Columns (List View) ==========
+
+/** Columns visible in list view — hides the column used for grouping */
+const visibleColumns = computed<ListColumn[]>(() => {
+  switch (groupBy.value) {
+    case 'folder': return ['tags', 'company']
+    case 'tag':    return ['folder', 'company']
+    case 'company': return ['folder', 'tags']
+    case 'none':   return ['folder', 'tags', 'company']
+    default:       return ['tags', 'company']
+  }
+})
+
+/** Map folderId → folder name for displaying folder chips in list items */
+const folderNameMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  for (const folder of folders.value) {
+    map[folder.id] = folder.name
+  }
+  return map
 })
 
 // ========== Collapsible Folder Groups ==========
