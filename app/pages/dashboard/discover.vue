@@ -80,11 +80,11 @@
             </svg>
             <h2 class="dashboards-count">{{ dashboardCountText }}</h2>
 
-            <!-- Expand / Collapse All (only in grouped view) -->
+            <!-- Expand / Collapse All (only in grouped view, hidden on mobile) -->
             <div v-if="isGroupedView" class="folder-collapse-controls">
-              <button type="button" class="collapse-ctrl-btn" @click="expandAllFolders">ขยายทั้งหมด</button>
+              <button type="button" class="collapse-ctrl-btn" title="ขยายทุกกลุ่ม" aria-label="ขยายทุกกลุ่ม" @click="expandAllFolders">ขยายทั้งหมด</button>
               <span class="collapse-ctrl-divider">|</span>
-              <button type="button" class="collapse-ctrl-btn" @click="collapseAllFolders">ย่อทั้งหมด</button>
+              <button type="button" class="collapse-ctrl-btn" title="ย่อทุกกลุ่ม" aria-label="ย่อทุกกลุ่ม" @click="collapseAllFolders">ย่อทั้งหมด</button>
             </div>
 
             <!-- Group By Switcher + Divider + View Mode Switcher (right cluster) -->
@@ -1115,11 +1115,9 @@ const dashboardCountText = computed(() => {
     min-width: 0;
   }
 
-  /* Collapse controls: move to second row */
+  /* Hide collapse controls on mobile */
   .folder-collapse-controls {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
+    display: none;
   }
 
   /* View mode switcher stays on same row as count */
@@ -1135,6 +1133,22 @@ const dashboardCountText = computed(() => {
   .view-mode-btn svg {
     width: 15px;
     height: 15px;
+  }
+
+  /* Shrink GroupBySwitcher on mobile to match view mode buttons */
+  .header-right-controls :deep(.group-by-btn) {
+    width: 28px;
+    height: 28px;
+  }
+
+  .header-right-controls :deep(.group-by-btn svg) {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Thinner divider on mobile */
+  .header-switcher-divider {
+    height: 16px;
   }
 }
 </style>
