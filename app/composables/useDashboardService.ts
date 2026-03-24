@@ -492,6 +492,8 @@ export class MockDashboardService implements IDashboardService {
     }
 
     // Check layer 2: any user from a listed company gets access
+    // Empty company array means "all companies" — everyone has access
+    if (access.company.length === 0) return true
     if (access.company.includes(user.company)) return true
 
     return false
