@@ -87,8 +87,19 @@
               <button type="button" class="collapse-ctrl-btn" @click="collapseAllFolders">ย่อทั้งหมด</button>
             </div>
 
-            <!-- View Mode Switcher -->
-            <div class="view-mode-switcher">
+            <!-- Group By Switcher + Divider + View Mode Switcher (right cluster) -->
+            <div class="header-right-controls">
+              <GroupBySwitcher
+                v-model="groupBy"
+                :show-folders="folderTree.length > 0"
+                :is-admin="isAdmin"
+              />
+
+              <!-- Divider -->
+              <span class="header-switcher-divider" aria-hidden="true" />
+
+              <!-- View Mode Switcher -->
+              <div class="view-mode-switcher">
               <button
                 type="button"
                 class="view-mode-btn"
@@ -141,8 +152,9 @@
                   <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
               </button>
-            </div>
-          </div>
+              </div>
+            </div><!-- /.header-right-controls -->
+          </div><!-- /.dashboards-header -->
 
           <!-- Error Message -->
           <div v-if="error" class="theme-alert theme-alert--error" role="alert">
@@ -275,6 +287,7 @@ import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
+import GroupBySwitcher, { type GroupByMode } from '~/components/features/GroupBySwitcher.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import type { ViewMode } from '~/types/dashboard'
 import { useTagStore } from '~/stores/tags'
@@ -390,6 +403,22 @@ const { regions, fetchRegions } = useAdminRegions()
 const { isAdmin } = useCompanyAccess()
 const selectedCompanyCode = ref<string | null>(null)
 const searchQuery = ref('')
+
+// ========== Group By Switcher ==========
+const GROUP_BY_KEY = 'streamhub-discover-group-by'
+const getInitialGroupBy = (): GroupByMode => {
+  if (import.meta.client) {
+    const saved = localStorage.getItem(GROUP_BY_KEY)
+    if (saved === 'folder' || saved === 'tag' || saved === 'company' || saved === 'none') return saved
+  }
+  return 'folder'
+}
+const groupBy = ref<GroupByMode>(getInitialGroupBy())
+watch(groupBy, (mode) => {
+  if (import.meta.client) {
+    localStorage.setItem(GROUP_BY_KEY, mode)
+  }
+})
 
 // ========== View Mode Switcher ==========
 const VIEW_MODE_KEY = 'streamhub-discover-view-mode'
@@ -808,14 +837,30 @@ const dashboardCountText = computed(() => {
 }
 
 /* ========== VIEW MODE SWITCHER ========== */
+.header-right-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.25rem);
+  margin-left: auto;
+}
+
 .view-mode-switcher {
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-left: auto;
   background: var(--color-bg-secondary, #f3f4f6);
   border-radius: var(--radius-md, 0.375rem);
   padding: 2px;
+}
+
+/* Divider between GroupBySwitcher and ViewModeSwitcher */
+.header-switcher-divider {
+  display: block;
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-light, #e5e7eb);
+  flex-shrink: 0;
+  margin: 0 2px;
 }
 
 /* ========== FOLDER COLLAPSE CONTROLS ========== */
