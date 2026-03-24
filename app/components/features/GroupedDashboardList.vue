@@ -56,6 +56,8 @@
             :dashboards="maxPerFolder ? group.dashboards.slice(0, maxPerFolder) : group.dashboards"
             :tags="tags"
             :loading="false"
+            :visible-columns="visibleColumns"
+            :folder-map="folderMap"
             empty-message="ไม่พบแดชบอร์ดในโฟลเดอร์นี้"
             @view-dashboard="(d) => $emit('view-dashboard', d)"
             @share-dashboard="(d) => $emit('share-dashboard', d)"
@@ -84,7 +86,7 @@
 <script setup lang="ts">
 import type { Dashboard, Folder, User } from '~/types/dashboard'
 import type { Tag } from '~/types/tag'
-import DashboardList from './DashboardList.vue'
+import DashboardList, { type ListColumn } from './DashboardList.vue'
 
 export interface DashboardGroup {
   folder: Folder
@@ -99,11 +101,15 @@ const props = withDefaults(defineProps<{
   userMap?: Record<string, User>
   collapsedFolders?: Set<string>
   maxPerFolder?: number
+  visibleColumns?: ListColumn[]
+  folderMap?: Record<string, string>
 }>(), {
   loading: false,
   emptyMessage: 'ไม่พบแดชบอร์ด',
   userMap: () => ({}),
   collapsedFolders: () => new Set<string>(),
+  visibleColumns: () => ['tags', 'company'],
+  folderMap: () => ({}),
 })
 
 const getModeratorLabel = (folder: Folder): string => {

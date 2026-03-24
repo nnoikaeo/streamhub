@@ -12,8 +12,13 @@
     <!-- Name -->
     <span class="list-item__name">{{ dashboard.name }}</span>
 
+    <!-- Folder -->
+    <div v-if="showFolder" class="list-item__folder">
+      <span v-if="folderName" class="folder-chip">{{ folderName }}</span>
+    </div>
+
     <!-- Tags -->
-    <div class="list-item__tags">
+    <div v-if="showTags" class="list-item__tags">
       <TagBadge
         v-for="tag in visibleTags"
         :key="tag.id"
@@ -24,7 +29,7 @@
     </div>
 
     <!-- Company Badge -->
-    <div class="list-item__company">
+    <div v-if="showCompany" class="list-item__company">
       <span v-if="companyKeys.length === 0" class="company-chip company-chip--global">ทุกบริษัท</span>
       <span v-else class="company-chip">{{ companyKeys.join(', ') }}</span>
     </div>
@@ -43,17 +48,29 @@
 import { computed } from 'vue'
 import type { Dashboard } from '~/types/dashboard'
 import type { Tag } from '~/types/tag'
+import type { ListColumn } from './DashboardList.vue'
 import { useTagStore } from '~/stores/tags'
 import TagBadge from './TagBadge.vue'
 
 const props = defineProps<{
   dashboard: Dashboard
   tags?: Tag[]
+  visibleColumns?: ListColumn[]
+  folderMap?: Record<string, string>
 }>()
 
 defineEmits<{ view: [] }>()
 
 const tagStore = useTagStore()
+
+const showFolder = computed(() => props.visibleColumns?.includes('folder') ?? false)
+const showTags = computed(() => props.visibleColumns?.includes('tags') ?? true)
+const showCompany = computed(() => props.visibleColumns?.includes('company') ?? true)
+
+const folderName = computed(() => {
+  if (!props.folderMap) return ''
+  return props.folderMap[props.dashboard.folderId] ?? ''
+})
 
 const resolvedTags = computed<Tag[]>(() => {
   const tagIds = props.dashboard.tags
@@ -133,6 +150,26 @@ const swatchGradient = computed(() => {
   text-overflow: ellipsis;
 }
 
+/* ---- Folder ---- */
+.list-item__folder {
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+.folder-chip {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-primary, #3b82f6);
+  background: color-mix(in srgb, var(--color-primary, #3b82f6) 10%, transparent);
+  border-radius: var(--radius-sm, 4px);
+  padding: 2px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
 /* ---- Tags ---- */
 .list-item__tags {
   display: flex;
@@ -193,6 +230,10 @@ const swatchGradient = computed(() => {
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
+  .list-item__folder {
+    display: none;
+  }
+
   .list-item__tags {
     display: none;
   }
