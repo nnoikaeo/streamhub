@@ -47,8 +47,8 @@
       </div>
     </div>
 
-    <!-- Company Badges (hidden in compact — shown as tooltip on card) -->
-    <div v-if="!compact" class="card-companies">
+    <!-- Company Badges -->
+    <div class="card-companies">
       <span
         v-if="companyKeys.length === 0"
         class="company-badge company-badge--global"
@@ -137,17 +137,20 @@ const tagStore = useTagStore()
 
 // Resolve tags: use prop if provided, otherwise resolve from store via dashboard.tags (string[])
 const resolvedTags = computed<Tag[]>(() => {
-  if (props.tags && props.tags.length > 0) return props.tags
   const tagIds = props.dashboard.tags
   if (!tagIds || tagIds.length === 0) return []
+  if (props.tags && props.tags.length > 0) {
+    const idSet = new Set(tagIds)
+    return props.tags.filter((t) => idSet.has(t.id))
+  }
   return tagStore.getTagsByIds(tagIds)
 })
 
-// Company keys from access.company object
+// Company codes from access.company array
 const companyKeys = computed(() => {
   const access = props.dashboard.access
-  if (!access?.company) return []
-  return Object.keys(access.company)
+  if (!access?.company || access.company.length === 0) return []
+  return access.company
 })
 
 const visibleTags = computed(() => resolvedTags.value.slice(0, MAX_VISIBLE_TAGS.value))
