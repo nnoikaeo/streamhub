@@ -413,7 +413,7 @@ const getInitialGroupBy = (): GroupByMode => {
     const saved = localStorage.getItem(GROUP_BY_KEY)
     if (saved === 'folder' || saved === 'tag' || saved === 'company' || saved === 'none') return saved
   }
-  return 'folder'
+  return 'none'
 }
 const groupBy = ref<GroupByMode>(getInitialGroupBy())
 watch(groupBy, (mode) => {
