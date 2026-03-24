@@ -289,7 +289,7 @@ import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
 import GroupBySwitcher, { type GroupByMode } from '~/components/features/GroupBySwitcher.vue'
 import { computed, ref, watch, onMounted } from 'vue'
-import type { ViewMode } from '~/types/dashboard'
+import type { ViewMode, DisplayGroup } from '~/types/dashboard'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
@@ -562,12 +562,15 @@ const handleDropdownChange = (folderId: string | null) => {
 }
 
 /**
- * Grouped view — active when no folder is selected
+ * Grouped view — active when no folder is selected and groupBy is 'folder'
  */
-const isGroupedView = computed(() => !selectedFolderId.value && folders.value.length > 0)
+const isGroupedView = computed(() =>
+  !selectedFolderId.value && groupBy.value === 'folder' && folders.value.length > 0
+)
 
 /**
  * Group filtered dashboards by folder (hide empty groups)
+ * Used by existing GroupedDashboardList / GroupedDashboardGrid components
  */
 const groupedDashboards = computed(() => {
   if (!isGroupedView.value) return []
@@ -582,6 +585,114 @@ const groupedDashboards = computed(() => {
   return Array.from(folderMap.values())
     .filter((g) => g.dashboards.length > 0)
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name, 'th'))
+})
+
+// ========== Group By: DisplayGroup computed ==========
+
+/** Group by folder as DisplayGroup[] (for future TreeDashboardList) */
+const groupedByFolder = computed<DisplayGroup[]>(() => {
+  if (selectedFolderId.value) return []
+  const folderMap = new Map<string, { folder: Folder; dashboards: Dashboard[] }>()
+  for (const folder of folders.value) {
+    folderMap.set(folder.id, { folder, dashboards: [] })
+  }
+  for (const d of filteredDashboards.value) {
+    const entry = folderMap.get(d.folderId)
+    if (entry) entry.dashboards.push(d)
+  }
+  return Array.from(folderMap.values())
+    .filter((g) => g.dashboards.length > 0)
+    .sort((a, b) => a.folder.name.localeCompare(b.folder.name, 'th'))
+    .map((g) => ({
+      id: g.folder.id,
+      name: g.folder.name,
+      icon: 'folder',
+      dashboards: g.dashboards,
+    }))
+})
+
+/** Group by tag — dashboards with multiple tags appear in each group.
+ *  Dashboards with no tags go into a "ไม่มีแท็ก" group at the end. */
+const groupedByTag = computed<DisplayGroup[]>(() => {
+  const tagMap = new Map<string, DisplayGroup>()
+  const untagged: Dashboard[] = []
+
+  for (const tag of tagStore.activeTags) {
+    tagMap.set(tag.id, {
+      id: tag.id,
+      name: tag.name,
+      icon: 'tag',
+      color: tag.color,
+      dashboards: [],
+    })
+  }
+
+  for (const d of filteredDashboards.value) {
+    const dTags = d.tags ?? []
+    if (dTags.length === 0) {
+      untagged.push(d)
+    } else {
+      for (const tagId of dTags) {
+        const group = tagMap.get(tagId)
+        if (group) group.dashboards.push(d)
+      }
+    }
+  }
+
+  const result = Array.from(tagMap.values()).filter((g) => g.dashboards.length > 0)
+  if (untagged.length > 0) {
+    result.push({ id: '__untagged__', name: 'ไม่มีแท็ก', icon: 'tag', dashboards: untagged })
+  }
+  return result
+})
+
+/** Group by company — based on access.company array.
+ *  Dashboards with no company access go into "เฉพาะสิทธิ์" group. */
+const groupedByCompany = computed<DisplayGroup[]>(() => {
+  const companyMap = new Map<string, DisplayGroup>()
+  const directOnly: Dashboard[] = []
+
+  const companyNameMap = new Map<string, string>()
+  for (const c of companies.value) {
+    companyNameMap.set(c.code, c.name)
+  }
+
+  for (const d of filteredDashboards.value) {
+    const companyCodes = d.access?.company ?? []
+    if (companyCodes.length === 0) {
+      directOnly.push(d)
+    } else {
+      for (const code of companyCodes) {
+        if (!companyMap.has(code)) {
+          companyMap.set(code, {
+            id: code,
+            name: companyNameMap.get(code) ?? code,
+            icon: 'company',
+            dashboards: [],
+          })
+        }
+        companyMap.get(code)!.dashboards.push(d)
+      }
+    }
+  }
+
+  const result = Array.from(companyMap.values())
+    .sort((a, b) => a.name.localeCompare(b.name, 'th'))
+  if (directOnly.length > 0) {
+    result.push({ id: '__direct__', name: 'เฉพาะสิทธิ์', icon: 'company', dashboards: directOnly })
+  }
+  return result
+})
+
+/** Active groups based on current groupBy mode */
+const activeGroups = computed<DisplayGroup[]>(() => {
+  if (selectedFolderId.value) return []
+  switch (groupBy.value) {
+    case 'folder': return groupedByFolder.value
+    case 'tag': return groupedByTag.value
+    case 'company': return groupedByCompany.value
+    default: return []
+  }
 })
 
 // ========== Collapsible Folder Groups ==========
@@ -637,23 +748,35 @@ watch(groupedDashboards, (groups, prevGroups) => {
 }, { immediate: false })
 
 /**
- * Status text showing count + active tag names + company filter
+ * Status text showing count + active groupBy label + filter suffixes
  */
 const dashboardCountText = computed(() => {
   const selected = tagStore.selectedTagIds
   const companySuffix = selectedCompanyCode.value ? ` · บริษัท: ${selectedCompanyCode.value}` : ''
   const searchSuffix = searchQuery.value.trim() ? ` · ค้นหา: "${searchQuery.value.trim()}"` : ''
 
-  if (isGroupedView.value) {
-    const groupCount = groupedDashboards.value.length
-    const count = groupedDashboards.value.reduce((sum, g) => sum + g.dashboards.length, 0)
-    const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
-    if (selected.length > 0) {
-      const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
-      return `${base} · แท็ก: ${tagNames}${companySuffix}${searchSuffix}`
+  const mode = groupBy.value
+
+  if (!selectedFolderId.value && mode !== 'none') {
+    const groups = activeGroups.value
+    const count = groups.reduce((sum, g) => sum + g.dashboards.length, 0)
+    const groupCount = groups.length
+    if (mode === 'folder') {
+      const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
+      if (selected.length > 0) {
+        const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
+        return `${base} · แท็ก: ${tagNames}${companySuffix}${searchSuffix}`
+      }
+      return `${base}${companySuffix}${searchSuffix}`
     }
-    return `${base}${companySuffix}${searchSuffix}`
+    if (mode === 'tag') {
+      return `พบ ${count} แดชบอร์ด ใน ${groupCount} แท็ก${companySuffix}${searchSuffix}`
+    }
+    if (mode === 'company') {
+      return `พบ ${count} แดชบอร์ด ใน ${groupCount} บริษัท${searchSuffix}`
+    }
   }
+
   const count = filteredDashboards.value.length
   if (selected.length === 0) return `พบ ${count} แดชบอร์ด${companySuffix}${searchSuffix}`
   const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
