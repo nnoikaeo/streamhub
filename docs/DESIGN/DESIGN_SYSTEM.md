@@ -1,5 +1,8 @@
 # StreamHub Design System
 
+> **Last Updated:** 2026-03-25
+> **Version:** 2.0 (Phase 5.8 design doc review)
+
 ## 📋 Overview
 
 StreamHub uses a **centralized design system** to ensure consistency across all pages and components. This document outlines the theme configuration, color palette, and component styling guidelines.
@@ -36,9 +39,13 @@ StreamHub uses a **centralized design system** to ensure consistency across all 
 
 ### Status Colors
 - **Success:** `#10b981`
+- **Success Light:** `#d1fae5` (badge/alert backgrounds)
 - **Warning:** `#f59e0b`
+- **Warning Light:** `#fef3c7` (badge/alert backgrounds)
 - **Error:** `#ef4444`
+- **Error Light:** `#fee2e2` (badge/alert backgrounds)
 - **Info:** `#3b82f6`
+- **Info Light:** `#dbeafe` (badge/alert backgrounds)
 
 ---
 
@@ -96,7 +103,69 @@ All colors are available as CSS variables in `:root`. Use these in your custom s
 ## 🧩 Tailwind Configuration
 
 The project uses Tailwind CSS with custom theme extensions in `tailwind.config.ts`.
+### Typography
 
+**Font Family:**
+```typescript
+fontFamily: {
+  sans: ['Inter', 'system-ui', 'sans-serif'],
+}
+```
+
+**Font Sizes:**
+| Token | Size | Pixels |
+|-------|------|--------|
+| `text-xs` | 0.75rem | 12px |
+| `text-sm` | 0.875rem | 14px |
+| `text-base` | 1rem | 16px |
+| `text-lg` | 1.125rem | 18px |
+| `text-xl` | 1.25rem | 20px |
+| `text-2xl` | 1.5rem | 24px |
+| `text-3xl` | 1.875rem | 30px |
+| `text-4xl` | 2.25rem | 36px |
+
+### Extended Border Radius
+
+| Token | Value | CSS Variable |
+|-------|-------|--------------|
+| `rounded-none` | 0 | — |
+| `rounded-sm` | 0.375rem | `--radius-sm` |
+| `rounded` | 0.375rem | `--radius-sm` (alias) |
+| `rounded-md` | 0.5rem | `--radius-md` |
+| `rounded-lg` | 0.75rem | `--radius-lg` |
+| `rounded-xl` | 1rem | — |
+| `rounded-2xl` | 1.5rem | — |
+| `rounded-full` | 9999px | — |
+
+### Extended Shadows
+
+| Token | CSS Variable |
+|-------|--------------|
+| `shadow-sm` | `--shadow-sm` |
+| `shadow` | `--shadow-sm` (alias) |
+| `shadow-md` | `--shadow-md` |
+| `shadow-lg` | `--shadow-lg` |
+| `shadow-xl` | — (Tailwind only) |
+
+### Extended Transitions
+
+| Token | Duration |
+|-------|----------|
+| `duration-75` | 75ms |
+| `duration-100` | 100ms |
+| `duration-150` | 150ms ← `--transition-fast` |
+| `duration-200` | 200ms |
+| `duration-300` | 300ms ← `--transition-base` |
+| `duration-500` | 500ms ← `--transition-slow` |
+| `duration-700` | 700ms |
+| `duration-1000` | 1000ms |
+
+### Primary Gradient
+
+```css
+background: linear-gradient(135deg, #2d3389 0%, #1f2461 100%);
+```
+Available as `bg-primary-gradient` in Tailwind.
 ### Using Custom Colors in Templates
 
 ```html
@@ -418,6 +487,14 @@ The theme includes mobile-first responsive utilities:
 - [ ] Additional component variants
 - [ ] Animation library integration
 - [ ] Accessibility improvements (WCAG compliance)
+- [ ] Convert hardcoded status light tints to CSS variables
+
+---
+
+## 📝 Changelog
+
+- **v2.0** (2026-03-25): Phase 5.8 review — added typography, extended radius/shadows/transitions, gradient, status light tints
+- **v1.0** (2024-01-21): Initial design system
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Project:** Dashboard Management System for Streamwash (150+ employees)
 **Strategy:** Iterative — Features → QA → Deploy
-**Last Updated:** 2026-03-24
+**Last Updated:** 2026-03-25
 
 ---
 
@@ -141,10 +141,32 @@
 
 ---
 
+### Phase 5.8: Discover Tree View & Group By System ✅ COMPLETED
+**Goal:** Unified tree view, group-by switcher (folder/tag/company/none), slim dividers, adaptive columns
+
+- [x] **Breadcrumb Actions Slot** — `#breadcrumb-actions` slot in PageLayout + search bar moved (PR #120)
+- [x] **GroupBySwitcher** — 4-mode icon button group (folder/tag/company/none) with localStorage (PR #121)
+- [x] **Group By Logic** — computed grouping by tag, company, none + `DisplayGroup` interface (PR #122)
+- [x] **Adaptive Columns** — list view columns change based on group-by mode (PR #123)
+- [x] **TreeDashboardList** — unified tree table replacing GroupedDashboardList (PR #124)
+- [x] **GroupDivider** — slim dividers for grid/compact views, 28px/24px height (PR #125)
+- [x] **Flat Mode** — no-grouping mode for all views (PR #126)
+- [x] **Responsive & Polish** — mobile/tablet breakpoints, accessibility, transitions (PR #127)
+- [x] **Bugfix** — button style overrides, column alignment, default view (PR #128)
+
+**Plan:** [discover-tree-view-groupby-plan.md](discover-tree-view-groupby-plan.md) *(completed)*
+
+---
+
 ### Phase 6: Enhancement & Polish ⏳ PENDING
 **Goal:** UX improvements, real Firebase integration, deploy
 
 - [ ] **Dashboard Lazy Loading** — Intersection Observer, 12 items/batch
+- [ ] **Looker Embed Security Hardening** (P0 — Critical)
+  - Server auth middleware (Firebase ID token verification)
+  - Server-side permission check before returning embed URLs
+  - CSP headers + referrer restriction
+  - Signed/expiring embed URLs
 - [ ] **Server-Side Company Access Control**
   - Middleware validation
   - API endpoint enforcement
@@ -154,7 +176,8 @@
 - [ ] **Deploy to Firebase Hosting**
 
 **Plans:**
-- [company-access-control-plan.md](company-access-control-plan.md)
+- [looker-embed-security-plan.md](looker-embed-security-plan.md) — Looker embed security hardening
+- [company-access-control-plan.md](company-access-control-plan.md) — company access control
 - [archive/user-invitations-plan.md](archive/user-invitations-plan.md) *(archived — completed)*
 
 ---
@@ -249,6 +272,8 @@ Thumbnail API under `server/api/thumbnail/`:
 - [x] Sidebar navigation: role-based menus
 - [x] Moderator dual-view: Viewer mode + Manager mode
 - [x] Dashboard discovery: multi-view modes (Grid/Compact/List), collapsible folders, card limits
+- [x] Discover page: tree view, group-by (folder/tag/company/none), slim dividers, adaptive columns
+- [ ] Looker embed security hardening (auth middleware, CSP, signed URLs)
 - [ ] Dashboard lazy loading (Intersection Observer)
 - [ ] Performance: Page load < 2 seconds
 - [x] Mobile responsive
