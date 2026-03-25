@@ -136,6 +136,7 @@ const handleCreateFolder = () => {
         class="page-layout-breadcrumbs"
       >
         <Breadcrumbs :items="breadcrumbs" />
+        <slot name="breadcrumb-actions" />
       </div>
 
       <!-- Page content slot -->
@@ -152,6 +153,10 @@ const handleCreateFolder = () => {
 }
 
 .page-layout-breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 0.5rem);
   padding: 0 var(--spacing-xl);
   flex-shrink: 0;
   border-bottom: 1px solid var(--color-border-light, #e5e7eb);

@@ -3,8 +3,8 @@
 > **Purpose:** Main page for browsing and discovering available dashboards by folder structure
 > **Users:** All roles (USER, MODERATOR, ADMIN)
 > **Current Implementation:** `app/pages/dashboard/discover.vue` using Strategy 4 (Pinia stores + composables)
-> **Last Updated:** 2026-02-13
-> **Version:** 4.0 (Consolidated with Single Source of Truth)
+> **Last Updated:** 2026-03-24
+> **Version:** 5.0 (Multi-View Modes: Grid / Compact / List)
 
 ---
 
@@ -144,26 +144,42 @@ Features:
 ### 2. Dashboard Header
 
 ```
-📊 4 Dashboards Found
-
-Shows:
-- Count of dashboards in current folder
-- Filters applied (if any)
-```
-
-### 3. Dashboard Grid
-
-```
-[Dashboard Card 1] [Dashboard Card 2] [Dashboard Card 3]
-[Dashboard Card 4] [Dashboard Card 5]
-[Load More...]
+☃️ พบ 50 แดชบอร์ด ใน 12 โฟลเดอร์           [▦][▤][≡]  📁โฟลเดอร์ 🏢บริษัท
+                                              Grid Compact List
 
 Features:
-- Grid layout (2-3 columns on desktop, responsive)
-- Infinite scroll pagination
-- Show only accessible dashboards
-- Card shows: title, creator, updated date, actions
+- Count of dashboards and folders
+- View mode switcher: Grid / Compact / List (persisted in localStorage)
+- Folder filter dropdown
+- Company filter dropdown
+- Expand/Collapse all folders buttons (in grouped view)
 ```
+
+### 3. View Modes
+
+**Grid (default):** 4 columns, full card (~320px height), open button visible
+
+**Compact:** 5-6 columns, small card (~160px), 80px thumbnail, whole card clickable
+
+**List:** Horizontal rows (~48px each), color swatch + name + tags + company + arrow
+
+### 4. Dashboard Display
+
+**Grouped View** (no folder selected): Dashboards grouped by folder with:
+- Folder header: icon + name + count badge + moderator info
+- Collapsible: click header to expand/collapse (chevron ▼/▶, 200ms animation)
+- Card limit per folder: Grid=4, Compact=6, List=8 with "ดูทั้งหมด N แดชบอร์ด →" link
+- Default: ≤5 folders expand all, >5 folders expand first 3
+
+**Flat View** (folder selected): Dashboard cards/rows without folder grouping
+
+### 5. Responsive Breakpoints
+
+| Breakpoint | Grid | Compact | List |
+|-----------|------|---------|------|
+| Desktop (>1024px) | 4 col | 5-6 col | Full |
+| Tablet (≤1024px) | 3 col | 4 col | Full |
+| Mobile (≤768px) | 1 col | 2 col | Full |
 
 ---
 

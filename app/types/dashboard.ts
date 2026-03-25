@@ -32,6 +32,23 @@ export interface AuthUser extends User {
 export type ViewMode = 'grid' | 'compact' | 'list'
 
 // ============================================================================
+// DISPLAY GROUP (Generic group for Group By feature)
+// ============================================================================
+
+/**
+ * Generic group container used by GroupBy feature.
+ * Supports folder, tag, company, and flat (none) modes.
+ */
+export interface DisplayGroup {
+  id: string
+  name: string
+  icon?: string       // 'folder' | 'tag' | 'company' — for icon rendering
+  color?: string      // Tag color accent
+  subtitle?: string   // Moderator info (folder) or description (tag)
+  dashboards: Dashboard[]
+}
+
+// ============================================================================
 // FOLDER & HIERARCHY TYPES
 // ============================================================================
 

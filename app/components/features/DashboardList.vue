@@ -18,8 +18,9 @@
       <div class="list-header">
         <div class="list-header__swatch" />
         <span class="list-header__col list-header__name">ชื่อ</span>
-        <span class="list-header__col list-header__tags">แท็ก</span>
-        <span class="list-header__col list-header__company">บริษัท</span>
+        <span v-if="showFolder" class="list-header__col list-header__folder">โฟลเดอร์</span>
+        <span v-if="showTags" class="list-header__col list-header__tags">แท็ก</span>
+        <span v-if="showCompany" class="list-header__col list-header__company">บริษัท</span>
         <div class="list-header__arrow" />
       </div>
 
@@ -29,6 +30,8 @@
         :key="dashboard.id"
         :dashboard="dashboard"
         :tags="tags"
+        :visible-columns="visibleColumns"
+        :folder-map="folderMap"
         @view="$emit('view-dashboard', dashboard)"
       />
     </template>
@@ -42,20 +45,31 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Dashboard } from '~/types/dashboard'
 import type { Tag } from '~/types/tag'
 import DashboardListItem from './DashboardListItem.vue'
 
-withDefaults(defineProps<{
+export type ListColumn = 'tags' | 'company' | 'folder'
+
+const props = withDefaults(defineProps<{
   dashboards?: Dashboard[]
   tags?: Tag[]
   loading?: boolean
   emptyMessage?: string
+  visibleColumns?: ListColumn[]
+  folderMap?: Record<string, string>
 }>(), {
   dashboards: () => [],
   loading: false,
   emptyMessage: 'ไม่พบแดชบอร์ด',
+  visibleColumns: () => ['tags', 'company'],
+  folderMap: () => ({}),
 })
+
+const showFolder = computed(() => props.visibleColumns.includes('folder'))
+const showTags = computed(() => props.visibleColumns.includes('tags'))
+const showCompany = computed(() => props.visibleColumns.includes('company'))
 
 defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
@@ -102,14 +116,19 @@ defineEmits<{
   min-width: 0;
 }
 
+.list-header__folder {
+  flex-shrink: 0;
+  width: 100px;
+}
+
 .list-header__tags {
   flex-shrink: 0;
-  min-width: 120px;
+  width: 180px;
 }
 
 .list-header__company {
   flex-shrink: 0;
-  min-width: 80px;
+  width: 80px;
 }
 
 .list-header__arrow {
@@ -167,6 +186,10 @@ defineEmits<{
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
+  .list-header__folder {
+    display: none;
+  }
+
   .list-header__tags {
     display: none;
   }

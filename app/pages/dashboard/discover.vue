@@ -11,35 +11,37 @@
       @select-folder="(folder) => selectFolder(folder.id)"
       @create-folder="handleCreateFolder"
     >
+      <!-- Search Bar in breadcrumb row -->
+      <template #breadcrumb-actions>
+        <div class="discover-search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="search-input"
+            placeholder="ค้นหาแดชบอร์ด..."
+            aria-label="ค้นหาแดชบอร์ด"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="search-clear"
+            aria-label="ล้างการค้นหา"
+            @click="searchQuery = ''"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </template>
+
       <!-- Main: Dashboard Grid -->
       <div class="discover-main-content">
-
-          <!-- Search Bar -->
-          <div class="discover-search">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              v-model="searchQuery"
-              type="text"
-              class="search-input"
-              placeholder="ค้นหาแดชบอร์ด..."
-              aria-label="ค้นหาแดชบอร์ด"
-            />
-            <button
-              v-if="searchQuery"
-              type="button"
-              class="search-clear"
-              aria-label="ล้างการค้นหา"
-              @click="searchQuery = ''"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
 
           <!-- Filters: Tag + Folder -->
           <div class="discover-filters">
@@ -78,15 +80,26 @@
             </svg>
             <h2 class="dashboards-count">{{ dashboardCountText }}</h2>
 
-            <!-- Expand / Collapse All (only in grouped view) -->
+            <!-- Expand / Collapse All (only in grouped view, hidden on mobile) -->
             <div v-if="isGroupedView" class="folder-collapse-controls">
-              <button type="button" class="collapse-ctrl-btn" @click="expandAllFolders">ขยายทั้งหมด</button>
+              <button type="button" class="collapse-ctrl-btn" title="ขยายทุกกลุ่ม" aria-label="ขยายทุกกลุ่ม" @click="expandAllFolders">ขยายทั้งหมด</button>
               <span class="collapse-ctrl-divider">|</span>
-              <button type="button" class="collapse-ctrl-btn" @click="collapseAllFolders">ย่อทั้งหมด</button>
+              <button type="button" class="collapse-ctrl-btn" title="ย่อทุกกลุ่ม" aria-label="ย่อทุกกลุ่ม" @click="collapseAllFolders">ย่อทั้งหมด</button>
             </div>
 
-            <!-- View Mode Switcher -->
-            <div class="view-mode-switcher">
+            <!-- Group By Switcher + Divider + View Mode Switcher (right cluster) -->
+            <div class="header-right-controls">
+              <GroupBySwitcher
+                v-model="groupBy"
+                :show-folders="folderTree.length > 0"
+                :is-admin="isAdmin"
+              />
+
+              <!-- Divider -->
+              <span class="header-switcher-divider" aria-hidden="true" />
+
+              <!-- View Mode Switcher -->
+              <div class="view-mode-switcher">
               <button
                 type="button"
                 class="view-mode-btn"
@@ -139,8 +152,9 @@
                   <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
               </button>
-            </div>
-          </div>
+              </div>
+            </div><!-- /.header-right-controls -->
+          </div><!-- /.dashboards-header -->
 
           <!-- Error Message -->
           <div v-if="error" class="theme-alert theme-alert--error" role="alert">
@@ -155,33 +169,35 @@
             </button>
           </div>
 
-          <!-- View Content: crossfade 200ms when switching view mode -->
+          <!-- View Content: crossfade 200ms when switching view mode or group-by -->
           <Transition name="view-fade" mode="out-in">
-            <div :key="viewMode" class="view-content">
-              <!-- List View — Grouped -->
-              <GroupedDashboardList
+            <div :key="`${viewMode}-${groupBy}`" class="view-content">
+              <!-- List View — Grouped (Tree Table) -->
+              <TreeDashboardList
                 v-if="viewMode === 'list' && isGroupedView"
-                :groups="groupedDashboards"
+                :groups="activeGroups"
                 :tags="tagStore.activeTags"
                 :loading="isLoading"
                 :user-map="userMap"
-                :collapsed-folders="collapsedFolders"
-                :max-per-folder="maxPerFolder"
+                :collapsed-groups="collapsedFolders"
+                :max-per-group="maxPerFolder"
+                :visible-columns="visibleColumns"
+                :folder-map="folderNameMap"
                 empty-message="ไม่พบแดชบอร์ด"
                 @view-dashboard="handleViewDashboard"
-                @share-dashboard="handleShareDashboard"
-                @menu-dashboard="handleMenuDashboard"
-                @toggle-folder="toggleFolder"
-                @view-folder="handleViewFolder"
+                @toggle-group="toggleFolder"
+                @view-group="handleViewFolder"
               />
 
-              <!-- List View — Flat -->
+              <!-- List View — Flat (groupBy=none or specific folder) -->
               <DashboardList
                 v-else-if="viewMode === 'list'"
                 :dashboards="filteredDashboards"
                 :tags="tagStore.activeTags"
                 :loading="isLoading"
-                empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+                :visible-columns="visibleColumns"
+                :folder-map="folderNameMap"
+                :empty-message="flatEmptyMessage"
                 @view-dashboard="handleViewDashboard"
                 @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
@@ -190,27 +206,27 @@
               <!-- Grouped View (when showing all folders) -->
               <GroupedDashboardGrid
                 v-else-if="isGroupedView"
-                :groups="groupedDashboards"
+                :groups="activeGroups"
                 :loading="isLoading"
                 :user-map="userMap"
                 :view-mode="viewMode"
-                :collapsed-folders="collapsedFolders"
-                :max-per-folder="maxPerFolder"
+                :collapsed-groups="collapsedFolders"
+                :max-per-group="maxPerFolder"
                 empty-message="ไม่พบแดชบอร์ด"
                 @view-dashboard="handleViewDashboard"
                 @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
-                @toggle-folder="toggleFolder"
-                @view-folder="handleViewFolder"
+                @toggle-group="toggleFolder"
+                @view-group="handleViewFolder"
               />
 
-              <!-- Flat View (when specific folder selected) -->
+              <!-- Flat View (groupBy=none or specific folder) -->
               <DashboardGrid
                 v-else
                 :dashboards="filteredDashboards"
                 :loading="isLoading"
                 :view-mode="viewMode"
-                empty-message="ไม่มีแดชบอร์ดในโฟลเดอร์นี้"
+                :empty-message="flatEmptyMessage"
                 @view-dashboard="handleViewDashboard"
                 @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
@@ -267,14 +283,15 @@ import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
 import GroupedDashboardGrid from '~/components/features/GroupedDashboardGrid.vue'
-import DashboardList from '~/components/features/DashboardList.vue'
-import GroupedDashboardList from '~/components/features/GroupedDashboardList.vue'
+import DashboardList, { type ListColumn } from '~/components/features/DashboardList.vue'
+import TreeDashboardList from '~/components/features/TreeDashboardList.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
+import GroupBySwitcher, { type GroupByMode } from '~/components/features/GroupBySwitcher.vue'
 import { computed, ref, watch, onMounted } from 'vue'
-import type { ViewMode } from '~/types/dashboard'
+import type { ViewMode, DisplayGroup } from '~/types/dashboard'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
@@ -389,6 +406,22 @@ const { isAdmin } = useCompanyAccess()
 const selectedCompanyCode = ref<string | null>(null)
 const searchQuery = ref('')
 
+// ========== Group By Switcher ==========
+const GROUP_BY_KEY = 'streamhub-discover-group-by'
+const getInitialGroupBy = (): GroupByMode => {
+  if (import.meta.client) {
+    const saved = localStorage.getItem(GROUP_BY_KEY)
+    if (saved === 'folder' || saved === 'tag' || saved === 'company' || saved === 'none') return saved
+  }
+  return 'none'
+}
+const groupBy = ref<GroupByMode>(getInitialGroupBy())
+watch(groupBy, (mode) => {
+  if (import.meta.client) {
+    localStorage.setItem(GROUP_BY_KEY, mode)
+  }
+})
+
 // ========== View Mode Switcher ==========
 const VIEW_MODE_KEY = 'streamhub-discover-view-mode'
 const getInitialViewMode = (): ViewMode => {
@@ -440,7 +473,7 @@ const handleTagFilterUpdate = (ids: string[]) => {
 
 /**
  * Filtered dashboards by selected tags (AND logic) + company filter
- * NOTE: Must be declared before groupedDashboards and collapsible folder logic
+ * NOTE: Must be declared before collapsible folder logic
  */
 const filteredDashboards = computed<Dashboard[]>(() => {
   let result = dashboards.value
@@ -531,34 +564,153 @@ const handleDropdownChange = (folderId: string | null) => {
 }
 
 /**
- * Grouped view — active when no folder is selected
+ * Grouped view — active when no folder is selected and a group-by mode is active
  */
-const isGroupedView = computed(() => !selectedFolderId.value && folders.value.length > 0)
+const isGroupedView = computed(() =>
+  !selectedFolderId.value && groupBy.value !== 'none' && activeGroups.value.length > 0
+)
 
-/**
- * Group filtered dashboards by folder (hide empty groups)
- */
-const groupedDashboards = computed(() => {
-  if (!isGroupedView.value) return []
+// ========== Group By: DisplayGroup computed ==========
+
+/** Group by folder as DisplayGroup[] (for future TreeDashboardList) */
+const groupedByFolder = computed<DisplayGroup[]>(() => {
+  if (selectedFolderId.value) return []
   const folderMap = new Map<string, { folder: Folder; dashboards: Dashboard[] }>()
   for (const folder of folders.value) {
     folderMap.set(folder.id, { folder, dashboards: [] })
   }
   for (const d of filteredDashboards.value) {
-    const group = folderMap.get(d.folderId)
-    if (group) group.dashboards.push(d)
+    const entry = folderMap.get(d.folderId)
+    if (entry) entry.dashboards.push(d)
   }
   return Array.from(folderMap.values())
     .filter((g) => g.dashboards.length > 0)
     .sort((a, b) => a.folder.name.localeCompare(b.folder.name, 'th'))
+    .map((g) => ({
+      id: g.folder.id,
+      name: g.folder.name,
+      icon: 'folder',
+      dashboards: g.dashboards,
+    }))
+})
+
+/** Group by tag — dashboards with multiple tags appear in each group.
+ *  Dashboards with no tags go into a "ไม่มีแท็ก" group at the end. */
+const groupedByTag = computed<DisplayGroup[]>(() => {
+  const tagMap = new Map<string, DisplayGroup>()
+  const untagged: Dashboard[] = []
+
+  for (const tag of tagStore.activeTags) {
+    tagMap.set(tag.id, {
+      id: tag.id,
+      name: tag.name,
+      icon: 'tag',
+      color: tag.color,
+      dashboards: [],
+    })
+  }
+
+  for (const d of filteredDashboards.value) {
+    const dTags = d.tags ?? []
+    if (dTags.length === 0) {
+      untagged.push(d)
+    } else {
+      for (const tagId of dTags) {
+        const group = tagMap.get(tagId)
+        if (group) group.dashboards.push(d)
+      }
+    }
+  }
+
+  const result = Array.from(tagMap.values()).filter((g) => g.dashboards.length > 0)
+  if (untagged.length > 0) {
+    result.push({ id: '__untagged__', name: 'ไม่มีแท็ก', icon: 'tag', dashboards: untagged })
+  }
+  return result
+})
+
+/** Group by company — based on access.company array.
+ *  Dashboards with no company access go into "เฉพาะสิทธิ์" group. */
+const groupedByCompany = computed<DisplayGroup[]>(() => {
+  const companyMap = new Map<string, DisplayGroup>()
+  const directOnly: Dashboard[] = []
+
+  const companyNameMap = new Map<string, string>()
+  for (const c of companies.value) {
+    companyNameMap.set(c.code, c.name)
+  }
+
+  for (const d of filteredDashboards.value) {
+    const companyCodes = d.access?.company ?? []
+    if (companyCodes.length === 0) {
+      directOnly.push(d)
+    } else {
+      for (const code of companyCodes) {
+        if (!companyMap.has(code)) {
+          companyMap.set(code, {
+            id: code,
+            name: companyNameMap.get(code) ?? code,
+            icon: 'company',
+            dashboards: [],
+          })
+        }
+        companyMap.get(code)!.dashboards.push(d)
+      }
+    }
+  }
+
+  const result = Array.from(companyMap.values())
+    .sort((a, b) => a.name.localeCompare(b.name, 'th'))
+  if (directOnly.length > 0) {
+    result.push({ id: '__direct__', name: 'เฉพาะสิทธิ์', icon: 'company', dashboards: directOnly })
+  }
+  return result
+})
+
+/** Active groups based on current groupBy mode */
+const activeGroups = computed<DisplayGroup[]>(() => {
+  if (selectedFolderId.value) return []
+  switch (groupBy.value) {
+    case 'folder': return groupedByFolder.value
+    case 'tag': return groupedByTag.value
+    case 'company': return groupedByCompany.value
+    default: return []
+  }
+})
+
+// ========== Adaptive Columns (List View) ==========
+
+/** Columns visible in list view — hides the column used for grouping */
+const visibleColumns = computed<ListColumn[]>(() => {
+  switch (groupBy.value) {
+    case 'folder': return ['tags', 'company']
+    case 'tag':    return ['folder', 'company']
+    case 'company': return ['folder', 'tags']
+    case 'none':   return ['folder', 'tags', 'company']
+    default:       return ['tags', 'company']
+  }
+})
+
+/** Contextual empty message — folder-specific or generic */
+const flatEmptyMessage = computed(() =>
+  selectedFolderId.value ? 'ไม่มีแดชบอร์ดในโฟลเดอร์นี้' : 'ไม่พบแดชบอร์ด'
+)
+
+/** Map folderId → folder name for displaying folder chips in list items */
+const folderNameMap = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {}
+  for (const folder of folders.value) {
+    map[folder.id] = folder.name
+  }
+  return map
 })
 
 // ========== Collapsible Folder Groups ==========
-// NOTE: Must come after groupedDashboards is declared
+// NOTE: Must come after activeGroups is declared
 const collapsedFolders = ref<Set<string>>(new Set())
 
 const initCollapsedFolders = () => {
-  const ids = groupedDashboards.value.map((g) => g.folder.id)
+  const ids = activeGroups.value.map((g) => g.id)
   const newSet = new Set<string>()
   if (ids.length > 5) {
     // Collapse all except first 3
@@ -582,7 +734,7 @@ const expandAllFolders = () => {
 }
 
 const collapseAllFolders = () => {
-  collapsedFolders.value = new Set(groupedDashboards.value.map((g) => g.folder.id))
+  collapsedFolders.value = new Set(activeGroups.value.map((g) => g.id))
 }
 
 // ========== Max Cards Per Folder ==========
@@ -597,8 +749,8 @@ const handleViewFolder = (folderId: string) => {
   selectFolder(folderId)
 }
 
-// Initialise collapse state once groupedDashboards is ready
-watch(groupedDashboards, (groups, prevGroups) => {
+// Initialise collapse state once activeGroups is ready
+watch(activeGroups, (groups, prevGroups) => {
   // Only set defaults on first meaningful load (going from empty → populated)
   if (!prevGroups?.length && groups.length > 0) {
     initCollapsedFolders()
@@ -606,23 +758,35 @@ watch(groupedDashboards, (groups, prevGroups) => {
 }, { immediate: false })
 
 /**
- * Status text showing count + active tag names + company filter
+ * Status text showing count + active groupBy label + filter suffixes
  */
 const dashboardCountText = computed(() => {
   const selected = tagStore.selectedTagIds
   const companySuffix = selectedCompanyCode.value ? ` · บริษัท: ${selectedCompanyCode.value}` : ''
   const searchSuffix = searchQuery.value.trim() ? ` · ค้นหา: "${searchQuery.value.trim()}"` : ''
 
-  if (isGroupedView.value) {
-    const groupCount = groupedDashboards.value.length
-    const count = groupedDashboards.value.reduce((sum, g) => sum + g.dashboards.length, 0)
-    const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
-    if (selected.length > 0) {
-      const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
-      return `${base} · แท็ก: ${tagNames}${companySuffix}${searchSuffix}`
+  const mode = groupBy.value
+
+  if (!selectedFolderId.value && mode !== 'none') {
+    const groups = activeGroups.value
+    const count = groups.reduce((sum, g) => sum + g.dashboards.length, 0)
+    const groupCount = groups.length
+    if (mode === 'folder') {
+      const base = `พบ ${count} แดชบอร์ด ใน ${groupCount} โฟลเดอร์`
+      if (selected.length > 0) {
+        const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
+        return `${base} · แท็ก: ${tagNames}${companySuffix}${searchSuffix}`
+      }
+      return `${base}${companySuffix}${searchSuffix}`
     }
-    return `${base}${companySuffix}${searchSuffix}`
+    if (mode === 'tag') {
+      return `พบ ${count} แดชบอร์ด ใน ${groupCount} แท็ก${companySuffix}${searchSuffix}`
+    }
+    if (mode === 'company') {
+      return `พบ ${count} แดชบอร์ด ใน ${groupCount} บริษัท${searchSuffix}`
+    }
   }
+
   const count = filteredDashboards.value.length
   if (selected.length === 0) return `พบ ${count} แดชบอร์ด${companySuffix}${searchSuffix}`
   const tagNames = tagStore.getTagsByIds(selected).map((t) => t.name).join(', ')
@@ -709,11 +873,14 @@ const dashboardCountText = computed(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm, 0.5rem);
-  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
+  padding: var(--spacing-xs, 0.25rem) var(--spacing-md, 1rem);
   background-color: var(--color-bg-secondary, #f3f4f6);
   border: 1px solid var(--color-border-light, #e5e7eb);
   border-radius: var(--radius-md, 0.375rem);
   transition: border-color var(--transition-base, 0.2s ease);
+  max-width: 320px;
+  width: 100%;
+  margin-left: auto;
 }
 
 .discover-search:focus-within {
@@ -803,14 +970,30 @@ const dashboardCountText = computed(() => {
 }
 
 /* ========== VIEW MODE SWITCHER ========== */
+.header-right-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs, 0.25rem);
+  margin-left: auto;
+}
+
 .view-mode-switcher {
   display: flex;
   align-items: center;
   gap: 2px;
-  margin-left: auto;
   background: var(--color-bg-secondary, #f3f4f6);
   border-radius: var(--radius-md, 0.375rem);
   padding: 2px;
+}
+
+/* Divider between GroupBySwitcher and ViewModeSwitcher */
+.header-switcher-divider {
+  display: block;
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-light, #e5e7eb);
+  flex-shrink: 0;
+  margin: 0 2px;
 }
 
 /* ========== FOLDER COLLAPSE CONTROLS ========== */
@@ -898,6 +1081,11 @@ const dashboardCountText = computed(() => {
 
 /* Mobile */
 @media (max-width: 768px) {
+  .discover-search {
+    max-width: 100%;
+    flex-basis: 100%;
+  }
+
   .discover-main-content {
     padding: var(--spacing-sm) var(--spacing-md) 0;
   }
@@ -927,11 +1115,9 @@ const dashboardCountText = computed(() => {
     min-width: 0;
   }
 
-  /* Collapse controls: move to second row */
+  /* Hide collapse controls on mobile */
   .folder-collapse-controls {
-    order: 3;
-    width: 100%;
-    margin-left: 0;
+    display: none;
   }
 
   /* View mode switcher stays on same row as count */
@@ -947,6 +1133,22 @@ const dashboardCountText = computed(() => {
   .view-mode-btn svg {
     width: 15px;
     height: 15px;
+  }
+
+  /* Shrink GroupBySwitcher on mobile to match view mode buttons */
+  .header-right-controls :deep(.group-by-btn) {
+    width: 28px;
+    height: 28px;
+  }
+
+  .header-right-controls :deep(.group-by-btn svg) {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Thinner divider on mobile */
+  .header-switcher-divider {
+    height: 16px;
   }
 }
 </style>

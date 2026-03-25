@@ -1,5 +1,5 @@
 <template>
-  <div class="grouped-dashboard-grid">
+  <div class="grouped-dashboard-grid" :class="`grouped-dashboard-grid--${viewMode}`">
     <!-- Empty State -->
     <div v-if="!loading && groups.length === 0" class="grid-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -10,44 +10,23 @@
       <p>{{ emptyMessage }}</p>
     </div>
 
-    <!-- Folder Groups -->
+    <!-- Groups (generic DisplayGroup) -->
     <section
       v-for="group in groups"
-      :key="group.folder.id"
+      :key="group.id"
       class="folder-group"
     >
-      <button
-        type="button"
-        class="folder-group__header"
-        :aria-expanded="!collapsedFolders.has(group.folder.id)"
-        @click="$emit('toggle-folder', group.folder.id)"
-      >
-        <svg class="folder-group__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-        </svg>
-        <h3 class="folder-group__name">{{ group.folder.name }}</h3>
-        <span class="folder-group__count">{{ group.dashboards.length }}</span>
-        <span
-          v-if="getModeratorLabel(group.folder)"
-          class="folder-group__moderator"
-        >
-          ผู้ดูแล: {{ getModeratorLabel(group.folder) }}
-        </span>
-        <svg
-          class="folder-group__chevron"
-          :class="{ 'is-collapsed': collapsedFolders.has(group.folder.id) }"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
+      <GroupDivider
+        :group="group"
+        :collapsed="collapsedGroups.has(group.id)"
+        :size="viewMode === 'compact' ? 'compact' : 'default'"
+        :title="group.subtitle || ''"
+        @toggle="$emit('toggle-group', group.id)"
+      />
       <Transition name="folder-collapse">
-        <div v-if="!collapsedFolders.has(group.folder.id)" class="folder-group__content">
+        <div v-if="!collapsedGroups.has(group.id)" class="folder-group__content">
           <DashboardGrid
-            :dashboards="maxPerFolder ? group.dashboards.slice(0, maxPerFolder) : group.dashboards"
+            :dashboards="maxPerGroup ? group.dashboards.slice(0, maxPerGroup) : group.dashboards"
             :loading="false"
             :view-mode="viewMode"
             @view-dashboard="(d) => $emit('view-dashboard', d)"
@@ -55,10 +34,10 @@
             @menu-dashboard="(d, e) => $emit('menu-dashboard', d, e)"
           />
           <button
-            v-if="maxPerFolder && group.dashboards.length > maxPerFolder"
+            v-if="maxPerGroup && group.dashboards.length > maxPerGroup"
             type="button"
             class="view-all-link"
-            @click="$emit('view-folder', group.folder.id)"
+            @click="$emit('view-group', group.id)"
           >
             ดูทั้งหมด {{ group.dashboards.length }} แดชบอร์ด →
           </button>
@@ -75,49 +54,39 @@
 </template>
 
 <script setup lang="ts">
-import type { Dashboard, Folder, User } from '~/types/dashboard'
+import type { Dashboard, User, DisplayGroup } from '~/types/dashboard'
 import type { ViewMode } from '~/types/dashboard'
 import DashboardGrid from './DashboardGrid.vue'
+import GroupDivider from './GroupDivider.vue'
 
+/** @deprecated Use DisplayGroup instead — kept for backward compatibility */
 export interface DashboardGroup {
-  folder: Folder
+  folder: { id: string; name: string; assignedModerators?: string[] }
   dashboards: Dashboard[]
 }
 
-const props = withDefaults(defineProps<{
-  groups: DashboardGroup[]
+withDefaults(defineProps<{
+  groups: DisplayGroup[]
   loading?: boolean
   emptyMessage?: string
   userMap?: Record<string, User>
   viewMode?: ViewMode
-  collapsedFolders?: Set<string>
-  maxPerFolder?: number
+  collapsedGroups?: Set<string>
+  maxPerGroup?: number
 }>(), {
   loading: false,
   emptyMessage: 'ไม่พบแดชบอร์ด',
   userMap: () => ({}),
   viewMode: 'grid',
-  collapsedFolders: () => new Set<string>(),
+  collapsedGroups: () => new Set<string>(),
 })
-
-const getModeratorLabel = (folder: Folder): string => {
-  const mods = folder.assignedModerators
-  if (!mods || mods.length === 0) return ''
-  return mods
-    .map(uid => {
-      const user = props.userMap[uid]
-      if (!user) return uid
-      return `${user.name} (${user.company})`
-    })
-    .join(', ')
-}
 
 defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
   'share-dashboard': [dashboard: Dashboard]
   'menu-dashboard': [dashboard: Dashboard, event: MouseEvent]
-  'toggle-folder': [folderId: string]
-  'view-folder': [folderId: string]
+  'toggle-group': [groupId: string]
+  'view-group': [groupId: string]
 }>()
 </script>
 
@@ -125,80 +94,25 @@ defineEmits<{
 .grouped-dashboard-grid {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+}
+
+/* Gap varies by view mode */
+.grouped-dashboard-grid--grid {
+  gap: 12px;
+}
+
+.grouped-dashboard-grid--compact {
+  gap: 8px;
+}
+
+.grouped-dashboard-grid--list {
+  gap: 12px;
 }
 
 /* ========== FOLDER GROUP ========== */
 .folder-group {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-}
-
-.folder-group__icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: var(--color-primary);
-  flex-shrink: 0;
-}
-
-.folder-group__name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-.folder-group__count {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  background-color: var(--color-bg-secondary, #f3f4f6);
-  padding: 2px 8px;
-  border-radius: 9999px;
-}
-
-.folder-group__moderator {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-}
-
-/* ========== FOLDER GROUP HEADER (clickable) ========== */
-.folder-group__header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border-light);
-  background: none;
-  border-top: none;
-  border-left: none;
-  border-right: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  color: inherit;
-  padding-top: 0;
-  padding-left: 0;
-  padding-right: 0;
-  border-radius: 0;
-
-  &:hover .folder-group__name {
-    color: var(--color-primary);
-  }
-}
-
-.folder-group__chevron {
-  width: 1rem;
-  height: 1rem;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-  margin-left: auto;
-  transition: transform 200ms ease;
-
-  &.is-collapsed {
-    transform: rotate(-90deg);
-  }
 }
 
 .folder-group__content {
@@ -279,17 +193,6 @@ defineEmits<{
 
   &:hover {
     text-decoration: underline;
-  }
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
-  .folder-group__moderator {
-    display: none;
-  }
-
-  .folder-group__header {
-    gap: var(--spacing-xs, 0.25rem);
   }
 }
 </style>
