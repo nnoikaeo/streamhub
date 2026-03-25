@@ -1,12 +1,12 @@
 ---
 title: Code Review Process
-version: 1.0
-updated: 2024-01-21
+version: 2.0
+updated: 2026-03-25
 ---
 
 # Code Review Process
 
-How we review pull requests.
+How we review pull requests **and** keep documentation up-to-date.
 
 ## For Authors
 
@@ -17,6 +17,9 @@ How we review pull requests.
 - [ ] Commit messages are clear
 - [ ] PR description explains changes
 - [ ] Code follows [Coding Standards](coding-standards.md)
+- [ ] **Doc Check:** ถ้าเพิ่ม/แก้ component → อัปเดต [COMPONENT_ARCHITECTURE.md](../DESIGN/COMPONENT_ARCHITECTURE.md)
+- [ ] **Doc Check:** ถ้าเปลี่ยน design token/CSS → อัปเดต [DESIGN_SYSTEM.md](../DESIGN/DESIGN_SYSTEM.md)
+- [ ] **Doc Check:** ถ้าเพิ่ม API endpoint → อัปเดต [roadmap.md](../OPERATIONS/roadmap.md)
 
 ### During Review
 
@@ -106,6 +109,48 @@ Firestore docs for details."
 - [ ] No security concerns
 - [ ] Performance acceptable
 - [ ] Commit messages clear
+
+---
+
+## 📄 Design Doc Review (Doc Drift Prevention)
+
+Design docs ต้อง review เป็นรอบๆ เพื่อป้องกัน **doc drift** — เอกสารล้าสมัยไม่ตรงกับโค้ดจริง
+
+### เมื่อไหร่ต้อง Review
+
+| Trigger | ไฟล์ที่ต้องตรวจ |
+|---------|----------------|
+| **จบ Phase / Sprint** | ทุกไฟล์ (COMPONENT_ARCHITECTURE, DESIGN_SYSTEM, roadmap) |
+| **เพิ่ม/ลบ Component** | [COMPONENT_ARCHITECTURE.md](../DESIGN/COMPONENT_ARCHITECTURE.md) |
+| **เปลี่ยน CSS/Theme** | [DESIGN_SYSTEM.md](../DESIGN/DESIGN_SYSTEM.md) |
+| **เพิ่ม API / Page** | [roadmap.md](../OPERATIONS/roadmap.md) |
+| **ก่อน Release (develop→main)** | ทุกไฟล์ |
+
+### Review Prompt (ใช้กับ Copilot)
+
+```
+Review docs/DESIGN/COMPONENT_ARCHITECTURE.md ให้ตรงกับโค้ดจริงใน app/components/:
+- Component ใหม่ที่ยังไม่มีในเอกสาร?
+- Component ที่ถูกลบหรือเปลี่ยนชื่อ?
+- Props/slots ที่เพิ่มใหม่?
+- อัปเดต version + Last Updated date
+```
+
+```
+Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/ + tailwind.config.ts:
+- CSS variables ที่เพิ่ม/เปลี่ยน?
+- Tailwind extensions ที่ยังไม่ document?
+- สีหรือ design token ใหม่?
+```
+
+### Phase Wrap-up Checklist
+
+ทุกครั้งที่จบ Phase ให้ทำ:
+
+- [ ] Review + อัปเดต COMPONENT_ARCHITECTURE.md (version bump)
+- [ ] Review + อัปเดต DESIGN_SYSTEM.md (version bump)
+- [ ] อัปเดต roadmap.md (mark phase completed)
+- [ ] Archive completed plan docs → `docs/OPERATIONS/archive/`
 
 ---
 

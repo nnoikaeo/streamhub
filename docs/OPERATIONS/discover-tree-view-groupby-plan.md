@@ -1,4 +1,4 @@
-# Discover Page: Tree View & Group By System
+git # Discover Page: Tree View & Group By System
 
 **Branch:** `feat/discover-tree-view-groupby`  
 **Base:** `develop`  
@@ -320,11 +320,14 @@ interface DisplayGroup {
 
 ## Checklist สำหรับแต่ละงาน
 
-- [ ] **งานที่ 1:** PageLayout breadcrumb-actions slot + search bar ย้าย
-- [ ] **งานที่ 2:** GroupBySwitcher component
-- [ ] **งานที่ 3:** Group By logic (tag, company, none)
-- [ ] **งานที่ 4:** Adaptive columns (list view)
-- [ ] **งานที่ 5:** TreeDashboardList (unified tree table)
-- [ ] **งานที่ 6:** GroupDivider (slim dividers for grid/compact)
-- [ ] **งานที่ 7:** Flat mode (no grouping)
-- [ ] **งานที่ 8:** Responsive & polish
+- [x] **งานที่ 1:** PageLayout breadcrumb-actions slot + search bar ย้าย (PR #120)
+- [x] **งานที่ 2:** GroupBySwitcher component (PR #121)
+- [x] **งานที่ 3:** Group By logic (tag, company, none) (PR #122)
+- [x] **งานที่ 4:** Adaptive columns (list view) (PR #123)
+- [x] **งานที่ 5:** TreeDashboardList (unified tree table) (PR #124)
+- [x] **งานที่ 6:** GroupDivider (slim dividers for grid/compact) (PR #125)
+- [x] **งานที่ 7:** Flat mode (no grouping) (PR #126)
+- [x] **งานที่ 8:** Responsive & polish (PR #127)
+- [x] **Bugfix:** Button style overrides, column alignment, default view (PR #128)
+
+**Status:** ✅ ALL COMPLETED — Released to main (PR #130)
