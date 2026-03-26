@@ -240,11 +240,12 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ---
 
-## Task 4: Company Access — API Enforcement 🟠 P1
+## Task 4: Company Access — API Enforcement ✅ Done
 
 **Branch:** `feat/company-api-enforcement`
 **Depends on:** Task 1 (ใช้ auth context)
 **Effort:** 1-2 วัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 อัปเดต API endpoints ให้ใช้ company access validation จาก `server/utils/companyAccess.ts` ที่มีอยู่แล้ว
@@ -296,11 +297,11 @@ Task 13-15 (Production) — ทำหลังสุด
 - ทดสอบโดย run `npm run dev` → login → ทุกหน้ายังทำงานปกติ
 
 ### Verification:
-- [ ] GET dashboards โดย non-admin → เห็นเฉพาะ dashboards ที่มีสิทธิ์
-- [ ] GET dashboards โดย admin → เห็นทั้งหมด
-- [ ] GET users โดย non-admin → เห็นเฉพาะ users ใน company เดียวกัน
-- [ ] GET folders → filter ตาม role ถูกต้อง
-- [ ] ทุกหน้ายังทำงานปกติ ไม่มี error
+- [x] GET dashboards โดย non-admin → เห็นเฉพาะ dashboards ที่มีสิทธิ์
+- [x] GET dashboards โดย admin → เห็นทั้งหมด
+- [x] GET users โดย non-admin → เห็นเฉพาะ users ใน company เดียวกัน
+- [x] GET folders → filter ตาม role ถูกต้อง
+- [x] ทุกหน้ายังทำงานปกติ ไม่มี error
 ```
 
 ---
@@ -800,7 +801,7 @@ Deploy StreamHub ขึ้น Firebase Hosting
 | 1 | Server Auth Middleware | 🔴 P0 | 1-2 วัน | ✅ Completed |
 | 2 | ซ่อน Embed URL | 🔴 P0 | ครึ่งวัน | ⬜ Not Started |
 | 3 | CSP + Security Headers | 🔴 P0 | ครึ่งวัน | ✅ Completed |
-| 4 | Company API Enforcement | 🟠 P1 | 1-2 วัน | ⬜ Not Started |
+| 4 | Company API Enforcement | 🟠 P1 | 1-2 วัน | ✅ Completed |
 | 5 | Company Client Integration | 🟠 P1 | 1 วัน | ⬜ Not Started |
 | 6 | Server URL Proxy | 🟠 P1 | 2-3 วัน | ⬜ Not Started |
 | 7 | Audit Logging | 🟡 P2 | 1-2 วัน | ⬜ Not Started |
