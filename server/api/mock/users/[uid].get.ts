@@ -22,8 +22,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // If requester provided: validate cross-company access
-    const requesterUid = query.requester as string
+    // Use verified auth context (from middleware) first, fallback to query param
+    const requesterUid = event.context.auth?.uid || (query.requester as string)
     if (requesterUid) {
       const requester = await findById('users.json', requesterUid)
       if (requester && (requester as any).role !== 'admin') {

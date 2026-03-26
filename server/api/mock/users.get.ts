@@ -6,7 +6,8 @@ export default defineEventHandler(async (event) => {
     console.log('[API] GET /api/mock/users')
     console.log('  📥 Query params:', query)
 
-    const uid = query.uid as string
+    // Use verified auth context (from middleware) first, fallback to query param
+    const uid = event.context.auth?.uid || (query.uid as string)
     const companyFilter = query.company as string
 
     // If requester uid provided: validate access and filter by company

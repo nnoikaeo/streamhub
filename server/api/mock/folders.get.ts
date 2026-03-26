@@ -12,8 +12,8 @@ export default defineEventHandler(async (event) => {
 
     let filtered: any[] = folders as any[]
 
-    // If uid provided: filter by role
-    const uid = query.uid as string
+    // Use verified auth context (from middleware) first, fallback to query param
+    const uid = event.context.auth?.uid || (query.uid as string)
     if (uid) {
       const user = await findById('users.json', uid)
       if (user && (user as any).role !== 'admin') {
