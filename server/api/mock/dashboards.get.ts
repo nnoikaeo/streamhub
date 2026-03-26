@@ -4,7 +4,8 @@ export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
 
-    const uid = query.uid as string
+    // Use verified auth context (from middleware) first, fallback to query param
+    const uid = event.context.auth?.uid || (query.uid as string)
     const companyFilter = query.company as string
 
     // If uid provided: validate company access and filter by permissions

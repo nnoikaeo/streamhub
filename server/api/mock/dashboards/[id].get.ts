@@ -22,8 +22,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // If uid provided: validate company access + dashboard-level access
-    const uid = query.uid as string
+    // Use verified auth context (from middleware) first, fallback to query param
+    const uid = event.context.auth?.uid || (query.uid as string)
     if (uid) {
       const accessResult = await validateCompanyAccess(event)
       if (!accessResult.allowed) {
