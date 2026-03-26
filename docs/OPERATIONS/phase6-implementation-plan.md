@@ -231,11 +231,11 @@ Task 13-15 (Production) — ทำหลังสุด
 - sandbox attribute อาจ break Looker interactivity → ทดสอบก่อน
 
 ### Verification:
-- [ ] Response headers มี CSP ที่กำหนด (ดูใน DevTools → Network → Response Headers)
-- [ ] Response headers มี X-Frame-Options: SAMEORIGIN
-- [ ] Response headers มี Referrer-Policy: strict-origin
-- [ ] Looker iframe ยังโหลดและทำงานได้ปกติ
-- [ ] App ไม่มี CSP violations ใน Console
+- [x] Response headers มี CSP ที่กำหนด (ดูใน DevTools → Network → Response Headers)
+- [x] Response headers มี X-Frame-Options: SAMEORIGIN
+- [x] Response headers มี Referrer-Policy: strict-origin
+- [x] Looker iframe ยังโหลดและทำงานได้ปกติ
+- [x] App ไม่มี CSP violations ใน Console
 ```
 
 ---
