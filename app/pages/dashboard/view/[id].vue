@@ -166,6 +166,7 @@
                 class="embed-iframe"
                 title="Looker Dashboard"
                 frameborder="0"
+                referrerpolicy="no-referrer"
                 sandbox="allow-scripts allow-same-origin allow-popups"
                 @load="iframeLoading = false"
                 @error="iframeError = true"
