@@ -191,11 +191,12 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ---
 
-## Task 3: CSP + Security Headers 🔴 P0
+## Task 3: CSP + Security Headers ✅ Done
 
 **Branch:** `feat/security-headers`
 **Depends on:** ไม่มี (ทำเมื่อไหร่ก็ได้)
 **Effort:** ครึ่งวัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 เพิ่ม HTTP security headers เพื่อป้องกัน clickjacking, referrer leakage, และจำกัด resource origins
@@ -798,7 +799,7 @@ Deploy StreamHub ขึ้น Firebase Hosting
 |------|---------|----------|--------|--------|
 | 1 | Server Auth Middleware | 🔴 P0 | 1-2 วัน | ✅ Completed |
 | 2 | ซ่อน Embed URL | 🔴 P0 | ครึ่งวัน | ⬜ Not Started |
-| 3 | CSP + Security Headers | 🔴 P0 | ครึ่งวัน | ⬜ Not Started |
+| 3 | CSP + Security Headers | 🔴 P0 | ครึ่งวัน | ✅ Completed |
 | 4 | Company API Enforcement | 🟠 P1 | 1-2 วัน | ⬜ Not Started |
 | 5 | Company Client Integration | 🟠 P1 | 1 วัน | ⬜ Not Started |
 | 6 | Server URL Proxy | 🟠 P1 | 2-3 วัน | ⬜ Not Started |
