@@ -320,6 +320,37 @@ export class JSONMockService implements IDashboardService {
   }
 
   /**
+   * Get embed URL for a dashboard (separate authenticated endpoint)
+   */
+  async getDashboardEmbedUrl(dashboardId: string): Promise<string | null> {
+    try {
+      this.log('getDashboardEmbedUrl:', dashboardId)
+
+      // Pass uid as query param (consistent with other mock endpoints)
+      const authStore = useAuthStore()
+      const uid = authStore.user?.uid
+
+      const response = await this.fetchWithAuth<{ success: boolean; data?: { embedUrl: string | null } }>(`${this.baseURL}/dashboards/${dashboardId}/embed-url`, {
+        method: 'GET',
+        query: uid ? { uid } : {},
+      })
+
+      if (response.success && response.data?.embedUrl) {
+        return response.data.embedUrl
+      }
+
+      return null
+    } catch (error: any) {
+      if (error?.response?.status === 403 || error?.statusCode === 403) {
+        console.error('🚫 [JSONMockService] Embed URL access denied')
+      } else {
+        console.error('❌ [JSONMockService] getDashboardEmbedUrl error:', error)
+      }
+      return null
+    }
+  }
+
+  /**
    * Get dashboards in specific folder accessible to user
    */
   async getDashboardsByFolder(

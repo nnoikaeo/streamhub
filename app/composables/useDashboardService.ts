@@ -92,6 +92,11 @@ export interface IDashboardService {
   getDashboard(dashboardId: string): Promise<Dashboard | null>
 
   /**
+   * Get embed URL for a dashboard (requires authentication + access check)
+   */
+  getDashboardEmbedUrl(dashboardId: string): Promise<string | null>
+
+  /**
    * Get dashboards in specific folder (accessible to user)
    */
   getDashboardsByFolder(
@@ -414,6 +419,11 @@ export class MockDashboardService implements IDashboardService {
   async getDashboard(dashboardId: string): Promise<Dashboard | null> {
     await this.loadData()
     return getMockDashboardById(dashboardId, this.dashboards) || null
+  }
+
+  async getDashboardEmbedUrl(dashboardId: string): Promise<string | null> {
+    const dashboard = await this.getDashboard(dashboardId)
+    return dashboard?.lookerEmbedUrl || null
   }
 
   async getDashboardsByFolder(
@@ -842,6 +852,11 @@ export const useDashboardService = (): IDashboardService => {
         async getDashboard(dashboardId: string) {
           const service = await this.initJsonService()
           return service.getDashboard(dashboardId)
+        }
+
+        async getDashboardEmbedUrl(dashboardId: string) {
+          const service = await this.initJsonService()
+          return service.getDashboardEmbedUrl(dashboardId)
         }
 
         async getDashboardsByFolder(folderId: string, userId: string) {

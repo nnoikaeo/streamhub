@@ -158,6 +158,7 @@ const handleMoveUp = async (group: AdminGroup) => {
   const index = sorted.findIndex(g => g.id === group.id)
   if (index <= 0) return
   const prev = sorted[index - 1]
+  if (!prev) return
   const currentOrder = group.sortOrder ?? index + 1
   const prevOrder = prev.sortOrder ?? index
   await updateGroup(group.id, { sortOrder: prevOrder })
@@ -170,6 +171,7 @@ const handleMoveDown = async (group: AdminGroup) => {
   const index = sorted.findIndex(g => g.id === group.id)
   if (index < 0 || index >= sorted.length - 1) return
   const next = sorted[index + 1]
+  if (!next) return
   const currentOrder = group.sortOrder ?? index + 1
   const nextOrder = next.sortOrder ?? index + 2
   await updateGroup(group.id, { sortOrder: nextOrder })

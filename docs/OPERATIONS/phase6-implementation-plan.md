@@ -61,11 +61,12 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ---
 
-## Task 1: Server Auth Middleware 🔴 P0
+## Task 1: Server Auth Middleware ✅ Done
 
 **Branch:** `feat/server-auth-middleware`
 **Depends on:** ไม่มี (foundation)
 **Effort:** 1-2 วัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 เพิ่ม Firebase ID Token verification ให้ทุก API endpoint — ปัจจุบัน `/api/mock/*` และ `/api/looker/*` ไม่มี auth เลย
@@ -121,20 +122,21 @@ Task 13-15 (Production) — ทำหลังสุด
 - ทดสอบโดย `npm run dev` แล้วเปิด app → login → ทุกหน้ายังทำงานปกติ
 
 ### Verification:
-- [ ] `server/utils/firebaseAdmin.ts` สร้างแล้ว
-- [ ] `server/middleware/auth.ts` สร้างแล้ว และ apply กับ `/api/mock/*`, `/api/looker/*`
-- [ ] DEV mode: mock API ยังทำงานได้โดยไม่ต้องมี Firebase Admin credentials
-- [ ] Client ส่ง Authorization header ในทุก API call
-- [ ] 401 response → redirect ไป login page
+- [x] `server/utils/firebaseAdmin.ts` สร้างแล้ว
+- [x] `server/middleware/auth.ts` สร้างแล้ว และ apply กับ `/api/mock/*`, `/api/looker/*`
+- [x] DEV mode: mock API ยังทำงานได้โดยไม่ต้องมี Firebase Admin credentials
+- [x] Client ส่ง Authorization header ในทุก API call
+- [x] 401 response → redirect ไป login page
 ```
 
 ---
 
-## Task 2: ซ่อน Embed URL จาก API Response 🔴 P0
+## Task 2: ซ่อน Embed URL จาก API Response ✅ Done
 
 **Branch:** `feat/hide-embed-url`
 **Depends on:** Task 1 (ใช้ auth context)
 **Effort:** ครึ่งวัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 ไม่คืน `lookerEmbedUrl` ใน API response ของ dashboard listing — สร้าง endpoint เฉพาะที่ต้อง authenticate
@@ -179,12 +181,12 @@ Task 13-15 (Production) — ทำหลังสุด
 - Admin dashboard CRUD page อาจต้องยังเห็น embed URL → ตรวจสอบด้วย
 
 ### Verification:
-- [ ] GET `/api/mock/dashboards` → response ไม่มี `lookerEmbedUrl`
-- [ ] GET `/api/mock/dashboards/:id` → response ไม่มี `lookerEmbedUrl`
-- [ ] GET `/api/mock/dashboards/:id/embed-url` (มี auth) → return `embedUrl`
-- [ ] GET `/api/mock/dashboards/:id/embed-url` (ไม่มี auth) → 401
-- [ ] หน้า dashboard view ยังแสดง Looker embed ได้ปกติ
-- [ ] หน้า discover ยังทำงานปกติ (ไม่ต้องมี URL)
+- [x] GET `/api/mock/dashboards` → response ไม่มี `lookerEmbedUrl`
+- [x] GET `/api/mock/dashboards/:id` → response ไม่มี `lookerEmbedUrl`
+- [x] GET `/api/mock/dashboards/:id/embed-url` (มี auth) → return `embedUrl`
+- [x] GET `/api/mock/dashboards/:id/embed-url` (ไม่มี auth) → 403 Forbidden
+- [x] หน้า dashboard view ยังแสดง Looker embed ได้ปกติ
+- [x] หน้า discover ยังทำงานปกติ (ไม่ต้องมี URL)
 ```
 
 ---

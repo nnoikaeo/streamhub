@@ -37,7 +37,10 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    return { success: true, data: dashboard }
+    // Strip lookerEmbedUrl from response (security: use /embed-url endpoint instead)
+    const { lookerEmbedUrl, ...sanitized } = dashboard as any
+
+    return { success: true, data: sanitized }
   } catch (error: any) {
     console.error('[API] Error fetching dashboard:', error.message)
     if (error.statusCode) throw error
