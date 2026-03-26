@@ -38,6 +38,48 @@ export class JSONMockService implements IDashboardService {
   }
 
   /**
+   * Get Authorization headers with Firebase ID token.
+   * Returns empty object if no token is available (e.g., dev mode without login).
+   */
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    try {
+      const { getIdToken } = useAuth()
+      const token = await getIdToken()
+      if (token) {
+        return { Authorization: `Bearer ${token}` }
+      }
+    } catch {
+      // Auth may not be available (e.g., during SSR or before plugin init)
+    }
+    return {}
+  }
+
+  /**
+   * Wrapper around $fetch that injects auth headers and handles 401 responses.
+   */
+  private async fetchWithAuth<T>(url: string, options: any = {}): Promise<T> {
+    const authHeaders = await this.getAuthHeaders()
+    const mergedOptions = {
+      ...options,
+      headers: {
+        ...authHeaders,
+        ...options.headers,
+      },
+    }
+
+    try {
+      return await $fetch<T>(url, mergedOptions)
+    } catch (error: any) {
+      const status = error?.response?.status || error?.statusCode
+      if (status === 401) {
+        console.warn('🔒 [JSONMockService] Unauthorized (401) — redirecting to login')
+        await navigateTo('/login')
+      }
+      throw error
+    }
+  }
+
+  /**
    * Get current authenticated user from auth store
    */
   async getCurrentUser(): Promise<User | null> {
@@ -64,7 +106,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getUser called', uid)
 
-      const response = await $fetch(`${this.baseURL}/users/${uid}`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/users/${uid}`, {
         method: 'GET',
       })
 
@@ -89,7 +131,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getFolders called', { userId, companyId })
 
-      const response = await $fetch(`${this.baseURL}/folders`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/folders`, {
         method: 'GET',
         query: {
           uid: userId,
@@ -126,7 +168,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getFolder:', folderId)
 
-      const response = await $fetch(`${this.baseURL}/folders/${folderId}`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/folders/${folderId}`, {
         method: 'GET',
       })
 
@@ -148,7 +190,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getChildFolders:', parentId)
 
-      const response = await $fetch(`${this.baseURL}/folders`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/folders`, {
         method: 'GET',
         query: {
           parentId: parentId || 'root',
@@ -174,7 +216,7 @@ export class JSONMockService implements IDashboardService {
       this.log('getFolderPath:', folderId)
 
       // Fetch all folders to build path
-      const response = await $fetch(`${this.baseURL}/folders`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/folders`, {
         method: 'GET',
       })
 
@@ -226,7 +268,7 @@ export class JSONMockService implements IDashboardService {
         query.folderId = options.folderId
       }
 
-      const response = await $fetch(`${this.baseURL}/dashboards`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/dashboards`, {
         method: 'GET',
         query,
       })
@@ -262,7 +304,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getDashboard:', dashboardId)
 
-      const response = await $fetch(`${this.baseURL}/dashboards/${dashboardId}`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/dashboards/${dashboardId}`, {
         method: 'GET',
       })
 
@@ -287,7 +329,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getDashboardsByFolder:', { folderId, userId })
 
-      const response = await $fetch(`${this.baseURL}/dashboards`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/dashboards`, {
         method: 'GET',
         query: {
           folderId,
@@ -339,7 +381,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('saveDashboard:', dashboard.id)
 
-      const response = await $fetch(`${this.baseURL}/dashboards`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/dashboards`, {
         method: 'POST',
         body: {
           action: dashboard.id ? 'update' : 'create',
@@ -366,7 +408,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('deleteDashboard:', dashboardId)
 
-      const response = await $fetch(`${this.baseURL}/dashboards/${dashboardId}`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/dashboards/${dashboardId}`, {
         method: 'DELETE',
       })
 
@@ -484,7 +526,7 @@ export class JSONMockService implements IDashboardService {
         updatedAt: new Date().toISOString(),
       }
 
-      const response = await $fetch(`${this.baseURL}/folders`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/folders`, {
         method: 'POST',
         body: updatedFolder,
       }) as { success: boolean; message?: string }

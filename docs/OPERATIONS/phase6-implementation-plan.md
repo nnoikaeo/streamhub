@@ -14,8 +14,8 @@
 | `server/utils/companyAccess.ts` | ✅ มีแล้ว | validateCompanyAccess, getInheritingAncestors |
 | `server/utils/apiResponse.ts` | ✅ มีแล้ว | sendForbidden, sendUnauthorized, sendNotFound, sendBadRequest |
 | `app/composables/useCompanyAccess.ts` | ✅ มีแล้ว | canAccessCompany, filterByCompany, getCompanyLabel |
-| `server/middleware/auth.ts` | ❌ ยังไม่มี | ต้องสร้างใหม่ |
-| `server/utils/firebaseAdmin.ts` | ❌ ยังไม่มี | ต้องสร้างใหม่ |
+| `server/middleware/auth.ts` | ✅ มีแล้ว | verify Firebase ID Token, DEV fallback to query uid |
+| `server/utils/firebaseAdmin.ts` | ✅ มีแล้ว | Firebase Admin SDK init, verifyIdToken |
 
 ---
 
@@ -794,7 +794,7 @@ Deploy StreamHub ขึ้น Firebase Hosting
 
 | Task | ชื่องาน | Priority | Effort | Status |
 |------|---------|----------|--------|--------|
-| 1 | Server Auth Middleware | 🔴 P0 | 1-2 วัน | ⬜ Not Started |
+| 1 | Server Auth Middleware | 🔴 P0 | 1-2 วัน | ✅ Completed |
 | 2 | ซ่อน Embed URL | 🔴 P0 | ครึ่งวัน | ⬜ Not Started |
 | 3 | CSP + Security Headers | 🔴 P0 | ครึ่งวัน | ⬜ Not Started |
 | 4 | Company API Enforcement | 🟠 P1 | 1-2 วัน | ⬜ Not Started |
