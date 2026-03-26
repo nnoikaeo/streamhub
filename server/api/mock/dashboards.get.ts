@@ -23,7 +23,10 @@ export default defineEventHandler(async (event) => {
         filtered = filtered.filter((d: any) => d.folderId === query.folderId)
       }
 
-      return { success: true, data: filtered, total: filtered.length }
+      // Strip lookerEmbedUrl from listing response (security: hide embed URLs)
+      const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }: any) => rest)
+
+      return { success: true, data: sanitized, total: sanitized.length }
     }
 
     // Fallback: no uid (admin pages, backward compatible)
@@ -39,7 +42,10 @@ export default defineEventHandler(async (event) => {
       filtered = filtered.filter((d: any) => d.folderId === query.folderId)
     }
 
-    return { success: true, data: filtered, total: filtered.length }
+    // Strip lookerEmbedUrl from listing response (security: hide embed URLs)
+    const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }: any) => rest)
+
+    return { success: true, data: sanitized, total: sanitized.length }
   } catch (error: any) {
     throw createError({
       statusCode: 500,

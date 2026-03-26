@@ -2,9 +2,9 @@
 
 > **Purpose:** Component hierarchy, architecture strategy, and layout patterns for StreamHub
 > **Strategy:** Strategy 4 (Hybrid Approach) — Pinia stores + composables + permission-based UI
-> **Current Implementation:** `app/components/` directory with 4-layer architecture + admin/ + dashboard/ layers
-> **Last Updated:** 2026-03-25
-> **Version:** 6.0 (Phase 5.8 — Tree View, Group By, 67 components)
+> **Current Implementation:** `app/components/` directory with 4-layer architecture
+> **Last Updated:** 2026-03-23
+> **Version:** 5.2 (Added AppToast + useAppToast toast system)
 > **Note:** Includes Strategy 4 (Hybrid Approach) content, merged into this single document
 
 ---
@@ -29,84 +29,32 @@ StreamHub uses a **4-layer component architecture**:
 ## 🏗️ Component Hierarchy
 
 ```
-StreamHub Application (67 components)
+StreamHub Application
 │
-├── Layout Components (5)
-│   ├── AppLayout                    # Standard app layout
-│   ├── AdminLayout                  # Admin panel layout
-│   ├── AuthLayout                   # Auth pages layout
-│   ├── UnifiedSidebar               # Role-based sidebar (useRoleNavigation)
-│   └── FolderAccordion              # Moderator folder accordion in sidebar
+├── Layout Components (Foundation)
+│   ├── AppLayout
+│   ├── AdminLayout
+│   └── AuthLayout (future)
 │
-├── Composition Components (2)
-│   ├── PageLayout                   # Page wrapper with breadcrumbs + breadcrumb-actions slot
-│   └── TwoPaneLayout                # Generic sidebar + main content
+├── Composition Components (Reusable Sections)
+│   ├── TwoPaneLayout
+│   ├── DiscoverPageLayout
+│   └── AdminPanelLayout
 │
-├── Feature Components (25)
-│   ├── Dashboard Display
-│   │   ├── DashboardCard            # Card view item
-│   │   ├── DashboardGrid            # Grid container
-│   │   ├── DashboardList            # List view table
-│   │   ├── DashboardListItem        # List view row
-│   │   ├── DashboardPreview         # Thumbnail preview
-│   │   ├── DashboardHeader          # Discover page header
-│   │   └── DashboardViewHeader      # Single dashboard view header
-│   ├── Grouped Views
-│   │   ├── GroupedDashboardGrid     # Grid with group dividers
-│   │   ├── GroupedDashboardList     # List with group headers
-│   │   ├── TreeDashboardList        # Unified tree table (Phase 5.8)
-│   │   ├── GroupBySwitcher          # Group-by mode toggle (Phase 5.8)
-│   │   └── GroupDivider             # Slim group divider (Phase 5.8)
-│   ├── Folder Navigation
-│   │   ├── FolderSidebar            # Folder tree sidebar
-│   │   ├── FolderTree               # Hierarchical folder tree
-│   │   ├── FolderDropdownFilter     # Dropdown folder filter
-│   │   └── FolderInfoCard           # Folder info display
-│   ├── Tags
-│   │   ├── TagBadge                 # Tag display chip
-│   │   ├── TagFilter                # Tag filter bar
-│   │   └── TagSelector              # Tag add/remove selector
-│   ├── Permissions
-│   │   ├── PermissionEditor         # 3-layer permission editor
-│   │   └── PermissionsPage          # Permission management page
-│   ├── Other
-│   │   ├── QuickShareDialog         # Share dialog
-│   │   ├── ExplorerPage             # Moderator explorer
-│   │   ├── CompanyDropdownFilter    # Company filter dropdown
-│   │   └── LookerUrlInput           # Looker URL validator
+├── Feature Components (Page-Specific)
+│   ├── DashboardViewHeader
+│   ├── FolderSidebar
+│   ├── DashboardGrid
+│   ├── QuickShareDialog
+│   ├── TagBadge              (NEW - display tag on dashboard cards)
+│   ├── TagFilter             (NEW - tag chip filter on View All page)
+│   ├── TagSelector           (NEW - add/remove tags on dashboard edit)
+│   └── TagManager            (NEW - admin CRUD page for tags)
 │
-├── UI Components (15)
-│   ├── AppHeader, AppFooter         # App shell
-│   ├── AppToast                     # Global toast notifications
-│   ├── Badge, Breadcrumb, Breadcrumbs
-│   ├── Button, Card, Input, Modal
-│   ├── FormModal, ViewModal         # Specialized modals
-│   ├── PageHeader, StatsCard        # Page-level UI
-│   └── UserMenu                     # User dropdown menu
-│
-├── Admin Components (9)
-│   ├── AdminAccordion               # Admin sidebar accordion
-│   ├── AdminPageContent             # Admin page wrapper
-│   ├── DataTable                    # Reusable data table
-│   ├── ConfirmDialog                # Confirmation modal
-│   ├── BulkInviteModal              # Bulk user invite
-│   ├── InviteUserModal              # Single user invite
-│   ├── ModeratorAssignmentModal     # Assign moderator to folders
-│   ├── GroupViewModal               # View group details
-│   └── ExplorerContentsPanel        # Moderator explorer contents
-│
-├── Admin Forms (7)
-│   ├── CompanyForm, DashboardForm, FolderForm
-│   ├── GroupForm, RegionForm, TagForm, UserForm
-│
-├── Dashboard Home (3)
-│   ├── QuickActions                 # Quick action buttons
-│   ├── RecentDashboards             # Recent dashboard list
-│   └── StatCard                     # Statistics card
-│
-└── Other (2)
-    ├── FormField                    # Reusable form field
-    └── ErrorDialog                  # Global error dialog
+└── UI Components (Building Blocks)
+    ├── Buttons, Cards, Modals
+    ├── Forms, Inputs, Selects
+    └── Alerts, Badges, Spinners
 ```
 
 ---
@@ -163,16 +111,14 @@ StreamHub Application (67 components)
 
 ---
 
-### PageLayout
-**File:** `app/components/compositions/PageLayout.vue`
+### DiscoverPageLayout
+**File:** `app/components/compositions/DiscoverPageLayout.vue`
 
-**Purpose:** Page wrapper with breadcrumbs, title, and optional action slots
+**Purpose:** Specialized composition for Dashboard Discover page
 
-**Slots:**
-- `default` - Page content
-- `#breadcrumb-actions` - Action buttons/search in breadcrumb row (Phase 5.8)
+**Structure:** Combines AppLayout + TwoPaneLayout
 
-**Usage:** Discover page uses `#breadcrumb-actions` for search bar
+**Usage:** See [dashboard-discover-page.md](wireframes/dashboard-discover-page.md)
 
 ---
 
@@ -189,8 +135,8 @@ StreamHub Application (67 components)
 
 ---
 
-### AuthLayout
-**File:** `app/components/layouts/AuthLayout.vue`
+### AuthLayout (To Be Created)
+**File:** `app/components/layouts/AuthLayout.vue` (future)
 
 **Purpose:** Simple centered layout for authentication pages (login, register)
 
@@ -198,19 +144,24 @@ StreamHub Application (67 components)
 
 ---
 
-### UnifiedSidebar
-**File:** `app/components/layouts/UnifiedSidebar.vue`
+## 🎨 Layer 2: Composition Components
 
-**Purpose:** Role-based sidebar navigation using `useRoleNavigation` composable
+Combine layout components with feature components for specific pages.
 
-**Features:** Admin accordions, moderator folder accordion, user navigation
+### AdminPanelLayout
+**File:** `app/components/compositions/AdminPanelLayout.vue`
 
----
+**Purpose:** Admin pages combining AdminLayout + TwoPaneLayout
 
-### FolderAccordion
-**File:** `app/components/layouts/FolderAccordion.vue`
-
-**Purpose:** Moderator folder tree accordion in sidebar
+**Usage Example:**
+```vue
+<CompositionAdminPanelLayout>
+  <template #sidebar>
+    <!-- Admin navigation -->
+  </template>
+  <!-- Admin content -->
+</CompositionAdminPanelLayout>
+```
 
 ---
 
@@ -347,43 +298,20 @@ Page-specific components for dashboard functionality.
 
 ---
 
-### GroupBySwitcher (Phase 5.8)
-**File:** `app/components/features/GroupBySwitcher.vue`
+### TagManager
+**File:** `app/components/features/TagManager.vue`
 
-**Purpose:** 4-mode icon button group for switching group-by mode
+**Purpose:** Admin-only full CRUD management for tags
 
-**Modes:** `'folder' | 'tag' | 'company' | 'none'`
-
-**Features:**
-- Icon-only buttons: 📁 โฟลเดอร์ | 🏷️ แท็ก | 🏢 บริษัท | ─ ไม่จัดกลุ่ม
-- localStorage persistence (`streamhub-discover-group-by`)
-- Conditional visibility (folder visible when folders exist, company visible for admin)
-
----
-
-### TreeDashboardList (Phase 5.8)
-**File:** `app/components/features/TreeDashboardList.vue`
-
-**Purpose:** Unified tree table replacing GroupedDashboardList for list view
+**Props:** None (uses useTagStore internally)
 
 **Features:**
-- Single sticky header (36px)
-- Group rows (36px) with collapse/expand
-- Dashboard rows (40px) with indent
-- Accepts `DisplayGroup[]` — works with all group-by modes
+- Table view of all tags with name, color, dashboard count, status
+- Create/Edit dialog with name, slug, color picker, description
+- Delete confirmation with impact warning (shows affected dashboards)
+- Search/filter tags
 
----
-
-### GroupDivider (Phase 5.8)
-**File:** `app/components/features/GroupDivider.vue`
-
-**Purpose:** Slim group divider for grid/compact views
-
-**Features:**
-- Grid: 28px height, 12px gap between groups
-- Compact: 24px height, 8px gap
-- Generic — accepts `DisplayGroup` object
-- Click to collapse/expand group
+**See:** [tag-management-page.md > Tag Management](wireframes/tag-management-page.md#3-tag-management-page-admin-only)
 
 ---
 
@@ -508,11 +436,9 @@ Nuxt auto-imports components based on their folder — each layer uses a specifi
 | Layer | Folder | Prefix | Example |
 |-------|--------|--------|---------|
 | Layout | `components/layouts/` | `Layout` | `<LayoutAppLayout>` |
-| Composition | `components/compositions/` | `Composition` | `<CompositionPageLayout>` |
+| Composition | `components/compositions/` | `Composition` | `<CompositionTwoPaneLayout>` |
 | Feature | `components/features/` | `Feature` | `<FeatureDashboardCard>` |
 | UI | `components/ui/` | *(none)* | `<Button>`, `<Card>` |
-| Admin | `components/admin/` | `Admin` | `<AdminDataTable>` |
-| Dashboard | `components/dashboard/` | `Dashboard` | `<DashboardQuickActions>` |
 
 ### nuxt.config.ts Registration
 
@@ -569,7 +495,7 @@ import DashboardCard from '~/components/features/DashboardCard.vue'
 ### Component Lifecycle Order
 
 Always follow this order inside `<script setup>`:
-
+git
 ```vue
 <script setup lang="ts">
 // 1. Props & emits
@@ -721,7 +647,6 @@ describe('useDashboardPage', () => {
 
 ## ✨ Changelog
 
-- **v6.0** (2026-03-25): Phase 5.8 review — added 47 undocumented components, removed 5 non-existent components (DiscoverPageLayout, AdminPanelLayout, TagManager, Select, AuditLog), updated hierarchy tree to 67 components
 - **v5.2** (2026-03-22): Merged COMPONENT_CONVENTIONS.md — Auto-Import rules, common mistakes, debugging, lifecycle order
 - **v5.0** (2026-03-22): Merged Strategy 4 Hybrid Approach into this document (Single Source of Truth)
 - **v4.0** (2026-02-13): Consolidated from separate docs, merged LAYOUT_COMPONENTS.md
@@ -730,6 +655,6 @@ describe('useDashboardPage', () => {
 ---
 
 **Created:** 2024-01-25
-**Updated:** 2026-03-25 (v6.0 — Phase 5.8 design doc review)
+**Updated:** 2026-03-22 (v5.2 — Merged COMPONENT_CONVENTIONS.md into this document)
 **Designer:** Development Team
-**Version:** 6.0
+**Version:** 5.2

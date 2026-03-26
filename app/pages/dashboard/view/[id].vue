@@ -148,15 +148,21 @@
 
           <!-- Right Pane: Looker Dashboard Embed -->
           <div class="dashboard-main">
+            <!-- Embed URL Loading -->
+            <div v-if="embedUrlLoading" class="iframe-loading">
+              <div class="loading-spinner" />
+              <p>Loading embed URL...</p>
+            </div>
+
             <!-- Looker Embed -->
-            <div v-if="dashboard.lookerEmbedUrl" class="looker-embed">
+            <div v-else-if="embedUrl" class="looker-embed">
               <!-- Loading overlay -->
               <div v-if="iframeLoading" class="iframe-loading">
                 <div class="loading-spinner" />
                 <p>Loading dashboard...</p>
               </div>
               <iframe
-                :src="dashboard.lookerEmbedUrl"
+                :src="embedUrl"
                 class="embed-iframe"
                 title="Looker Dashboard"
                 frameborder="0"
@@ -218,6 +224,8 @@ const error = ref<string | null>(null)
 const menuOpen = ref(false)
 const relatedDashboards = ref<Dashboard[]>([])
 const owner = ref<User | null>(null)
+const embedUrl = ref<string | null>(null)
+const embedUrlLoading = ref(false)
 const iframeLoading = ref(true)
 const iframeError = ref(false)
 const showInfoSidebar = ref(false)
@@ -302,6 +310,14 @@ const loadDashboard = async () => {
     const ownerData = await dashboardService.getUser(data.owner)
     if (ownerData) {
       owner.value = ownerData
+    }
+
+    // Fetch embed URL separately (security: not included in dashboard response)
+    embedUrlLoading.value = true
+    try {
+      embedUrl.value = await dashboardService.getDashboardEmbedUrl(dashboardId.value)
+    } finally {
+      embedUrlLoading.value = false
     }
 
     // Load related dashboards in same folder
