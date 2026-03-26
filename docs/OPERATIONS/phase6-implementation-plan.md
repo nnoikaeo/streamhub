@@ -799,7 +799,7 @@ Deploy StreamHub ขึ้น Firebase Hosting
 | Task | ชื่องาน | Priority | Effort | Status |
 |------|---------|----------|--------|--------|
 | 1 | Server Auth Middleware | 🔴 P0 | 1-2 วัน | ✅ Completed |
-| 2 | ซ่อน Embed URL | 🔴 P0 | ครึ่งวัน | ⬜ Not Started |
+| 2 | ซ่อน Embed URL | 🔴 P0 | ครึ่งวัน | ✅ Completed |
 | 3 | CSP + Security Headers | 🔴 P0 | ครึ่งวัน | ✅ Completed |
 | 4 | Company API Enforcement | 🟠 P1 | 1-2 วัน | ✅ Completed |
 | 5 | Company Client Integration | 🟠 P1 | 1 วัน | ⬜ Not Started |
