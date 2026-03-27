@@ -311,6 +311,7 @@ Task 13-15 (Production) — ทำหลังสุด
 **Branch:** `feat/company-client-integration`
 **Depends on:** Task 4 (API enforcement ต้องเสร็จก่อน)
 **Effort:** 1 วัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 เชื่อม client-side composable (`useCompanyAccess` ที่มีอยู่แล้ว) กับ API layer ที่อัปเดตใหม่
@@ -357,11 +358,11 @@ Task 13-15 (Production) — ทำหลังสุด
 - หน้า discover ต้องยังแสดง dashboards ตามปกติ
 
 ### Verification:
-- [ ] API calls ส่ง company param ไปด้วย
-- [ ] 403 response → แสดง toast แจ้งเตือน ไม่ crash
-- [ ] Admin เห็นข้อมูลทุก company
-- [ ] Non-admin เห็นเฉพาะ company ตัวเอง
-- [ ] Discover page ยังทำงานปกติ
+- [x] API calls ส่ง company param ไปด้วย
+- [x] 403 response → แสดง toast แจ้งเตือน ไม่ crash
+- [x] Admin เห็นข้อมูลทุก company
+- [x] Non-admin เห็นเฉพาะ company ตัวเอง
+- [x] Discover page ยังทำงานปกติ
 ```
 
 ---
@@ -802,7 +803,7 @@ Deploy StreamHub ขึ้น Firebase Hosting
 | 2 | ซ่อน Embed URL | 🔴 P0 | ครึ่งวัน | ✅ Completed |
 | 3 | CSP + Security Headers | 🔴 P0 | ครึ่งวัน | ✅ Completed |
 | 4 | Company API Enforcement | 🟠 P1 | 1-2 วัน | ✅ Completed |
-| 5 | Company Client Integration | 🟠 P1 | 1 วัน | ⬜ Not Started |
+| 5 | Company Client Integration | 🟠 P1 | 1 วัน | ✅ Completed |
 | 6 | Server URL Proxy | 🟠 P1 | 2-3 วัน | ⬜ Not Started |
 | 7 | Audit Logging | 🟡 P2 | 1-2 วัน | ⬜ Not Started |
 | 8 | Watermark Overlay | 🟡 P2 | ครึ่งวัน | ⬜ Not Started |
