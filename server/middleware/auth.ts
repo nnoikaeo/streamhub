@@ -6,7 +6,7 @@ import { sendUnauthorized } from '../utils/apiResponse'
  * Routes that require authentication.
  * All /api/mock/* and /api/looker/* routes are protected.
  */
-const PROTECTED_PREFIXES = ['/api/mock/', '/api/looker/']
+const PROTECTED_PREFIXES = ['/api/mock/', '/api/looker/', '/api/embed/request']
 
 /**
  * Routes to skip auth even if they match protected prefixes.

@@ -323,23 +323,24 @@ export class JSONMockService implements IDashboardService {
   }
 
   /**
-   * Get embed URL for a dashboard (separate authenticated endpoint)
+   * Request a one-time proxy URL for a dashboard embed (server URL proxy).
+   * Returns a short-lived /api/embed/{token} URL — the real Looker URL never reaches the client.
    */
   async getDashboardEmbedUrl(dashboardId: string): Promise<string | null> {
     try {
-      this.log('getDashboardEmbedUrl:', dashboardId)
+      this.log('getDashboardEmbedUrl (proxy):', dashboardId)
 
-      // Pass uid as query param (consistent with other mock endpoints)
       const authStore = useAuthStore()
       const uid = authStore.user?.uid
 
-      const response = await this.fetchWithAuth<{ success: boolean; data?: { embedUrl: string | null } }>(`${this.baseURL}/dashboards/${dashboardId}/embed-url`, {
-        method: 'GET',
+      const response = await this.fetchWithAuth<{ success: boolean; data?: { token: string; proxyUrl: string } }>('/api/embed/request', {
+        method: 'POST',
+        body: { dashboardId },
         query: uid ? { uid } : {},
       })
 
-      if (response.success && response.data?.embedUrl) {
-        return response.data.embedUrl
+      if (response.success && response.data?.proxyUrl) {
+        return response.data.proxyUrl
       }
 
       return null
