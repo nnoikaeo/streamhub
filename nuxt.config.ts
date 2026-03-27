@@ -93,7 +93,7 @@ export default defineNuxtConfig({
     '/invite/**': { ssr: false },
     '/**': {
       headers: {
-        'Content-Security-Policy': "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com; frame-ancestors 'self'",
+        'Content-Security-Policy': "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com https://*.firebaseapp.com https://*.googleapis.com; frame-ancestors 'self'",
         'X-Frame-Options': 'SAMEORIGIN',
         'Referrer-Policy': 'strict-origin',
         'X-Content-Type-Options': 'nosniff'
