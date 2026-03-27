@@ -163,6 +163,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       if (err?.response?.status === 403 || err?.statusCode === 403) {
         accessDenied.value = true
         dashboardStore.setError('Access denied: You do not have permission to view folders')
+        try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงโฟลเดอร์: คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch {}
       } else {
         dashboardStore.setError(
           err instanceof Error ? err.message : 'Failed to load folders'
@@ -223,6 +224,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       if (err?.response?.status === 403 || err?.statusCode === 403) {
         accessDenied.value = true
         dashboardStore.setError('Access denied: You do not have permission to view dashboards')
+        try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงแดชบอร์ด: คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch {}
       } else {
         dashboardStore.setError(
           err instanceof Error ? err.message : 'Failed to load dashboards'
