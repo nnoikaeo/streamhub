@@ -326,7 +326,7 @@ export function useAdminResource<T extends Record<string, any>>(
    * Build return object with extensions
    */
   const baseReturn: AdminResourceReturn<T> = {
-    items: readonly(items),
+    items: readonly(items) as unknown as Readonly<Ref<T[]>>,
     loading: readonly(loading),
     error: readonly(error),
     fetch,
