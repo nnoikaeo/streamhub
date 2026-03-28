@@ -61,12 +61,22 @@ export class JSONMockService implements IDashboardService {
    */
   private async fetchWithAuth<T>(url: string, options: any = {}): Promise<T> {
     const authHeaders = await this.getAuthHeaders()
+
+    // DEV fallback: send uid in query param for server auth middleware
+    // when Firebase Admin SDK credentials are not configured
+    const authStore = useAuthStore()
+    const query = { ...options.query }
+    if (authStore.user?.uid) {
+      query.uid = authStore.user.uid
+    }
+
     const mergedOptions = {
       ...options,
       headers: {
         ...authHeaders,
         ...options.headers,
       },
+      query,
     }
 
     try {
@@ -316,7 +326,11 @@ export class JSONMockService implements IDashboardService {
       }
 
       return null
-    } catch (error) {
+    } catch (error: any) {
+      // Re-throw 403 so callers can show proper access-denied UI
+      if (error?.response?.status === 403 || error?.statusCode === 403 || error?.status === 403) {
+        throw error
+      }
       console.error('❌ [JSONMockService] getDashboard error:', error)
       return null
     }

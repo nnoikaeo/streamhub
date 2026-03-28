@@ -240,211 +240,100 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     :allow-create="false"
     :breadcrumbs="breadcrumbs"
   >
-    <!-- Main Content -->
-    <div class="admin-content">
-        <!-- Page Header -->
-        <div class="page-header">
-          <h1 class="page-header__title">จัดการผู้ใช้</h1>
-          <button @click="handleAddUser" class="page-header-action-btn">
-            ➕ เพิ่มผู้ใช้ใหม่
-          </button>
-        </div>
+    <AdminPageContent>
+      <template #header>
+        <h1 class="page-header__title">จัดการผู้ใช้</h1>
+        <button @click="handleAddUser" class="page-header-action-btn">
+          ➕ เพิ่มผู้ใช้ใหม่
+        </button>
+      </template>
 
-        <!-- Filters -->
-        <div class="filters-section">
-          <div class="filters-row">
-            <!-- Search -->
-            <div class="filter-group">
-              <input
-                v-model="searchQuery"
-                type="text"
-                class="theme-form-input"
-                placeholder="ค้นหาตามอีเมล หรือ ชื่อ..."
-              />
-            </div>
-
-            <!-- Role Filter -->
-            <div class="filter-group">
-              <select v-model="filterRole" class="theme-form-select">
-                <option :value="null">-- บทบาททั้งหมด --</option>
-                <option value="admin">Admin</option>
-                <option value="moderator">Moderator</option>
-                <option value="user">User</option>
-              </select>
-            </div>
-
-            <!-- Company Filter -->
-            <div class="filter-group">
-              <CompanyDropdownFilter
-                v-model="filterCompany"
-                :companies="companies"
-                :regions="regions"
-                :show-icon="false"
-                placeholder="-- ทุกบริษัท --"
-              />
-            </div>
-
-            <!-- Active Filter -->
-            <div class="filter-group">
-              <select v-model="filterActive" class="theme-form-select">
-                <option :value="null">-- สถานะทั้งหมด --</option>
-                <option :value="true">เปิดใช้งาน</option>
-                <option :value="false">ปิดใช้งาน</option>
-              </select>
-            </div>
-
-            <!-- Clear Filters -->
-            <button @click="clearFilters" class="theme-btn theme-btn--ghost">
-              🔄 ล้างตัวกรอง
-            </button>
-          </div>
-
-          <!-- Results Count -->
-          <div class="filter-info">
-            <span class="results-count">
-              แสดง {{ filteredUsers.length }} จาก {{ users.length }} ผู้ใช้
-            </span>
-          </div>
-        </div>
-
-        <!-- Users Table -->
-        <div class="table-section">
-          <DataTable
-            :columns="columns"
-            :data="filteredUsers"
-            :loading="loading"
-            :actions="actions"
-            empty-message="ไม่พบผู้ใช้"
-            @toggle-active="handleToggleActive"
+      <template #filters>
+        <div class="filter-group">
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="theme-form-input"
+            placeholder="ค้นหาตามอีเมล หรือ ชื่อ..."
           />
         </div>
+        <div class="filter-group">
+          <select v-model="filterRole" class="theme-form-select">
+            <option :value="null">-- บทบาททั้งหมด --</option>
+            <option value="admin">Admin</option>
+            <option value="moderator">Moderator</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <CompanyDropdownFilter
+            v-model="filterCompany"
+            :companies="companies"
+            :regions="regions"
+            :show-icon="false"
+            placeholder="-- ทุกบริษัท --"
+          />
+        </div>
+        <div class="filter-group">
+          <select v-model="filterActive" class="theme-form-select">
+            <option :value="null">-- สถานะทั้งหมด --</option>
+            <option :value="true">เปิดใช้งาน</option>
+            <option :value="false">ปิดใช้งาน</option>
+          </select>
+        </div>
+        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+          🔄 ล้างตัวกรอง
+        </button>
+      </template>
 
-        <!-- User Form Modal -->
-        <FormModal
-          v-model="showUserModal"
-          :title="selectedUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'"
+      <template #table>
+        <DataTable
+          :columns="columns"
+          :data="filteredUsers"
           :loading="loading"
-          @save="userFormRef?.submit()"
-          @cancel="showUserModal = false"
-        >
-          <UserForm ref="userFormRef" :user="selectedUser" @submit="handleSaveUser" />
-        </FormModal>
-
-        <!-- Delete Confirmation Dialog -->
-        <ConfirmDialog
-          :is-open="showConfirmDialog"
-          title="ลบผู้ใช้"
-          :message="`คุณแน่ใจว่าต้องการลบผู้ใช้ ${userToDelete?.name} (${userToDelete?.email}) หรือไม่?`"
-          :loading="loading"
-          @confirm="confirmDeleteUser"
-          @cancel="showConfirmDialog = false"
+          :actions="actions"
+          empty-message="ไม่พบผู้ใช้"
+          @toggle-active="handleToggleActive"
         />
+      </template>
 
-        <!-- Toggle Active Confirmation Dialog -->
-        <ConfirmDialog
-          :is-open="showToggleDialog"
-          :title="userToToggle?.isActive ? 'ปิดใช้งานผู้ใช้' : 'เปิดใช้งานผู้ใช้'"
-          :message="userToToggle?.isActive
-            ? `คุณแน่ใจว่าต้องการปิดใช้งาน ${userToToggle?.name} (${userToToggle?.email}) หรือไม่? ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้`
-            : `คุณแน่ใจว่าต้องการเปิดใช้งาน ${userToToggle?.name} (${userToToggle?.email}) หรือไม่?`"
-          :loading="loading"
-          :is-danger="userToToggle?.isActive"
-          :confirm-text="userToToggle?.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน'"
-          @confirm="confirmToggleActive"
-          @cancel="showToggleDialog = false; userToToggle = null"
-        />
+      <!-- User Form Modal -->
+      <FormModal
+        v-model="showUserModal"
+        :title="selectedUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'"
+        :loading="loading"
+        @save="userFormRef?.submit()"
+        @cancel="showUserModal = false"
+      >
+        <UserForm ref="userFormRef" :user="selectedUser" @submit="handleSaveUser" />
+      </FormModal>
 
-      </div>
+      <!-- Delete Confirmation Dialog -->
+      <ConfirmDialog
+        :is-open="showConfirmDialog"
+        title="ลบผู้ใช้"
+        :message="`คุณแน่ใจว่าต้องการลบผู้ใช้ ${userToDelete?.name} (${userToDelete?.email}) หรือไม่?`"
+        :loading="loading"
+        @confirm="confirmDeleteUser"
+        @cancel="showConfirmDialog = false"
+      />
+
+      <!-- Toggle Active Confirmation Dialog -->
+      <ConfirmDialog
+        :is-open="showToggleDialog"
+        :title="userToToggle?.isActive ? 'ปิดใช้งานผู้ใช้' : 'เปิดใช้งานผู้ใช้'"
+        :message="userToToggle?.isActive
+          ? `คุณแน่ใจว่าต้องการปิดใช้งาน ${userToToggle?.name} (${userToToggle?.email}) หรือไม่? ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้`
+          : `คุณแน่ใจว่าต้องการเปิดใช้งาน ${userToToggle?.name} (${userToToggle?.email}) หรือไม่?`"
+        :loading="loading"
+        :is-danger="userToToggle?.isActive"
+        :confirm-text="userToToggle?.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน'"
+        @confirm="confirmToggleActive"
+        @cancel="showToggleDialog = false; userToToggle = null"
+      />
+    </AdminPageContent>
   </PageLayout>
 </template>
 
 <style scoped>
-.admin-page {
-  min-height: 100vh;
-}
-
-/* Main Content */
-.admin-content {
-  padding: var(--spacing-xl) var(--spacing-lg);
-  max-width: 1400px;
-}
-
-/* Page Header - using theme.css styles with gradient background */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xl);
-  gap: var(--spacing-md);
-  /* Background gradient from theme.css is inherited */
-}
-
-/* Filters Section */
-.filters-section {
-  background-color: var(--color-bg-primary);
-  padding: var(--spacing-xs);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.filters-row {
-  display: flex;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-  margin-bottom: var(--spacing-md);
-}
-
-.filter-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-.filter-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-}
-
-.results-count {
-  font-weight: 500;
-}
-
-/* Table Section */
-.table-section {
-  background-color: var(--color-bg-primary);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-}
-
-/* Responsive */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .filters-row {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .admin-content {
-    padding: var(--spacing-lg) var(--spacing-md);
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .filters-row {
-    flex-direction: column;
-  }
-
-  .filter-group {
-    min-width: auto;
-  }
-}
-
 </style>

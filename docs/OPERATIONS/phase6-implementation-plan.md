@@ -428,14 +428,88 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ---
 
-## Task 7: Audit Logging 🟡 P2
+## Task 7: Audit Logging ✅ Done
 
 **Branch:** `feat/audit-logging`
 **Depends on:** Task 1 (auth middleware)
 **Effort:** 1-2 วัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 บันทึกทุกครั้งที่มีคนดูแดชบอร์ด → ตรวจจับ anomaly → แจ้ง admin
+
+### Volume Analysis (150 คน × 50 แดชบอร์ด)
+
+| Metric | ค่า |
+|--------|-----|
+| Records/เดือน (raw) | ~17,800 |
+| หลัง deduplicate (cooldown 5 นาที) | ~10,700 |
+| ขนาดไฟล์ JSON/เดือน | ~2.5 MB |
+| ขีดจำกัดก่อนช้า | ~3 เดือน (ต้อง rotate) |
+
+### Logging Strategy
+
+| กลยุทธ์ | รายละเอียด |
+|---------|-----------|
+| **Cooldown 5 นาที** | user+dashboard เดิมภายใน 5 นาที → skip |
+| **Monthly rotation** | `audit-log-2026-03.json`, `audit-log-2026-04.json` |
+| **Retention 90 วัน** | ลบไฟล์เก่ากว่า 3 เดือนอัตโนมัติ |
+| **Log ทุก data change** | edit, archive, delete → บันทึกเสมอ ไม่มี cooldown |
+
+### Log Levels
+
+| Level | Event | บันทึกเสมอ? |
+|-------|-------|-------------|
+| **CRITICAL** | Login failed, 403 access denied | ✅ เสมอ |
+| **IMPORTANT** | Edit dashboard, archive, create, delete | ✅ เสมอ |
+| **NORMAL** | Dashboard view (deduplicated) | ✅ + cooldown 5 นาที |
+| **LOW** | Page visit, search query | ❌ ไม่จำเป็น |
+
+### Action Color Coding
+
+| Badge | สี | ความหมาย |
+|-------|-----|---------|
+| `👁️ view` | เทา/ขาว | ดูแดชบอร์ด (ปกติ) |
+| `✏️ edit` | เหลือง | แก้ไขข้อมูล |
+| `🗄️ archive` | แดงอ่อน | เก็บถาวร |
+| `🚫 denied` | แดง | ถูกปฏิเสธสิทธิ์ (ตรวจจับ anomaly) |
+| `➕ create` | เขียว | สร้างใหม่ |
+| `🗑️ delete` | แดงเข้ม | ลบ |
+
+### Admin Audit Logs Page — Wireframe
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  📋 Audit Logs — ประวัติการใช้งานระบบ            [ 📥 Export CSV ] │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐           │
+│  │ วันนี้    │  │ สัปดาห์นี้│  │ เดือนนี้  │  │ Unique   │           │
+│  │ 📊 342   │  │ 📊 1,847 │  │ 📊 11,203│  │ 👥 89 คน │           │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘           │
+│                                                                     │
+│  ┌─── Filters ─────────────────────────────────────────────────┐   │
+│  │ 🏷️ ประเภท: ทั้งหมด ▾  │ 👤 ผู้ใช้: ทั้งหมด ▾             │   │
+│  │ 🏢 บริษัท: ทั้งหมด ▾  │ 📊 แดชบอร์ด: ทั้งหมด ▾           │   │
+│  │ 📅 จากวันที่ ─── ถึงวันที่  │ 🔎 ค้นหา...  │ ↻ Reset │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                     │
+│  ┌─────────┬──────────┬────────────────┬────────────┬────────────┐ │
+│  │ เวลา    │ ประเภท   │ ผู้ใช้          │ บริษัท     │ แดชบอร์ด   │ │
+│  ├─────────┼──────────┼────────────────┼────────────┼────────────┤ │
+│  │ 14:32   │ 👁️ view │ Nopphol N.     │ SV         │ Sales      │ │
+│  │ 14:28   │ ✏️ edit  │ Nattha S.      │ SV         │ KPI Monthly│ │
+│  │ 14:15   │ 🗄️ arch │ IT Streamwash  │ SW         │ Legacy     │ │
+│  │ 13:55   │ 🚫 deny │ Somchai K.     │ SW         │ Finance Q1 │ │
+│  │ 13:40   │ 👁️ view │ Janine P.      │ SV         │ Sales      │ │
+│  └─────────┴──────────┴────────────────┴────────────┴────────────┘ │
+│                                                                     │
+│  ← ก่อนหน้า   หน้า 1 / 56   ถัดไป →       แสดง: 25 ▾              │
+│                                             (10 / 25 / 50)          │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Sidebar placement:** เพิ่มเมนู "📋 Audit Logs" ใต้หมวด MONITORING (admin only)
 
 ### Prompt
 
@@ -453,28 +527,47 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ### สิ่งที่ต้องทำ:
 
-1. สร้าง/อัปเดต `server/api/audit/log.post.ts`:
+1. สร้าง/อัปเดต `server/utils/auditLog.ts`:
+   - Cooldown 5 นาที: user+dashboard เดิมภายใน 5 นาที → skip (ใช้ in-memory Map)
+   - Monthly file rotation: เขียนลง `.data/audit-log-YYYY-MM.json`
+   - Log levels: CRITICAL (เสมอ), IMPORTANT (เสมอ), NORMAL (+ cooldown)
+   - บันทึก: userId, email, company, dashboardId, dashboardName, action, timestamp, userAgent
+
+2. สร้าง/อัปเดต `server/api/audit/log.post.ts`:
    - รับ `{ dashboardId, action }` + auth context
-   - บันทึก: userId, email, dashboardId, action, timestamp, userAgent
-   - เขียนลง `.data/audit-log.json`
+   - ใช้ auditLog utility เพื่อบันทึก (รวม cooldown logic)
+   - Action types: view, edit, archive, create, delete, denied
 
-2. สร้าง `server/api/audit/index.get.ts`:
+3. สร้าง `server/api/audit/index.get.ts`:
    - Admin only — return audit logs
-   - รองรับ filter: dashboardId, userId, dateRange
-   - Pagination
+   - รองรับ filter: action, userId, company, dashboardId, dateRange
+   - Pagination: page, limit (10/25/50), total count
+   - Text search: ชื่อผู้ใช้, email, dashboard name
 
-3. อัปเดต `app/pages/dashboard/view/[id].vue`:
+4. อัปเดต `app/pages/dashboard/view/[id].vue`:
    - ส่ง audit event เมื่อ page load (action: 'view')
 
-4. (Optional) สร้าง `app/pages/admin/audit.vue`:
-   - ตาราง audit logs — filter by dashboard, user, date
-   - เพิ่ม link ใน sidebar (admin only)
+5. สร้าง `app/pages/admin/audit.vue`:
+   - Summary cards: วันนี้, สัปดาห์นี้, เดือนนี้, Unique Users
+   - Filters: ประเภท, ผู้ใช้, บริษัท, แดชบอร์ด, ช่วงวันที่, ค้นหาข้อความ
+   - ตาราง: เวลา, ประเภท (color-coded badge), ผู้ใช้ (ชื่อ), บริษัท (รหัส), แดชบอร์ด
+   - Pagination: 25 items/หน้า default, เปลี่ยนได้ 10/25/50
+   - Export CSV button
+   - เพิ่ม link ใน sidebar หมวด MONITORING (admin only)
+
+### ระวัง:
+- Cooldown ต้องเป็น in-memory Map (จะ reset เมื่อ server restart — ไม่เป็นปัญหา)
+- Monthly rotation: อ่าน logs ต้อง merge หลายไฟล์เมื่อ filter ข้ามเดือน
+- Export CSV ต้อง filter ตาม criteria ที่เลือก ไม่ใช่ทั้งหมด
 
 ### Verification:
-- [ ] ดูแดชบอร์ด → มี record ใหม่ใน audit-log.json
-- [ ] GET `/api/audit` (admin) → return logs
+- [ ] ดูแดชบอร์ด → มี record ใหม่ใน audit-log-YYYY-MM.json
+- [ ] ดูแดชบอร์ดเดิมภายใน 5 นาที → ไม่มี record ซ้ำ (cooldown)
+- [ ] edit/archive/delete → บันทึกเสมอ ไม่มี cooldown
+- [ ] GET `/api/audit` (admin) → return logs พร้อม pagination
 - [ ] GET `/api/audit` (non-admin) → 403
-- [ ] Admin audit page แสดง logs ได้ถูกต้อง
+- [ ] Admin audit page แสดง logs + filters + pagination ถูกต้อง
+- [ ] Export CSV ดาวน์โหลดได้
 ```
 
 ---

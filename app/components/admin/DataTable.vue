@@ -58,6 +58,12 @@ const selectedRows: Ref<Set<number>> = ref(new Set())
 // Pagination state
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
+const pageSizeOptions = [10, 25, 50]
+
+const changePageSize = (size: number) => {
+  itemsPerPage.value = size
+  currentPage.value = 1
+}
 
 // Computed sorted data
 const sortedData = computed(() => {
@@ -362,17 +368,22 @@ const getGroupBadgeClass = (groupName: string): string => {
     </div>
 
     <!-- Pagination -->
-    <div v-if="!loading && totalPages > 1" class="flex flex-col md:flex-row gap-4 items-center p-4 rounded-md" style="background-color: var(--color-bg-secondary); color: var(--color-text-secondary); font-size: 0.9rem">
-      <div class="flex-shrink-0">
-        แสดง {{ (currentPage - 1) * itemsPerPage + 1 }} ถึง
-        {{ Math.min(currentPage * itemsPerPage, sortedData.length) }} จาก {{ sortedData.length }}
-        รายการ
+    <div v-if="!loading && sortedData.length > 0" class="pagination-bar">
+      <div class="pagination-bar__left">
+        <span>จำนวนรายการต่อหน้า</span>
+        <select
+          :value="itemsPerPage"
+          class="page-size-select"
+          @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"
+        >
+          <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}</option>
+        </select>
       </div>
 
-      <div class="flex gap-2 items-center ml-auto">
+      <div class="pagination-bar__center">
         <button
           class="pagination-button"
-          :disabled="currentPage === 1"
+          :disabled="currentPage <= 1"
           @click="currentPage = Math.max(1, currentPage - 1)"
         >
           ← ก่อนหน้า
@@ -392,11 +403,15 @@ const getGroupBadgeClass = (groupName: string): string => {
 
         <button
           class="pagination-button"
-          :disabled="currentPage === totalPages"
+          :disabled="currentPage >= totalPages"
           @click="currentPage = Math.min(totalPages, currentPage + 1)"
         >
           ถัดไป →
         </button>
+      </div>
+
+      <div class="pagination-bar__right">
+        แสดง {{ (currentPage - 1) * itemsPerPage + 1 }}–{{ Math.min(currentPage * itemsPerPage, sortedData.length) }} จาก {{ sortedData.length }} รายการ
       </div>
     </div>
   </div>
@@ -616,6 +631,53 @@ tbody tr:last-child td {
 .badge--group-hr {
   background-color: #fce7f3;
   color: #be185d;
+}
+
+/* Pagination bar layout */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.pagination-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.pagination-bar__center {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.pagination-bar__right {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Page size selector */
+.page-size-select {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.page-size-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
 }
 
 /* Pagination buttons */

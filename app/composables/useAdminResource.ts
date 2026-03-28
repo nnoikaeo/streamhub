@@ -148,20 +148,32 @@ export function useAdminResource<T extends Record<string, any>>(
   const error = useState<Error | null>(`admin-resource-${resourceName}-error`, () => null)
 
   /**
-   * Get Authorization headers with Firebase ID token.
+   * Get Authorization headers + uid query param for DEV fallback.
    * Enables server middleware to identify the user for company-based filtering.
    */
-  const getAuthHeaders = async (): Promise<Record<string, string>> => {
+  const getAuthOptions = async (): Promise<{ headers: Record<string, string>; query: Record<string, string> }> => {
+    const headers: Record<string, string> = {}
+    const query: Record<string, string> = {}
     try {
       const { getIdToken } = useAuth()
       const token = await getIdToken()
       if (token) {
-        return { Authorization: `Bearer ${token}` }
+        headers.Authorization = `Bearer ${token}`
       }
     } catch {
       // Auth may not be available (e.g., during SSR or before plugin init)
     }
-    return {}
+    // DEV fallback: send uid in query param for server auth middleware
+    // when Firebase Admin SDK credentials are not configured
+    try {
+      const authStore = useAuthStore()
+      if (authStore.user?.uid) {
+        query.uid = authStore.user.uid
+      }
+    } catch {
+      // Store may not be available during SSR
+    }
+    return { headers, query }
   }
 
   /**
@@ -203,9 +215,10 @@ export function useAdminResource<T extends Record<string, any>>(
     loading.value = true
     error.value = null
     try {
-      const headers = await getAuthHeaders()
+      const { headers, query } = await getAuthOptions()
       const response = await $fetch<FetchResponse<T>>(`/api/mock/${resourceName}`, {
         headers,
+        query,
       })
 
       if (response.success) {
@@ -242,11 +255,12 @@ export function useAdminResource<T extends Record<string, any>>(
         ...(generatedId ? { [idKey]: generatedId } : {})
       }
 
-      const headers = await getAuthHeaders()
+      const { headers, query } = await getAuthOptions()
       const response = await $fetch<MutationResponse<T>>(`/api/mock/${resourceName}`, {
         method: 'POST',
         body: requestBody,
         headers,
+        query,
       })
 
       if (response.success) {
@@ -276,10 +290,12 @@ export function useAdminResource<T extends Record<string, any>>(
         ...updates
       }
 
+      const { headers, query } = await getAuthOptions()
       const response = await $fetch<MutationResponse<T>>(`/api/mock/${resourceName}/${id}`, {
         method: 'PUT',
         body: requestBody,
-        headers: await getAuthHeaders(),
+        headers,
+        query,
       })
 
       if (response.success) {
@@ -303,9 +319,11 @@ export function useAdminResource<T extends Record<string, any>>(
     loading.value = true
     error.value = null
     try {
+      const { headers, query } = await getAuthOptions()
       const response = await $fetch<DeleteResponse>(`/api/mock/${resourceName}/${id}`, {
         method: 'DELETE',
-        headers: await getAuthHeaders(),
+        headers,
+        query,
       })
 
       if (response.success) {

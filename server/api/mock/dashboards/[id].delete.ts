@@ -1,4 +1,6 @@
-import { deleteItem } from '../../../utils/jsonDatabase'
+import { deleteItem, findById } from '../../../utils/jsonDatabase'
+import { logAuditEvent } from '../../../utils/auditLog'
+import type { User, Dashboard } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -12,6 +14,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Fetch dashboard info before deleting (for audit log name)
+    const dashboard = await findById<Dashboard>('dashboards.json', id)
+
     const deleted = await deleteItem('dashboards.json', id)
 
     if (!deleted) {
@@ -19,6 +24,23 @@ export default defineEventHandler(async (event) => {
         statusCode: 404,
         message: `Dashboard with ID "${id}" not found`
       })
+    }
+
+    // Fire-and-forget audit log
+    const auth = event.context.auth
+    if (auth?.uid) {
+      const userAgent = getHeader(event, 'user-agent') || ''
+      const user = await findById<User>('users.json', auth.uid)
+      logAuditEvent({
+        action: 'delete',
+        userId: auth.uid,
+        userName: user?.name || auth.name || 'Unknown',
+        userEmail: user?.email || auth.email || '',
+        company: user?.company || '',
+        dashboardId: id,
+        dashboardName: dashboard?.name || id,
+        userAgent,
+      }).catch(() => {})
     }
 
     return {

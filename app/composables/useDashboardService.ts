@@ -277,10 +277,13 @@ export class MockDashboardService implements IDashboardService {
   // Load data from API
   private async loadData() {
     try {
+      // Include uid in query for DEV auth middleware fallback
+      const authStore = useAuthStore()
+      const query = authStore.user?.uid ? { uid: authStore.user.uid } : {}
       const [usersResp, foldersResp, dashboardsResp] = await Promise.all([
-        $fetch('/api/mock/users'),
-        $fetch('/api/mock/folders'),
-        $fetch('/api/mock/dashboards'),
+        $fetch('/api/mock/users', { query }),
+        $fetch('/api/mock/folders', { query }),
+        $fetch('/api/mock/dashboards', { query }),
       ])
       this.users = (usersResp as any).data || []
       this.folders = (foldersResp as any).data || []
