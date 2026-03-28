@@ -175,7 +175,7 @@
               <!-- List View — Grouped (Tree Table) -->
               <TreeDashboardList
                 v-if="viewMode === 'list' && isGroupedView"
-                :groups="activeGroups"
+                :groups="visibleGroups"
                 :tags="tagStore.activeTags"
                 :loading="isLoading"
                 :user-map="userMap"
@@ -192,7 +192,7 @@
               <!-- List View — Flat (groupBy=none or specific folder) -->
               <DashboardList
                 v-else-if="viewMode === 'list'"
-                :dashboards="filteredDashboards"
+                :dashboards="visibleDashboards"
                 :tags="tagStore.activeTags"
                 :loading="isLoading"
                 :visible-columns="visibleColumns"
@@ -206,7 +206,7 @@
               <!-- Grouped View (when showing all folders) -->
               <GroupedDashboardGrid
                 v-else-if="isGroupedView"
-                :groups="activeGroups"
+                :groups="visibleGroups"
                 :loading="isLoading"
                 :user-map="userMap"
                 :view-mode="viewMode"
@@ -223,7 +223,7 @@
               <!-- Flat View (groupBy=none or specific folder) -->
               <DashboardGrid
                 v-else
-                :dashboards="filteredDashboards"
+                :dashboards="visibleDashboards"
                 :loading="isLoading"
                 :view-mode="viewMode"
                 :empty-message="flatEmptyMessage"
@@ -234,8 +234,13 @@
             </div>
           </Transition>
 
-          <!-- Infinite scroll sentinel (triggers load when visible) -->
-          <div ref="infiniteScrollSentinel" class="infinite-scroll-sentinel" />
+          <!-- Lazy load sentinel — triggers next batch when scrolled into view -->
+          <div v-if="hasMoreGroups && isGroupedView" ref="groupSentinelRef" class="lazy-load-sentinel" />
+          <div v-if="hasMoreDashboards && !isGroupedView" ref="dashboardSentinelRef" class="lazy-load-sentinel" />
+          <div v-if="lazyIsLoadingMore" class="lazy-load-indicator">
+            <div class="loading-spinner" />
+            <span>กำลังโหลดเพิ่ม...</span>
+          </div>
 
           <!-- Quick Share Dialog -->
           <QuickShareDialog
@@ -298,6 +303,7 @@ import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useCompanyAccess } from '~/composables/useCompanyAccess'
+import { useLazyLoad } from '~/composables/useLazyLoad'
 
 const route = useRoute()
 console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route.path, name: route.name })
@@ -325,7 +331,6 @@ const {
   error,
   shareDialogOpen,
   availableUsers,
-  infiniteScrollSentinel,
 
   // Permissions from store
   canCreateFolder,
@@ -677,6 +682,30 @@ const activeGroups = computed<DisplayGroup[]>(() => {
     default: return []
   }
 })
+
+// ========== Lazy Loading (Intersection Observer) ==========
+
+const {
+  visibleItems: visibleDashboards,
+  hasMore: hasMoreDashboards,
+  isLoadingMore: isLoadingMoreDashboards,
+  sentinelRef: dashboardSentinelRef,
+} = useLazyLoad(filteredDashboards, { batchSize: 12 })
+
+const {
+  visibleItems: visibleGroups,
+  hasMore: hasMoreGroups,
+  isLoadingMore: isLoadingMoreGroups,
+  sentinelRef: groupSentinelRef,
+} = useLazyLoad(activeGroups, { batchSize: 4 })
+
+/** Unified sentinel ref — binds to whichever lazy load is active */
+const lazyHasMore = computed(() =>
+  isGroupedView.value ? hasMoreGroups.value : hasMoreDashboards.value,
+)
+const lazyIsLoadingMore = computed(() =>
+  isGroupedView.value ? isLoadingMoreGroups.value : isLoadingMoreDashboards.value,
+)
 
 // ========== Adaptive Columns (List View) ==========
 
@@ -1053,10 +1082,29 @@ const dashboardCountText = computed(() => {
   height: 18px;
 }
 
-/* ========== INFINITE SCROLL SENTINEL ========== */
-.infinite-scroll-sentinel {
+/* ========== LAZY LOAD SENTINEL & INDICATOR ========== */
+.lazy-load-sentinel {
   height: 1px;
   visibility: hidden;
+}
+
+.lazy-load-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 0.875rem;
+}
+
+.lazy-load-indicator .loading-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-border-light, #e5e7eb);
+  border-top-color: var(--color-primary, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 /* ========== VIEW MODE FADE TRANSITION ========== */
