@@ -615,11 +615,12 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ---
 
-## Task 9: Dashboard Lazy Loading 🟡 P2
+## Task 9: Dashboard Lazy Loading ✅ Done
 
 **Branch:** `feat/dashboard-lazy-loading`
 **Depends on:** ไม่มี
 **Effort:** 1 วัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 โหลด dashboard cards ทีละ batch ด้วย Intersection Observer
@@ -666,11 +667,12 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ---
 
-## Task 10: แก้ไขข้อมูล Dashboard (Edit Info Dialog) 🔵 P3
+## Task 10: แก้ไขข้อมูล Dashboard (Edit Info Dialog) ✅ Done
 
 **Branch:** `feat/dashboard-edit-dialog`
 **Depends on:** ไม่มี
 **Effort:** 1 วัน
+**Status:** ✅ Completed
 
 ### Prompt
 
