@@ -20,9 +20,13 @@ export const useAuth = () => {
 
       // Fetch user role and company from API
       try {
-        const response = await fetch('/api/mock/users')
+        const idToken = await userCredential.user.getIdToken()
+        const params = new URLSearchParams({ uid: userCredential.user.uid })
+        const response = await fetch(`/api/mock/users/${userCredential.user.uid}?${params}`, {
+          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
+        })
         const data = await response.json()
-        const mockUser = data.data?.find((u: any) => u.uid === userCredential.user.uid)
+        const mockUser = data.data
 
         // Check if user is deactivated
         if (mockUser && mockUser.isActive === false) {
@@ -168,7 +172,11 @@ export const useAuth = () => {
         if (user) {
           // Fetch role from API
           try {
-            const response = await fetch(`/api/mock/users/${user.uid}`)
+            const idToken = await user.getIdToken()
+            const params = new URLSearchParams({ uid: user.uid })
+            const response = await fetch(`/api/mock/users/${user.uid}?${params}`, {
+              headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
+            })
             if (!response.ok) {
               throw new Error(`User with UID "${user.uid}" not found in system. Please contact administrator to create an account.`)
             }
@@ -213,13 +221,29 @@ export const useAuth = () => {
     })
   }
 
+  /**
+   * Get the current user's Firebase ID token for API authorization.
+   * Returns null if no user is signed in.
+   */
+  const getIdToken = async (): Promise<string | null> => {
+    try {
+      const currentUser = $firebase?.auth?.currentUser
+      if (!currentUser) return null
+      return await currentUser.getIdToken()
+    } catch (error) {
+      console.error('❌ [useAuth] Failed to get ID token:', error)
+      return null
+    }
+  }
+
   return {
     user: computed(() => authStore.user),
     loading: computed(() => authStore.loading),
     isAuthenticated: computed(() => authStore.isAuthenticated),
     signInWithGoogle,
     logout,
-    initAuth
+    initAuth,
+    getIdToken
   }
 }
 

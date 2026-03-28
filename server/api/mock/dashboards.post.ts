@@ -1,4 +1,6 @@
-import { readJSON, createItem, updateItem } from '../../utils/jsonDatabase'
+import { readJSON, createItem, updateItem, findById } from '../../utils/jsonDatabase'
+import { logAuditEvent } from '../../utils/auditLog'
+import type { User } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,14 +19,14 @@ export default defineEventHandler(async (event) => {
     const dashboards = await readJSON('dashboards.json')
     const existingDashboard = dashboards.find((d: any) => d.id === body.id)
 
+    let result: any
+    let auditAction: 'create' | 'edit'
+
     if (existingDashboard) {
       // Update existing dashboard
       const updated = await updateItem('dashboards.json', body.id, body)
-      return {
-        success: true,
-        data: updated,
-        action: 'updated'
-      }
+      result = { success: true, data: updated, action: 'updated' }
+      auditAction = 'edit'
     } else {
       // Create new dashboard — ensure owner has access
       if (body.owner) {
@@ -43,12 +45,28 @@ export default defineEventHandler(async (event) => {
       }
 
       const created = await createItem('dashboards.json', body)
-      return {
-        success: true,
-        data: created,
-        action: 'created'
-      }
+      result = { success: true, data: created, action: 'created' }
+      auditAction = 'create'
     }
+
+    // Fire-and-forget audit log
+    const auth = event.context.auth
+    if (auth?.uid) {
+      const userAgent = getHeader(event, 'user-agent') || ''
+      const user = await findById<User>('users.json', auth.uid)
+      logAuditEvent({
+        action: auditAction,
+        userId: auth.uid,
+        userName: user?.name || auth.name || 'Unknown',
+        userEmail: user?.email || auth.email || '',
+        company: user?.company || '',
+        dashboardId: body.id,
+        dashboardName: body.name || body.id,
+        userAgent,
+      }).catch(() => {})
+    }
+
+    return result
   } catch (error: any) {
     console.error('[API] Error creating/updating dashboard:', error.message)
     if (error.statusCode) {

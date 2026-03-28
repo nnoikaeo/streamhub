@@ -176,6 +176,7 @@
 - [ ] **Deploy to Firebase Hosting**
 
 **Plans:**
+- [phase6-implementation-plan.md](phase6-implementation-plan.md) — **แผนงานรวม Phase 6** (15 tasks, เรียงตามความสำคัญ)
 - [looker-embed-security-plan.md](looker-embed-security-plan.md) — Looker embed security hardening
 - [company-access-control-plan.md](company-access-control-plan.md) — company access control
 - [archive/user-invitations-plan.md](archive/user-invitations-plan.md) *(archived — completed)*

@@ -148,6 +148,35 @@ export function useAdminResource<T extends Record<string, any>>(
   const error = useState<Error | null>(`admin-resource-${resourceName}-error`, () => null)
 
   /**
+   * Get Authorization headers + uid query param for DEV fallback.
+   * Enables server middleware to identify the user for company-based filtering.
+   */
+  const getAuthOptions = async (): Promise<{ headers: Record<string, string>; query: Record<string, string> }> => {
+    const headers: Record<string, string> = {}
+    const query: Record<string, string> = {}
+    try {
+      const { getIdToken } = useAuth()
+      const token = await getIdToken()
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
+    } catch {
+      // Auth may not be available (e.g., during SSR or before plugin init)
+    }
+    // DEV fallback: send uid in query param for server auth middleware
+    // when Firebase Admin SDK credentials are not configured
+    try {
+      const authStore = useAuthStore()
+      if (authStore.user?.uid) {
+        query.uid = authStore.user.uid
+      }
+    } catch {
+      // Store may not be available during SSR
+    }
+    return { headers, query }
+  }
+
+  /**
    * Get display value from item for console logs
    */
   const getDisplayValue = (item: Partial<T> | T): string => {
@@ -186,13 +215,23 @@ export function useAdminResource<T extends Record<string, any>>(
     loading.value = true
     error.value = null
     try {
-      const response = await $fetch<FetchResponse<T>>(`/api/mock/${resourceName}`)
+      const { headers, query } = await getAuthOptions()
+      const response = await $fetch<FetchResponse<T>>(`/api/mock/${resourceName}`, {
+        headers,
+        query,
+      })
 
       if (response.success) {
         items.value = response.data || []
         console.log(`✅ Loaded ${items.value.length} ${pluralName}`)
       }
     } catch (e: any) {
+      if (e?.response?.status === 403 || e?.statusCode === 403) {
+        console.error(`🚫 Access denied fetching ${resourceName}:`, e.data?.message)
+        try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch {}
+        items.value = []
+        return
+      }
       error.value = e
       console.error(`❌ Error fetching ${resourceName}:`, e.message)
       throw e
@@ -216,9 +255,12 @@ export function useAdminResource<T extends Record<string, any>>(
         ...(generatedId ? { [idKey]: generatedId } : {})
       }
 
+      const { headers, query } = await getAuthOptions()
       const response = await $fetch<MutationResponse<T>>(`/api/mock/${resourceName}`, {
         method: 'POST',
-        body: requestBody
+        body: requestBody,
+        headers,
+        query,
       })
 
       if (response.success) {
@@ -248,9 +290,12 @@ export function useAdminResource<T extends Record<string, any>>(
         ...updates
       }
 
+      const { headers, query } = await getAuthOptions()
       const response = await $fetch<MutationResponse<T>>(`/api/mock/${resourceName}/${id}`, {
         method: 'PUT',
-        body: requestBody
+        body: requestBody,
+        headers,
+        query,
       })
 
       if (response.success) {
@@ -274,8 +319,11 @@ export function useAdminResource<T extends Record<string, any>>(
     loading.value = true
     error.value = null
     try {
+      const { headers, query } = await getAuthOptions()
       const response = await $fetch<DeleteResponse>(`/api/mock/${resourceName}/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers,
+        query,
       })
 
       if (response.success) {
@@ -296,7 +344,7 @@ export function useAdminResource<T extends Record<string, any>>(
    * Build return object with extensions
    */
   const baseReturn: AdminResourceReturn<T> = {
-    items: readonly(items),
+    items: readonly(items) as unknown as Readonly<Ref<T[]>>,
     loading: readonly(loading),
     error: readonly(error),
     fetch,

@@ -20,9 +20,8 @@ export async function validateCompanyAccess(
   event: H3Event,
   requestedCompany?: string
 ): Promise<CompanyAccessResult> {
-  // 1. ดึง uid จาก query params หรือ body
-  const query = getQuery(event)
-  const uid = query.uid as string
+  // 1. ดึง uid จาก auth context (verified token) หรือ query params (fallback)
+  const uid = event.context.auth?.uid || (getQuery(event).uid as string)
 
   if (!uid) {
     return { allowed: false, user: null, reason: 'Missing uid parameter' }

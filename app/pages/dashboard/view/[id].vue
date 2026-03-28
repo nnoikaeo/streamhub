@@ -7,6 +7,24 @@
         <p>Loading dashboard...</p>
       </div>
 
+      <!-- Access Denied State -->
+      <div v-else-if="accessDenied" class="error-state">
+        <div class="theme-alert theme-alert--error" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <div>
+            <h2>เข้าถึงรายงานไม่ได้</h2>
+            <p>บัญชีปัจจุบันของคุณ {{ user?.email }} ไม่สามารถเข้าถึงรายงานนี้ หรือรายงานไม่มีอยู่</p>
+          </div>
+          <button type="button" class="back-button" @click="handleGoBack">
+            ← Go Back
+          </button>
+        </div>
+      </div>
+
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <div class="theme-alert theme-alert--error" role="alert">
@@ -148,18 +166,25 @@
 
           <!-- Right Pane: Looker Dashboard Embed -->
           <div class="dashboard-main">
+            <!-- Embed URL Loading -->
+            <div v-if="embedUrlLoading" class="iframe-loading">
+              <div class="loading-spinner" />
+              <p>Loading embed URL...</p>
+            </div>
+
             <!-- Looker Embed -->
-            <div v-if="dashboard.lookerEmbedUrl" class="looker-embed">
+            <div v-else-if="embedUrl" class="looker-embed">
               <!-- Loading overlay -->
               <div v-if="iframeLoading" class="iframe-loading">
                 <div class="loading-spinner" />
                 <p>Loading dashboard...</p>
               </div>
               <iframe
-                :src="dashboard.lookerEmbedUrl"
+                :src="embedUrl"
                 class="embed-iframe"
                 title="Looker Dashboard"
                 frameborder="0"
+                referrerpolicy="no-referrer"
                 sandbox="allow-scripts allow-same-origin allow-popups"
                 @load="iframeLoading = false"
                 @error="iframeError = true"
@@ -207,7 +232,7 @@ definePageMeta({
 // Router and Auth
 const router = useRouter()
 const route = useRoute()
-const { user } = useAuth()
+const { user, getIdToken } = useAuth()
 const dashboardService = useDashboardService()
 
 // State
@@ -215,9 +240,12 @@ const dashboard = ref<Dashboard | null>(null)
 const currentFolder = ref<Folder | null>(null)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
+const accessDenied = ref(false)
 const menuOpen = ref(false)
 const relatedDashboards = ref<Dashboard[]>([])
 const owner = ref<User | null>(null)
+const embedUrl = ref<string | null>(null)
+const embedUrlLoading = ref(false)
 const iframeLoading = ref(true)
 const iframeError = ref(false)
 const showInfoSidebar = ref(false)
@@ -287,6 +315,20 @@ const loadDashboard = async () => {
     const hasAccess = await dashboardService.canAccessDashboard(dashboardId.value, currentUserId.value)
     if (!hasAccess) {
       error.value = 'You do not have access to this dashboard'
+      // Log denied audit event (fire-and-forget)
+      const authStore = useAuthStore()
+      getIdToken().then(token => {
+        const headers: Record<string, string> = {}
+        if (token) headers.Authorization = `Bearer ${token}`
+        const query: Record<string, string> = {}
+        if (authStore.user?.uid) query.uid = authStore.user.uid
+        $fetch('/api/audit/log', {
+          method: 'POST',
+          headers,
+          query,
+          body: { dashboardId: dashboardId.value, action: 'denied', dashboardName: data.name },
+        }).catch(() => {})
+      }).catch(() => {})
       return
     }
 
@@ -298,18 +340,61 @@ const loadDashboard = async () => {
       currentFolder.value = folder
     }
 
-    // Load owner info
-    const ownerData = await dashboardService.getUser(data.owner)
-    if (ownerData) {
-      owner.value = ownerData
+    // Load owner info — only admin/moderator can fetch user profiles across companies
+    if (currentUserRole.value === 'admin' || currentUserRole.value === 'moderator') {
+      const ownerData = await dashboardService.getUser(data.owner)
+      if (ownerData) {
+        owner.value = ownerData
+      }
+    }
+
+    // Fetch embed URL separately (security: not included in dashboard response)
+    embedUrlLoading.value = true
+    try {
+      embedUrl.value = await dashboardService.getDashboardEmbedUrl(dashboardId.value)
+    } finally {
+      embedUrlLoading.value = false
     }
 
     // Load related dashboards in same folder
     const related = await dashboardService.getDashboardsByFolder(data.folderId, currentUserId.value)
     relatedDashboards.value = related.filter((d) => d.id !== dashboardId.value).slice(0, 5)
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load dashboard'
-    console.error('Error loading dashboard:', err)
+
+    // Send audit log event (fire-and-forget, don't block page load)
+    const authStore = useAuthStore()
+    getIdToken().then(token => {
+      const headers: Record<string, string> = {}
+      if (token) headers.Authorization = `Bearer ${token}`
+      const query: Record<string, string> = {}
+      if (authStore.user?.uid) query.uid = authStore.user.uid
+      $fetch('/api/audit/log', {
+        method: 'POST',
+        headers,
+        query,
+        body: { dashboardId: dashboardId.value, action: 'view', dashboardName: data.name },
+      }).catch(() => { /* audit log failure is non-blocking */ })
+    }).catch(() => { /* token failure is non-blocking */ })
+  } catch (err: any) {
+    if (err?.response?.status === 403 || err?.statusCode === 403) {
+      // Access denied — show friendly message and log denied audit
+      accessDenied.value = true
+      const authStore = useAuthStore()
+      getIdToken().then(token => {
+        const headers: Record<string, string> = {}
+        if (token) headers.Authorization = `Bearer ${token}`
+        const query: Record<string, string> = {}
+        if (authStore.user?.uid) query.uid = authStore.user.uid
+        $fetch('/api/audit/log', {
+          method: 'POST',
+          headers,
+          query,
+          body: { dashboardId: dashboardId.value, action: 'denied' },
+        }).catch(() => {})
+      }).catch(() => {})
+    } else {
+      error.value = err instanceof Error ? err.message : 'Failed to load dashboard'
+      console.error('Error loading dashboard:', err)
+    }
   } finally {
     isLoading.value = false
   }

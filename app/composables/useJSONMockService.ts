@@ -10,18 +10,20 @@
 import type {
   User,
   Dashboard,
+  DashboardCardData,
   Folder,
   GetDashboardsResponse,
   GetFoldersResponse,
   AuditLogEntry,
-  IDashboardService,
   AccessControl,
   AccessRestrictions,
   PermissionMetadata,
+  SavePermissionsRequest,
   SaveFolderPermissionsRequest,
   FolderPermissionsResponse,
   SavePermissionsResponse,
 } from '~/types/dashboard'
+import type { IDashboardService } from '~/composables/useDashboardService'
 
 export class JSONMockService implements IDashboardService {
   private baseURL = '/api/mock'
@@ -34,6 +36,58 @@ export class JSONMockService implements IDashboardService {
       } else {
         console.log(`🔍 [JSONMockService] ${label}`)
       }
+    }
+  }
+
+  /**
+   * Get Authorization headers with Firebase ID token.
+   * Returns empty object if no token is available (e.g., dev mode without login).
+   */
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    try {
+      const { getIdToken } = useAuth()
+      const token = await getIdToken()
+      if (token) {
+        return { Authorization: `Bearer ${token}` }
+      }
+    } catch {
+      // Auth may not be available (e.g., during SSR or before plugin init)
+    }
+    return {}
+  }
+
+  /**
+   * Wrapper around $fetch that injects auth headers and handles 401 responses.
+   */
+  private async fetchWithAuth<T>(url: string, options: any = {}): Promise<T> {
+    const authHeaders = await this.getAuthHeaders()
+
+    // DEV fallback: send uid in query param for server auth middleware
+    // when Firebase Admin SDK credentials are not configured
+    const authStore = useAuthStore()
+    const query = { ...options.query }
+    if (authStore.user?.uid) {
+      query.uid = authStore.user.uid
+    }
+
+    const mergedOptions = {
+      ...options,
+      headers: {
+        ...authHeaders,
+        ...options.headers,
+      },
+      query,
+    }
+
+    try {
+      return await $fetch(url, mergedOptions) as T
+    } catch (error: any) {
+      const status = error?.response?.status || error?.statusCode
+      if (status === 401) {
+        console.warn('🔒 [JSONMockService] Unauthorized (401) — redirecting to login')
+        await navigateTo('/login')
+      }
+      throw error
     }
   }
 
@@ -64,12 +118,12 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getUser called', uid)
 
-      const response = await $fetch(`${this.baseURL}/users/${uid}`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: User }>(`${this.baseURL}/users/${uid}`, {
         method: 'GET',
       })
 
       if (response.success && response.data) {
-        const user = response.data as User
+        const user = response.data
         this.log(`✅ getUser: Found ${user.name} (role: ${user.role})`)
         return user
       }
@@ -89,7 +143,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getFolders called', { userId, companyId })
 
-      const response = await $fetch(`${this.baseURL}/folders`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: Folder[] }>(`${this.baseURL}/folders`, {
         method: 'GET',
         query: {
           uid: userId,
@@ -101,21 +155,21 @@ export class JSONMockService implements IDashboardService {
         this.log(`✅ getFolders: Got ${response.data.length} folders`)
 
         return {
-          folders: response.data as Folder[],
-          total: response.data.length,
-          hasMore: false,
+          folders: response.data,
+          hierarchy: [],
         }
       }
 
       this.log('⚠️ getFolders: No data in response')
-      return { folders: [], total: 0, hasMore: false }
+      return { folders: [], hierarchy: [] }
     } catch (error: any) {
       if (error?.response?.status === 403 || error?.statusCode === 403) {
         console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
-        return { folders: [], total: 0, hasMore: false }
+        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงโฟลเดอร์นี้', 'error') } catch {}
+        return { folders: [], hierarchy: [] }
       }
       console.error('❌ [JSONMockService] getFolders error:', error)
-      return { folders: [], total: 0, hasMore: false }
+      return { folders: [], hierarchy: [] }
     }
   }
 
@@ -126,12 +180,12 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getFolder:', folderId)
 
-      const response = await $fetch(`${this.baseURL}/folders/${folderId}`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: Folder }>(`${this.baseURL}/folders/${folderId}`, {
         method: 'GET',
       })
 
       if (response.success && response.data) {
-        return response.data as Folder
+        return response.data
       }
 
       return null
@@ -148,7 +202,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getChildFolders:', parentId)
 
-      const response = await $fetch(`${this.baseURL}/folders`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: Folder[] }>(`${this.baseURL}/folders`, {
         method: 'GET',
         query: {
           parentId: parentId || 'root',
@@ -156,7 +210,7 @@ export class JSONMockService implements IDashboardService {
       })
 
       if (response.success && response.data) {
-        return response.data as Folder[]
+        return response.data
       }
 
       return []
@@ -174,7 +228,7 @@ export class JSONMockService implements IDashboardService {
       this.log('getFolderPath:', folderId)
 
       // Fetch all folders to build path
-      const response = await $fetch(`${this.baseURL}/folders`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: Folder[] }>(`${this.baseURL}/folders`, {
         method: 'GET',
       })
 
@@ -182,7 +236,7 @@ export class JSONMockService implements IDashboardService {
         return []
       }
 
-      const allFolders = response.data as Folder[]
+      const allFolders = response.data
       const path: Folder[] = []
       let currentId: string | null | undefined = folderId
 
@@ -226,13 +280,13 @@ export class JSONMockService implements IDashboardService {
         query.folderId = options.folderId
       }
 
-      const response = await $fetch(`${this.baseURL}/dashboards`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: Dashboard[] }>(`${this.baseURL}/dashboards`, {
         method: 'GET',
         query,
       })
 
       if (response.success && response.data) {
-        const dashboards = response.data as Dashboard[]
+        const dashboards = response.data
 
         this.log(`✅ getDashboards: Got ${dashboards.length} dashboards for company ${companyId}`)
 
@@ -248,6 +302,7 @@ export class JSONMockService implements IDashboardService {
     } catch (error: any) {
       if (error?.response?.status === 403 || error?.statusCode === 403) {
         console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
+        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงแดชบอร์ด', 'error') } catch {}
         return { dashboards: [], total: 0, hasMore: false }
       }
       console.error('❌ [JSONMockService] getDashboards error:', error)
@@ -262,17 +317,53 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getDashboard:', dashboardId)
 
-      const response = await $fetch(`${this.baseURL}/dashboards/${dashboardId}`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: Dashboard }>(`${this.baseURL}/dashboards/${dashboardId}`, {
         method: 'GET',
       })
 
       if (response.success && response.data) {
-        return response.data as Dashboard
+        return response.data
       }
 
       return null
-    } catch (error) {
+    } catch (error: any) {
+      // Re-throw 403 so callers can show proper access-denied UI
+      if (error?.response?.status === 403 || error?.statusCode === 403 || error?.status === 403) {
+        throw error
+      }
       console.error('❌ [JSONMockService] getDashboard error:', error)
+      return null
+    }
+  }
+
+  /**
+   * Request a one-time proxy URL for a dashboard embed (server URL proxy).
+   * Returns a short-lived /api/embed/{token} URL — the real Looker URL never reaches the client.
+   */
+  async getDashboardEmbedUrl(dashboardId: string): Promise<string | null> {
+    try {
+      this.log('getDashboardEmbedUrl (proxy):', dashboardId)
+
+      const authStore = useAuthStore()
+      const uid = authStore.user?.uid
+
+      const response = await this.fetchWithAuth<{ success: boolean; data?: { token: string; proxyUrl: string } }>('/api/embed/request', {
+        method: 'POST',
+        body: { dashboardId },
+        query: uid ? { uid } : {},
+      })
+
+      if (response.success && response.data?.proxyUrl) {
+        return response.data.proxyUrl
+      }
+
+      return null
+    } catch (error: any) {
+      if (error?.response?.status === 403 || error?.statusCode === 403) {
+        console.error('🚫 [JSONMockService] Embed URL access denied')
+      } else {
+        console.error('❌ [JSONMockService] getDashboardEmbedUrl error:', error)
+      }
       return null
     }
   }
@@ -287,7 +378,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getDashboardsByFolder:', { folderId, userId })
 
-      const response = await $fetch(`${this.baseURL}/dashboards`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: Dashboard[] }>(`${this.baseURL}/dashboards`, {
         method: 'GET',
         query: {
           folderId,
@@ -296,7 +387,7 @@ export class JSONMockService implements IDashboardService {
       })
 
       if (response.success && response.data) {
-        return response.data as Dashboard[]
+        return response.data
       }
 
       return []
@@ -309,7 +400,7 @@ export class JSONMockService implements IDashboardService {
   /**
    * Get dashboard with UI-enriched data (not implemented in mock)
    */
-  async getDashboardCard(dashboardId: string): Promise<any> {
+  async getDashboardCard(dashboardId: string, _currentUserId: string): Promise<DashboardCardData | null> {
     try {
       this.log('getDashboardCard:', dashboardId)
 
@@ -321,11 +412,13 @@ export class JSONMockService implements IDashboardService {
 
       return {
         ...dashboard,
-        cardData: {
-          viewCount: Math.floor(Math.random() * 1000),
-          lastViewed: new Date().toISOString(),
-        },
-      }
+        accessReason: { layer: 1, type: 'user', name: '' },
+        isOwner: false,
+        canEdit: false,
+        canDelete: false,
+        canShare: false,
+        canManageAccess: false,
+      } as DashboardCardData
     } catch (error) {
       console.error('❌ [JSONMockService] getDashboardCard error:', error)
       return null
@@ -339,7 +432,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('saveDashboard:', dashboard.id)
 
-      const response = await $fetch(`${this.baseURL}/dashboards`, {
+      const response = await this.fetchWithAuth<{ success: boolean; data?: Dashboard }>(`${this.baseURL}/dashboards`, {
         method: 'POST',
         body: {
           action: dashboard.id ? 'update' : 'create',
@@ -349,7 +442,7 @@ export class JSONMockService implements IDashboardService {
 
       if (response.success && response.data) {
         this.log('saveDashboard: Saved', dashboard.id)
-        return response.data as Dashboard
+        return response.data
       }
 
       return null
@@ -362,23 +455,19 @@ export class JSONMockService implements IDashboardService {
   /**
    * Delete dashboard
    */
-  async deleteDashboard(dashboardId: string): Promise<boolean> {
+  async deleteDashboard(dashboardId: string): Promise<void> {
     try {
       this.log('deleteDashboard:', dashboardId)
 
-      const response = await $fetch(`${this.baseURL}/dashboards/${dashboardId}`, {
+      const response = await this.fetchWithAuth<{ success: boolean; deleted?: boolean }>(`${this.baseURL}/dashboards/${dashboardId}`, {
         method: 'DELETE',
       })
 
       if (response.success && response.deleted) {
         this.log('deleteDashboard: Deleted', dashboardId)
-        return true
       }
-
-      return false
     } catch (error) {
       console.error('❌ [JSONMockService] deleteDashboard error:', error)
-      return false
     }
   }
 
@@ -415,11 +504,10 @@ export class JSONMockService implements IDashboardService {
    * Save permissions (not implemented in mock, just logs)
    */
   async saveDashboardPermissions(
-    dashboardId: string,
-    permissions: any
-  ): Promise<{ success: boolean; message: string; updatedAt: Date }> {
+    request: SavePermissionsRequest
+  ): Promise<SavePermissionsResponse> {
     try {
-      this.log('saveDashboardPermissions:', { dashboardId, permissions })
+      this.log('saveDashboardPermissions:', request.dashboardId)
       return { success: true, message: 'Permissions saved successfully', updatedAt: new Date() }
     } catch (error) {
       console.error(
@@ -436,14 +524,14 @@ export class JSONMockService implements IDashboardService {
   async quickShareDashboard(
     dashboardId: string,
     userIds: string[],
-    expiryDate?: string
-  ): Promise<boolean> {
+    expiryDate?: Date
+  ): Promise<SavePermissionsResponse> {
     try {
       this.log('quickShareDashboard:', { dashboardId, userIds, expiryDate })
-      return true
+      return { success: true, message: 'Quick share successful', updatedAt: new Date() }
     } catch (error) {
       console.error('❌ [JSONMockService] quickShareDashboard error:', error)
-      return false
+      return { success: false, message: 'Quick share failed', updatedAt: new Date() }
     }
   }
 
@@ -484,7 +572,7 @@ export class JSONMockService implements IDashboardService {
         updatedAt: new Date().toISOString(),
       }
 
-      const response = await $fetch(`${this.baseURL}/folders`, {
+      const response = await this.fetchWithAuth(`${this.baseURL}/folders`, {
         method: 'POST',
         body: updatedFolder,
       }) as { success: boolean; message?: string }
@@ -578,7 +666,7 @@ export class JSONMockService implements IDashboardService {
 
   async canAccessDashboard(dashboardId: string, userId: string): Promise<boolean> {
     try {
-      this.log('canAccessDashboard:', dashboardId, userId)
+      this.log('canAccessDashboard:', { dashboardId, userId })
       const dashboard = await this.getDashboard(dashboardId)
       const user = await this.getUser(userId)
 
@@ -608,6 +696,74 @@ export class JSONMockService implements IDashboardService {
       console.error('❌ [JSONMockService] canAccessDashboard error:', error)
       return false
     }
+  }
+
+  async getAccessReason(
+    dashboardId: string,
+    userId: string
+  ): Promise<{
+    hasAccess: boolean
+    layer?: 1 | 2
+    grantedBy?: 'user' | 'role' | 'group'
+    grantName?: string
+  }> {
+    const hasAccess = await this.canAccessDashboard(dashboardId, userId)
+    return { hasAccess }
+  }
+
+  async getAccessibleUsers(_dashboardId: string): Promise<User[]> {
+    return []
+  }
+
+  async getDirectAccessUsers(_dashboardId: string): Promise<User[]> {
+    return []
+  }
+
+  async removeDirectAccess(
+    _dashboardId: string,
+    _userId: string
+  ): Promise<SavePermissionsResponse> {
+    return { success: true, message: 'Access removed', updatedAt: new Date() }
+  }
+
+  async createDashboard(
+    name: string,
+    folderId: string,
+    userId: string,
+    description?: string
+  ): Promise<Dashboard> {
+    const dashboard: Dashboard = {
+      id: `dash_${Date.now()}`,
+      name,
+      folderId,
+      type: 'looker',
+      description,
+      owner: userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      updatedBy: userId,
+      tags: [],
+      isArchived: false,
+      access: { direct: { users: [], groups: [] }, company: [] },
+      restrictions: { revoke: [], expiry: {} },
+    }
+    return dashboard
+  }
+
+  async updateDashboard(dashboard: Dashboard): Promise<Dashboard> {
+    return dashboard
+  }
+
+  async archiveDashboard(dashboardId: string): Promise<Dashboard> {
+    const dashboard = await this.getDashboard(dashboardId)
+    if (!dashboard) throw new Error('Dashboard not found')
+    return { ...dashboard, isArchived: true, archivedAt: new Date() }
+  }
+
+  async unarchiveDashboard(dashboardId: string): Promise<Dashboard> {
+    const dashboard = await this.getDashboard(dashboardId)
+    if (!dashboard) throw new Error('Dashboard not found')
+    return { ...dashboard, isArchived: false, archivedAt: undefined }
   }
 }
 

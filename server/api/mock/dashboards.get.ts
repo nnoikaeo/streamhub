@@ -4,7 +4,8 @@ export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event)
 
-    const uid = query.uid as string
+    // Use verified auth context (from middleware) first, fallback to query param
+    const uid = event.context.auth?.uid || (query.uid as string)
     const companyFilter = query.company as string
 
     // If uid provided: validate company access and filter by permissions
@@ -23,7 +24,10 @@ export default defineEventHandler(async (event) => {
         filtered = filtered.filter((d: any) => d.folderId === query.folderId)
       }
 
-      return { success: true, data: filtered, total: filtered.length }
+      // Strip lookerEmbedUrl from listing response (security: hide embed URLs)
+      const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }: any) => rest)
+
+      return { success: true, data: sanitized, total: sanitized.length }
     }
 
     // Fallback: no uid (admin pages, backward compatible)
@@ -39,7 +43,10 @@ export default defineEventHandler(async (event) => {
       filtered = filtered.filter((d: any) => d.folderId === query.folderId)
     }
 
-    return { success: true, data: filtered, total: filtered.length }
+    // Strip lookerEmbedUrl from listing response (security: hide embed URLs)
+    const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }: any) => rest)
+
+    return { success: true, data: sanitized, total: sanitized.length }
   } catch (error: any) {
     throw createError({
       statusCode: 500,

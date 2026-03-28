@@ -75,6 +75,7 @@ export function useRoleNavigation() {
       { path: '/admin/regions', label: 'กลุ่มธุรกิจ/เขตพื้นที่', icon: '🌏' },
       { path: '/admin/groups', label: 'กลุ่มผู้ใช้', icon: '👫' },
       { path: '/admin/tags', label: 'แท็ก', icon: '🏷️' },
+      { path: '/admin/audit', label: 'Audit Logs', icon: '📋' },
     ],
   }))
 
