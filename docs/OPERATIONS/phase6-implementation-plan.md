@@ -561,22 +561,23 @@ Task 13-15 (Production) — ทำหลังสุด
 - Export CSV ต้อง filter ตาม criteria ที่เลือก ไม่ใช่ทั้งหมด
 
 ### Verification:
-- [ ] ดูแดชบอร์ด → มี record ใหม่ใน audit-log-YYYY-MM.json
-- [ ] ดูแดชบอร์ดเดิมภายใน 5 นาที → ไม่มี record ซ้ำ (cooldown)
-- [ ] edit/archive/delete → บันทึกเสมอ ไม่มี cooldown
-- [ ] GET `/api/audit` (admin) → return logs พร้อม pagination
-- [ ] GET `/api/audit` (non-admin) → 403
-- [ ] Admin audit page แสดง logs + filters + pagination ถูกต้อง
-- [ ] Export CSV ดาวน์โหลดได้
+- [x] ดูแดชบอร์ด → มี record ใหม่ใน audit-log-YYYY-MM.json
+- [x] ดูแดชบอร์ดเดิมภายใน 5 นาที → ไม่มี record ซ้ำ (cooldown)
+- [x] edit/archive/delete → บันทึกเสมอ ไม่มี cooldown
+- [x] GET `/api/audit` (admin) → return logs พร้อม pagination
+- [x] GET `/api/audit` (non-admin) → 403
+- [x] Admin audit page แสดง logs + filters + pagination ถูกต้อง
+- [x] Export CSV ดาวน์โหลดได้
 ```
 
 ---
 
-## Task 8: Watermark Overlay 🟡 P2
+## Task 8: Watermark Overlay ✅ Done
 
 **Branch:** `feat/watermark-overlay`
 **Depends on:** ไม่มี (ทำเมื่อไหร่ก็ได้)
 **Effort:** ครึ่งวัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 แสดงอีเมลผู้ใช้แบบ semi-transparent ทับบน Looker iframe
@@ -606,10 +607,10 @@ Task 13-15 (Production) — ทำหลังสุด
 - ต้องไม่มองเห็นเมื่อดูปกติ (เว้นแต่ screenshot)
 
 ### Verification:
-- [ ] เห็น watermark email ทับบน iframe
-- [ ] iframe ยังคลิก/scroll ได้ปกติ (pointer-events: none)
-- [ ] Screenshot เห็น watermark ชัดเจน
-- [ ] Fullscreen mode ก็มี watermark ด้วย
+- [x] เห็น watermark email ทับบน iframe
+- [x] iframe ยังคลิก/scroll ได้ปกติ (pointer-events: none)
+- [x] Screenshot เห็น watermark ชัดเจน
+- [x] Fullscreen mode ก็มี watermark ด้วย
 ```
 
 ---
@@ -898,8 +899,8 @@ Deploy StreamHub ขึ้น Firebase Hosting
 | 4 | Company API Enforcement | 🟠 P1 | 1-2 วัน | ✅ Completed |
 | 5 | Company Client Integration | 🟠 P1 | 1 วัน | ✅ Completed |
 | 6 | Server URL Proxy | 🟠 P1 | 2-3 วัน | ⬜ Not Started |
-| 7 | Audit Logging | 🟡 P2 | 1-2 วัน | ⬜ Not Started |
-| 8 | Watermark Overlay | 🟡 P2 | ครึ่งวัน | ⬜ Not Started |
+| 7 | Audit Logging | 🟡 P2 | 1-2 วัน | ✅ Completed |
+| 8 | Watermark Overlay | 🟡 P2 | ครึ่งวัน | ✅ Completed |
 | 9 | Dashboard Lazy Loading | 🟡 P2 | 1 วัน | ⬜ Not Started |
 | 10 | แก้ไขข้อมูล Dashboard | 🔵 P3 | 1 วัน | ⬜ Not Started |
 | 11 | เก็บถาวร Dashboard | 🔵 P3 | 1 วัน | ⬜ Not Started |
