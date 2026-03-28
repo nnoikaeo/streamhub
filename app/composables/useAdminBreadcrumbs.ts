@@ -55,6 +55,10 @@ export function useAdminBreadcrumbs() {
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
       { label: 'จัดการสิทธิ์' },
     ],
+    '/admin/audit': [
+      { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
+      { label: 'Audit Logs' },
+    ],
   }
 
   /**

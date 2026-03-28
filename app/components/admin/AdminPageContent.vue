@@ -8,6 +8,7 @@
  *
  * Slots:
  * - #header  → Page title + primary action button (inside .page-header)
+ * - #summary → Summary cards / stats bar (between header and filters, inside .summary-section)
  * - #filters → Filter inputs and clear button (inside .filters-section > .filters-row)
  *              Use <div class="filter-group"> for each input — styled via :slotted()
  * - #table   → DataTable component (inside .table-section)
@@ -41,6 +42,11 @@
     <!-- Page Header: title + primary action button -->
     <div class="page-header">
       <slot name="header" />
+    </div>
+
+    <!-- Summary Section: stats cards (optional) -->
+    <div v-if="$slots.summary" class="summary-section">
+      <slot name="summary" />
     </div>
 
     <!-- Filters Section: search, status filter, clear button -->
@@ -83,6 +89,11 @@
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
+}
+
+/* Summary Section */
+.summary-section {
+  margin-bottom: var(--spacing-lg);
 }
 
 .filters-row {

@@ -21,11 +21,12 @@ export const useAuth = () => {
       // Fetch user role and company from API
       try {
         const idToken = await userCredential.user.getIdToken()
-        const response = await fetch('/api/mock/users', {
+        const params = new URLSearchParams({ uid: userCredential.user.uid })
+        const response = await fetch(`/api/mock/users/${userCredential.user.uid}?${params}`, {
           headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
         })
         const data = await response.json()
-        const mockUser = data.data?.find((u: any) => u.uid === userCredential.user.uid)
+        const mockUser = data.data
 
         // Check if user is deactivated
         if (mockUser && mockUser.isActive === false) {
@@ -172,7 +173,8 @@ export const useAuth = () => {
           // Fetch role from API
           try {
             const idToken = await user.getIdToken()
-            const response = await fetch(`/api/mock/users/${user.uid}`, {
+            const params = new URLSearchParams({ uid: user.uid })
+            const response = await fetch(`/api/mock/users/${user.uid}?${params}`, {
               headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
             })
             if (!response.ok) {

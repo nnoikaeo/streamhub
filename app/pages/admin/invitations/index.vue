@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PageLayout from '~/components/compositions/PageLayout.vue'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { Invitation, InvitationStatus } from '~/types/invitation'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminInvitations } from '~/composables/useAdminInvitations'
@@ -32,6 +32,16 @@ const searchQuery = ref('')
 const filterCompany = ref('')
 const filterStatus = ref<InvitationStatus | ''>('')
 
+// Pagination
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
+const pageSizeOptions = [10, 25, 50]
+
+const changePageSize = (size: number) => {
+  itemsPerPage.value = size
+  currentPage.value = 1
+}
+
 const statusTabs = [
   { label: 'ทั้งหมด', value: '' },
   { label: 'รอตอบรับ', value: 'pending' as InvitationStatus },
@@ -52,6 +62,18 @@ const filteredInvitations = computed(() => {
       if (filterStatus.value && effectiveStatus(inv) !== filterStatus.value) return false
       return true
     })
+})
+
+const totalPages = computed(() => Math.ceil(filteredInvitations.value.length / itemsPerPage.value))
+
+const paginatedInvitations = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return filteredInvitations.value.slice(start, start + itemsPerPage.value)
+})
+
+// Reset to page 1 when filters change
+watch([searchQuery, filterCompany, filterStatus], () => {
+  currentPage.value = 1
 })
 
 const stats = computed(() => ({
@@ -267,8 +289,13 @@ const folderTree = computed(() => buildFolderTree(folders.value))
               </tr>
             </thead>
             <tbody>
-              <tr v-for="inv in filteredInvitations" :key="inv.id">
-                <td class="font-medium">{{ inv.email }}</td>
+              <tr v-for="inv in paginatedInvitations" :key="inv.id">
+                <td>
+                  <div class="flex flex-col">
+                    <span class="font-semibold">{{ inv.email.split('@')[0] }}</span>
+                    <span class="text-sm text-gray-500">{{ inv.email }}</span>
+                  </div>
+                </td>
                 <td>
                   <span class="role-badge" :class="`role-badge--${inv.role}`">
                     {{ roleLabel(inv.role) }}
@@ -310,6 +337,48 @@ const folderTree = computed(() => buildFolderTree(folders.value))
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="filteredInvitations.length > 0" class="pagination-bar">
+          <div class="pagination-bar__left">
+            <span>จำนวนรายการต่อหน้า</span>
+            <select
+              :value="itemsPerPage"
+              class="page-size-select"
+              @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"
+            >
+              <option v-for="size in pageSizeOptions" :key="size" :value="size">{{ size }}</option>
+            </select>
+          </div>
+          <div class="pagination-bar__center">
+            <button
+              class="pagination-button"
+              :disabled="currentPage <= 1"
+              @click="currentPage = Math.max(1, currentPage - 1)"
+            >
+              ← ก่อนหน้า
+            </button>
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              class="pagination-page"
+              :class="{ active: currentPage === page }"
+              @click="currentPage = page"
+            >
+              {{ page }}
+            </button>
+            <button
+              class="pagination-button"
+              :disabled="currentPage >= totalPages"
+              @click="currentPage = Math.min(totalPages, currentPage + 1)"
+            >
+              ถัดไป →
+            </button>
+          </div>
+          <div class="pagination-bar__right">
+            แสดง {{ (currentPage - 1) * itemsPerPage + 1 }}–{{ Math.min(currentPage * itemsPerPage, filteredInvitations.length) }} จาก {{ filteredInvitations.length }} รายการ
+          </div>
         </div>
       </template>
 
@@ -462,14 +531,14 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 .data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 .data-table th {
   text-align: left;
-  padding: 0.625rem 0.75rem;
+  padding: 0.75rem 1rem;
   font-weight: 600;
   color: var(--color-text-secondary, #6b7280);
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
   white-space: nowrap;
 }
 .data-table td {
-  padding: 0.625rem 0.75rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--color-border, #e5e7eb);
   vertical-align: middle;
 }
@@ -494,5 +563,96 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   text-align: center;
   padding: 3rem 1rem;
   color: var(--color-text-secondary, #6b7280);
+}
+
+/* Pagination bar (matches DataTable) */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-bg-secondary, #f8fafc);
+  color: var(--color-text-secondary, #64748b);
+  font-size: 0.875rem;
+}
+
+.pagination-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.pagination-bar__center {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.pagination-bar__right {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.page-size-select {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-primary, #fff);
+  color: var(--color-text-primary, #1e293b);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.page-size-select:focus {
+  outline: none;
+  border-color: var(--color-primary, #3b82f6);
+}
+
+.pagination-button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-primary, #fff);
+  color: var(--color-text-primary, #1e293b);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 150ms ease-in-out;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: var(--color-primary, #3b82f6);
+  color: white;
+  border-color: var(--color-primary, #3b82f6);
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-page {
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: 0.375rem;
+  background-color: var(--color-bg-primary, #fff);
+  color: var(--color-text-primary, #1e293b);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 150ms ease-in-out;
+}
+
+.pagination-page:hover {
+  border-color: var(--color-primary, #3b82f6);
+  color: var(--color-primary, #3b82f6);
+}
+
+.pagination-page.active {
+  background-color: var(--color-primary, #3b82f6);
+  color: white;
+  border-color: var(--color-primary, #3b82f6);
 }
 </style>
