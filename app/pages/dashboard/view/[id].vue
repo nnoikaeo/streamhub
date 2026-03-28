@@ -185,10 +185,14 @@
                 title="Looker Dashboard"
                 frameborder="0"
                 referrerpolicy="no-referrer"
-                sandbox="allow-scripts allow-same-origin allow-popups"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
                 @load="iframeLoading = false"
                 @error="iframeError = true"
               />
+              <!-- Watermark Overlay -->
+              <div v-if="watermarkEmail" class="watermark-overlay" :style="watermarkStyle">
+                <span v-for="n in 36" :key="n" class="watermark-text">{{ watermarkEmail }}</span>
+              </div>
             </div>
 
             <!-- No Embed URL Configured -->
@@ -250,11 +254,19 @@ const iframeLoading = ref(true)
 const iframeError = ref(false)
 const showInfoSidebar = ref(false)
 const isFullscreen = ref(true)
+const watermarkOffset = ref({ x: 0, y: 0 })
+let watermarkTimer: ReturnType<typeof setInterval> | null = null
 
 // Computed properties
 const dashboardId = computed(() => route.params.id as string)
 const currentUserId = computed(() => user.value?.uid || '')
 const currentUserRole = computed(() => user.value?.role || 'user')
+
+const watermarkEmail = computed(() => user.value?.email || '')
+
+const watermarkStyle = computed(() => ({
+  transform: `translate(${watermarkOffset.value.x}px, ${watermarkOffset.value.y}px)`,
+}))
 
 const ownerName = computed(() => {
   if (owner.value) {
@@ -446,11 +458,22 @@ const handleKeydown = (e: KeyboardEvent) => {
 // Lifecycle
 onMounted(async () => {
   document.addEventListener('keydown', handleKeydown)
+  // Shift watermark position every 30 seconds to deter screenshot stitching
+  watermarkTimer = setInterval(() => {
+    watermarkOffset.value = {
+      x: Math.floor(Math.random() * 40) - 20,
+      y: Math.floor(Math.random() * 40) - 20,
+    }
+  }, 30_000)
   await loadDashboard()
 })
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  if (watermarkTimer) {
+    clearInterval(watermarkTimer)
+    watermarkTimer = null
+  }
 })
 </script>
 
@@ -894,5 +917,31 @@ onUnmounted(() => {
 .fullscreen-button svg {
   width: 1rem;
   height: 1rem;
+}
+
+/* ========== Watermark Overlay ========== */
+.watermark-overlay {
+  position: absolute;
+  inset: -50%;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem 3rem;
+  rotate: -30deg;
+  opacity: 0.09;
+  overflow: hidden;
+  transition: transform 2s ease-in-out;
+}
+
+.watermark-text {
+  white-space: nowrap;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  user-select: none;
+  letter-spacing: 0.05em;
 }
 </style>
