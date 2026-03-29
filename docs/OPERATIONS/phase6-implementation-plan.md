@@ -751,11 +751,12 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ---
 
-## Task 12: ดาวน์โหลด Dashboard (Export) 🔵 P3
+## Task 12: ดาวน์โหลด Dashboard (Export) 🔵 P3 ✅ Done
 
 **Branch:** `feat/dashboard-download`
 **Depends on:** ไม่มี
 **Effort:** 1 วัน
+**Status:** ✅ Completed
 
 ### Prompt
 
@@ -784,8 +785,8 @@ Task 13-15 (Production) — ทำหลังสุด
 - window.print() เป็นวิธีที่ง่ายและเชื่อถือได้ที่สุด
 
 ### Verification:
-- [ ] คลิก "ดาวน์โหลด" → เปิด print dialog / download PDF
-- [ ] PDF แสดงเฉพาะ dashboard content (ไม่มี sidebar/header)
+- [x] คลิก "ดาวน์โหลด" → เปิด print dialog / download PDF
+- [x] PDF แสดงเฉพาะ dashboard content (ไม่มี sidebar/header)
 ```
 
 ---
@@ -907,7 +908,7 @@ Deploy StreamHub ขึ้น Firebase Hosting
 | 9 | Dashboard Lazy Loading | 🟡 P2 | 1 วัน | ⬜ Not Started |
 | 10 | แก้ไขข้อมูล Dashboard | 🔵 P3 | 1 วัน | ⬜ Not Started |
 | 11 | เก็บถาวร Dashboard | 🔵 P3 | 1 วัน | ⬜ Not Started |
-| 12 | ดาวน์โหลด Dashboard | 🔵 P3 | 1 วัน | ⬜ Not Started |
+| 12 | ดาวน์โหลด Dashboard | 🔵 P3 | 1 วัน | ✅ Completed |
 | 13 | Real Firebase Integration | 🟣 P4 | 5-10 วัน | ⬜ Not Started |
 | 14 | Cross-browser + Performance | 🟣 P4 | 2-3 วัน | ⬜ Not Started |
 | 15 | Deploy Firebase Hosting | 🟣 P4 | 1 วัน | ⬜ Not Started |
