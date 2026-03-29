@@ -165,7 +165,7 @@ export class JSONMockService implements IDashboardService {
     } catch (error: any) {
       if (error?.response?.status === 403 || error?.statusCode === 403) {
         console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
-        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงโฟลเดอร์นี้', 'error') } catch {}
+        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงโฟลเดอร์นี้', 'error') } catch { }
         return { folders: [], hierarchy: [] }
       }
       console.error('❌ [JSONMockService] getFolders error:', error)
@@ -302,7 +302,7 @@ export class JSONMockService implements IDashboardService {
     } catch (error: any) {
       if (error?.response?.status === 403 || error?.statusCode === 403) {
         console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
-        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงแดชบอร์ด', 'error') } catch {}
+        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงแดชบอร์ด', 'error') } catch { }
         return { dashboards: [], total: 0, hasMore: false }
       }
       console.error('❌ [JSONMockService] getDashboards error:', error)
@@ -751,7 +751,20 @@ export class JSONMockService implements IDashboardService {
   }
 
   async updateDashboard(dashboard: Dashboard): Promise<Dashboard> {
-    return dashboard
+    const response = await this.fetchWithAuth<{ success: boolean; data: Dashboard }>(
+      `${this.baseURL}/dashboards/${dashboard.id}`,
+      {
+        method: 'PUT',
+        body: {
+          name: dashboard.name,
+          description: dashboard.description,
+          tags: dashboard.tags,
+          folderId: dashboard.folderId,
+          isArchived: dashboard.isArchived,
+        },
+      },
+    )
+    return response.data
   }
 
   async archiveDashboard(dashboardId: string): Promise<Dashboard> {

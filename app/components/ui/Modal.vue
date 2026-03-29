@@ -147,16 +147,28 @@ const closeModal = () => {
 onMounted(() => {
   if (isOpen.value) {
     document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeyDown)
   }
 })
 
 onUnmounted(() => {
   document.body.style.overflow = ''
+  document.removeEventListener('keydown', handleKeyDown)
 })
 
 /**
  * Watch for model changes
  */
+watch(isOpen, (open) => {
+  if (open) {
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeyDown)
+  } else {
+    document.body.style.overflow = ''
+    document.removeEventListener('keydown', handleKeyDown)
+  }
+})
+
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.closeOnEsc) {
     closeModal()
