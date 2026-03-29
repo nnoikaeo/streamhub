@@ -800,6 +800,7 @@ let dashboardServiceInstance: IDashboardService | null = null
 export const useDashboardService = (): IDashboardService => {
   if (!dashboardServiceInstance) {
     const config = useRuntimeConfig()
+
     const useFirestore = config.public.useFirestore === true || String(config.public.useFirestore) === 'true'
     const useJsonMock = config.public.useJsonMock ?? true
 

@@ -16,16 +16,40 @@
  *   --clean     Delete existing documents before seeding
  */
 
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 import { initializeApp, cert, getApps } from 'firebase-admin/app'
 import { getFirestore, Timestamp } from 'firebase-admin/firestore'
 
 // ============================================================================
+// LOAD .env.local (script runs outside Nuxt, so we load it manually)
+// ============================================================================
+
+const ROOT_DIR = resolve(import.meta.dirname || __dirname, '..')
+const envLocalPath = resolve(ROOT_DIR, '.env.local')
+
+if (existsSync(envLocalPath)) {
+  const envContent = readFileSync(envLocalPath, 'utf-8')
+  for (const line of envContent.split('\n')) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const eqIndex = trimmed.indexOf('=')
+    if (eqIndex === -1) continue
+    const key = trimmed.slice(0, eqIndex).trim()
+    const value = trimmed.slice(eqIndex + 1).trim()
+    // Don't overwrite existing env vars (CLI takes priority)
+    if (!process.env[key]) {
+      process.env[key] = value
+    }
+  }
+  console.log('📄 Loaded .env.local')
+}
+
+// ============================================================================
 // CONFIG
 // ============================================================================
 
-const DATA_DIR = resolve(import.meta.dirname || __dirname, '..', '.data')
+const DATA_DIR = resolve(ROOT_DIR, '.data')
 
 /** Map of collection name → { file, idField } */
 const COLLECTIONS: Record<string, { file: string; idField: string }> = {
