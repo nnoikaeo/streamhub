@@ -247,7 +247,7 @@
     "type": "looker",
     "isArchived": false,
     "createdAt": "2026-03-22T21:56:15.805Z",
-    "updatedAt": "2026-03-22T21:56:15.805Z",
+    "updatedAt": "2026-03-29T08:30:05.983Z",
     "access": {
       "direct": {
         "users": [],
@@ -266,13 +266,15 @@
     "lookerDashboardId": "d95a3df9-e38b-4002-b5b4-89ba8585a5e3",
     "lookerEmbedUrl": "https://lookerstudio.google.com/embed/reporting/d95a3df9-e38b-4002-b5b4-89ba8585a5e3/page/p_90bk1iqchd",
     "owner": "61JSdbE674TqRBHHUu9ezdzFul93",
-    "tags": []
+    "tags": [
+      "tag_sales"
+    ]
   },
   {
     "type": "looker",
     "isArchived": false,
     "createdAt": "2026-03-22T22:14:11.433Z",
-    "updatedAt": "2026-03-22T22:14:11.433Z",
+    "updatedAt": "2026-03-29T08:30:59.953Z",
     "access": {
       "direct": {
         "users": [
