@@ -214,6 +214,14 @@
     </div>
 
     <!-- Quick Share Dialog removed — Share now navigates to permissions page -->
+
+    <!-- Edit Info Dialog -->
+    <DashboardEditDialog
+      v-if="dashboard"
+      v-model="showEditDialog"
+      :dashboard="dashboard"
+      @saved="handleEditSave"
+    />
   </AppLayout>
 </template>
 
@@ -226,6 +234,10 @@ import type { Dashboard, Folder, User } from '~/types/dashboard'
 import AppLayout from '~/components/layouts/AppLayout.vue'
 import TwoPaneLayout from '~/components/compositions/TwoPaneLayout.vue'
 import DashboardViewHeader from '~/components/features/DashboardViewHeader.vue'
+import DashboardEditDialog from '~/components/dashboard/DashboardEditDialog.vue'
+import { useAppToast } from '~/composables/useToast'
+import { useAdminTags } from '~/composables/useAdminTags'
+import { useDashboardStore } from '~/stores/dashboard'
 
 // Page metadata
 definePageMeta({
@@ -238,6 +250,9 @@ const router = useRouter()
 const route = useRoute()
 const { user, getIdToken } = useAuth()
 const dashboardService = useDashboardService()
+const { showToast } = useAppToast()
+const { fetchTags } = useAdminTags()
+const dashboardStore = useDashboardStore()
 
 // State
 const dashboard = ref<Dashboard | null>(null)
@@ -253,6 +268,7 @@ const embedUrlLoading = ref(false)
 const iframeLoading = ref(true)
 const iframeError = ref(false)
 const showInfoSidebar = ref(false)
+const showEditDialog = ref(false)
 const isFullscreen = ref(true)
 const watermarkOffset = ref({ x: 0, y: 0 })
 let watermarkTimer: ReturnType<typeof setInterval> | null = null
@@ -427,10 +443,24 @@ const handleShareNavigate = async () => {
   }
 }
 
-const handleEditInfo = () => {
-  console.log('Edit dashboard info')
+const handleEditInfo = async () => {
   menuOpen.value = false
-  // TODO: Implement edit info dialog
+  // Ensure tags are loaded for the edit dialog
+  await fetchTags()
+  showEditDialog.value = true
+}
+
+const handleEditSave = async (updated: Dashboard) => {
+  try {
+    await dashboardService.updateDashboard(updated)
+    dashboard.value = updated
+    showEditDialog.value = false
+    dashboardStore.clearCache()
+    showToast('บันทึกข้อมูลแดชบอร์ดสำเร็จ', 'success')
+  } catch (err) {
+    console.error('Failed to update dashboard:', err)
+    showToast('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองอีกครั้ง', 'error')
+  }
 }
 
 const handleDownload = () => {
@@ -450,7 +480,7 @@ const toggleFullscreen = () => {
 }
 
 const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && isFullscreen.value) {
+  if (e.key === 'Escape' && isFullscreen.value && !showEditDialog.value) {
     isFullscreen.value = false
   }
 }
@@ -909,7 +939,7 @@ onUnmounted(() => {
 .is-fullscreen {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 40;
   background: white;
 }
 
