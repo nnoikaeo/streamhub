@@ -141,21 +141,6 @@ export default defineNuxtConfig({
       target: 'es2020',
       // Strip console.log / console.debug in production builds
       minify: 'esbuild',
-      rollupOptions: {
-        output: {
-          // Split vendor chunks for better long-term caching
-          manualChunks(id) {
-            // Firebase SDK — large, changes infrequently
-            if (id.includes('node_modules/firebase')) return 'vendor-firebase'
-            // Pinia — state management
-            if (id.includes('node_modules/pinia')) return 'vendor-pinia'
-            // Vee-validate + Zod — form validation
-            if (id.includes('node_modules/vee-validate') || id.includes('node_modules/zod')) return 'vendor-forms'
-            // All other node_modules — shared vendor chunk
-            if (id.includes('node_modules')) return 'vendor'
-          },
-        },
-      },
     },
     esbuild: {
       // Drop console.log and debugger statements in production
