@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "streamhub-1c27a",
+    "staging": "streamhub-staging"
+  }
+}
