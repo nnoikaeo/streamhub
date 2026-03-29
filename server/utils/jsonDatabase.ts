@@ -16,13 +16,38 @@ import { resolve } from 'path'
 // Resolve path to .data directory
 const DATA_DIR = resolve(process.cwd(), '.data')
 
+// ============================================================================
+// In-memory read cache — reduces repeated disk I/O on every request
+// Invalidated automatically on every write (writeJSON)
+// TTL: 30s in dev, 5 min in prod
+// ============================================================================
+const TTL = process.env.NODE_ENV === 'production' ? 300_000 : 30_000
+
+interface CacheEntry {
+  data: any[]
+  expiresAt: number
+}
+
+const readCache = new Map<string, CacheEntry>()
+
+/** Invalidate cache for a specific file (called after every write) */
+export function invalidateCache(filename: string): void {
+  readCache.delete(filename)
+}
+
 /**
- * Read entire JSON file
+ * Read entire JSON file (with in-memory cache)
  * @param filename - Name of file in .data/ directory (e.g., 'users.json')
  * @returns Array of items from JSON file
  * @throws Error if file not found or invalid JSON
  */
 export async function readJSON<T>(filename: string): Promise<T[]> {
+  // Serve from cache if still valid
+  const cached = readCache.get(filename)
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.data as T[]
+  }
+
   try {
     const filepath = resolve(DATA_DIR, filename)
     const data = await fs.readFile(filepath, 'utf-8')
@@ -39,6 +64,9 @@ export async function readJSON<T>(filename: string): Promise<T[]> {
       console.warn(`[jsonDatabase] ${filename} is not an array, returning wrapped value`)
       return [parsed]
     }
+
+    // Store in cache
+    readCache.set(filename, { data: parsed, expiresAt: Date.now() + TTL })
 
     return parsed as T[]
   } catch (error) {
@@ -75,6 +103,8 @@ export async function writeJSON<T>(filename: string, data: T[]): Promise<void> {
     const jsonString = JSON.stringify(data, null, 2)
 
     await fs.writeFile(filepath, jsonString, 'utf-8')
+    // Invalidate read cache so next read fetches fresh data
+    invalidateCache(filename)
     console.log(`[jsonDatabase] Wrote ${data.length} items to ${filename}`)
   } catch (error) {
     console.error(`[jsonDatabase] Error writing to ${filename}:`, error)

@@ -2,8 +2,15 @@
   "name": "streamhub",
   "type": "module",
   "private": true,
+  "browserslist": [
+    "Chrome >= 85",
+    "Firefox >= 79",
+    "Safari >= 14",
+    "Edge >= 85"
+  ],
   "scripts": {
     "build": "nuxt build",
+    "build:analyze": "NUXT_BUILD_ANALYZE=true nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
