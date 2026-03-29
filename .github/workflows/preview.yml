@@ -16,7 +16,7 @@ permissions:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -46,7 +46,36 @@ jobs:
           NUXT_PUBLIC_USE_JSON_MOCK: 'false'
         run: npm run build
 
-      - name: Deploy preview to Firebase
+      - name: Prepare Cloud Function package.json
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const deps = pkg.dependencies || {};
+            const removed = [];
+            Object.keys(deps).forEach(k => {
+              if (k === 'sharp' || k.startsWith('@img/') || deps[k].startsWith('file:')) {
+                removed.push(k);
+                delete deps[k];
+              }
+            });
+            pkg.dependencies = deps;
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+            console.log('Removed:', removed.join(', '));
+          "
+          echo "ignore-scripts=true" > .npmrc
+          rm -rf node_modules
+          npm install
+        working-directory: .output/server
+
+      - name: Deploy Cloud Functions
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $RUNNER_TEMP/firebase-sa.json
+          npx firebase-tools deploy --only functions --project ${{ secrets.FIREBASE_PROJECT_ID }} --force
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+
+      - name: Deploy preview to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
