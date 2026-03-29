@@ -44,7 +44,7 @@
       </div>
 
       <!-- Dashboard View -->
-      <div v-else-if="dashboard" class="dashboard-view-content" :class="{ 'is-fullscreen': isFullscreen }">
+      <div v-else-if="dashboard" class="dashboard-view-content" :class="{ 'is-fullscreen': isFullscreen, 'is-printing': isPrinting }">
         <!-- Top Navigation Bar -->
         <DashboardViewHeader
           :dashboard="dashboard"
@@ -482,10 +482,18 @@ const handleEditSave = async (updated: Dashboard) => {
   }
 }
 
+const isPrinting = ref(false)
+
 const handleDownload = () => {
-  console.log('Download dashboard')
   menuOpen.value = false
-  // TODO: Implement download logic
+  window.print()
+}
+
+const onBeforePrint = () => {
+  isPrinting.value = true
+}
+const onAfterPrint = () => {
+  isPrinting.value = false
 }
 
 const showArchiveConfirm = ref(false)
@@ -545,6 +553,8 @@ const handleKeydown = (e: KeyboardEvent) => {
 // Lifecycle
 onMounted(async () => {
   document.addEventListener('keydown', handleKeydown)
+  window.addEventListener('beforeprint', onBeforePrint)
+  window.addEventListener('afterprint', onAfterPrint)
   // Shift watermark position every 30 seconds to deter screenshot stitching
   watermarkTimer = setInterval(() => {
     watermarkOffset.value = {
@@ -557,6 +567,8 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('beforeprint', onBeforePrint)
+  window.removeEventListener('afterprint', onAfterPrint)
   if (watermarkTimer) {
     clearInterval(watermarkTimer)
     watermarkTimer = null
@@ -1035,5 +1047,79 @@ onUnmounted(() => {
   color: var(--color-text-secondary);
   user-select: none;
   letter-spacing: 0.05em;
+}
+
+/* ========== Print: programmatic hiding via beforeprint/afterprint ========== */
+.is-printing :deep(.view-header) {
+  display: none !important;
+}
+.is-printing :deep(.two-pane-sidebar) {
+  display: none !important;
+}
+.is-printing .watermark-overlay {
+  display: none !important;
+}
+.is-printing.is-fullscreen {
+  position: static;
+  z-index: auto;
+}
+</style>
+
+<!-- Global (unscoped) print styles — no data-v attribute constraint -->
+<style>
+@media print {
+  /* Hide app-level chrome */
+  .app-sidebar,
+  .app-header,
+  .app-nav,
+  .sidebar-overlay {
+    display: none !important;
+  }
+
+  /* Hide dashboard view header (incl. dropdown menu) */
+  .dashboard-view-content .view-header {
+    display: none !important;
+  }
+
+  /* Hide sidebar pane */
+  .dashboard-view-content .two-pane-sidebar {
+    display: none !important;
+  }
+
+  /* Hide watermark */
+  .dashboard-view-content .watermark-overlay {
+    display: none !important;
+  }
+
+  /* Reset fullscreen overlay */
+  .dashboard-view-content.is-fullscreen {
+    position: static !important;
+    z-index: auto !important;
+  }
+
+  /* Expand content to fill page */
+  .view-page,
+  .dashboard-view-content,
+  .dashboard-main,
+  .looker-embed {
+    height: 100% !important;
+    width: 100% !important;
+    overflow: visible !important;
+    position: static !important;
+    background: white !important;
+  }
+
+  .dashboard-view-content .two-pane-layout,
+  .dashboard-view-content .two-pane-main {
+    width: 100% !important;
+    height: 100% !important;
+    overflow: visible !important;
+  }
+
+  .embed-iframe {
+    width: 100% !important;
+    height: 100vh !important;
+    border: none !important;
+  }
 }
 </style>
