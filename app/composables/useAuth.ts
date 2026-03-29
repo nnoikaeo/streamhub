@@ -1,4 +1,5 @@
 import { signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
+import { getDoc, doc } from 'firebase/firestore'
 import { useAuthStore, type UserData } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
 
@@ -6,6 +7,27 @@ export const useAuth = () => {
   const { $firebase } = useNuxtApp()
   const authStore = useAuthStore()
   const permissionsStore = usePermissionsStore()
+  const config = useRuntimeConfig()
+  const useFirestoreMode = config.public.useFirestore === true || String(config.public.useFirestore) === 'true'
+
+  /**
+   * Fetch user profile from Firestore (production) or mock API (dev).
+   * Returns the raw user data object, or null if not found.
+   */
+  const fetchUserProfile = async (uid: string, idToken: string | null): Promise<Record<string, any> | null> => {
+    if (useFirestoreMode) {
+      const snap = await getDoc(doc(($firebase as any).db, 'users', uid))
+      if (!snap.exists()) return null
+      return { uid: snap.id, ...snap.data() }
+    }
+    const params = new URLSearchParams({ uid })
+    const response = await fetch(`/api/mock/users/${uid}?${params}`, {
+      headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
+    })
+    if (!response.ok) return null
+    const data = await response.json()
+    return data.data ?? null
+  }
 
   const signInWithGoogle = async (options?: { skipAutoAccept?: boolean }) => {
     try {
@@ -18,15 +40,10 @@ export const useAuth = () => {
       const userCredential = await signInWithPopup($firebase.auth, provider)
       console.log('✅ Sign-in successful:', userCredential.user.email)
 
-      // Fetch user role and company from API
+      // Fetch user role and company from Firestore or mock API
       try {
         const idToken = await userCredential.user.getIdToken()
-        const params = new URLSearchParams({ uid: userCredential.user.uid })
-        const response = await fetch(`/api/mock/users/${userCredential.user.uid}?${params}`, {
-          headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
-        })
-        const data = await response.json()
-        const mockUser = data.data
+        const mockUser = await fetchUserProfile(userCredential.user.uid, idToken)
 
         // Check if user is deactivated
         if (mockUser && mockUser.isActive === false) {
@@ -170,19 +187,14 @@ export const useAuth = () => {
         console.log('🔍 Auth state changed:', user?.email || 'not logged in')
 
         if (user) {
-          // Fetch role from API
+          // Fetch role from Firestore or mock API
           try {
             const idToken = await user.getIdToken()
-            const params = new URLSearchParams({ uid: user.uid })
-            const response = await fetch(`/api/mock/users/${user.uid}?${params}`, {
-              headers: idToken ? { Authorization: `Bearer ${idToken}` } : {},
-            })
-            if (!response.ok) {
+            const mockUser = await fetchUserProfile(user.uid, idToken)
+            if (!mockUser) {
               throw new Error(`User with UID "${user.uid}" not found in system. Please contact administrator to create an account.`)
             }
-            const data = await response.json()
-            const mockUser = data.data
-            console.log(`🔍 [useAuth.initAuth] Got mock user with role: ${mockUser.role}`)
+            console.log(`🔍 [useAuth.initAuth] Got user with role: ${mockUser.role}`)
 
             const userData: UserData = {
               uid: user.uid,
