@@ -47,7 +47,7 @@ jobs:
         run: npm run build
 
       - name: Install Cloud Function dependencies
-        run: npm install
+        run: npm install --omit=optional
         working-directory: .output/server
 
       - name: Deploy Cloud Functions
