@@ -46,6 +46,10 @@ jobs:
           NUXT_PUBLIC_USE_JSON_MOCK: 'false'
         run: npm run build
 
+      - name: Install Cloud Function dependencies
+        run: npm install
+        working-directory: .output/server
+
       - name: Deploy Cloud Functions
         run: |
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $RUNNER_TEMP/firebase-sa.json
