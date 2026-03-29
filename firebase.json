@@ -25,12 +25,8 @@
     ],
     "rewrites": [
       {
-        "source": "/api/**",
-        "function": "server"
-      },
-      {
         "source": "**",
-        "destination": "/index.html"
+        "function": "server"
       }
     ]
   },
