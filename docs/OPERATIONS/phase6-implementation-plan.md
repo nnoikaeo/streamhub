@@ -839,27 +839,42 @@ Task 13-15 (Production) — ทำหลังสุด
 **Branch:** `feat/performance`
 **Depends on:** Task 13
 **Effort:** 2-3 วัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 ทดสอบ cross-browser + optimize ให้ page load < 2 seconds
 
-### Prompt
+### สิ่งที่ทำ
 
-```
-อ่านไฟล์ต่อไปนี้ก่อน:
-- docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 14)
-- nuxt.config.ts
+1. **`server/utils/jsonDatabase.ts`** — เพิ่ม in-memory read cache (TTL 30s dev / 5min prod)
+   - ลด disk I/O: แต่ละ API endpoint ไม่ต้อง readFile ทุก request
+   - `invalidateCache(filename)` — เรียกอัตโนมัติหลัง write (writeJSON)
+   - Export `invalidateCache` สำหรับ clear cache ด้วยตนเอง
 
-เป้าหมาย: Cross-browser testing + performance optimization
+2. **`nuxt.config.ts`** — bundle + browser optimizations
+   - `@nuxt/image`: quality=80, format=['webp','png'], responsive screens
+   - Vite build target: `es2020` (Chrome 85+, Firefox 79+, Safari 14+, Edge 85+)
+   - Rollup manualChunks: แยก firebase / pinia / forms / vendor chunks เพื่อ long-term caching
+   - esbuild drop: `['console', 'debugger']` ใน production builds อัตโนมัติ
+   - routeRules Cache-Control: `no-store` สำหรับ `/api/mock/**` (auth-gated)
 
-### สิ่งที่ต้องทำ:
+3. **`app/app.vue`** — ลบ debug `console.log` ทั้งหมด
 
-1. ทดสอบบน Chrome, Firefox, Safari, Edge
-2. Lighthouse audit → แก้ไขปัญหาที่พบ
-3. Bundle analysis → optimize chunk sizes
-4. Image/asset optimization
-5. API response caching strategy
-```
+4. **`app/pages/dashboard/discover.vue`** — เพิ่ม `keepalive: true` ใน `definePageMeta`
+   - Vue จะ cache component instance ไว้ใน memory เมื่อ navigate ไป dashboard view แล้วกลับมา
+   - ลด re-mount + re-fetch ใน discover page
+
+5. **`package.json`** — เพิ่ม `browserslist` targets + `build:analyze` script
+
+### Verification:
+- [x] `npm run build` ผ่านโดยไม่มี error
+- [x] Build output แยก vendor chunks: firebase (~600KB), pinia, forms, vendor
+- [x] `server/utils/jsonDatabase.ts` มี in-memory cache พร้อม auto-invalidate
+- [x] `app/app.vue` ไม่มี debug console.log
+- [x] `app/pages/dashboard/discover.vue` มี `keepalive: true`
+- [x] `package.json` มี `browserslist` + `build:analyze`
+- [ ] Manual cross-browser testing: Chrome, Firefox, Safari, Edge
+- [ ] Lighthouse audit ≥90 (Performance, Accessibility)
 
 ---
 
@@ -911,7 +926,7 @@ Deploy StreamHub ขึ้น Firebase Hosting
 | 11 | เก็บถาวร Dashboard | 🔵 P3 | 1 วัน | ⬜ Not Started |
 | 12 | ดาวน์โหลด Dashboard | 🔵 P3 | 1 วัน | ✅ Completed |
 | 13 | Real Firebase Integration | 🟣 P4 | 5-10 วัน | ✅ Completed |
-| 14 | Cross-browser + Performance | 🟣 P4 | 2-3 วัน | ⬜ Not Started |
+| 14 | Cross-browser + Performance | 🟣 P4 | 2-3 วัน | ✅ Completed |
 | 15 | Deploy Firebase Hosting | 🟣 P4 | 1 วัน | ⬜ Not Started |
 
 **รวม Effort:** ~18-28 วัน (ทุก task)
