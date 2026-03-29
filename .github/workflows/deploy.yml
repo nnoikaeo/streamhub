@@ -46,16 +46,24 @@ jobs:
           NUXT_PUBLIC_USE_JSON_MOCK: 'false'
         run: npm run build
 
-      - name: Strip sharp from Cloud Function package.json
+      - name: Prepare Cloud Function package.json
         run: |
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            const sharpPkgs = Object.keys(pkg.dependencies || {}).filter(k => k === 'sharp' || k.startsWith('@img/'));
-            sharpPkgs.forEach(k => delete pkg.dependencies[k]);
+            const deps = pkg.dependencies || {};
+            const removed = [];
+            Object.keys(deps).forEach(k => {
+              if (k === 'sharp' || k.startsWith('@img/') || deps[k].startsWith('file:')) {
+                removed.push(k);
+                delete deps[k];
+              }
+            });
+            pkg.dependencies = deps;
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-            console.log('Removed:', sharpPkgs.join(', '));
+            console.log('Removed:', removed.join(', '));
           "
+          npm install --ignore-scripts
         working-directory: .output/server
 
       - name: Deploy to Firebase (Hosting + Functions)
