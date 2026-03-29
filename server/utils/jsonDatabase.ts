@@ -71,8 +71,9 @@ export async function readJSON<T>(filename: string): Promise<T[]> {
     return parsed as T[]
   } catch (error) {
     if ((error as any)?.code === 'ENOENT') {
-      console.error(`[jsonDatabase] File not found: ${filename}`)
-      throw new Error(`File not found: ${filename}`)
+      // In production, .data/ files are not deployed — return empty array gracefully.
+      console.warn(`[jsonDatabase] File not found: ${filename} — returning empty array`)
+      return [] as T[]
     }
 
     if (error instanceof SyntaxError) {
