@@ -42,6 +42,15 @@ function ensureInitialized(): boolean {
       return true
     }
 
+    // In Cloud Functions 2nd gen (Cloud Run), use Application Default Credentials.
+    // K_SERVICE is automatically set by the Cloud Run runtime.
+    const isCloudFunction = !!(process.env.K_SERVICE || process.env.FUNCTION_TARGET)
+    if (isCloudFunction) {
+      adminApp = initializeApp()
+      console.log('✅ [firebaseAdmin] Initialized with Application Default Credentials (Cloud Functions)')
+      return true
+    }
+
     initError = 'No Firebase Admin credentials found'
     if (process.dev) {
       console.warn('⚠️  [firebaseAdmin] No credentials found — DEV mode will use mock auth')
