@@ -63,7 +63,8 @@ jobs:
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
             console.log('Removed:', removed.join(', '));
           "
-          npm install --ignore-scripts
+          echo "ignore-scripts=true" > .npmrc
+          npm install
         working-directory: .output/server
 
       - name: Deploy to Firebase (Hosting + Functions)
