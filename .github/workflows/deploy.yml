@@ -47,7 +47,16 @@ jobs:
         run: npm run build
 
       - name: Install Cloud Function dependencies
-        run: npm install --omit=optional
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            const sharpPkgs = Object.keys(pkg.dependencies || {}).filter(k => k === 'sharp' || k.startsWith('@img/'));
+            sharpPkgs.forEach(k => delete pkg.dependencies[k]);
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+            console.log('Removed sharp packages:', sharpPkgs);
+          "
+          npm install
         working-directory: .output/server
 
       - name: Deploy to Firebase (Hosting + Functions)
