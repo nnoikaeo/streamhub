@@ -64,6 +64,7 @@ jobs:
             console.log('Removed:', removed.join(', '));
           "
           echo "ignore-scripts=true" > .npmrc
+          rm -rf node_modules
           npm install
         working-directory: .output/server
 
