@@ -26,6 +26,20 @@ export default defineNuxtConfig({
     '@pinia/nuxt'
   ],
 
+  // @nuxt/image — optimize images served via <NuxtImg> / <NuxtPicture>
+  image: {
+    quality: 80,
+    format: ['webp', 'png'],
+    screens: {
+      xs: 320,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+      '2xl': 1536,
+    },
+  },
+
   ui: {
     fonts: false
   },
@@ -91,6 +105,10 @@ export default defineNuxtConfig({
     '/admin/**': { ssr: false },
     '/manage/**': { ssr: false },
     '/invite/**': { ssr: false },
+    // Cache static API data (JSON mock) — stale-while-revalidate
+    '/api/mock/**': {
+      headers: { 'Cache-Control': 'no-store' }, // auth-gated, never cache at CDN
+    },
     '/**': {
       headers: {
         'Content-Security-Policy': "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com https://*.firebaseapp.com https://*.googleapis.com; frame-ancestors 'self'",
@@ -99,6 +117,35 @@ export default defineNuxtConfig({
         'X-Content-Type-Options': 'nosniff'
       }
     }
+  },
+
+  // Vite build optimizations
+  vite: {
+    // Target modern browsers (ES2020) — aligns with Chrome 85+, Firefox 79+, Safari 14+, Edge 85+
+    build: {
+      target: 'es2020',
+      // Strip console.log / console.debug in production builds
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          // Split vendor chunks for better long-term caching
+          manualChunks(id) {
+            // Firebase SDK — large, changes infrequently
+            if (id.includes('node_modules/firebase')) return 'vendor-firebase'
+            // Pinia — state management
+            if (id.includes('node_modules/pinia')) return 'vendor-pinia'
+            // Vee-validate + Zod — form validation
+            if (id.includes('node_modules/vee-validate') || id.includes('node_modules/zod')) return 'vendor-forms'
+            // All other node_modules — shared vendor chunk
+            if (id.includes('node_modules')) return 'vendor'
+          },
+        },
+      },
+    },
+    esbuild: {
+      // Drop console.log and debugger statements in production
+      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+    },
   },
 
   runtimeConfig: {

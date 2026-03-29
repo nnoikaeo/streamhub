@@ -314,12 +314,12 @@ import { useCompanyAccess } from '~/composables/useCompanyAccess'
 import { useLazyLoad } from '~/composables/useLazyLoad'
 
 const route = useRoute()
-console.log('📄 [dashboard-discover.vue] Page mounted - Route:', { path: route.path, name: route.name })
 
 // Page metadata
 definePageMeta({
   middleware: 'auth',
   layout: 'default',
+  keepalive: true,
 })
 
 // ========== Strategy 4: Extract all logic to composable ==========
