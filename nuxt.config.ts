@@ -109,7 +109,8 @@ export default defineNuxtConfig({
     googleServiceAccountKey: process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '',
 
     public: {
-      // Mock Data Service Configuration
+      // Service Configuration: Firestore (production) vs JSON Mock (development)
+      useFirestore: process.env.NUXT_PUBLIC_USE_FIRESTORE === 'true',
       useJsonMock: process.env.NUXT_PUBLIC_USE_JSON_MOCK !== 'false',
 
       firebase: {
