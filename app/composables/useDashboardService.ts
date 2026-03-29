@@ -799,11 +799,172 @@ let dashboardServiceInstance: IDashboardService | null = null
  */
 export const useDashboardService = (): IDashboardService => {
   if (!dashboardServiceInstance) {
-    // Check if we should use JSON Mock Service
     const config = useRuntimeConfig()
+    const useFirestore = config.public.useFirestore === true || String(config.public.useFirestore) === 'true'
     const useJsonMock = config.public.useJsonMock ?? true
 
-    if (useJsonMock) {
+    if (useFirestore) {
+      // ===== Firestore (production) =====
+      console.log('🔥 [useDashboardService] Using Firestore Service')
+      dashboardServiceInstance = new (class implements IDashboardService {
+        private firestoreService: any = null
+
+        async initFirestoreService() {
+          if (!this.firestoreService) {
+            const module = await import('~/composables/useFirestoreService')
+            this.firestoreService = new module.FirestoreService()
+          }
+          return this.firestoreService
+        }
+
+        // Delegate all methods to firestoreService
+        async getCurrentUser() {
+          const service = await this.initFirestoreService()
+          return service.getCurrentUser()
+        }
+
+        async getUser(uid: string) {
+          const service = await this.initFirestoreService()
+          return service.getUser(uid)
+        }
+
+        async getFolders(userId: string, companyId: string) {
+          const service = await this.initFirestoreService()
+          return service.getFolders(userId, companyId)
+        }
+
+        async getFolder(folderId: string) {
+          const service = await this.initFirestoreService()
+          return service.getFolder(folderId)
+        }
+
+        async getChildFolders(parentId: string | null) {
+          const service = await this.initFirestoreService()
+          return service.getChildFolders(parentId)
+        }
+
+        async getFolderPath(folderId: string) {
+          const service = await this.initFirestoreService()
+          return service.getFolderPath(folderId)
+        }
+
+        async getDashboards(userId: string, companyId: string, options?: any) {
+          const service = await this.initFirestoreService()
+          return service.getDashboards(userId, companyId, options)
+        }
+
+        async getDashboard(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.getDashboard(dashboardId)
+        }
+
+        async getDashboardEmbedUrl(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.getDashboardEmbedUrl(dashboardId)
+        }
+
+        async getDashboardsByFolder(folderId: string, userId: string) {
+          const service = await this.initFirestoreService()
+          return service.getDashboardsByFolder(folderId, userId)
+        }
+
+        async getDashboardCard(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.getDashboardCard(dashboardId)
+        }
+
+        async createDashboard(name: string, folderId: string, userId: string, description?: string) {
+          const service = await this.initFirestoreService()
+          return service.createDashboard(name, folderId, userId, description)
+        }
+
+        async updateDashboard(dashboard: Dashboard) {
+          const service = await this.initFirestoreService()
+          return service.updateDashboard(dashboard)
+        }
+
+        async deleteDashboard(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.deleteDashboard(dashboardId)
+        }
+
+        async getDashboardPermissions(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.getDashboardPermissions(dashboardId)
+        }
+
+        async saveDashboardPermissions(request: SavePermissionsRequest) {
+          const service = await this.initFirestoreService()
+          return service.saveDashboardPermissions(request)
+        }
+
+        async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: Date) {
+          const service = await this.initFirestoreService()
+          return service.quickShareDashboard(dashboardId, userIds, expiryDate)
+        }
+
+        async getAuditLog(options?: any) {
+          const service = await this.initFirestoreService()
+          return service.getAuditLog(options)
+        }
+
+        async canAccessDashboard(dashboardId: string, userId: string) {
+          const service = await this.initFirestoreService()
+          return service.canAccessDashboard(dashboardId, userId)
+        }
+
+        async saveFolderPermissions(request: SaveFolderPermissionsRequest) {
+          const service = await this.initFirestoreService()
+          return service.saveFolderPermissions(request)
+        }
+
+        async getFolderPermissions(folderId: string) {
+          const service = await this.initFirestoreService()
+          return service.getFolderPermissions(folderId)
+        }
+
+        async resolveEffectiveUsers(
+          access: AccessControl,
+          restrictions: AccessRestrictions,
+          allUsers: User[],
+          allGroups: { id: string; members: string[] }[]
+        ) {
+          const service = await this.initFirestoreService()
+          return service.resolveEffectiveUsers(access, restrictions, allUsers, allGroups)
+        }
+
+        async getAccessReason(dashboardId: string, userId: string) {
+          const service = await this.initFirestoreService()
+          return service.getAccessReason(dashboardId, userId)
+        }
+
+        async getAccessibleUsers(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.getAccessibleUsers(dashboardId)
+        }
+
+        async getDirectAccessUsers(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.getDirectAccessUsers(dashboardId)
+        }
+
+        async removeDirectAccess(dashboardId: string, userId: string) {
+          const service = await this.initFirestoreService()
+          return service.removeDirectAccess(dashboardId, userId)
+        }
+
+        async archiveDashboard(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.archiveDashboard(dashboardId)
+        }
+
+        async unarchiveDashboard(dashboardId: string) {
+          const service = await this.initFirestoreService()
+          return service.unarchiveDashboard(dashboardId)
+        }
+      })()
+    } else if (useJsonMock) {
+      // ===== JSON Mock (development default) =====
       console.log('🔷 [useDashboardService] Using JSON Mock Service')
       // Use dynamic import approach for lazy loading
       dashboardServiceInstance = new (class implements IDashboardService {
