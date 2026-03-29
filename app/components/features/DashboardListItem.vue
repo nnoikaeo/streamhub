@@ -10,7 +10,10 @@
     <div class="list-item__swatch" :style="{ background: swatchGradient }" />
 
     <!-- Name -->
-    <span class="list-item__name">{{ dashboard.name }}</span>
+    <span class="list-item__name">
+      {{ dashboard.name }}
+      <span v-if="dashboard.isArchived" class="archived-badge">เก็บถาวร</span>
+    </span>
 
     <!-- Folder -->
     <div v-if="showFolder" class="list-item__folder">
@@ -148,6 +151,20 @@ const swatchGradient = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.archived-badge {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: #fef3c7;
+  color: #92400e;
+  white-space: nowrap;
 }
 
 /* ---- Folder ---- */

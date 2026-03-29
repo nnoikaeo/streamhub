@@ -60,7 +60,10 @@
           ดาวน์โหลด
         </button>
         <hr class="menu-divider" />
-        <button type="button" role="menuitem" class="menu-item danger" @click="emit('archive')">
+        <button v-if="dashboard.isArchived" type="button" role="menuitem" class="menu-item" @click="emit('unarchive')">
+          ยกเลิกเก็บถาวร
+        </button>
+        <button v-else type="button" role="menuitem" class="menu-item danger" @click="emit('archive')">
           เก็บถาวร
         </button>
       </div>
@@ -85,6 +88,7 @@ const emit = defineEmits<{
   'edit': []
   'download': []
   'archive': []
+  'unarchive': []
 }>()
 </script>
 

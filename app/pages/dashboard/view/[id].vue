@@ -57,6 +57,7 @@
           @edit="handleEditInfo"
           @download="handleDownload"
           @archive="handleArchive"
+          @unarchive="handleUnarchive"
         >
           <template #actions>
             <button
@@ -103,6 +104,12 @@
               <!-- Dashboard Metadata -->
               <section class="sidebar-section">
                 <h3 class="section-title">Dashboard Info</h3>
+                <div v-if="dashboard.isArchived" class="info-group">
+                  <label>สถานะ</label>
+                  <p class="info-value">
+                    <span class="badge badge-archived">📦 เก็บถาวร</span>
+                  </p>
+                </div>
                 <div class="info-group">
                   <label>Type</label>
                   <p class="info-value">
@@ -222,6 +229,17 @@
       :dashboard="dashboard"
       @saved="handleEditSave"
     />
+
+    <!-- Archive Confirm Dialog -->
+    <ConfirmDialog
+      :is-open="showArchiveConfirm"
+      title="เก็บถาวรแดชบอร์ด"
+      :message="`คุณแน่ใจว่าต้องการเก็บถาวร '${dashboard?.name}' หรือไม่? แดชบอร์ดจะถูกซ่อนจากหน้า Discover`"
+      confirm-text="เก็บถาวร"
+      :loading="isArchiving"
+      @confirm="confirmArchive"
+      @cancel="showArchiveConfirm = false"
+    />
   </AppLayout>
 </template>
 
@@ -235,6 +253,7 @@ import AppLayout from '~/components/layouts/AppLayout.vue'
 import TwoPaneLayout from '~/components/compositions/TwoPaneLayout.vue'
 import DashboardViewHeader from '~/components/features/DashboardViewHeader.vue'
 import DashboardEditDialog from '~/components/dashboard/DashboardEditDialog.vue'
+import ConfirmDialog from '~/components/admin/ConfirmDialog.vue'
 import { useAppToast } from '~/composables/useToast'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useDashboardStore } from '~/stores/dashboard'
@@ -469,10 +488,48 @@ const handleDownload = () => {
   // TODO: Implement download logic
 }
 
+const showArchiveConfirm = ref(false)
+const isArchiving = ref(false)
+
 const handleArchive = () => {
-  console.log('Archive dashboard')
   menuOpen.value = false
-  // TODO: Implement archive logic with confirmation
+  showArchiveConfirm.value = true
+}
+
+const confirmArchive = async () => {
+  if (!dashboard.value || isArchiving.value) return
+  isArchiving.value = true
+  try {
+    const updated = { ...dashboard.value, isArchived: true, archivedAt: new Date() }
+    await dashboardService.updateDashboard(updated)
+    dashboardStore.clearCache()
+    showArchiveConfirm.value = false
+    showToast('เก็บถาวรแดชบอร์ดสำเร็จ', 'success')
+    await router.push('/dashboard/discover')
+  } catch (err) {
+    console.error('Failed to archive dashboard:', err)
+    showToast('ไม่สามารถเก็บถาวรได้ กรุณาลองอีกครั้ง', 'error')
+  } finally {
+    isArchiving.value = false
+  }
+}
+
+const handleUnarchive = async () => {
+  if (!dashboard.value) return
+  menuOpen.value = false
+  isArchiving.value = true
+  try {
+    const updated = { ...dashboard.value, isArchived: false, archivedAt: undefined }
+    await dashboardService.updateDashboard(updated)
+    dashboard.value = { ...dashboard.value, isArchived: false, archivedAt: undefined }
+    dashboardStore.clearCache()
+    showToast('ยกเลิกเก็บถาวรแดชบอร์ดสำเร็จ', 'success')
+  } catch (err) {
+    console.error('Failed to unarchive dashboard:', err)
+    showToast('ไม่สามารถยกเลิกเก็บถาวรได้ กรุณาลองอีกครั้ง', 'error')
+  } finally {
+    isArchiving.value = false
+  }
 }
 
 const toggleFullscreen = () => {
@@ -780,6 +837,11 @@ onUnmounted(() => {
 .badge-external {
   background: var(--color-bg-success);
   color: var(--color-success);
+}
+
+.badge-archived {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .access-info {
