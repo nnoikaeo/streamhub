@@ -34,7 +34,11 @@
     {
       "source": ".output/server",
       "codebase": "default",
-      "runtime": "nodejs20"
+      "runtime": "nodejs20",
+      "environmentVariables": {
+        "NUXT_PUBLIC_USE_FIRESTORE": "true",
+        "NUXT_PUBLIC_USE_JSON_MOCK": "false"
+      }
     }
   ]
 }
