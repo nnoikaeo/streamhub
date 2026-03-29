@@ -700,10 +700,10 @@ Task 13-15 (Production) — ทำหลังสุด
    - Handle save success → refresh dashboard info
 
 ### Verification:
-- [ ] คลิก "แก้ไขข้อมูล" → เปิด dialog
-- [ ] แก้ไข name/description/tags → Save → อัปเดตสำเร็จ
-- [ ] Form validation ทำงาน (ชื่อห้ามว่าง)
-- [ ] Cancel → ปิด dialog, ไม่มีอะไรเปลี่ยน
+- [x] คลิก "แก้ไขข้อมูล" → เปิด dialog
+- [x] แก้ไข name/description/tags → Save → อัปเดตสำเร็จ
+- [x] Form validation ทำงาน (ชื่อห้ามว่าง)
+- [x] Cancel → ปิด dialog, ไม่มีอะไรเปลี่ยน
 ```
 
 ---
