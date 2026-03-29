@@ -1,0 +1,44 @@
+{
+  "hosting": {
+    "public": ".output/public",
+    "cleanUrls": true,
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|woff2|woff|ttf)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(png|jpg|jpeg|gif|webp|svg|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=86400, stale-while-revalidate=604800"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": "server"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": ".output/server",
+      "codebase": "default",
+      "runtime": "nodejs20"
+    }
+  ]
+}

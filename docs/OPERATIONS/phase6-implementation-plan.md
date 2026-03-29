@@ -927,7 +927,7 @@ Deploy StreamHub ขึ้น Firebase Hosting
 | 12 | ดาวน์โหลด Dashboard | 🔵 P3 | 1 วัน | ✅ Completed |
 | 13 | Real Firebase Integration | 🟣 P4 | 5-10 วัน | ✅ Completed |
 | 14 | Cross-browser + Performance | 🟣 P4 | 2-3 วัน | ✅ Completed |
-| 15 | Deploy Firebase Hosting | 🟣 P4 | 1 วัน | ⬜ Not Started |
+| 15 | Deploy Firebase Hosting | 🟣 P4 | 1 วัน | ✅ Completed |
 
 **รวม Effort:** ~18-28 วัน (ทุก task)
 

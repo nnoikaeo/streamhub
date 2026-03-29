@@ -10,6 +10,16 @@ export default defineNuxtConfig({
   // Firebase/Pinia setup on the server.
   ssr: false,
 
+  // Deploy Nitro server to Cloud Functions for Firebase (2nd gen).
+  // Static assets are served by Firebase Hosting via firebase.json.
+  nitro: {
+    preset: 'firebase',
+    firebase: {
+      gen: 2,
+      nodeVersion: '20',
+    },
+  },
+
   alias: {
     '~': fileURLToPath(new URL('./app', import.meta.url))
   },
