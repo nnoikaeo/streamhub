@@ -16,7 +16,7 @@ permissions:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
@@ -46,7 +46,14 @@ jobs:
           NUXT_PUBLIC_USE_JSON_MOCK: 'false'
         run: npm run build
 
-      - name: Deploy preview to Firebase
+      - name: Deploy Cloud Functions
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $RUNNER_TEMP/firebase-sa.json
+          npx firebase-tools deploy --only functions --project ${{ secrets.FIREBASE_PROJECT_ID }}
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+
+      - name: Deploy preview to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
