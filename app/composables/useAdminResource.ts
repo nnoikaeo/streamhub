@@ -22,6 +22,7 @@
 
 import { readonly } from 'vue'
 import type { Ref } from 'vue'
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore'
 
 /**
  * Configuration for generic admin resource
@@ -142,6 +143,10 @@ export function useAdminResource<T extends Record<string, any>>(
     pluralName = resourceName.endsWith('s') ? resourceName : `${resourceName}s`
   } = config
 
+  // Firestore mode detection
+  const runtimeConfig = useRuntimeConfig()
+  const useFirestoreMode = runtimeConfig.public.useFirestore === true || String(runtimeConfig.public.useFirestore) === 'true'
+
   // State management — useState shares state across all callers with the same key
   const items = useState<T[]>(`admin-resource-${resourceName}`, () => [])
   const loading = useState<boolean>(`admin-resource-${resourceName}-loading`, () => false)
@@ -209,12 +214,59 @@ export function useAdminResource<T extends Record<string, any>>(
   }
 
   /**
+   * Convert Firestore Timestamps to ISO strings in a document
+   */
+  const convertTimestamps = (data: Record<string, any>): Record<string, any> => {
+    const result = { ...data }
+    for (const key of Object.keys(result)) {
+      const value = result[key]
+      if (value instanceof Timestamp) {
+        result[key] = value.toDate().toISOString()
+      } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = convertTimestamps(value)
+      }
+    }
+    return result
+  }
+
+  /**
+   * Fetch all items from Firestore (production mode)
+   */
+  const fetchFromFirestore = async () => {
+    const { $firebase } = useNuxtApp()
+    const db = ($firebase as any).db
+    const snapshot = await getDocs(collection(db, resourceName))
+    const docs = snapshot.docs.map(d => {
+      const data = convertTimestamps(d.data())
+      // Use document ID as the idKey if not present in data
+      const idValue = data[idKey as string] ?? d.id
+      return { ...data, [idKey]: idValue } as T
+    })
+
+    // Apply company-based filtering for non-admin users
+    const authStore = useAuthStore()
+    const userRole = authStore.user?.role
+    const userCompany = authStore.user?.company
+    if (userRole && userRole !== 'admin' && userCompany) {
+      items.value = docs.filter(item => (item as any).company === userCompany)
+    } else {
+      items.value = docs
+    }
+  }
+
+  /**
    * Fetch all items
    */
   const fetch = async () => {
     loading.value = true
     error.value = null
     try {
+      if (useFirestoreMode) {
+        await fetchFromFirestore()
+        console.log(`✅ Loaded ${items.value.length} ${pluralName} from Firestore`)
+        return
+      }
+
       const { headers, query } = await getAuthOptions()
       const response = await $fetch<FetchResponse<T>>(`/api/mock/${resourceName}`, {
         headers,
@@ -241,6 +293,14 @@ export function useAdminResource<T extends Record<string, any>>(
   }
 
   /**
+   * Get Firestore DB reference
+   */
+  const getFirestoreDb = () => {
+    const { $firebase } = useNuxtApp()
+    return ($firebase as any).db
+  }
+
+  /**
    * Create new item
    */
   const create = async (data: Partial<T>): Promise<T | undefined> => {
@@ -253,6 +313,17 @@ export function useAdminResource<T extends Record<string, any>>(
       const requestBody = {
         ...mergedData,
         ...(generatedId ? { [idKey]: generatedId } : {})
+      }
+
+      if (useFirestoreMode) {
+        const db = getFirestoreDb()
+        const docId = String(requestBody[idKey as string] || generatedId || `${idPrefix || ''}${Date.now()}`)
+        const now = new Date().toISOString()
+        const newItem = { ...requestBody, createdAt: now, updatedAt: now } as T
+        await setDoc(doc(db, resourceName, docId), newItem)
+        console.log(`✅ ${resourceName} "${docId}" created in Firestore`)
+        await fetch()
+        return newItem
       }
 
       const { headers, query } = await getAuthOptions()
@@ -285,6 +356,16 @@ export function useAdminResource<T extends Record<string, any>>(
     loading.value = true
     error.value = null
     try {
+      if (useFirestoreMode) {
+        const db = getFirestoreDb()
+        const now = new Date().toISOString()
+        const updateData = { ...updates, updatedAt: now }
+        await updateDoc(doc(db, resourceName, String(id)), updateData)
+        console.log(`✅ ${resourceName} "${id}" updated in Firestore`)
+        await fetch()
+        return { [idKey]: id, ...updateData } as T
+      }
+
       const requestBody = {
         [idKey]: id,
         ...updates
@@ -319,6 +400,14 @@ export function useAdminResource<T extends Record<string, any>>(
     loading.value = true
     error.value = null
     try {
+      if (useFirestoreMode) {
+        const db = getFirestoreDb()
+        await deleteDoc(doc(db, resourceName, String(id)))
+        console.log(`✅ ${resourceName} "${id}" deleted from Firestore`)
+        await fetch()
+        return true
+      }
+
       const { headers, query } = await getAuthOptions()
       const response = await $fetch<DeleteResponse>(`/api/mock/${resourceName}/${id}`, {
         method: 'DELETE',
