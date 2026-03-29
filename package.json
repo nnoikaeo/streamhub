@@ -9,7 +9,10 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:firestore": "tsx scripts/seed-firestore.ts",
+    "seed:firestore:dry": "tsx scripts/seed-firestore.ts --dry-run",
+    "seed:firestore:clean": "tsx scripts/seed-firestore.ts --clean"
   },
   "dependencies": {
     "@nuxt/eslint": "^1.12.1",
@@ -37,6 +40,7 @@
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^25.2.0",
     "tailwindcss": "^4.2.1",
+    "tsx": "^4.21.0",
     "vitest": "^4.1.2"
   }
 }
