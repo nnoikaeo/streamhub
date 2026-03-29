@@ -11,7 +11,7 @@
 
 | ไฟล์ | สถานะ | หมายเหตุ |
 |------|--------|----------|
-| `server/utils/companyAccess.ts` | ✅ มีแล้ว | validateCompanyAccess, getInheritingAncestors |
+| `server/utils/companyAccess.ts` | ✅ มีแล้ว | validateCompanyAccess, getInheritingAncestors |giut
 | `server/utils/apiResponse.ts` | ✅ มีแล้ว | sendForbidden, sendUnauthorized, sendNotFound, sendBadRequest |
 | `app/composables/useCompanyAccess.ts` | ✅ มีแล้ว | canAccessCompany, filterByCompany, getCompanyLabel |
 | `server/middleware/auth.ts` | ✅ มีแล้ว | verify Firebase ID Token, DEV fallback to query uid |
@@ -700,10 +700,10 @@ Task 13-15 (Production) — ทำหลังสุด
    - Handle save success → refresh dashboard info
 
 ### Verification:
-- [x] คลิก "แก้ไขข้อมูล" → เปิด dialog
-- [x] แก้ไข name/description/tags → Save → อัปเดตสำเร็จ
-- [x] Form validation ทำงาน (ชื่อห้ามว่าง)
-- [x] Cancel → ปิด dialog, ไม่มีอะไรเปลี่ยน
+- [ ] คลิก "แก้ไขข้อมูล" → เปิด dialog
+- [ ] แก้ไข name/description/tags → Save → อัปเดตสำเร็จ
+- [ ] Form validation ทำงาน (ชื่อห้ามว่าง)
+- [ ] Cancel → ปิด dialog, ไม่มีอะไรเปลี่ยน
 ```
 
 ---
@@ -713,6 +713,7 @@ Task 13-15 (Production) — ทำหลังสุด
 **Branch:** `feat/dashboard-archive`
 **Depends on:** ไม่มี
 **Effort:** 1 วัน
+**Status:** ✅ Completed
 
 ### Prompt
 
@@ -743,9 +744,9 @@ Task 13-15 (Production) — ทำหลังสุด
    - ถ้ามี `includeArchived=true` → return all
 
 ### Verification:
-- [ ] คลิก "เก็บถาวร" → confirm dialog → archive สำเร็จ
-- [ ] Dashboard ที่ archive → หายจาก discover page
-- [ ] Admin toggle → เห็น archived dashboards
+- [x] คลิก "เก็บถาวร" → confirm dialog → archive สำเร็จ
+- [x] Dashboard ที่ archive → หายจาก discover page
+- [x] Admin toggle → เห็น archived dashboards
 ```
 
 ---

@@ -266,6 +266,7 @@ export class JSONMockService implements IDashboardService {
       limit?: number
       offset?: number
       search?: string
+      includeArchived?: boolean
     }
   ): Promise<GetDashboardsResponse> {
     try {
@@ -278,6 +279,9 @@ export class JSONMockService implements IDashboardService {
 
       if (options?.folderId) {
         query.folderId = options.folderId
+      }
+      if (options?.includeArchived) {
+        query.includeArchived = 'true'
       }
 
       const response = await this.fetchWithAuth<{ success: boolean; data?: Dashboard[] }>(`${this.baseURL}/dashboards`, {

@@ -66,6 +66,14 @@
               :regions="regions"
               @update:model-value="handleCompanyFilterChange"
             />
+            <label v-if="isAdmin" class="archive-toggle">
+              <input
+                v-model="showArchived"
+                type="checkbox"
+                class="archive-toggle-checkbox"
+              />
+              <span class="archive-toggle-label">แสดงที่เก็บถาวร</span>
+            </label>
           </div>
 
           <!-- Dashboards Found Header -->
@@ -410,6 +418,7 @@ const { regions, fetchRegions } = useAdminRegions()
 const { isAdmin } = useCompanyAccess()
 const selectedCompanyCode = ref<string | null>(null)
 const searchQuery = ref('')
+const showArchived = ref(false)
 
 // ========== Group By Switcher ==========
 const GROUP_BY_KEY = 'streamhub-discover-group-by'
@@ -482,6 +491,11 @@ const handleTagFilterUpdate = (ids: string[]) => {
  */
 const filteredDashboards = computed<Dashboard[]>(() => {
   let result = dashboards.value
+
+  // Filter out archived dashboards unless toggle is on
+  if (!showArchived.value) {
+    result = result.filter((d) => !d.isArchived)
+  }
 
   // Search filter (name + description, case-insensitive)
   const query = searchQuery.value.trim().toLowerCase()
@@ -974,6 +988,28 @@ const dashboardCountText = computed(() => {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
+}
+
+.archive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+
+.archive-toggle-checkbox {
+  accent-color: var(--color-primary);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.archive-toggle-label {
+  line-height: 1;
 }
 
 /* ========== DASHBOARDS HEADER ========== */
