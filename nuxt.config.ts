@@ -12,11 +12,16 @@ export default defineNuxtConfig({
 
   // Deploy Nitro server to Cloud Functions for Firebase (2nd gen).
   // Static assets are served by Firebase Hosting via firebase.json.
+  // sharp is excluded from the server bundle — SPA mode doesn't need
+  // server-side image processing; @nuxt/image runs client-side only.
   nitro: {
     preset: 'firebase',
     firebase: {
       gen: 2,
       nodeVersion: '20',
+    },
+    externals: {
+      external: ['sharp'],
     },
   },
 
