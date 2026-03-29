@@ -19,7 +19,10 @@
 
     <!-- Card Header with Icon -->
     <div class="card-header">
-      <h3 class="card-title">{{ dashboard.name }}</h3>
+      <h3 class="card-title">
+        {{ dashboard.name }}
+        <span v-if="dashboard.isArchived" class="archived-badge">เก็บถาวร</span>
+      </h3>
       <div class="card-icon">
         <!-- Performance -->
         <svg v-if="dashboardIconType === 'performance'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -226,6 +229,19 @@ const dashboardIconType = computed(() => props.dashboard.type || 'analysis')
   line-height: 1.3;
   flex: 1;
   word-break: break-word;
+}
+
+.card-title .archived-badge {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: #fef3c7;
+  color: #92400e;
+  white-space: nowrap;
+  vertical-align: middle;
+  margin-left: 0.25rem;
 }
 
 .card-icon {

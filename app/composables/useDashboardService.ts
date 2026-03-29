@@ -83,6 +83,7 @@ export interface IDashboardService {
       limit?: number
       offset?: number
       search?: string
+      includeArchived?: boolean
     }
   ): Promise<GetDashboardsResponse>
 
