@@ -4,6 +4,7 @@ import { useAdminInvitations } from '~/composables/useAdminInvitations'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAuthStore } from '~/stores/auth'
+import { useAuth } from '~/composables/useAuth'
 
 const props = defineProps<{
   modelValue: boolean
@@ -18,6 +19,12 @@ const { invitations } = useAdminInvitations()
 const { companies: adminCompanies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
 const authStore = useAuthStore()
+const { getIdToken } = useAuth()
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const token = await getIdToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 // Form state
 const form = ref({
@@ -51,11 +58,12 @@ const inviteLink = computed(() =>
 
 async function loadDropdownData() {
   try {
+    const headers = await getAuthHeaders()
     const [, , foldersRes, groupsRes] = await Promise.all([
       fetchCompanies(),
       fetchRegions(),
-      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/folders'),
-      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/groups'),
+      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/folders', { headers }),
+      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/groups', { headers }),
     ])
     folders.value = (foldersRes?.data ?? []).filter((f: any) => f.isActive !== false)
     groups.value = (groupsRes?.data ?? []).filter((g: any) => g.isActive !== false)
@@ -110,13 +118,14 @@ async function handleSubmit() {
       invitedByName: authStore.user?.displayName ?? 'Admin',
     }
 
+    const headers = await getAuthHeaders()
     const res = await $fetch<{
       success: boolean
       action?: string
       existingUser?: Record<string, unknown>
       data?: { invitationCode: string }
       message?: string
-    }>('/api/mock/invitations', { method: 'POST', body: payload })
+    }>('/api/mock/invitations', { method: 'POST', body: payload, headers })
 
     if (res.action === 'user_exists_inactive') {
       existingInactiveUser.value = res.existingUser ?? null
@@ -147,6 +156,7 @@ async function handleReactivate() {
   error.value = ''
 
   try {
+    const headers = await getAuthHeaders()
     await $fetch('/api/mock/invitations/reactivate', {
       method: 'POST',
       body: {
@@ -157,6 +167,7 @@ async function handleReactivate() {
         performedBy: authStore.user?.uid ?? 'admin',
         performedByEmail: authStore.user?.email ?? 'admin',
       },
+      headers,
     })
     showReactivateDialog.value = false
     emit('invited')
