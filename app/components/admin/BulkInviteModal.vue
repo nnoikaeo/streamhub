@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAuthStore } from '~/stores/auth'
+import { useAuth } from '~/composables/useAuth'
 
 const props = defineProps<{
   modelValue: boolean
@@ -16,6 +17,12 @@ const emit = defineEmits<{
 const { companies: adminCompanies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
 const authStore = useAuthStore()
+const { getIdToken } = useAuth()
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const token = await getIdToken()
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 // --- Queue item type ---
 interface QueueItem {
@@ -120,10 +127,11 @@ function roleBadgeClass(role: string) {
 
 async function loadDropdownData() {
   try {
+    const headers = await getAuthHeaders()
     const [, , groupsRes] = await Promise.all([
       fetchCompanies(),
       fetchRegions(),
-      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/groups'),
+      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/groups', { headers }),
     ])
     groups.value = (groupsRes?.data ?? []).filter((g: any) => g.isActive !== false)
   } catch {
@@ -137,12 +145,14 @@ async function handleSubmit() {
   submitting.value = true
 
   try {
+    const headers = await getAuthHeaders()
     const res = await $fetch<{
       success: boolean
       data?: { created: { id?: string; email: string; role: string; company: string; assignedGroups?: string[] }[]; skipped: { email: string; reason: string }[] }
       message?: string
     }>('/api/mock/invitations/bulk', {
       method: 'POST',
+      headers,
       body: {
         items: queue.value.map(q => ({
           email: q.email,
