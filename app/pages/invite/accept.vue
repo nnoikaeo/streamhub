@@ -9,6 +9,10 @@ definePageMeta({
 const route = useRoute()
 const code = route.query.code as string
 
+const runtimeConfig = useRuntimeConfig()
+const useFirestore = runtimeConfig.public.useFirestore === true || String(runtimeConfig.public.useFirestore) === 'true'
+const apiBase = useFirestore ? '/api/invitations' : '/api/mock/invitations'
+
 const authStore = useAuthStore()
 const invitation = ref<any>(null)
 const errorMessage = ref('')
@@ -23,7 +27,7 @@ const verifyInvitation = async () => {
   }
 
   try {
-    const response = await $fetch<any>('/api/mock/invitations/verify', {
+    const response = await $fetch<any>(`${apiBase}/verify`, {
       query: { code }
     })
 
@@ -67,7 +71,7 @@ const handleAccept = async () => {
   status.value = 'processing'
 
   try {
-    const response = await $fetch<any>('/api/mock/invitations/accept', {
+    const response = await $fetch<any>(`${apiBase}/accept`, {
       method: 'POST',
       body: {
         invitationCode: code,

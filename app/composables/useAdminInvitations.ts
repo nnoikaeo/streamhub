@@ -2,6 +2,10 @@ import type { Invitation } from '~/types/invitation'
 import { useAdminResource } from './useAdminResource'
 
 export function useAdminInvitations() {
+  const runtimeConfig = useRuntimeConfig()
+  const useFirestore = runtimeConfig.public.useFirestore === true || String(runtimeConfig.public.useFirestore) === 'true'
+  const apiBase = useFirestore ? '/api/invitations' : '/api/mock/invitations'
+
   const resource = useAdminResource<Invitation>({
     resourceName: 'invitations',
     idKey: 'id',
@@ -17,49 +21,83 @@ export function useAdminInvitations() {
   const invitations = resource.items
   const fetchInvitations = resource.fetch
 
+  const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    try {
+      const { getIdToken } = useAuth()
+      const token = await getIdToken()
+      return token ? { Authorization: `Bearer ${token}` } : {}
+    } catch {
+      return {}
+    }
+  }
+
   const fetchByCompany = async (company: string) => {
-    const response = await $fetch<any>('/api/mock/invitations', {
-      query: { company }
+    const headers = await getAuthHeaders()
+    const response = await $fetch<any>(apiBase, {
+      query: { company },
+      headers
     })
     return response.data || []
   }
 
   const fetchByStatus = async (status: string) => {
-    const response = await $fetch<any>('/api/mock/invitations', {
-      query: { status }
+    const headers = await getAuthHeaders()
+    const response = await $fetch<any>(apiBase, {
+      query: { status },
+      headers
     })
     return response.data || []
   }
 
-  const cancelInvitation = async (id: string) => {
-    return resource.update(id, { status: 'cancelled' as any })
+  const cancelInvitation = async (id: string, performedBy?: string, performedByEmail?: string) => {
+    const headers = await getAuthHeaders()
+    await $fetch<any>(`${apiBase}/${id}`, {
+      method: 'PUT',
+      headers,
+      body: {
+        status: 'cancelled',
+        performedBy: performedBy || 'system',
+        performedByEmail: performedByEmail || 'System'
+      }
+    })
+    await resource.fetch()
   }
 
-  const resendInvitation = async (id: string) => {
-    return resource.update(id, {
-      status: 'pending' as any,
-      resend: true,
-      expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() as any
-    } as any)
+  const resendInvitation = async (id: string, performedBy?: string, performedByEmail?: string) => {
+    const headers = await getAuthHeaders()
+    await $fetch<any>(`${apiBase}/${id}`, {
+      method: 'PUT',
+      headers,
+      body: {
+        status: 'pending',
+        resend: true,
+        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        performedBy: performedBy || 'system',
+        performedByEmail: performedByEmail || 'System'
+      }
+    })
+    await resource.fetch()
   }
 
   const bulkInvite = async (input: any) => {
-    const response = await $fetch<any>('/api/mock/invitations/bulk', {
+    const headers = await getAuthHeaders()
+    const response = await $fetch<any>(`${apiBase}/bulk`, {
       method: 'POST',
+      headers,
       body: input
     })
     return response.data
   }
 
   const checkInvitation = async (email: string) => {
-    const response = await $fetch<any>('/api/mock/invitations/check', {
+    const response = await $fetch<any>(`${apiBase}/check`, {
       query: { email }
     })
     return response
   }
 
   const verifyInvitation = async (code: string) => {
-    const response = await $fetch<any>('/api/mock/invitations/verify', {
+    const response = await $fetch<any>(`${apiBase}/verify`, {
       query: { code }
     })
     return response
@@ -72,7 +110,7 @@ export function useAdminInvitations() {
     displayName: string
     photoURL?: string
   }) => {
-    const response = await $fetch<any>('/api/mock/invitations/accept', {
+    const response = await $fetch<any>(`${apiBase}/accept`, {
       method: 'POST',
       body: data
     })
@@ -85,8 +123,10 @@ export function useAdminInvitations() {
     company: string
     groups?: string[]
   }) => {
-    const response = await $fetch<any>('/api/mock/invitations/reactivate', {
+    const headers = await getAuthHeaders()
+    const response = await $fetch<any>(`${apiBase}/reactivate`, {
       method: 'POST',
+      headers,
       body: data
     })
     return response

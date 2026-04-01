@@ -3,6 +3,8 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useAdminInvitations } from '~/composables/useAdminInvitations'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
+import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminGroups } from '~/composables/useAdminGroups'
 import { useAuthStore } from '~/stores/auth'
 import { useAuth } from '~/composables/useAuth'
 
@@ -18,8 +20,14 @@ const emit = defineEmits<{
 const { invitations } = useAdminInvitations()
 const { companies: adminCompanies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
+const { folders: allFolders, fetchFolders } = useAdminFolders()
+const { groups: allGroups, fetchGroups } = useAdminGroups()
 const authStore = useAuthStore()
 const { getIdToken } = useAuth()
+
+const runtimeConfig = useRuntimeConfig()
+const useFirestore = runtimeConfig.public.useFirestore === true || String(runtimeConfig.public.useFirestore) === 'true'
+const apiBase = useFirestore ? '/api/invitations' : '/api/mock/invitations'
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const token = await getIdToken()
@@ -46,9 +54,9 @@ const domainWarning = ref('')
 const showReactivateDialog = ref(false)
 const existingInactiveUser = ref<Record<string, unknown> | null>(null)
 
-// Data for selects
-const folders = ref<{ id: string; name: string }[]>([])
-const groups = ref<{ id: string; name: string }[]>([])
+// Data for selects (sourced from composables that handle Firestore/JSON mode automatically)
+const folders = computed(() => (allFolders.value ?? []).filter((f: any) => f.isActive !== false))
+const groups = computed(() => (allGroups.value ?? []).filter((g: any) => g.isActive !== false))
 
 const copied = ref(false)
 
@@ -58,15 +66,12 @@ const inviteLink = computed(() =>
 
 async function loadDropdownData() {
   try {
-    const headers = await getAuthHeaders()
-    const [, , foldersRes, groupsRes] = await Promise.all([
+    await Promise.all([
       fetchCompanies(),
       fetchRegions(),
-      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/folders', { headers }),
-      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/groups', { headers }),
+      fetchFolders(),
+      fetchGroups(),
     ])
-    folders.value = (foldersRes?.data ?? []).filter((f: any) => f.isActive !== false)
-    groups.value = (groupsRes?.data ?? []).filter((g: any) => g.isActive !== false)
   } catch {
     // silently ignore load failures — dropdowns degrade gracefully
   }
@@ -125,7 +130,7 @@ async function handleSubmit() {
       existingUser?: Record<string, unknown>
       data?: { invitationCode: string }
       message?: string
-    }>('/api/mock/invitations', { method: 'POST', body: payload, headers })
+    }>(apiBase, { method: 'POST', body: payload, headers })
 
     if (res.action === 'user_exists_inactive') {
       existingInactiveUser.value = res.existingUser ?? null
@@ -157,7 +162,7 @@ async function handleReactivate() {
 
   try {
     const headers = await getAuthHeaders()
-    await $fetch('/api/mock/invitations/reactivate', {
+    await $fetch(`${apiBase}/reactivate`, {
       method: 'POST',
       body: {
         email: (existingInactiveUser.value as any).email ?? form.value.email.trim(),
