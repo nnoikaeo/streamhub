@@ -7,7 +7,7 @@ import { sendUnauthorized } from '../utils/apiResponse'
  * All /api/mock/* and /api/looker/* routes are protected.
  * /api/invitations/* are the Firestore-native invitation handlers (production).
  */
-const PROTECTED_PREFIXES = ['/api/mock/', '/api/looker/', '/api/embed/request', '/api/audit', '/api/invitations/']
+const PROTECTED_PREFIXES = ['/api/mock/', '/api/looker/', '/api/embed/request', '/api/audit', '/api/invitations']
 
 /**
  * Routes to skip auth even if they match protected prefixes.

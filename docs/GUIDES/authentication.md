@@ -1,7 +1,7 @@
 ---
 title: Authentication System
-version: 1.0
-updated: 2024-01-21
+version: 2.0
+updated: 2026-04-03
 ---
 
 # Authentication System
@@ -10,10 +10,10 @@ Complete guide to StreamHub authentication.
 
 ## Overview
 
-StreamHub uses **Google OAuth 2.0** as the sole authentication method.
+StreamHub uses **Google OAuth 2.0** as the sole authentication method via **redirect flow** (ไม่ใช้ popup เพราะ COOP header บน production)
 
 ```
-User → Google Sign-in → Firebase Auth → Dashboard
+User → signInWithRedirect → accounts.google.com → redirect กลับ /login → handleRedirectResult → Dashboard
 ```
 
 ---
@@ -59,25 +59,35 @@ async function handleGoogleSignIn() {
 
 ```typescript
 export const useAuth = () => {
+  // Trigger Google redirect — page navigates away to Google
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider()
-    const userCredential = await signInWithPopup(auth, provider)
-    
-    // Extract only needed data
+    await signInWithRedirect(auth, provider)
+  }
+
+  // Call on page mount to process redirect result
+  // Returns null if normal page load (no redirect)
+  // Returns { success, error? } if returning from Google
+  const handleRedirectResult = async (options?) => {
+    const userCredential = await getRedirectResult(auth)
+    if (!userCredential) return null
+
     const userData = {
       uid: userCredential.user.uid,
       email: userCredential.user.email,
       displayName: userCredential.user.displayName,
       photoURL: userCredential.user.photoURL
     }
-    
     authStore.setUser(userData)
     return { success: true }
   }
-  
-  return { signInWithGoogle }
+
+  return { signInWithGoogle, handleRedirectResult }
 }
 ```
+
+> **หมายเหตุ:** ใช้ `signInWithRedirect` แทน `signInWithPopup` เพราะ Chrome บน production enforce
+> `Cross-Origin-Opener-Policy` ทำให้ popup ไม่สามารถส่งข้อมูลกลับมาได้
 
 ### 3. Auth Store (`stores/auth.ts`)
 

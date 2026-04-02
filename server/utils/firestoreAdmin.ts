@@ -9,6 +9,7 @@
 import { getApps } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
 import type { Firestore } from 'firebase-admin/firestore'
+import { ensureAdminInitialized } from './firebaseAdmin'
 
 export function isFirestoreMode(): boolean {
   return process.env.NUXT_PUBLIC_USE_FIRESTORE === 'true'
@@ -16,10 +17,12 @@ export function isFirestoreMode(): boolean {
 
 /**
  * Get an Admin Firestore instance.
- * Requires Firebase Admin to already be initialized (done by auth.ts middleware).
- * Returns null if Admin SDK is not available (e.g., local dev without credentials).
+ * Calls ensureAdminInitialized() internally so callers do not need to depend on
+ * auth middleware having run first. Returns null if Admin SDK is not available
+ * (e.g., local dev without credentials).
  */
 export function getAdminDb(): Firestore | null {
+  ensureAdminInitialized()
   const apps = getApps()
   if (apps.length === 0) return null
   return getFirestore(apps[0]!)

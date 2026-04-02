@@ -38,14 +38,42 @@ taskkill /PID <PID> /F
 
 ---
 
-## Issue: Google Sign-in Popup Blocked
+## Issue: Google Sign-in Fails on Production (COOP)
+
+**Error:** `Cross-Origin-Opener-Policy policy would block the window.close call`
+
+**Cause:** `signInWithPopup` ไม่ทำงานบน production เพราะ Google's COOP header บล็อก cross-origin popup messaging
+
+**Solution:** เปลี่ยนเป็น `signInWithRedirect` + `getRedirectResult` (ทำแล้วตั้งแต่ Phase 7)
+
+โปรเจกต์นี้ใช้ redirect flow ดังนี้:
+1. กด "ลงชื่อเข้าด้วย Google" → navigate ไปยัง Google โดยตรง
+2. Google redirect กลับมาที่ `/login`
+3. `onMounted` เรียก `handleRedirectResult()` → ดึง credential → navigate ไป `/dashboard`
+
+---
+
+## Issue: Google Sign-in Error 400: redirect_uri_mismatch
+
+**Error:** `redirect_uri=https://streamhub-1c27a.web.app/__/auth/handler — Error 400: redirect_uri_mismatch`
+
+**Cause:** `authDomain` ใน Firebase config ถูกเปลี่ยนเป็น `web.app` แต่ Google Cloud Console ยังไม่มี redirect URI ใหม่
+
+**Solution:**
+1. ไปที่ [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
+2. แก้ OAuth 2.0 Client ID ที่ใช้อยู่
+3. ใต้ **Authorized redirect URIs** → เพิ่ม `https://streamhub-1c27a.web.app/__/auth/handler`
+4. Save
+
+---
+
+## Issue: Google Sign-in Popup Blocked (localhost)
 
 **Error:** "Popup blocked" in browser
 
 **Solution:**
-- Allow popups for localhost:3000 in browser settings
-- Check browser console for errors
-- Ensure OAuth is enabled in Firebase
+- localhost ใช้ popup ได้ตามปกติ (ปัญหานี้เกิดเฉพาะ production ดูหัวข้อด้านบน)
+- ถ้าถูกบล็อกบน localhost → Allow popups for localhost:3000 ใน browser settings
 
 ---
 
