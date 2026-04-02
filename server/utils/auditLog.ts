@@ -316,12 +316,30 @@ export async function getAuditSummary(): Promise<{
 // ============================================================================
 
 export async function logActivity(entry: Omit<LegacyAuditEntry, 'timestamp'>): Promise<void> {
+  const newEntry: LegacyAuditEntry = {
+    ...entry,
+    timestamp: new Date().toISOString(),
+  }
+
+  // In Firestore mode, write to Firestore collection instead of JSON file
+  if (process.env.NUXT_PUBLIC_USE_FIRESTORE === 'true') {
+    try {
+      const { getAdminDb } = await import('./firestoreAdmin')
+      const db = getAdminDb()
+      if (db) {
+        const id = `activity_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+        await db.collection('audit-log').doc(id).set(newEntry)
+        console.log(`[AuditLog] ${entry.action} by ${entry.performedByEmail} → ${entry.target} (Firestore)`)
+        return
+      }
+    } catch (error) {
+      console.error('[AuditLog] Failed to write to Firestore, falling through to JSON:', error)
+    }
+  }
+
+  // JSON fallback (dev mode / mock mode)
   try {
     const logs = await readJSON<LegacyAuditEntry>('audit-log.json')
-    const newEntry: LegacyAuditEntry = {
-      ...entry,
-      timestamp: new Date().toISOString(),
-    }
     logs.push(newEntry)
     await writeJSON('audit-log.json', logs)
     console.log(`[AuditLog] ${entry.action} by ${entry.performedByEmail} → ${entry.target}`)
