@@ -56,12 +56,13 @@ export const useAuth = () => {
           // Auto-detect: Check for pending invitation (Flow B)
           // Skip if called from accept page (which handles acceptance explicitly)
           if (!options?.skipAutoAccept) try {
-            const invResponse = await $fetch<any>('/api/mock/invitations/check', {
+            const invApiBase = useFirestoreMode ? '/api/invitations' : '/api/mock/invitations'
+            const invResponse = await $fetch<any>(`${invApiBase}/check`, {
               query: { email: userCredential.user.email }
             })
 
             if (invResponse.found && invResponse.data?.status === 'pending') {
-              const acceptResponse = await $fetch<any>('/api/mock/invitations/accept', {
+              const acceptResponse = await $fetch<any>(`${invApiBase}/accept`, {
                 method: 'POST',
                 body: {
                   invitationCode: invResponse.data.invitationCode,

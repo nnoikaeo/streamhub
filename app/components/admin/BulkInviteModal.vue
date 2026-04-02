@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
+import { useAdminGroups } from '~/composables/useAdminGroups'
 import { useAuthStore } from '~/stores/auth'
 import { useAuth } from '~/composables/useAuth'
 
@@ -16,8 +17,13 @@ const emit = defineEmits<{
 
 const { companies: adminCompanies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
+const { groups: allGroups, fetchGroups } = useAdminGroups()
 const authStore = useAuthStore()
 const { getIdToken } = useAuth()
+
+const runtimeConfig = useRuntimeConfig()
+const useFirestore = runtimeConfig.public.useFirestore === true || String(runtimeConfig.public.useFirestore) === 'true'
+const apiBase = useFirestore ? '/api/invitations' : '/api/mock/invitations'
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const token = await getIdToken()
@@ -58,8 +64,8 @@ const results = ref<{
   skipped: { email: string; reason: string }[]
 } | null>(null)
 
-// Dropdown data
-const groups = ref<{ id: string; name: string }[]>([])
+// Dropdown data (sourced from composable that handles Firestore/JSON mode automatically)
+const groups = computed(() => (allGroups.value ?? []).filter((g: any) => g.isActive !== false))
 
 const canAdd = computed(() => {
   const e = form.value.email.trim()
@@ -127,13 +133,11 @@ function roleBadgeClass(role: string) {
 
 async function loadDropdownData() {
   try {
-    const headers = await getAuthHeaders()
-    const [, , groupsRes] = await Promise.all([
+    await Promise.all([
       fetchCompanies(),
       fetchRegions(),
-      $fetch<{ data: { id: string; name: string }[] }>('/api/mock/groups', { headers }),
+      fetchGroups(),
     ])
-    groups.value = (groupsRes?.data ?? []).filter((g: any) => g.isActive !== false)
   } catch {
     // degrade gracefully
   }
@@ -150,7 +154,7 @@ async function handleSubmit() {
       success: boolean
       data?: { created: { id?: string; email: string; role: string; company: string; assignedGroups?: string[] }[]; skipped: { email: string; reason: string }[] }
       message?: string
-    }>('/api/mock/invitations/bulk', {
+    }>(`${apiBase}/bulk`, {
       method: 'POST',
       headers,
       body: {
