@@ -1,9 +1,10 @@
 # Phase 6: Enhancement & Polish — Implementation Plan
 
 > **Created:** 2026-03-25
+> **Updated:** 2026-04-02
 > **Strategy:** 1 งานย่อย = 1 แชท = 1 feature branch → PR → merge to develop
-> **Backend:** Mock JSON API (ยังไม่ใช้ Firestore)
-> **Status:** ⏳ In Progress
+> **Backend:** Firestore (production) + Mock JSON API (dev/local)
+> **Status:** ✅ Completed (Tasks 1–15 ทั้งหมดเสร็จแล้ว)
 
 ---
 
@@ -367,11 +368,12 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ---
 
-## Task 6: Server URL Proxy (Signed Embed URLs) 🟠 P1
+## Task 6: Server URL Proxy (Signed Embed URLs) ✅ Done
 
 **Branch:** `feat/embed-url-proxy`
 **Depends on:** Task 1 (auth middleware), Task 2 (embed URL endpoint)
 **Effort:** 2-3 วัน
+**Status:** ✅ Completed
 
 ### เป้าหมาย
 ไม่ส่ง Looker URL จริงไปที่ client — ใช้ one-time token + redirect แทน
@@ -418,12 +420,12 @@ Task 13-15 (Production) — ทำหลังสุด
 - ต้องไม่ break DEV mode
 
 ### Verification:
-- [ ] POST `/api/embed/request` → return token
-- [ ] GET `/api/embed/{token}` → 302 redirect ไป Looker URL
-- [ ] ใช้ token ซ้ำ → 403 (one-time use)
-- [ ] Token หมดอายุ → 403
-- [ ] Dashboard view page แสดง iframe ผ่าน proxy ได้ปกติ
-- [ ] DevTools → Network tab → ไม่เห็น Looker URL ใน JavaScript/API response
+- [x] POST `/api/embed/request` → return token
+- [x] GET `/api/embed/{token}` → 302 redirect ไป Looker URL
+- [x] ใช้ token ซ้ำ → 403 (one-time use)
+- [x] Token หมดอายุ → 403
+- [x] Dashboard view page แสดง iframe ผ่าน proxy ได้ปกติ
+- [x] DevTools → Network tab → ไม่เห็น Looker URL ใน JavaScript/API response
 ```
 
 ---
@@ -622,6 +624,7 @@ Task 13-15 (Production) — ทำหลังสุด
 **Effort:** 1 วัน
 **Status:** ✅ Completed
 
+
 ### เป้าหมาย
 โหลด dashboard cards ทีละ batch ด้วย Intersection Observer
 
@@ -659,10 +662,10 @@ Task 13-15 (Production) — ทำหลังสุด
 - Group-by mode อาจต้อง lazy load per group
 
 ### Verification:
-- [ ] หน้า discover แสดง 12 items แรก → scroll ลง → โหลดเพิ่มอีก 12
-- [ ] Loading indicator แสดงขณะโหลด
-- [ ] ทำงานได้ทุก view mode
-- [ ] Intersection Observer ถูก cleanup เมื่อออกจากหน้า
+- [x] หน้า discover แสดง 12 items แรก → scroll ลง → โหลดเพิ่มอีก 12
+- [x] Loading indicator แสดงขณะโหลด
+- [x] ทำงานได้ทุก view mode
+- [x] Intersection Observer ถูก cleanup เมื่อออกจากหน้า
 ```
 
 ---
@@ -673,6 +676,7 @@ Task 13-15 (Production) — ทำหลังสุด
 **Depends on:** ไม่มี
 **Effort:** 1 วัน
 **Status:** ✅ Completed
+
 
 ### Prompt
 
@@ -700,10 +704,10 @@ Task 13-15 (Production) — ทำหลังสุด
    - Handle save success → refresh dashboard info
 
 ### Verification:
-- [ ] คลิก "แก้ไขข้อมูล" → เปิด dialog
-- [ ] แก้ไข name/description/tags → Save → อัปเดตสำเร็จ
-- [ ] Form validation ทำงาน (ชื่อห้ามว่าง)
-- [ ] Cancel → ปิด dialog, ไม่มีอะไรเปลี่ยน
+- [x] คลิก "แก้ไขข้อมูล" → เปิด dialog
+- [x] แก้ไข name/description/tags → Save → อัปเดตสำเร็จ
+- [x] Form validation ทำงาน (ชื่อห้ามว่าง)
+- [x] Cancel → ปิด dialog, ไม่มีอะไรเปลี่ยน
 ```
 
 ---
@@ -918,12 +922,12 @@ Deploy StreamHub ขึ้น Firebase Hosting
 | 3 | CSP + Security Headers | 🔴 P0 | ครึ่งวัน | ✅ Completed |
 | 4 | Company API Enforcement | 🟠 P1 | 1-2 วัน | ✅ Completed |
 | 5 | Company Client Integration | 🟠 P1 | 1 วัน | ✅ Completed |
-| 6 | Server URL Proxy | 🟠 P1 | 2-3 วัน | ⬜ Not Started |
+| 6 | Server URL Proxy | 🟠 P1 | 2-3 วัน | ✅ Completed |
 | 7 | Audit Logging | 🟡 P2 | 1-2 วัน | ✅ Completed |
 | 8 | Watermark Overlay | 🟡 P2 | ครึ่งวัน | ✅ Completed |
-| 9 | Dashboard Lazy Loading | 🟡 P2 | 1 วัน | ⬜ Not Started |
-| 10 | แก้ไขข้อมูล Dashboard | 🔵 P3 | 1 วัน | ⬜ Not Started |
-| 11 | เก็บถาวร Dashboard | 🔵 P3 | 1 วัน | ⬜ Not Started |
+| 9 | Dashboard Lazy Loading | 🟡 P2 | 1 วัน | ✅ Completed |
+| 10 | แก้ไขข้อมูล Dashboard | 🔵 P3 | 1 วัน | ✅ Completed |
+| 11 | เก็บถาวร Dashboard | 🔵 P3 | 1 วัน | ✅ Completed |
 | 12 | ดาวน์โหลด Dashboard | 🔵 P3 | 1 วัน | ✅ Completed |
 | 13 | Real Firebase Integration | 🟣 P4 | 5-10 วัน | ✅ Completed |
 | 14 | Cross-browser + Performance | 🟣 P4 | 2-3 วัน | ✅ Completed |
