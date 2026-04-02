@@ -1,7 +1,7 @@
 ---
 title: Deployment Guide
-version: 2.0
-updated: 2026-03-28
+version: 3.0
+updated: 2026-04-03
 ---
 
 # Deployment to Production
@@ -40,7 +40,12 @@ Set these in **Settings → Secrets and variables → Actions**:
 | `FIREBASE_SERVICE_ACCOUNT` | Firebase service account key JSON (for CI deploy) |
 | `FIREBASE_PROJECT_ID` | Firebase project ID |
 | `NUXT_PUBLIC_FIREBASE_API_KEY` | Firebase client API key |
-| `NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase auth domain |
+| `NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase auth domain — **ต้องใช้ `web.app` domain** (ดูหมายเหตุด้านล่าง) |
+
+> **⚠️ หมายเหตุ authDomain:** ต้องตั้งเป็น `streamhub-1c27a.web.app` ไม่ใช่ `streamhub-1c27a.firebaseapp.com`
+> ถ้าใช้ `firebaseapp.com` Chrome Bounce Tracking Mitigation จะลบ state ทำให้ `getRedirectResult` return `null`
+> และต้องเพิ่ม `https://streamhub-1c27a.web.app/__/auth/handler` ใน **Authorized redirect URIs**
+> ใน [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials) ด้วย
 | `NUXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID |
 | `NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase storage bucket |
 | `NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID |
