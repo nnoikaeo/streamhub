@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
 
     // Update invitation status
     const invitationUpdates = {
-      status: 'accepted',
+      status: 'accepted' as const,
       acceptedAt: now,
       acceptedByUid: uid,
       updatedAt: now

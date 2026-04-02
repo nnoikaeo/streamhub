@@ -22,7 +22,7 @@ export function isFirestoreMode(): boolean {
 export function getAdminDb(): Firestore | null {
   const apps = getApps()
   if (apps.length === 0) return null
-  return getFirestore(apps[0])
+  return getFirestore(apps[0]!)
 }
 
 /**
@@ -34,7 +34,7 @@ export async function fsReadAll<T extends Record<string, any>>(
   collection: string
 ): Promise<T[]> {
   const snap = await db.collection(collection).get()
-  return snap.docs.map(d => ({ ...d.data(), id: d.id })) as T[]
+  return snap.docs.map(d => ({ ...d.data(), id: d.id }) as unknown as T)
 }
 
 /**
@@ -47,7 +47,7 @@ export async function fsQuery<T extends Record<string, any>>(
   value: any
 ): Promise<T[]> {
   const snap = await db.collection(collection).where(field, '==', value).get()
-  return snap.docs.map(d => ({ ...d.data(), id: d.id })) as T[]
+  return snap.docs.map(d => ({ ...d.data(), id: d.id }) as unknown as T)
 }
 
 /**

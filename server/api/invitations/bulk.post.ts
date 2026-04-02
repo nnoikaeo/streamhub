@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
     ])
 
     const allInvitations = allInvSnap.docs.map(d => ({ ...d.data(), id: d.id }) as Invitation)
-    const allUsers = allUsersSnap.docs.map(d => ({ ...d.data(), id: d.id }) as UserRecord)
+    const allUsers = allUsersSnap.docs.map(d => ({ ...d.data(), id: d.id }) as unknown as UserRecord)
 
     const created: Invitation[] = []
     const skipped: { email: string; reason: string }[] = []
