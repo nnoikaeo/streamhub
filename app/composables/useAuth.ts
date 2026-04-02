@@ -1,4 +1,4 @@
-import { signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
+import { signOut, onAuthStateChanged, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth'
 import { getDoc, doc } from 'firebase/firestore'
 import { useAuthStore, type UserData } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
@@ -29,32 +29,34 @@ export const useAuth = () => {
     return data.data ?? null
   }
 
-  const signInWithGoogle = async (options?: { skipAutoAccept?: boolean }) => {
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider()
+    console.log('🔐 Starting Google Sign-in (redirect)...')
+    await signInWithRedirect($firebase.auth, provider)
+  }
+
+  /**
+   * Call on page mount to process the result of signInWithRedirect.
+   * Returns null if no redirect result (normal page load).
+   * Returns { success, error? } if returning from Google redirect.
+   */
+  const handleRedirectResult = async (options?: { skipAutoAccept?: boolean }) => {
     try {
-      console.log('🔐 Starting Google Sign-in...')
-      console.log('Auth object:', $firebase.auth)
+      const userCredential = await getRedirectResult($firebase.auth)
+      if (!userCredential) return null
 
-      const provider = new GoogleAuthProvider()
-      console.log('🔑 Google Provider created')
+      console.log('✅ Redirect sign-in successful:', userCredential.user.email)
 
-      const userCredential = await signInWithPopup($firebase.auth, provider)
-      console.log('✅ Sign-in successful:', userCredential.user.email)
-
-      // Fetch user role and company from Firestore or mock API
       try {
         const idToken = await userCredential.user.getIdToken()
         const mockUser = await fetchUserProfile(userCredential.user.uid, idToken)
 
-        // Check if user is deactivated
         if (mockUser && mockUser.isActive === false) {
-          // Sign out from Firebase since user is deactivated
           await $firebase.auth.signOut()
           throw new Error('บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ')
         }
 
         if (!mockUser) {
-          // Auto-detect: Check for pending invitation (Flow B)
-          // Skip if called from accept page (which handles acceptance explicitly)
           if (!options?.skipAutoAccept) try {
             const invApiBase = useFirestoreMode ? '/api/invitations' : '/api/mock/invitations'
             const invResponse = await $fetch<any>(`${invApiBase}/check`, {
@@ -93,8 +95,6 @@ export const useAuth = () => {
             console.log('No pending invitation found for:', userCredential.user.email)
           }
 
-          // Original error: user not found, no invitation
-          // If skipAutoAccept, return success anyway — accept page will handle user creation
           if (options?.skipAutoAccept) {
             const userData: UserData = {
               uid: userCredential.user.uid,
@@ -120,32 +120,23 @@ export const useAuth = () => {
         }
         authStore.setUser(userData)
         authStore.setAuthError(null)
-
-        // Initialize permissions
         permissionsStore.initializePermissions(userData)
         console.log('✅ Permissions initialized for role:', mockUser.role)
 
         return { success: true }
       } catch (userError: any) {
-        // User not found in system
         console.error('❌ User profile not found:', userError.message)
         authStore.setUser(null)
         authStore.setAuthError(userError.message)
         permissionsStore.initializePermissions(null)
-        return {
-          success: false,
-          error: userError.message
-        }
+        return { success: false, error: userError.message }
       }
     } catch (error: any) {
       console.error('❌ Sign-in error:', error)
       console.error('Error code:', error.code)
       console.error('Error message:', error.message)
       authStore.setAuthError(error.message)
-      return {
-        success: false,
-        error: error.message
-      }
+      return { success: false, error: error.message }
     }
   }
 
@@ -254,6 +245,7 @@ export const useAuth = () => {
     loading: computed(() => authStore.loading),
     isAuthenticated: computed(() => authStore.isAuthenticated),
     signInWithGoogle,
+    handleRedirectResult,
     logout,
     initAuth,
     getIdToken

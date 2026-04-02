@@ -108,32 +108,11 @@ const handleAccept = async () => {
   }
 }
 
-// Sign in with Google then accept
+// Sign in with Google then accept (uses redirect — page navigates away to Google)
 const signInAndAccept = async () => {
   const { signInWithGoogle } = useAuth()
-
-  try {
-    // Skip Flow B auto-accept — this page handles acceptance explicitly
-    const result = await signInWithGoogle({ skipAutoAccept: true })
-
-    if (result.success) {
-      // Check if email matches
-      if (authStore.user?.email?.toLowerCase() === invitation.value.email.toLowerCase()) {
-        // If signInWithGoogle already auto-accepted (Flow B), check if user was already created
-        // Otherwise do Phase 2
-        await handleAccept()
-      } else {
-        status.value = 'email_mismatch'
-      }
-    } else {
-      status.value = 'error'
-      errorMessage.value = result.error || 'ลงชื่อเข้าใช้ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'
-    }
-  } catch (err: any) {
-    console.error('Sign-in failed:', err)
-    status.value = 'error'
-    errorMessage.value = 'ลงชื่อเข้าใช้ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'
-  }
+  await signInWithGoogle()
+  // Page navigates away to Google, code below does not run
 }
 
 // Sign out and reset to valid state
@@ -159,8 +138,28 @@ const formatRole = (role: string) => {
   return roleMap[role] || role
 }
 
-onMounted(() => {
-  verifyInvitation()
+onMounted(async () => {
+  // First check if returning from Google redirect (skipAutoAccept: true — this page handles acceptance)
+  const { handleRedirectResult } = useAuth()
+  const redirectResult = await handleRedirectResult({ skipAutoAccept: true })
+
+  if (redirectResult !== null) {
+    // Returning from Google redirect — verify invitation then process sign-in result
+    await verifyInvitation()
+    if (redirectResult.success) {
+      if (authStore.user?.email?.toLowerCase() === invitation.value?.email?.toLowerCase()) {
+        await handleAccept()
+      } else {
+        status.value = 'email_mismatch'
+      }
+    } else {
+      status.value = 'error'
+      errorMessage.value = redirectResult.error || 'ลงชื่อเข้าใช้ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'
+    }
+  } else {
+    // Normal page load — just verify invitation
+    await verifyInvitation()
+  }
 })
 </script>
 
