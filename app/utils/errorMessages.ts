@@ -47,6 +47,14 @@ export const mapErrorMessage = (error: any): ErrorInfo => {
     }
   }
 
+  if (error.code === 'auth/popup-closed-by-user' || errorMessage.includes('cross-origin') || errorMessage.includes('window.close')) {
+    return {
+      title: 'การลงชื่อเข้าถูกขัดจังหวะ',
+      message: 'เบราว์เซอร์บล็อกหน้าต่าง Google Sign-In โปรดลองอีกครั้ง',
+      showRequestAccess: false
+    }
+  }
+
   if (errorMessage.includes('network')) {
     return {
       title: 'ข้อผิดพลาดของเครือข่าย',
