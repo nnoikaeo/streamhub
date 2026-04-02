@@ -90,3 +90,11 @@ export async function verifyIdToken(token: string): Promise<DecodedIdToken | nul
 export function isFirebaseAdminAvailable(): boolean {
   return ensureInitialized() && !initError
 }
+
+/**
+ * Ensure Firebase Admin is initialized. Used by other server utilities
+ * that need Admin SDK without going through auth middleware.
+ */
+export function ensureAdminInitialized(): boolean {
+  return ensureInitialized()
+}
