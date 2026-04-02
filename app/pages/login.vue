@@ -5,7 +5,7 @@ import ErrorDialog from '~/components/ErrorDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { signInWithGoogle } = useAuth()
+const { signInWithGoogle, handleRedirectResult } = useAuth()
 const authStore = useAuthStore()
 const loading = ref(false)
 const showErrorDialog = ref(false)
@@ -27,17 +27,16 @@ definePageMeta({
   middleware: 'auth'  // Explicitly apply auth middleware
 })
 
-const handleGoogleSignIn = async () => {
+// Check if returning from Google redirect sign-in
+onMounted(async () => {
   loading.value = true
-  showErrorDialog.value = false
-
   try {
-    const result = await signInWithGoogle()
+    const result = await handleRedirectResult()
+    if (result === null) return // Normal page load, no redirect result
 
     if (result.success) {
       const targetRoute = '/dashboard'
       console.log(`🎉 Redirecting to ${targetRoute} (role: ${authStore.user?.role})...`)
-      await new Promise(resolve => setTimeout(resolve, 500))
       await router.push(targetRoute)
     } else {
       const error = new Error(result.error)
@@ -45,12 +44,19 @@ const handleGoogleSignIn = async () => {
       showErrorDialog.value = true
     }
   } catch (error: any) {
-    console.error('❌ Unexpected error:', error)
+    console.error('❌ Unexpected redirect error:', error)
     errorInfo.value = mapErrorMessage(error)
     showErrorDialog.value = true
   } finally {
     loading.value = false
   }
+})
+
+const handleGoogleSignIn = async () => {
+  loading.value = true
+  showErrorDialog.value = false
+  await signInWithGoogle()
+  // Page navigates away to Google — code below does not run
 }
 
 const handleCloseErrorDialog = () => {
