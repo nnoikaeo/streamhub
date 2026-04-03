@@ -56,6 +56,8 @@ console.log('✅ Created .output/server/.gcloudignore (excludes node_modules fro
 
 // 4. Create functions.yaml so Firebase CLI discovers functions via YAML
 //    (avoids requiring firebase-functions to be importable locally)
+//    secretEnvironmentVariables is declared here so Cloud Functions runtime
+//    injects RESEND_API_KEY from Google Cloud Secret Manager at startup.
 const functionsYamlPath = resolve(serverDir, 'functions.yaml')
 const functionsYaml = `specVersion: v1alpha1
 endpoints:
@@ -68,8 +70,10 @@ endpoints:
     entryPoint: server
     timeoutSeconds: 60
     availableMemoryMb: 1024
+    secretEnvironmentVariables:
+      - key: RESEND_API_KEY
 `
 writeFileSync(functionsYamlPath, functionsYaml)
-console.log('✅ Created .output/server/functions.yaml')
+console.log('✅ Created .output/server/functions.yaml (includes RESEND_API_KEY secret)')
 
 console.log('\n🚀 Firebase deploy pre-flight checks complete.')
