@@ -37,8 +37,14 @@
       "runtime": "nodejs20",
       "environmentVariables": {
         "NUXT_PUBLIC_USE_FIRESTORE": "true",
-        "NUXT_PUBLIC_USE_JSON_MOCK": "false"
-      }
+        "NUXT_PUBLIC_USE_JSON_MOCK": "false",
+        "NUXT_RESEND_FROM_EMAIL": "noreply@streamhub.app"
+      },
+      "secretEnvironmentVariables": [
+        {
+          "key": "RESEND_API_KEY"
+        }
+      ]
     }
   ]
 }
