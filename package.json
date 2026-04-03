@@ -9,7 +9,7 @@
     "Edge >= 85"
   ],
   "scripts": {
-    "build": "nuxt build && cd .output/server && npm install",
+    "build": "nuxt build",
     "build:analyze": "NUXT_BUILD_ANALYZE=true nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
