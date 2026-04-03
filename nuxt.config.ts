@@ -143,8 +143,12 @@ export default defineNuxtConfig({
       minify: 'esbuild',
     },
     esbuild: {
-      // Drop console.log and debugger statements in production
-      drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+      // Drop only debugger statements in production.
+      // Do NOT drop console — server-side console.error/warn must remain
+      // visible in Cloud Function logs for debugging.
+      drop: process.env.NODE_ENV === 'production' ? ['debugger'] : [],
+      // Silence console.log/debug in client bundle only via 'pure' (tree-shakeable)
+      pure: process.env.NODE_ENV === 'production' ? ['console.log', 'console.debug'] : [],
     },
   },
 
