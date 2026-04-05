@@ -156,7 +156,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Server-only (never exposed to client)
     resendApiKey: process.env.RESEND_API_KEY || '',
-    resendFromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@streamhub.app',
+    resendFromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@streamwash.com',
     appUrl: process.env.APP_URL || 'http://localhost:3000',
     googleServiceAccountKey: process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '',
 
