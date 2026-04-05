@@ -56,8 +56,33 @@ console.log('✅ Created .output/server/.gcloudignore (excludes node_modules fro
 
 // 4. Create functions.yaml so Firebase CLI discovers functions via YAML
 //    (avoids requiring firebase-functions to be importable locally)
-//    secretEnvironmentVariables is declared here so Cloud Functions runtime
-//    injects RESEND_API_KEY from Google Cloud Secret Manager at startup.
+//    Reads environmentVariables and secretEnvironmentVariables from firebase.json
+//    so Cloud Functions runtime gets all configured env vars at startup.
+const firebaseJsonPath = resolve(root, 'firebase.json')
+const firebaseConfig = JSON.parse(readFileSync(firebaseJsonPath, 'utf8'))
+const fnConfig = (firebaseConfig.functions || [])[0] || {}
+
+// Build environmentVariables YAML block from firebase.json
+const envVars = fnConfig.environmentVariables || {}
+const envVarEntries = Object.entries(envVars)
+let envVarsYaml = ''
+if (envVarEntries.length > 0) {
+  envVarsYaml = '    environmentVariables:\n'
+  for (const [key, value] of envVarEntries) {
+    envVarsYaml += `      ${key}: "${value}"\n`
+  }
+}
+
+// Build secretEnvironmentVariables YAML block from firebase.json
+const secretEnvVars = fnConfig.secretEnvironmentVariables || []
+let secretEnvVarsYaml = ''
+if (secretEnvVars.length > 0) {
+  secretEnvVarsYaml = '    secretEnvironmentVariables:\n'
+  for (const secret of secretEnvVars) {
+    secretEnvVarsYaml += `      - key: ${secret.key}\n`
+  }
+}
+
 const functionsYamlPath = resolve(serverDir, 'functions.yaml')
 const functionsYaml = `specVersion: v1alpha1
 endpoints:
@@ -70,10 +95,8 @@ endpoints:
     entryPoint: server
     timeoutSeconds: 60
     availableMemoryMb: 1024
-    secretEnvironmentVariables:
-      - key: RESEND_API_KEY
-`
+${envVarsYaml}${secretEnvVarsYaml}`
 writeFileSync(functionsYamlPath, functionsYaml)
-console.log('✅ Created .output/server/functions.yaml (includes RESEND_API_KEY secret)')
+console.log(`✅ Created .output/server/functions.yaml (${envVarEntries.length} env vars, ${secretEnvVars.length} secrets)`)
 
 console.log('\n🚀 Firebase deploy pre-flight checks complete.')
