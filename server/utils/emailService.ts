@@ -65,21 +65,18 @@ export async function sendInvitationEmail(input: SendInvitationEmailInput): Prom
         day: 'numeric'
     })
 
-    const fromEmail = getResendFromEmail()
-    console.log('📧 [Email] Sending invitation', { to: input.to, from: fromEmail, company: input.company })
-
     try {
-        const result = await client.emails.send({
-            from: fromEmail,
+        await client.emails.send({
+            from: getResendFromEmail(),
             to: input.to,
             subject: `คุณได้รับคำเชิญเข้าร่วม Dashboard Hub — ${input.company}`,
             html: generateInvitationHtml({ ...input, acceptUrl, expiryDate })
         })
 
-        console.log('✅ [Email] Sent invitation to:', input.to, 'result:', JSON.stringify(result))
+        console.log('✅ [Email] Sent invitation to:', input.to)
         return true
-    } catch (error: any) {
-        console.error('❌ [Email] Failed to send:', { to: input.to, from: fromEmail, error: error?.message || error, statusCode: error?.statusCode })
+    } catch (error) {
+        console.error('❌ [Email] Failed to send:', error)
         return false
     }
 }
