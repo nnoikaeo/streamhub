@@ -87,6 +87,7 @@ export const useAuth = () => {
                 }
                 authStore.setUser(userData)
                 authStore.setAuthError(null)
+                authStore.setLoading(false)
                 permissionsStore.initializePermissions(userData)
                 return { success: true }
               }
@@ -105,6 +106,7 @@ export const useAuth = () => {
               company: ''
             }
             authStore.setUser(userData)
+            authStore.setLoading(false)
             return { success: true }
           }
           throw new Error(`User with UID "${userCredential.user.uid}" not found in system. Please contact administrator to create an account.`)
@@ -120,6 +122,7 @@ export const useAuth = () => {
         }
         authStore.setUser(userData)
         authStore.setAuthError(null)
+        authStore.setLoading(false)
         permissionsStore.initializePermissions(userData)
         console.log('✅ Permissions initialized for role:', mockUser.role)
 
@@ -128,6 +131,7 @@ export const useAuth = () => {
         console.error('❌ User profile not found:', userError.message)
         authStore.setUser(null)
         authStore.setAuthError(userError.message)
+        authStore.setLoading(false)
         permissionsStore.initializePermissions(null)
         return { success: false, error: userError.message }
       }
@@ -136,6 +140,7 @@ export const useAuth = () => {
       console.error('Error code:', error.code)
       console.error('Error message:', error.message)
       authStore.setAuthError(error.message)
+      authStore.setLoading(false)
       return { success: false, error: error.message }
     }
   }
@@ -175,6 +180,10 @@ export const useAuth = () => {
 
       onAuthStateChanged($firebase.auth, async (user) => {
         if (resolved) return
+
+        // Firebase SDK responded — cancel the "no response" timeout
+        // immediately, before any async work (Firestore fetch may be slow).
+        clearTimeout(timeoutId)
 
         console.log('🔍 Auth state changed:', user?.email || 'not logged in')
 
@@ -218,7 +227,6 @@ export const useAuth = () => {
 
         console.log(`🔍 [useAuth.initAuth] Setting loading to false`)
         authStore.setLoading(false)
-        clearTimeout(timeoutId)
         resolved = true
         resolve(user)
       })
