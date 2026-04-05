@@ -115,23 +115,14 @@ export default defineNuxtConfig({
     }
   ],
 
-  // Disable SSR for admin/manage routes (Firebase auth only works on client-side)
+  // Route rules — keep minimal for Firebase preset compatibility.
+  // Complex header objects in routeRules cause "Cannot read properties of
+  // undefined (reading 'entries')" on the client when Nitro serialises them
+  // for the route-rule matcher. SSR rules are also redundant because the
+  // global `ssr: false` already applies to every route.
+  // Security headers are set via server/middleware/securityHeaders.ts instead.
   routeRules: {
-    '/admin/**': { ssr: false },
-    '/manage/**': { ssr: false },
-    '/invite/**': { ssr: false },
-    // Cache static API data (JSON mock) — stale-while-revalidate
-    '/api/mock/**': {
-      headers: { 'Cache-Control': 'no-store' }, // auth-gated, never cache at CDN
-    },
-    '/**': {
-      headers: {
-        'Content-Security-Policy': "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com https://*.firebaseapp.com https://*.googleapis.com; frame-ancestors 'self'",
-        'X-Frame-Options': 'SAMEORIGIN',
-        'Referrer-Policy': 'strict-origin',
-        'X-Content-Type-Options': 'nosniff'
-      }
-    }
+    '/api/mock/**': { cache: false },
   },
 
   // Vite build optimizations
