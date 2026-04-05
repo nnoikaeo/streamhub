@@ -16,7 +16,7 @@ function getResendFromEmail(): string {
   return (config.resendFromEmail as string)
     || process.env.NUXT_RESEND_FROM_EMAIL
     || process.env.RESEND_FROM_EMAIL
-    || 'noreply@streamhub.app'
+    || 'noreply@streamwash.com'
 }
 
 function getAppUrl(): string {
@@ -65,18 +65,21 @@ export async function sendInvitationEmail(input: SendInvitationEmailInput): Prom
         day: 'numeric'
     })
 
+    const fromEmail = getResendFromEmail()
+    console.log('📧 [Email] Sending invitation', { to: input.to, from: fromEmail, company: input.company })
+
     try {
-        await client.emails.send({
-            from: getResendFromEmail(),
+        const result = await client.emails.send({
+            from: fromEmail,
             to: input.to,
             subject: `คุณได้รับคำเชิญเข้าร่วม Dashboard Hub — ${input.company}`,
             html: generateInvitationHtml({ ...input, acceptUrl, expiryDate })
         })
 
-        console.log('✅ [Email] Sent invitation to:', input.to)
+        console.log('✅ [Email] Sent invitation to:', input.to, 'result:', JSON.stringify(result))
         return true
-    } catch (error) {
-        console.error('❌ [Email] Failed to send:', error)
+    } catch (error: any) {
+        console.error('❌ [Email] Failed to send:', { to: input.to, from: fromEmail, error: error?.message || error, statusCode: error?.statusCode })
         return false
     }
 }
