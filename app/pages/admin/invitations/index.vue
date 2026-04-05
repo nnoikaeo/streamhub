@@ -159,10 +159,14 @@ const confirmResend = async () => {
   if (!invitationToResend.value) return
   const email = invitationToResend.value.email
   try {
-    await resendInvitation(invitationToResend.value.id)
+    const { emailSent } = await resendInvitation(invitationToResend.value.id)
     showResendDialog.value = false
     invitationToResend.value = null
-    showToast(`ส่งคำเชิญใหม่ไปยัง '${email}' เรียบร้อยแล้ว`)
+    if (emailSent) {
+      showToast(`ส่งคำเชิญใหม่ไปยัง '${email}' เรียบร้อยแล้ว`)
+    } else {
+      showToast(`อัปเดตคำเชิญแล้ว แต่ไม่สามารถส่งอีเมลไปยัง '${email}' ได้`, 'error')
+    }
   } catch {
     showToast('เกิดข้อผิดพลาดในการส่งคำเชิญใหม่', 'error')
   }

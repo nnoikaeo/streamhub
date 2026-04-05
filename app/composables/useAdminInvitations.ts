@@ -65,7 +65,7 @@ export function useAdminInvitations() {
 
   const resendInvitation = async (id: string, performedBy?: string, performedByEmail?: string) => {
     const headers = await getAuthHeaders()
-    await $fetch<any>(`${apiBase}/${id}`, {
+    const response = await $fetch<any>(`${apiBase}/${id}`, {
       method: 'PUT',
       headers,
       body: {
@@ -77,6 +77,7 @@ export function useAdminInvitations() {
       }
     })
     await resource.fetch()
+    return { emailSent: response?.emailSent === true }
   }
 
   const bulkInvite = async (input: any) => {
