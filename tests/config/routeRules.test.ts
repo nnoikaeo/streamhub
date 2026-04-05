@@ -1,16 +1,23 @@
 /**
- * Regression test: routeRules must NOT contain complex header objects.
+ * Regression test: routeRules must NOT contain complex header objects,
+ * and the experimental app manifest must be disabled.
  *
- * Bug: Nuxt's client-side route-rule matcher in Firebase preset + SPA mode
- * tries to call `.entries()` on serialised header objects, but the value is
- * `undefined` in the client bundle, throwing:
- *   "[nuxt] Error matching route rules. TypeError: Cannot read properties
- *    of undefined (reading 'entries')"
+ * Bug 1 (headers): Nuxt's client-side route-rule matcher in Firebase preset +
+ * SPA mode tries to call `.entries()` on serialised header objects, but the
+ * value is `undefined` in the client bundle.
  *
- * Fix: Security headers are set in server/middleware/securityHeaders.ts.
- * Redundant `ssr: false` per-route rules (already global) are removed.
+ * Bug 2 (appManifest): In Firebase's Nitro preset the Cloud Function and
+ * Hosting are deployed as separate artefacts. When the buildId baked into
+ * the SPA HTML (from the Cloud Function) doesn't match the manifest JSON
+ * files on Hosting, the client fetches HTML instead of JSON and crashes with:
+ *   "Cannot read properties of undefined (reading 'entries')"
+ *   "Cannot read properties of undefined (reading 'includes')"
+ * Disabling `experimental.appManifest` eliminates this entire code path.
  *
- * @see nuxt.config.ts — routeRules
+ * Fix: Security headers → server/middleware/securityHeaders.ts.
+ *       App manifest → disabled via experimental.appManifest: false.
+ *
+ * @see nuxt.config.ts — routeRules, experimental
  * @see server/middleware/securityHeaders.ts
  */
 
@@ -40,6 +47,18 @@ describe('nuxt.config.ts — routeRules (regression: entries error)', () => {
     const routeRulesBlock = routeRulesMatch![1]
     expect(routeRulesBlock).not.toContain('ssr: false')
     expect(routeRulesBlock).not.toContain('ssr:false')
+  })
+})
+
+// ── App manifest must be disabled (regression: buildId mismatch) ──────────
+describe('nuxt.config.ts — experimental.appManifest (regression: entries/includes error)', () => {
+  it('disables appManifest to prevent buildId mismatch on Firebase', () => {
+    // The experimental block must exist and contain appManifest: false
+    expect(nuxtConfig).toContain('appManifest: false')
+  })
+
+  it('has the experimental block in nuxt config', () => {
+    expect(nuxtConfig).toMatch(/experimental\s*:\s*\{/)
   })
 })
 
