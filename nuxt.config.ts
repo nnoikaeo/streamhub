@@ -10,6 +10,16 @@ export default defineNuxtConfig({
   // Firebase/Pinia setup on the server.
   ssr: false,
 
+  // Disable the app manifest (build-based route rules matcher).
+  // In SPA mode the manifest is not needed (no prerendering, no payload
+  // extraction). When Firebase deploys the Cloud Function and Hosting
+  // from separate artefacts the buildId baked into the HTML can differ
+  // from the manifest files on Hosting, causing
+  // "Cannot read properties of undefined (reading 'entries')" at runtime.
+  experimental: {
+    appManifest: false,
+  },
+
   // Deploy Nitro server to Cloud Functions for Firebase (2nd gen).
   // Static assets are served by Firebase Hosting via firebase.json.
   // sharp is excluded from the server bundle — SPA mode doesn't need
