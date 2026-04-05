@@ -241,3 +241,57 @@ will automatically write to Firestore in production.
 5. Part 5 — Fix dropdown data loading in modals
 6. Part 3 — Client-side routing logic (composables + components + pages)
 7. Test end-to-end: create, bulk invite, cancel, resend, accept, reactivate, verify
+
+---
+
+## Completion Status
+
+> **All 6 parts completed — 2026-04-05**
+
+### Part 1: Firestore server utility — ✅ Done
+- `server/utils/firestoreAdmin.ts` — exports `isFirestoreMode()`, `getAdminDb()`, `fsReadAll()`, `fsQuery()`, `fsSet()`, `fsUpdate()`
+
+### Part 2: Firestore invitation handlers (7/7) — ✅ Done
+- `server/api/invitations/index.post.ts` — create single invitation + email + audit
+- `server/api/invitations/bulk.post.ts` — bulk invite with skip logic + parallel emails
+- `server/api/invitations/accept.post.ts` — accept invitation + create user (email match, race-condition, expiry checks)
+- `server/api/invitations/reactivate.post.ts` — reactivate inactive user + audit
+- `server/api/invitations/[id].put.ts` — cancel / resend (new invitationCode + email on resend)
+- `server/api/invitations/check.get.ts` — check pending invitation by email
+- `server/api/invitations/verify.get.ts` — verify invitation code status
+
+### Part 3: Client-side routing (5/5) — ✅ Done
+- `app/composables/useAdminInvitations.ts` — `getApiBase()` switches `/api/invitations` vs `/api/mock/invitations`; `cancelInvitation` and `resendInvitation` use `$fetch` → server handler
+- `app/components/admin/InviteUserModal.vue` — dynamic `apiBase` from `useFirestore` flag
+- `app/components/admin/BulkInviteModal.vue` — dynamic `apiBase` from `useFirestore` flag
+- `app/pages/invite/accept.vue` — dynamic `apiBase` for `/verify` and `/accept`
+- `app/composables/useAuth.ts` — `invApiBase` switches on `useFirestoreMode` for auto-accept flow
+
+### Part 4: Auth middleware — ✅ Done
+- `server/middleware/auth.ts` — `/api/invitations` in `PROTECTED_PREFIXES`; `/api/invitations/check`, `/verify`, `/accept` in `PUBLIC_ROUTES`
+
+### Part 5: Dropdown data — ✅ Done
+- `InviteUserModal.vue` — uses `useAdminCompanies`, `useAdminFolders`, `useAdminGroups` composables
+- `BulkInviteModal.vue` — uses `useAdminCompanies`, `useAdminGroups` composables
+
+### Part 6: Audit logging Firestore branch — ✅ Done
+- `server/utils/auditLog.ts` — `logActivity()` checks `NUXT_PUBLIC_USE_FIRESTORE`, writes to Firestore `activity_logs` collection, falls back to JSON
+
+### Production verification (2026-04-05)
+- ✅ Email sending via Resend — `noreply@streamwash.com` (verified domain), status 200
+- ✅ CI/CD deploy via GitHub Actions — Secret Manager permissions granted (`Secret Manager Secret Accessor` + `Secret Manager Viewer`)
+- ✅ Resend invitation: new `invitationCode` generated, email delivered to `hlsvstreamwash@gmail.com`
+- ✅ New invitation: email delivered to `survey.streamwash@gmail.com`
+- ✅ Recipient received email with correct accept link (`https://streamhub-1c27a.web.app/invite/accept?code=...`)
+
+### Production issues fixed during rollout
+| PR | Issue | Fix |
+|----|-------|-----|
+| #185 | RESEND_API_KEY not in Cloud Function | Add `secretEnvironmentVariables` to `firebase.json` |
+| #186 | `prepare-firebase-deploy.mjs` missing secrets in `functions.yaml` | Fix script + regression test |
+| #187–#188 | Route rules `entries` error (500 on login) | Move headers to server middleware |
+| #189–#190 | BuildId mismatch between Function and Hosting | `experimental: { appManifest: false }` |
+| #191–#192 | Auth timeout warning after login | Fix `clearTimeout` placement + `setLoading(false)` in all paths |
+| #193–#194 | CI deploy missing `prepare-firebase-deploy.mjs` step + no `emailSent` feedback | Add CI step + check `emailSent` in toast |
+| #195–#196 | Resend 403 "Domain not verified" (`streamhub.app` → `streamwash.com`) | Change from email to `noreply@streamwash.com` |
+| #197 | Remove diagnostic logs after verification | Clean up temporary logging |
