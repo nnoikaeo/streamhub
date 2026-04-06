@@ -144,8 +144,7 @@ export function useAdminResource<T extends Record<string, any>>(
   } = config
 
   // Firestore mode detection
-  const runtimeConfig = useRuntimeConfig()
-  const useFirestoreMode = runtimeConfig.public.useFirestore === true || String(runtimeConfig.public.useFirestore) === 'true'
+  const { isFirestore: useFirestoreMode } = useServiceMode()
 
   // State management — useState shares state across all callers with the same key
   const items = useState<T[]>(`admin-resource-${resourceName}`, () => [])

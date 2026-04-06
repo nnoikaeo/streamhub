@@ -8,7 +8,7 @@ export const useAuth = () => {
   const authStore = useAuthStore()
   const permissionsStore = usePermissionsStore()
   const config = useRuntimeConfig()
-  const useFirestoreMode = config.public.useFirestore === true || String(config.public.useFirestore) === 'true'
+  const { isFirestore: useFirestoreMode } = useServiceMode()
 
   /**
    * Fetch user profile from Firestore (production) or mock API (dev).
