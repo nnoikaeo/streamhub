@@ -25,9 +25,8 @@ const { groups: allGroups, fetchGroups } = useAdminGroups()
 const authStore = useAuthStore()
 const { getIdToken } = useAuth()
 
-const runtimeConfig = useRuntimeConfig()
-const useFirestore = runtimeConfig.public.useFirestore === true || String(runtimeConfig.public.useFirestore) === 'true'
-const apiBase = useFirestore ? '/api/invitations' : '/api/mock/invitations'
+const { isFirestore: useFirestore, apiBase: getApiBase } = useServiceMode()
+const apiBase = getApiBase('invitations')
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const token = await getIdToken()
