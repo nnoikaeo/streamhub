@@ -120,4 +120,28 @@ describe.skipIf(!hasEnvFile)('.env — dev-only documentation', () => {
     })
     expect(commentBeforeAppUrl).toBe(true)
   })
+
+  it('does not contain real Resend API keys', () => {
+    const envSource = readFileSync(envPath, 'utf8')
+    // Real Resend keys start with re_ followed by 20+ alphanumeric chars
+    // Test/placeholder keys use "xxxx" patterns
+    const realKeyPattern = /RESEND_API_KEY=re_(?!test_)[A-Za-z0-9]{20,}/
+    expect(envSource).not.toMatch(realKeyPattern)
+  })
+})
+
+// ── 5. server/middleware/blockMockApi.ts — mock API blocked in production ─
+
+const blockMockPath = resolve(ROOT, 'server/middleware/blockMockApi.ts')
+
+describe('server/middleware/blockMockApi.ts — mock API blocked in production', () => {
+  it('exists as a server middleware', () => {
+    expect(existsSync(blockMockPath)).toBe(true)
+  })
+
+  it('blocks /api/mock/ routes in production', () => {
+    const blockMockSource = readFileSync(blockMockPath, 'utf8')
+    expect(blockMockSource).toContain('/api/mock/')
+    expect(blockMockSource).toContain('statusCode: 404')
+  })
 })

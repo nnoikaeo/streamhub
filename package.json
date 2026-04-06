@@ -10,6 +10,8 @@
   ],
   "scripts": {
     "build": "nuxt build",
+    "predeploy": "node scripts/prepare-firebase-deploy.mjs",
+    "deploy": "firebase deploy",
     "build:analyze": "NUXT_BUILD_ANALYZE=true nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
@@ -46,7 +48,6 @@
     "@nuxt/test-utils": "^4.0.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^25.2.0",
-    "firebase-functions": "^7.2.2",
     "tailwindcss": "^4.2.1",
     "tsx": "^4.21.0",
     "vitest": "^4.1.2"
