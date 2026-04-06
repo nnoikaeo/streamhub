@@ -124,6 +124,7 @@ export async function listAuditLogFiles(): Promise<string[]> {
 /**
  * Log an audit event with cooldown and monthly rotation.
  * Returns true if logged, false if skipped by cooldown.
+ * In Firestore mode: throws on failure (no JSON fallback).
  */
 export async function logAuditEvent(params: {
   action: AuditAction
@@ -136,17 +137,57 @@ export async function logAuditEvent(params: {
   metadata?: Record<string, any>
   userAgent?: string
 }): Promise<boolean> {
-  try {
-    const level = getLogLevel(params.action)
+  const level = getLogLevel(params.action)
 
-    // Apply cooldown only to NORMAL level (view events)
-    if (shouldApplyCooldown(level)) {
-      if (shouldSkipByCooldown(params.userId, params.dashboardId, params.action)) {
-        console.log(`[AuditLog] Cooldown skip: ${params.action} by ${params.userName} → ${params.dashboardName}`)
-        return false
+  // Apply cooldown only to NORMAL level (view events)
+  if (shouldApplyCooldown(level)) {
+    if (shouldSkipByCooldown(params.userId, params.dashboardId, params.action)) {
+      console.log(`[AuditLog] Cooldown skip: ${params.action} by ${params.userName} → ${params.dashboardName}`)
+      return false
+    }
+  }
+
+  const entry: AuditEntry = {
+    id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    action: params.action,
+    level,
+    userId: params.userId,
+    userName: params.userName,
+    userEmail: params.userEmail,
+    company: params.company,
+    dashboardId: params.dashboardId,
+    dashboardName: params.dashboardName,
+    metadata: params.metadata,
+    userAgent: params.userAgent,
+    timestamp: new Date().toISOString(),
+  }
+
+  if (process.env.NUXT_PUBLIC_USE_FIRESTORE === 'true') {
+    const writeToFirestore = async () => {
+      const { getAdminDb } = await import('./firestoreAdmin')
+      const db = getAdminDb()
+      if (!db) throw new Error('Firestore Admin SDK not available')
+      await db.collection('audit-log').doc(entry.id).set(entry)
+    }
+
+    try {
+      await writeToFirestore()
+    } catch {
+      // Retry once before giving up
+      try {
+        await writeToFirestore()
+      } catch (retryError) {
+        console.error('[AuditLog] Failed to write to Firestore after retry:', retryError)
+        throw retryError
       }
     }
 
+    console.log(`[AuditLog] ${level} ${params.action} by ${params.userName} → ${params.dashboardName} (Firestore)`)
+    return true
+  }
+
+  // JSON mode (dev / mock only)
+  try {
     const filename = getMonthlyFilename()
     let logs: AuditEntry[] = []
     try {
@@ -155,25 +196,8 @@ export async function logAuditEvent(params: {
       // File doesn't exist yet, start fresh
       logs = []
     }
-
-    const entry: AuditEntry = {
-      id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      action: params.action,
-      level,
-      userId: params.userId,
-      userName: params.userName,
-      userEmail: params.userEmail,
-      company: params.company,
-      dashboardId: params.dashboardId,
-      dashboardName: params.dashboardName,
-      metadata: params.metadata,
-      userAgent: params.userAgent,
-      timestamp: new Date().toISOString(),
-    }
-
     logs.push(entry)
     await writeJSON(filename, logs)
-
     console.log(`[AuditLog] ${level} ${params.action} by ${params.userName} → ${params.dashboardName}`)
     return true
   } catch (error) {
@@ -321,23 +345,32 @@ export async function logActivity(entry: Omit<LegacyAuditEntry, 'timestamp'>): P
     timestamp: new Date().toISOString(),
   }
 
-  // In Firestore mode, write to Firestore collection instead of JSON file
   if (process.env.NUXT_PUBLIC_USE_FIRESTORE === 'true') {
-    try {
+    const id = `activity_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+    const writeToFirestore = async () => {
       const { getAdminDb } = await import('./firestoreAdmin')
       const db = getAdminDb()
-      if (db) {
-        const id = `activity_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-        await db.collection('audit-log').doc(id).set(newEntry)
-        console.log(`[AuditLog] ${entry.action} by ${entry.performedByEmail} → ${entry.target} (Firestore)`)
-        return
-      }
-    } catch (error) {
-      console.error('[AuditLog] Failed to write to Firestore, falling through to JSON:', error)
+      if (!db) throw new Error('Firestore Admin SDK not available')
+      await db.collection('audit-log').doc(id).set(newEntry)
     }
+
+    try {
+      await writeToFirestore()
+    } catch {
+      // Retry once before giving up
+      try {
+        await writeToFirestore()
+      } catch (retryError) {
+        console.error('[AuditLog] Failed to write to Firestore after retry:', retryError)
+        throw retryError
+      }
+    }
+
+    console.log(`[AuditLog] ${entry.action} by ${entry.performedByEmail} → ${entry.target} (Firestore)`)
+    return
   }
 
-  // JSON fallback (dev mode / mock mode)
+  // JSON fallback (dev mode / mock mode only)
   try {
     const logs = await readJSON<LegacyAuditEntry>('audit-log.json')
     logs.push(newEntry)
