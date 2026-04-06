@@ -9,9 +9,8 @@ definePageMeta({
 const route = useRoute()
 const code = route.query.code as string
 
-const runtimeConfig = useRuntimeConfig()
-const useFirestore = runtimeConfig.public.useFirestore === true || String(runtimeConfig.public.useFirestore) === 'true'
-const apiBase = useFirestore ? '/api/invitations' : '/api/mock/invitations'
+const { isFirestore: useFirestore, apiBase: getApiBase } = useServiceMode()
+const apiBase = getApiBase('invitations')
 
 const authStore = useAuthStore()
 const invitation = ref<any>(null)
