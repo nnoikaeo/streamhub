@@ -21,10 +21,14 @@ function getResendFromEmail(): string {
 
 function getAppUrl(): string {
   const config = useRuntimeConfig()
-  return (config.appUrl as string)
+  const url = (config.appUrl as string)
     || process.env.NUXT_APP_URL
     || process.env.APP_URL
-    || 'http://localhost:3000'
+  if (!url) {
+    if (process.dev) return 'http://localhost:3000'
+    throw new Error('APP_URL is not configured — set NUXT_APP_URL in production environment')
+  }
+  return url
 }
 
 function getResendClient(): Resend | null {
