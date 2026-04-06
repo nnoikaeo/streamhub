@@ -2,6 +2,7 @@ name: Preview Deploy (PR)
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, closed]
     branches: [main, develop]
 
 concurrency:
@@ -14,7 +15,23 @@ permissions:
   pull-requests: write
 
 jobs:
+  # ── Cleanup: delete preview channel when PR is closed/merged ──────────────
+  cleanup:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Delete Firebase preview channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          expires: 0
+
+  # ── Preview deploy: build + deploy on open/push ───────────────────────────
   preview:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
