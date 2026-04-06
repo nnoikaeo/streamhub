@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   '/api/embed/request',
   '/api/audit',
   '/api/invitations',
+  '/api/health',
 ]
 
 const PUBLIC_ROUTES = [
@@ -61,6 +62,10 @@ describe('auth middleware route matching', () => {
   describe('non-invitation routes', () => {
     it('/api/mock/* is protected', () => {
       expect(isProtectedRoute('/api/mock/users')).toBe(true)
+    })
+
+    it('/api/health is protected', () => {
+      expect(isProtectedRoute('/api/health')).toBe(true)
     })
 
     it('/dashboard is not protected', () => {
