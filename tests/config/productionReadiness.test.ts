@@ -17,7 +17,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 
 const ROOT = process.cwd()
@@ -100,12 +100,14 @@ describe('.github/workflows/deploy.yml — build environment', () => {
 })
 
 // ── 4. .env — dev-only documentation ─────────────────────────────────────
+// .env is not committed (in .gitignore) — skip on CI where it doesn't exist.
 
 const envPath = resolve(ROOT, '.env')
-const envSource = readFileSync(envPath, 'utf8')
+const hasEnvFile = existsSync(envPath)
 
-describe('.env — dev-only documentation', () => {
+describe.skipIf(!hasEnvFile)('.env — dev-only documentation', () => {
   it('has comments clarifying APP_URL / NUXT_APP_URL are dev-only defaults', () => {
+    const envSource = readFileSync(envPath, 'utf8')
     // Ensure there is a comment near APP_URL or NUXT_APP_URL mentioning
     // dev/local/development to prevent confusion with production URLs.
     // Check that at least one comment line before APP_URL or NUXT_APP_URL
