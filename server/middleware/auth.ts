@@ -44,75 +44,54 @@ export default defineEventHandler(async (event: H3Event) => {
     return
   }
 
-  console.log(`🔐 [auth.middleware] Processing: ${pathname}`)
-  console.log(`🔐 [auth.middleware] isDev: ${process.dev}, firebaseAdminAvailable: ${isFirebaseAdminAvailable()}`)
-
-  // --- DEV MODE FALLBACK ---
-  // In development, if Firebase Admin is not available (no credentials),
-  // fall back to uid from query param for backward compatibility with mock API.
-  if (process.dev && !isFirebaseAdminAvailable()) {
+  // ─── DEV MODE: single early-return block ───
+  // In development, allow uid query param as auth fallback.
+  // This entire block is dead code in production builds (process.dev is false at build time).
+  if (process.dev) {
     const query = getQuery(event)
     const uid = query.uid as string
-    console.log(`🔐 [auth.middleware] DEV fallback (no Admin SDK) — uid from query: ${uid || '(none)'}`)
+    const authHeader = getHeader(event, 'authorization')
 
+    // If Bearer token is provided in dev, still try to verify it
+    if (authHeader?.startsWith('Bearer ') && isFirebaseAdminAvailable()) {
+      const token = authHeader.slice(7)
+      const decodedToken = await verifyIdToken(token)
+      if (decodedToken) {
+        event.context.auth = {
+          uid: decodedToken.uid,
+          email: decodedToken.email || null,
+          name: decodedToken.name || null,
+          picture: decodedToken.picture || null,
+          emailVerified: decodedToken.email_verified || false,
+        }
+        console.debug(`[auth] DEV verified token: uid=${decodedToken.uid}`)
+        return
+      }
+    }
+
+    // Fallback to uid query param in dev mode
     if (uid) {
       event.context.auth = { uid, email: null, devMode: true }
-      console.log(`🔐 [auth.middleware] ✅ Auth set via DEV fallback: uid=${uid}`)
-    } else {
-      console.log(`🔐 [auth.middleware] ⚠️ No uid in query — auth will be undefined`)
+      console.debug(`[auth] DEV fallback: uid=${uid}`)
     }
-    // In dev mode without credentials, allow requests through even without uid
-    // (backward compatible — existing handlers already handle missing uid)
+    // Allow all requests through in dev mode (handlers check for missing auth)
     return
   }
 
-  // --- TOKEN VERIFICATION ---
+  // ─── PRODUCTION: strict auth — no fallbacks ───
   const authHeader = getHeader(event, 'authorization')
-  console.log(`🔐 [auth.middleware] Authorization header present: ${!!authHeader}, starts with Bearer: ${authHeader?.startsWith('Bearer ')}`)
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    // In dev mode with credentials available, still allow fallback to query uid
-    if (process.dev) {
-      const query = getQuery(event)
-      const uid = query.uid as string
-      console.log(`🔐 [auth.middleware] No Bearer token in DEV — uid from query: ${uid || '(none)'}`)
-      if (uid) {
-        event.context.auth = { uid, email: null, devMode: true }
-        console.log(`🔐 [auth.middleware] ✅ Auth set via DEV query fallback: uid=${uid}`)
-      }
-      return
-    }
-
-    console.log(`🔐 [auth.middleware] ❌ Returning 401 — Missing or invalid Authorization header`)
     return sendUnauthorized(event, 'Missing or invalid Authorization header')
   }
 
-  const token = authHeader.slice(7) // Remove 'Bearer '
-  console.log(`🔐 [auth.middleware] Token extracted, length: ${token.length}`)
-
+  const token = authHeader.slice(7)
   const decodedToken = await verifyIdToken(token)
-  console.log(`🔐 [auth.middleware] Token verification result: ${decodedToken ? 'SUCCESS uid=' + decodedToken.uid : 'FAILED'}`)
 
   if (!decodedToken) {
-    // In dev mode, allow fallback even if token verification fails
-    if (process.dev) {
-      const query = getQuery(event)
-      const uid = query.uid as string
-      console.log(`🔐 [auth.middleware] Token verify failed in DEV — uid from query: ${uid || '(none)'}`)
-      if (uid) {
-        event.context.auth = { uid, email: null, devMode: true }
-        console.log(`🔐 [auth.middleware] ✅ Auth set via DEV fallback after token fail: uid=${uid}`)
-      } else {
-        console.log(`🔐 [auth.middleware] ⚠️ No uid fallback — auth will be undefined`)
-      }
-      return
-    }
-
-    console.log(`🔐 [auth.middleware] ❌ Returning 401 — Invalid or expired token`)
     return sendUnauthorized(event, 'Invalid or expired token')
   }
 
-  // Set auth context for downstream handlers
   event.context.auth = {
     uid: decodedToken.uid,
     email: decodedToken.email || null,
@@ -120,5 +99,4 @@ export default defineEventHandler(async (event: H3Event) => {
     picture: decodedToken.picture || null,
     emailVerified: decodedToken.email_verified || false,
   }
-  console.log(`🔐 [auth.middleware] ✅ Auth set via verified token: uid=${decodedToken.uid}, email=${decodedToken.email}`)
 })
