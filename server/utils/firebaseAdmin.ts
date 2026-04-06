@@ -31,14 +31,14 @@ function ensureInitialized(): boolean {
       adminApp = initializeApp({
         credential: cert(serviceAccount),
       })
-      console.log('✅ [firebaseAdmin] Initialized with service account key')
+      console.debug('[firebaseAdmin] Initialized with service account key')
       return true
     }
 
     if (credentialsPath) {
       // Use file path (GOOGLE_APPLICATION_CREDENTIALS is auto-detected by Admin SDK)
       adminApp = initializeApp()
-      console.log('✅ [firebaseAdmin] Initialized with GOOGLE_APPLICATION_CREDENTIALS')
+      console.debug('[firebaseAdmin] Initialized with GOOGLE_APPLICATION_CREDENTIALS')
       return true
     }
 
@@ -47,15 +47,15 @@ function ensureInitialized(): boolean {
     const isCloudFunction = !!(process.env.K_SERVICE || process.env.FUNCTION_TARGET)
     if (isCloudFunction) {
       adminApp = initializeApp()
-      console.log('✅ [firebaseAdmin] Initialized with Application Default Credentials (Cloud Functions)')
+      console.debug('[firebaseAdmin] Initialized with Application Default Credentials (Cloud Functions)')
       return true
     }
 
     initError = 'No Firebase Admin credentials found'
     if (process.dev) {
-      console.warn('⚠️  [firebaseAdmin] No credentials found — DEV mode will use mock auth')
+      console.warn('[firebaseAdmin] No credentials — DEV mode will use mock auth')
     } else {
-      console.error('❌ [firebaseAdmin] No credentials found — production requires Firebase Admin credentials')
+      console.error('[firebaseAdmin] CRITICAL: No credentials found — production requires Firebase Admin credentials')
     }
     return false
   } catch (error: any) {
