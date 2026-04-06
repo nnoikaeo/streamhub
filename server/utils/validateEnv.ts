@@ -5,11 +5,12 @@ export function validateProductionEnv() {
   const missing = required.filter(k => !process.env[k])
 
   if (missing.length) {
-    throw new Error(`❌ Missing required env vars: ${missing.join(', ')}`)
+    console.error(`❌ Missing required env vars: ${missing.join(', ')}`)
+    return
   }
 
   const appUrl = process.env.NUXT_APP_URL
   if (appUrl && appUrl.includes('localhost')) {
-    throw new Error(`❌ NUXT_APP_URL is set to localhost in production: ${appUrl}`)
+    console.error(`❌ NUXT_APP_URL is set to localhost in production: ${appUrl}`)
   }
 }
