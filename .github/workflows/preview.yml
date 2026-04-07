@@ -21,6 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Checkout (needed for firebase.json)
+        uses: actions/checkout@v5
+
       - name: Delete Firebase preview channel
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -84,6 +87,9 @@ jobs:
           rm -rf node_modules
           npm install
         working-directory: .output/server
+
+      - name: Prepare functions.yaml (secrets + config)
+        run: node scripts/prepare-firebase-deploy.mjs
 
       - name: Deploy Cloud Functions
         run: |
