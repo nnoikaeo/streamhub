@@ -56,22 +56,10 @@ console.log('✅ Created .output/server/.gcloudignore (excludes node_modules fro
 
 // 4. Create functions.yaml so Firebase CLI discovers functions via YAML
 //    (avoids requiring firebase-functions to be importable locally)
-//    Reads environmentVariables and secretEnvironmentVariables from firebase.json
-//    so Cloud Functions runtime gets all configured env vars at startup.
+//    Reads secretEnvironmentVariables from firebase.json for Cloud Functions.
 const firebaseJsonPath = resolve(root, 'firebase.json')
 const firebaseConfig = JSON.parse(readFileSync(firebaseJsonPath, 'utf8'))
 const fnConfig = (firebaseConfig.functions || [])[0] || {}
-
-// Build environmentVariables YAML block from firebase.json
-const envVars = fnConfig.environmentVariables || {}
-const envVarEntries = Object.entries(envVars)
-let envVarsYaml = ''
-if (envVarEntries.length > 0) {
-  envVarsYaml = '    environmentVariables:\n'
-  for (const [key, value] of envVarEntries) {
-    envVarsYaml += `      ${key}: "${value}"\n`
-  }
-}
 
 // Build secretEnvironmentVariables YAML block from firebase.json
 const secretEnvVars = fnConfig.secretEnvironmentVariables || []
@@ -95,8 +83,20 @@ endpoints:
     entryPoint: server
     timeoutSeconds: 60
     availableMemoryMb: 1024
-${envVarsYaml}${secretEnvVarsYaml}`
+${secretEnvVarsYaml}`
 writeFileSync(functionsYamlPath, functionsYaml)
-console.log(`✅ Created .output/server/functions.yaml (${envVarEntries.length} env vars, ${secretEnvVars.length} secrets)`)
+console.log(`✅ Created .output/server/functions.yaml (${secretEnvVars.length} secrets)`)
+
+// 5. Create .env file for runtime environment variables
+//    Firebase CLI reads .env files from the functions source directory
+//    and sets them as Cloud Run environment variables during deployment.
+const envVars = fnConfig.environmentVariables || {}
+const envVarEntries = Object.entries(envVars)
+if (envVarEntries.length > 0) {
+  const envFilePath = resolve(serverDir, '.env')
+  const envFileContent = envVarEntries.map(([key, value]) => `${key}=${value}`).join('\n') + '\n'
+  writeFileSync(envFilePath, envFileContent)
+  console.log(`✅ Created .output/server/.env (${envVarEntries.length} env vars)`)
+}
 
 console.log('\n🚀 Firebase deploy pre-flight checks complete.')
