@@ -1,5 +1,7 @@
 # Production Readiness Plan — StreamHub
 
+> **Status: ✅ COMPLETED** — All 7 tasks done, 134/134 tests pass, production verified (2026-04-07)
+
 ## Context
 
 Phase 6 implementation เสร็จแล้ว แต่เมื่อ deploy ขึ้น production พบว่าระบบยังคงทำงานเหมือน local ในหลายจุด เช่น auth bypass ผ่าน query param, localhost fallback ใน email, mock API endpoints ที่ยังถูก deploy ขึ้นไปด้วย — ทำให้ต้อง hotfix อยู่เสมอ
@@ -35,26 +37,26 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
 | # | ปัญหา | ไฟล์ | ผลกระทบ |
 |---|--------|------|---------|
 | C1 | ~~Auth middleware มี `process.dev` bypass 3 จุด~~ ✅ Fixed (PR #202) | `server/middleware/auth.ts` | ~~Security breach~~ |
-| C2 | `getAppUrl()` fallback เป็น `http://localhost:3000` | `server/utils/emailService.ts:27` | Email invitation link ชี้ localhost |
-| C3 | `nuxt.config.ts` มี `appUrl` default เป็น localhost | `nuxt.config.ts:160` | Server-side URL ผิด |
-| C4 | `.env` ที่ commit มี `APP_URL=http://localhost:3000` | `.env:16,21` | Build time อาจใช้ค่า localhost |
+| C2 | ~~`getAppUrl()` fallback เป็น `http://localhost:3000`~~ ✅ Fixed (Task 2, PR #203) | `server/utils/emailService.ts:27` | ~~Email invitation link ชี้ localhost~~ |
+| C3 | ~~`nuxt.config.ts` มี `appUrl` default เป็น localhost~~ ✅ Fixed (Task 2, PR #203) | `nuxt.config.ts:160` | ~~Server-side URL ผิด~~ |
+| C4 | ~~`.env` ที่ commit มี `APP_URL=http://localhost:3000`~~ ✅ Fixed (Task 7) | `.env:16,21` | ~~Build time อาจใช้ค่า localhost~~ |
 
 ### 🟠 High
 
 | # | ปัญหา | ไฟล์ | ผลกระทบ |
 |---|--------|------|---------|
-| H1 | Audit log fallback จาก Firestore → JSON file (`.data/` ไม่มีใน production) | `server/utils/auditLog.ts` | Audit log หาย |
-| H2 | Mock API 43 endpoints ถูก deploy ไป production — อ่าน `.data/` ที่ไม่มี | `server/api/mock/` | Return empty/error |
-| H3 | ไม่มี startup validation — ถ้า env vars หาย ระบบ silently ทำงานผิด | ทั้งระบบ | Silent failures |
-| H4 | `useFirestore` flag ถูก check ด้วย pattern ที่ไม่สม่ำเสมอ (บาง file ใช้ `=== true`, บาง file ใช้ `String()`) | หลายไฟล์ | อาจ evaluate ต่างกัน |
+| H1 | ~~Audit log fallback จาก Firestore → JSON file~~ ✅ Fixed (Task 3, PR #205) | `server/utils/auditLog.ts` | ~~Audit log หาย~~ |
+| H2 | ~~Mock API 43 endpoints ถูก deploy ไป production~~ ✅ Fixed (Task 7, `blockMockApi.ts`) | `server/api/mock/` | ~~Return empty/error~~ |
+| H3 | ~~ไม่มี startup validation~~ ✅ Fixed (Task 2, `validateEnv.ts`) | ทั้งระบบ | ~~Silent failures~~ |
+| H4 | ~~`useFirestore` flag check ไม่สม่ำเสมอ~~ ✅ Fixed (Task 6, `useServiceMode.ts`) | หลายไฟล์ | ~~อาจ evaluate ต่างกัน~~ |
 
 ### 🟡 Medium
 
 | # | ปัญหา | ไฟล์ | ผลกระทบ |
 |---|--------|------|---------|
 | M1 | ~~Auth middleware มี console.log 15+ บรรทัด~~ ✅ Fixed (PR #202) | `server/middleware/auth.ts` | ~~Sensitive data ใน Cloud Function logs~~ |
-| M2 | ไม่มี health check endpoint — ไม่รู้ว่า production ทำงานถูกต้องหรือไม่ | ไม่มี | ไม่สามารถ monitor ได้ |
-| M3 | `.env` committed กับ real API keys (Resend, Firebase) | `.env` | Security risk |
+| M2 | ~~ไม่มี health check endpoint~~ ✅ Fixed (Task 4, PR #207) | `server/api/health.get.ts` | ~~ไม่สามารถ monitor ได้~~ |
+| M3 | ~~`.env` committed กับ real API keys~~ ✅ Fixed (Task 7) | `.env` | ~~Security risk~~ |
 
 ---
 
@@ -270,3 +272,36 @@ Week 3:
 
 5. **Automated Tests**:
    - `npm test` → production-readiness tests ผ่าน
+
+---
+
+## Post-Completion Hotfixes
+
+หลังปิด 7 Tasks แล้ว พบปัญหาเพิ่มเติมจากการ deploy จริง:
+
+### Hotfix 1: Preview Workflow Cleanup (PR #216)
+- **ปัญหา:** `preview.yml` cleanup job ขาด `actions/checkout` → Firebase CLI หา `firebase.json` ไม่เจอ
+- **แก้ไข:** เพิ่ม `actions/checkout@v5` + `prepare-firebase-deploy.mjs` step
+
+### Hotfix 2: Cloud Functions .env File (PR #217)
+- **ปัญหา:** Firebase CLI ไม่อ่าน `environmentVariables` จาก `functions.yaml` → `NUXT_APP_URL` และ `NUXT_PUBLIC_USE_FIRESTORE` หายจาก Cloud Run runtime → 500 error บน invitation resend
+- **แก้ไข:** เปลี่ยน `prepare-firebase-deploy.mjs` จากเขียน env vars ใน `functions.yaml` → สร้าง `.env` file ใน `.output/server/`
+- **ยืนยัน:** Deploy log แสดง `Loaded environment variables from .env.` + Resend dashboard ยืนยัน email ส่งสำเร็จ
+
+### บทเรียน
+- Firebase CLI อ่าน `secretEnvironmentVariables` จาก `functions.yaml` ✅
+- Firebase CLI **ไม่**อ่าน `environmentVariables` จาก `functions.yaml` ❌ → ต้องใช้ `.env` file
+
+---
+
+## สรุปผลลัพธ์
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Tests | 74 | 134 |
+| Production issues | 11 (C:4, H:4, M:3) | 0 |
+| Health check | ไม่มี | `/admin/health` + `/api/health` |
+| Mock API in prod | เปิดอยู่ 43 endpoints | Blocked (404) |
+| Auth bypass | 3 จุด | 0 |
+| Env validation | ไม่มี | `validateEnv.ts` + `productionReadiness.test.ts` |
+| Email delivery | ❌ 500 error | ✅ Delivered (Resend confirmed) |
