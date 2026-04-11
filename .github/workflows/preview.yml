@@ -25,11 +25,15 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Delete Firebase preview channel
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $RUNNER_TEMP/firebase-sa.json
+          CHANNEL="pr${{ github.event.pull_request.number }}-${{ github.head_ref }}"
+          npx firebase-tools@latest hosting:channel:delete "$CHANNEL" \
+            --project ${{ secrets.FIREBASE_PROJECT_ID }} \
+            --force \
+            || echo "Channel not found or already deleted, skipping."
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
 
   # ── Preview deploy: build + deploy on open/push ───────────────────────────
   preview:
