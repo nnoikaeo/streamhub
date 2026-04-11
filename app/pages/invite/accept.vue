@@ -17,19 +17,6 @@ const invitation = ref<any>(null)
 const errorMessage = ref('')
 const status = ref<'loading' | 'valid' | 'invalid' | 'expired' | 'cancelled' | 'already_accepted' | 'email_mismatch' | 'processing' | 'success' | 'error'>('loading')
 
-// Wait for Firebase auth state to resolve (app.vue calls initAuth)
-const waitForAuthReady = (): Promise<void> => {
-  return new Promise((resolve) => {
-    if (!authStore.loading) return resolve()
-    const unwatch = watch(() => authStore.loading, (val) => {
-      if (!val) {
-        unwatch()
-        resolve()
-      }
-    })
-  })
-}
-
 // Phase 1: Verify invitation (read-only)
 const verifyInvitation = async () => {
   if (!code) {
@@ -150,9 +137,16 @@ const formatRole = (role: string) => {
   return roleMap[role] || role
 }
 
+// Re-check email match when auth state changes after invitation is loaded
+watch(() => authStore.isAuthenticated, () => {
+  if (invitation.value && (status.value === 'valid' || status.value === 'email_mismatch')) {
+    checkEmailMatch()
+  }
+})
+
 onMounted(async () => {
   // First check if returning from Google redirect (skipAutoAccept: true — this page handles acceptance)
-  const { handleRedirectResult } = useAuth()
+  const { handleRedirectResult, initAuth } = useAuth()
   const redirectResult = await handleRedirectResult({ skipAutoAccept: true })
 
   if (redirectResult !== null) {
@@ -169,8 +163,10 @@ onMounted(async () => {
       errorMessage.value = redirectResult.error || 'ลงชื่อเข้าใช้ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'
     }
   } else {
-    // Normal page load — wait for auth state before verifying
-    await waitForAuthReady()
+    // Normal page load — resolve auth state directly, then verify
+    if (authStore.loading) {
+      await initAuth()
+    }
     await verifyInvitation()
   }
 })
