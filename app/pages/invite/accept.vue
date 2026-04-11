@@ -54,6 +54,13 @@ const verifyInvitation = async () => {
 const checkEmailMatch = () => {
   if (!invitation.value) return
 
+  console.log('[invite] checkEmailMatch:', {
+    isAuthenticated: authStore.isAuthenticated,
+    userEmail: authStore.user?.email,
+    inviteEmail: invitation.value.email,
+    loading: authStore.loading
+  })
+
   if (authStore.isAuthenticated) {
     if (authStore.user?.email?.toLowerCase() === invitation.value.email.toLowerCase()) {
       status.value = 'valid'
@@ -138,7 +145,8 @@ const formatRole = (role: string) => {
 }
 
 // Re-check email match when auth state changes after invitation is loaded
-watch(() => authStore.isAuthenticated, () => {
+watch(() => authStore.isAuthenticated, (newVal, oldVal) => {
+  console.log('[invite] auth watcher fired:', { oldVal, newVal, hasInvitation: !!invitation.value, status: status.value })
   if (invitation.value && (status.value === 'valid' || status.value === 'email_mismatch')) {
     checkEmailMatch()
   }
@@ -146,8 +154,11 @@ watch(() => authStore.isAuthenticated, () => {
 
 onMounted(async () => {
   // First check if returning from Google redirect (skipAutoAccept: true — this page handles acceptance)
+  console.log('[invite] onMounted start:', { loading: authStore.loading, isAuthenticated: authStore.isAuthenticated, user: authStore.user?.email })
+
   const { handleRedirectResult, initAuth } = useAuth()
   const redirectResult = await handleRedirectResult({ skipAutoAccept: true })
+  console.log('[invite] handleRedirectResult:', redirectResult)
 
   if (redirectResult !== null) {
     // Returning from Google redirect — verify invitation then process sign-in result
@@ -164,10 +175,16 @@ onMounted(async () => {
     }
   } else {
     // Normal page load — resolve auth state directly, then verify
+    console.log('[invite] normal page load, authStore.loading:', authStore.loading)
     if (authStore.loading) {
+      console.log('[invite] calling initAuth...')
       await initAuth()
+      console.log('[invite] initAuth done:', { isAuthenticated: authStore.isAuthenticated, user: authStore.user?.email, loading: authStore.loading })
+    } else {
+      console.log('[invite] auth already resolved:', { isAuthenticated: authStore.isAuthenticated, user: authStore.user?.email })
     }
     await verifyInvitation()
+    console.log('[invite] verifyInvitation done, status:', status.value)
   }
 })
 </script>
