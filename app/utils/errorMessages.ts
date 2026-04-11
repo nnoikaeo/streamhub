@@ -55,6 +55,15 @@ export const mapErrorMessage = (error: any): ErrorInfo => {
     }
   }
 
+  // Inactive / deactivated account
+  if (errorMessage.includes('ถูกปิดใช้งาน') || errorMessage.includes('isActive') || errorMessage.includes('deactivated')) {
+    return {
+      title: 'บัญชีถูกระงับ',
+      message: 'บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อผู้ดูแลระบบ',
+      showRequestAccess: false
+    }
+  }
+
   if (errorMessage.includes('network')) {
     return {
       title: 'ข้อผิดพลาดของเครือข่าย',
