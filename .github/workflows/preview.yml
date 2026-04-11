@@ -30,7 +30,6 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          expires: 0
 
   # ── Preview deploy: build + deploy on open/push ───────────────────────────
   preview:
