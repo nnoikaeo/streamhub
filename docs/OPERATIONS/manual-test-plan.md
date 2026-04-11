@@ -32,12 +32,12 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 1.1.1 | Valid Google sign-in (existing user) | 1. Go to `/login` 2. Click "Sign in with Google" 3. Complete Google OAuth | Redirect to `/dashboard` | Critical | ☐ |
-| 1.1.2 | Sign-in with pending invitation | 1. Create invitation for email X 2. Sign in with email X | Auto-accept invitation, redirect to `/dashboard` | Critical | ☐ |
-| 1.1.3 | Sign-in with non-existent user | 1. Sign in with unregistered Google account | Error: "ไม่พบผู้ใช้ในระบบ" + "Request Access" link | Critical | ☐ |
-| 1.1.4 | Sign-in with inactive account | 1. Deactivate user in admin 2. Sign in with that account | Error: "บัญชีถูกระงับ" | High | ☐ |
-| 1.1.5 | Sign-out and re-sign-in | 1. Sign out 2. Sign in again | Session resets, redirect to `/dashboard` | High | ☐ |
-| 1.1.6 | Already authenticated → `/login` | 1. While logged in, navigate to `/login` | Redirect away from login (to `/dashboard`) | Medium | ☐ |
+| 1.1.1 | Valid Google sign-in (existing user) | 1. Go to `/login` 2. Click "Sign in with Google" 3. Complete Google OAuth | Redirect to `/dashboard` | Critical | ✅ |
+| 1.1.2 | Sign-in with pending invitation | 1. Create invitation for email X 2. Sign in with email X | Auto-accept invitation, redirect to `/dashboard` | Critical | ✅ |
+| 1.1.3 | Sign-in with non-existent user | 1. Sign in with unregistered Google account | Error: "ไม่พบบัญชีในระบบ" + "ขอสิทธิ์การเข้าถึง" button | Critical | ✅ |
+| 1.1.4 | Sign-in with inactive account | 1. Deactivate user in admin 2. Sign in with that account | Error: "บัญชีถูกระงับ" | High | ✅ |
+| 1.1.5 | Sign-out and re-sign-in | 1. Sign out 2. Sign in again | Session resets, redirect to `/dashboard` | High | ✅ |
+| 1.1.6 | Already authenticated → `/login` | 1. While logged in, navigate to `/login` | Redirect away from login (to `/dashboard`) | Medium | ✅ |
 
 ---
 
