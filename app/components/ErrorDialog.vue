@@ -57,13 +57,13 @@ const handleRequestAccess = () => {
           >
             กลับไปหน้าแรก
           </button>
-          <!-- <button
+          <button
             v-if="showRequestAccess"
             @click="handleRequestAccess"
             class="error-button error-button--secondary"
           >
             ขอสิทธิ์การเข้าถึง
-          </button> -->
+          </button>
         </div>
 
         <!-- Support Info -->
