@@ -54,13 +54,6 @@ const verifyInvitation = async () => {
 const checkEmailMatch = () => {
   if (!invitation.value) return
 
-  console.warn('[invite] checkEmailMatch:', {
-    isAuthenticated: authStore.isAuthenticated,
-    userEmail: authStore.user?.email,
-    inviteEmail: invitation.value.email,
-    loading: authStore.loading
-  })
-
   if (authStore.isAuthenticated) {
     if (authStore.user?.email?.toLowerCase() === invitation.value.email.toLowerCase()) {
       status.value = 'valid'
@@ -145,8 +138,7 @@ const formatRole = (role: string) => {
 }
 
 // Re-check email match when auth state changes after invitation is loaded
-watch(() => authStore.isAuthenticated, (newVal, oldVal) => {
-  console.warn('[invite] auth watcher fired:', { oldVal, newVal, hasInvitation: !!invitation.value, status: status.value })
+watch(() => authStore.isAuthenticated, () => {
   if (invitation.value && (status.value === 'valid' || status.value === 'email_mismatch')) {
     checkEmailMatch()
   }
@@ -154,11 +146,8 @@ watch(() => authStore.isAuthenticated, (newVal, oldVal) => {
 
 onMounted(async () => {
   // First check if returning from Google redirect (skipAutoAccept: true — this page handles acceptance)
-  console.warn('[invite] onMounted start:', { loading: authStore.loading, isAuthenticated: authStore.isAuthenticated, user: authStore.user?.email })
-
   const { handleRedirectResult, initAuth } = useAuth()
   const redirectResult = await handleRedirectResult({ skipAutoAccept: true })
-  console.warn('[invite] handleRedirectResult:', redirectResult)
 
   if (redirectResult !== null) {
     // Returning from Google redirect — verify invitation then process sign-in result
@@ -174,17 +163,10 @@ onMounted(async () => {
       errorMessage.value = redirectResult.error || 'ลงชื่อเข้าใช้ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'
     }
   } else {
-    // Normal page load — resolve auth state directly, then verify
-    console.warn('[invite] normal page load, authStore.loading:', authStore.loading)
-    if (authStore.loading) {
-      console.warn('[invite] calling initAuth...')
-      await initAuth()
-      console.warn('[invite] initAuth done:', { isAuthenticated: authStore.isAuthenticated, user: authStore.user?.email, loading: authStore.loading })
-    } else {
-      console.warn('[invite] auth already resolved:', { isAuthenticated: authStore.isAuthenticated, user: authStore.user?.email })
-    }
+    // Normal page load — always call initAuth because SSR hydrates loading=false
+    // before client-side Firebase auth is initialized
+    await initAuth()
     await verifyInvitation()
-    console.warn('[invite] verifyInvitation done, status:', status.value)
   }
 })
 </script>
