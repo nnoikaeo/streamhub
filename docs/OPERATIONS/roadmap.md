@@ -2,7 +2,7 @@
 
 **Project:** Dashboard Management System for Streamwash (150+ employees)
 **Strategy:** Iterative — Features → QA → Deploy
-**Last Updated:** 2026-03-25
+**Last Updated:** 2026-04-12
 
 ---
 
@@ -158,27 +158,40 @@
 
 ---
 
-### Phase 6: Enhancement & Polish ⏳ PENDING
+### Phase 6: Enhancement & Polish ✅ COMPLETED
 **Goal:** UX improvements, real Firebase integration, deploy
 
-- [ ] **Dashboard Lazy Loading** — Intersection Observer, 12 items/batch
-- [ ] **Looker Embed Security Hardening** (P0 — Critical)
-  - Server auth middleware (Firebase ID token verification)
-  - Server-side permission check before returning embed URLs
-  - CSP headers + referrer restriction
-  - Signed/expiring embed URLs
-- [ ] **Server-Side Company Access Control**
-  - Middleware validation
-  - API endpoint enforcement
-  - Client-side guards (`useCompanyAccess`)
-- [ ] **Real Firebase Integration** — replace mock API with Firestore
-- [ ] **Cross-browser testing + performance optimization**
-- [ ] **Deploy to Firebase Hosting**
+- [x] **Dashboard Lazy Loading** — Intersection Observer, 12 items/batch
+- [x] **Looker Embed Security Hardening** (P0 — Critical)
+  - [x] Server auth middleware (Firebase ID token verification)
+  - [x] Server-side permission check before returning embed URLs
+  - [x] CSP headers + referrer restriction
+  - [x] Signed/expiring embed URLs (token-based proxy `/api/embed/[token]`)
+- [x] **Server-Side Company Access Control**
+  - [x] Middleware validation
+  - [x] API endpoint enforcement
+  - [x] Client-side guards (`useCompanyAccess`)
+- [x] **Real Firebase Integration** — Firestore replacing mock API in production
+- [x] **Cross-browser testing + performance optimization**
+- [x] **Deploy to Firebase Hosting** — `streamhub-1c27a.web.app`
+
+---
+
+### Phase 7: QA & Bug Fixes 🔄 IN PROGRESS
+**Goal:** Manual test plan execution, bug fixes, production stability
+
+- [x] **Manual Test Plan** — [manual-test-plan.md](manual-test-plan.md) (145 test cases)
+  - [x] Section 1: Authentication & Onboarding (TC 1.1–1.2) ✅
+  - [x] Section 2.1: Dashboard Home ✅
+  - [ ] Section 2.2: Dashboard Discover
+  - [ ] Section 2.3+: remaining dashboard, admin, moderator pages
+- [x] **Recent Dashboards tracking** — เปลี่ยนจาก `updatedAt` → localStorage per-user (PR #237)
+- [x] **Fix embed URL in production** — `/api/embed/request` อ่าน user+dashboard จาก Firestore (PR #239)
+- [x] **Quick Actions uniform style** — ลบ primary style จากปุ่ม "สร้างแดชบอร์ด" (PR #241)
+- [x] **Sidebar folder tree removal documented** — Phase 5 design decision บันทึกแล้ว (PR #243)
 
 **Plans:**
-- [phase6-implementation-plan.md](phase6-implementation-plan.md) — **แผนงานรวม Phase 6** (15 tasks, เรียงตามความสำคัญ)
-- [looker-embed-security-plan.md](looker-embed-security-plan.md) — Looker embed security hardening
-- [company-access-control-plan.md](company-access-control-plan.md) — company access control
+- [archive/phase6-implementation-plan.md](archive/phase6-implementation-plan.md) *(archived — completed)*
 - [archive/user-invitations-plan.md](archive/user-invitations-plan.md) *(archived — completed)*
 
 ---
@@ -227,13 +240,13 @@ app/pages/
 | `permissions.ts` | Role-based permissions (canManageTags, canAssignTags, etc.) |
 | `tags.ts` | Tag CRUD + caching |
 
-### Composables (24 composables)
+### Composables (25 composables)
 
 | Category | Composables |
 |----------|-----------|
 | **Admin CRUD (11)** | useAdminBreadcrumbs, useAdminCompanies, useAdminCrudPage, useAdminDashboards, useAdminFolders, useAdminGroups, useAdminInvitations, useAdminRegions, useAdminResource, useAdminTags, useAdminUsers |
 | **Moderator (2)** | useModeratorFolders, useModeratorDashboards |
-| **Core (11)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useLookerApi, useMockData, usePaginatedList, useRoleNavigation, useSidebarVisibility |
+| **Core (12)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useLookerApi, useMockData, usePaginatedList, useRecentDashboards, useRoleNavigation, useSidebarVisibility |
 
 ### Mock API Endpoints
 
@@ -274,11 +287,11 @@ Thumbnail API under `server/api/thumbnail/`:
 - [x] Moderator dual-view: Viewer mode + Manager mode
 - [x] Dashboard discovery: multi-view modes (Grid/Compact/List), collapsible folders, card limits
 - [x] Discover page: tree view, group-by (folder/tag/company/none), slim dividers, adaptive columns
-- [ ] Looker embed security hardening (auth middleware, CSP, signed URLs)
-- [ ] Dashboard lazy loading (Intersection Observer)
-- [ ] Performance: Page load < 2 seconds
+- [x] Looker embed security hardening (auth middleware, CSP, signed URLs)
+- [x] Dashboard lazy loading (Intersection Observer)
+- [x] Performance: Page load < 2 seconds
 - [x] Mobile responsive
-- [ ] Replace mock API with real Firestore
+- [x] Replace mock API with real Firestore
 
 ---
 
