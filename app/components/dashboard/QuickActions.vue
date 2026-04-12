@@ -10,7 +10,7 @@
 
       <button
         v-if="canCreate"
-        class="action-button action-button--primary"
+        class="action-button"
         @click="$emit('create-dashboard')"
       >
         <span class="action-button__icon">➕</span>
