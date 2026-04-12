@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminFolders } from '~/composables/useAdminFolders'
@@ -95,6 +95,7 @@ import { useAdminGroups } from '~/composables/useAdminGroups'
 import type { Folder } from '~/types/dashboard'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import { usePermissionsStore } from '~/stores/permissions'
+import { useRecentDashboards } from '~/composables/useRecentDashboards'
 
 definePageMeta({
   middleware: 'auth',
@@ -103,6 +104,7 @@ definePageMeta({
 
 const { user } = useAuth()
 const permissionsStore = usePermissionsStore()
+const { getRecentDashboards } = useRecentDashboards()
 const { dashboards, fetchDashboards } = useAdminDashboards()
 const { folders, fetchFolders } = useAdminFolders()
 const { users, fetchUsers } = useAdminUsers()
@@ -182,18 +184,14 @@ const companiesCount = computed(() => companies.value.length)
 
 const groupsCount = computed(() => groups.value.length)
 
-// Recent dashboards - top 5 most recently updated
-const recentDashboards = computed(() => {
-  return dashboards.value
-    .slice()
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 5)
-    .map(d => ({
-      id: d.id,
-      name: d.name,
-      lastAccessed: d.updatedAt
-    }))
-})
+// Recent dashboards - top 5 most recently visited by this user (localStorage)
+const recentDashboards = ref<Array<{ id: string; name: string; lastAccessed: string }>>([])
+
+const loadRecentDashboards = () => {
+  const uid = user.value?.uid
+  if (!uid) return
+  recentDashboards.value = getRecentDashboards(uid, 5)
+}
 
 // Actions
 const handleSelectFolder = (folder: Folder) => {
@@ -213,6 +211,7 @@ const handleShare = () => {
 
 // Fetch all data on mount
 onMounted(async () => {
+  loadRecentDashboards()
   await Promise.all([
     fetchDashboards(),
     fetchFolders(),
