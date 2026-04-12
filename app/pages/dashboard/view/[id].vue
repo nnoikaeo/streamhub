@@ -257,6 +257,7 @@ import ConfirmDialog from '~/components/admin/ConfirmDialog.vue'
 import { useAppToast } from '~/composables/useToast'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useDashboardStore } from '~/stores/dashboard'
+import { useRecentDashboards } from '~/composables/useRecentDashboards'
 
 // Page metadata
 definePageMeta({
@@ -272,6 +273,7 @@ const dashboardService = useDashboardService()
 const { showToast } = useAppToast()
 const { fetchTags } = useAdminTags()
 const dashboardStore = useDashboardStore()
+const { recordVisit } = useRecentDashboards()
 
 // State
 const dashboard = ref<Dashboard | null>(null)
@@ -380,6 +382,11 @@ const loadDashboard = async () => {
     }
 
     dashboard.value = data
+
+    // Record visit for Recent Dashboards on home page
+    if (currentUserId.value) {
+      recordVisit(currentUserId.value, data.id, data.name)
+    }
 
     // Load folder info
     const folder = await dashboardService.getFolder(data.folderId)
