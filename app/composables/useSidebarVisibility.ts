@@ -15,8 +15,12 @@ export function useSidebarVisibility() {
   const { showAdmin } = useRoleNavigation()
 
   /**
-   * Folders accordion is removed from sidebar per Phase 5 redesign.
-   * Folders are now used as filters on the discover page instead.
+   * Folders accordion is intentionally removed from sidebar per Phase 5 redesign.
+   * Folders are now filter dropdowns on /dashboard/discover instead.
+   * Admin accesses folder structure via /admin/explorer (has its own left panel).
+   *
+   * DO NOT change this to true without a sidebar redesign.
+   * See: docs/DESIGN/wireframes/sidebar-navigation.md — Section 4
    */
   const showFolders = computed(() => false)
 

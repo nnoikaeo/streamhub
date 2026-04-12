@@ -142,6 +142,12 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 
 ## 4. Sidebar Visibility Logic
 
+> **Design Decision (Phase 5 Redesign):** Folder Tree ถูก **remove ออกจาก Sidebar โดยตั้งใจ**
+> - `showFolders` ใน `app/composables/useSidebarVisibility.ts` ถูก hardcode เป็น `false`
+> - Folder ถูกย้ายไปเป็น **filter dropdown** บนหน้า `/dashboard/discover` แทน
+> - Admin ยังคงเห็น Folder Tree ได้ผ่าน **Explorer** (`/admin/explorer`) ซึ่งมี left panel ของตัวเอง
+> - **อย่าแก้ไข `showFolders = false`** โดยไม่มีการ redesign sidebar ใหม่
+
 ```typescript
 // composable: useRoleNavigation()
 
