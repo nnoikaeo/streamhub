@@ -206,6 +206,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       log('loadDashboards calling service', { uid, company, folderId: selectedFolderId.value })
       const response = await dashboardService.getDashboards(uid, company, {
         folderId: selectedFolderId.value || undefined, // Pass undefined if no folder selected to get all dashboards
+        includeArchived: currentUserRole.value === 'admin', // Admins always fetch archived; UI toggle filters client-side
       })
 
       dashboardStore.setDashboards(response.dashboards)
