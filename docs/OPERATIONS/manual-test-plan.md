@@ -48,12 +48,12 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 1.2.1 | Valid code, not logged in | 1. Open invite link 2. Verify details shown | Show invitation details + Accept button | Critical | ☐ |
-| 1.2.2 | Valid code, matching email logged in | 1. Log in with invited email 2. Open invite link | Auto-accept, redirect to `/dashboard/discover` | Critical | ☐ |
-| 1.2.3 | Valid code, mismatched email | 1. Log in with different email 2. Open invite link | Warning: "กรุณาเข้าสู่ระบบด้วยอีเมลที่ได้รับเชิญ" | High | ☐ |
-| 1.2.4 | Invalid invitation code | 1. Open link with invalid code | Error: "ไม่พบรหัสคำเชิญ" | High | ☐ |
-| 1.2.5 | Expired invitation code | 1. Open link with expired code | Error: "คำเชิญหมดอายุแล้ว" | High | ☐ |
-| 1.2.6 | Already accepted invitation | 1. Accept invitation 2. Open same link again | Info: "คุณยอมรับคำเชิญนี้แล้ว" | Medium | ☐ |
+| 1.2.1 | Valid code, not logged in | 1. Open invite link 2. Verify details shown | Show invitation details + Accept button | Critical | ✅ |
+| 1.2.2 | Valid code, matching email logged in | 1. Log in with invited email 2. Open invite link | Auto-accept, redirect to `/dashboard/discover` | Critical | ✅ |
+| 1.2.3 | Valid code, mismatched email | 1. Log in with different email 2. Open invite link | Warning: "อีเมลไม่ตรงกัน" แสดงอีเมลที่ login และอีเมลที่ได้รับเชิญ + ปุ่ม "ออกจากระบบและใช้บัญชีที่ถูกต้อง" | High | ✅ |
+| 1.2.4 | Invalid invitation code | 1. Open link with invalid code 2. Open link with empty code | Error: "คำเชิญไม่ถูกต้อง" — code ผิดแสดง "ไม่พบคำเชิญหรือคำเชิญไม่ถูกต้อง", code ว่างแสดง "ไม่พบรหัสคำเชิญ" + ลิงก์ "กลับไปหน้าเข้าสู่ระบบ" | High | ✅ |
+| 1.2.5 | Expired invitation code | 1. Open link with expired code | Error: "คำเชิญหมดอายุแล้ว" + "คำเชิญนี้หมดอายุแล้ว กรุณาติดต่อผู้ดูแลระบบเพื่อขอคำเชิญใหม่" + ลิงก์ "กลับไปหน้าเข้าสู่ระบบ" | High | ✅ |
+| 1.2.6 | Already accepted invitation | 1. Accept invitation 2. Open same link again | Info: "คำเชิญนี้ถูกใช้งานไปแล้ว" + "คำเชิญนี้ได้รับการยืนยันเรียบร้อยแล้ว" + ลิงก์ "ไปที่หน้าหลัก" | Medium | ✅ |
 
 ---
 
