@@ -591,11 +591,22 @@ const isGroupedView = computed(() =>
 
 // ========== Group By: DisplayGroup computed ==========
 
+/** Flatten nested folder tree into a flat array (includes root + all sub-folders) */
+const flatFolders = computed<Folder[]>(() => {
+  const result: Folder[] = []
+  const visit = (folder: Folder) => {
+    result.push(folder)
+    folder.children?.forEach(visit)
+  }
+  folders.value.forEach(visit)
+  return result
+})
+
 /** Group by folder as DisplayGroup[] (for future TreeDashboardList) */
 const groupedByFolder = computed<DisplayGroup[]>(() => {
   if (selectedFolderId.value) return []
   const folderMap = new Map<string, { folder: Folder; dashboards: Dashboard[] }>()
-  for (const folder of folders.value) {
+  for (const folder of flatFolders.value) {
     folderMap.set(folder.id, { folder, dashboards: [] })
   }
   for (const d of filteredDashboards.value) {
@@ -742,7 +753,7 @@ const flatEmptyMessage = computed(() =>
 /** Map folderId → folder name for displaying folder chips in list items */
 const folderNameMap = computed<Record<string, string>>(() => {
   const map: Record<string, string> = {}
-  for (const folder of folders.value) {
+  for (const folder of flatFolders.value) {
     map[folder.id] = folder.name
   }
   return map
