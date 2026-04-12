@@ -69,12 +69,12 @@
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
 | 2.1.1 | User role — home view | 1. Login as User 2. Go to `/dashboard` | Shows personal section only (no company overview) | High | ✅ |
-| 2.1.2 | Moderator role — home view | 1. Login as Moderator 2. Go to `/dashboard` | Shows personal section + company overview cards | High | ☐ |
-| 2.1.3 | Admin role — home view | 1. Login as Admin 2. Go to `/dashboard` | Shows personal section + company overview cards | High | ☐ |
+| 2.1.2 | Moderator role — home view | 1. Login as Moderator 2. Go to `/dashboard` | Shows personal section + company overview cards | High | ✅ |
+| 2.1.3 | Admin role — home view | 1. Login as Admin 2. Go to `/dashboard` | Shows personal section + company overview cards | High | ✅ |
 | 2.1.4a | Recent dashboards — empty state (first login) | 1. Login (no prior visits) 2. Go to `/dashboard` | "ไม่มีแดชบอร์ดล่าสุด" empty state แสดง | Medium | ✅ |
 | 2.1.4b | Recent dashboards — after visit | 1. Open any dashboard 2. Return to `/dashboard` | Dashboard ที่เพิ่งเปิดขึ้นบนสุดใน "แดชบอร์ดล่าสุด" พร้อม "เปิดล่าสุด: เมื่อกี้" | Medium | ✅ |
-| 2.1.5 | Click "Dashboards" quick action | 1. Click "Dashboards" card | Navigate to `/dashboard/discover` | Medium | ☐ |
-| 2.1.6 | Sidebar folder navigation | 1. Click folder in sidebar tree | Filters content by selected folder | Medium | ☐ |
+| 2.1.5 | Click "Dashboards" quick action | 1. Click "Dashboards" card | Navigate to `/dashboard/discover` | Medium | ✅ |
+| 2.1.6 | Sidebar folder navigation | N/A — folder tree removed from sidebar (Phase 5 redesign); folders are now filters on `/dashboard/discover` | — | Low | N/A |
 
 ---
 
