@@ -88,14 +88,14 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 2.2.1 | Filter by folder | 1. Select folder from dropdown | Only dashboards in that folder display | High | ☐ |
-| 2.2.2 | Filter by tag | 1. Select tag from dropdown | Only dashboards with that tag display | High | ☐ |
-| 2.2.3 | Multi-filter (folder + tag) | 1. Select folder 2. Select tag | Intersection of both criteria | High | ☐ |
-| 2.2.4 | Search by name | 1. Type in search bar | Real-time filter by dashboard name | High | ☐ |
-| 2.2.5 | Search + filter combination | 1. Apply tag filter 2. Type search | Search applies within filtered set | Medium | ☐ |
-| 2.2.6 | Switch view mode (Grid) | 1. Click Grid view button | Dashboard cards in grid layout | Medium | ☐ |
-| 2.2.7 | Switch view mode (Compact) | 1. Click Compact view button | Dashboard cards in compact layout | Medium | ☐ |
-| 2.2.8 | Group By Folder | 1. Select "Group By: Folder" | Dashboards grouped by folder with headers | Medium | ☐ |
+| 2.2.1 | Filter by folder | 1. Select folder from dropdown | Only dashboards in that folder display | High | ✅ |
+| 2.2.2 | Filter by tag | 1. Select tag from dropdown | Only dashboards with that tag display | High | ✅ |
+| 2.2.3 | Multi-filter (folder + tag) | 1. Select folder 2. Select tag | Intersection of both criteria | High | ✅ |
+| 2.2.4 | Search by name | 1. Type in search bar | Real-time filter by dashboard name | High | ✅ |
+| 2.2.5 | Search + filter combination | 1. Apply tag filter 2. Type search | Search applies within filtered set | Medium | ✅ |
+| 2.2.6 | Switch view mode (Grid) | 1. Click Grid view button | Dashboard cards in grid layout | Medium | ✅ |
+| 2.2.7 | Switch view mode (Compact) | 1. Click Compact view button | Dashboard cards in compact layout | Medium | ✅ |
+| 2.2.8 | Group By Folder | 1. Select "Group By: Folder" | Dashboards grouped by folder with headers | Medium | ✅ |
 | 2.2.9 | Expand/Collapse All groups | 1. Group by folder 2. Click "Collapse All" 3. Click "Expand All" | Groups collapse then expand | Low | ☐ |
 | 2.2.10 | Admin — archive toggle | 1. Login as Admin 2. Toggle "Show Archived" | Archived dashboards appear/disappear | High | ☐ |
 | 2.2.11 | URL query params preserve filters | 1. Apply filters 2. Copy URL 3. Open in new tab | Same filters applied | Medium | ☐ |
@@ -415,7 +415,20 @@
 
 ---
 
-## 8. Test Case Summary
+## 8. Known Bugs
+
+| # | Bug | พบใน TC | Priority | Status |
+|---|-----|---------|----------|--------|
+| BUG-001 | Dashboard ใน sub-folder ไม่แสดงใน "Group By: Folder" และไม่มีชื่อ folder ในคอลัมน์ Folder | TC 2.2.8 | High | 🔧 Fixed |
+
+**BUG-001 รายละเอียด:**
+- **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
+- **Root Cause:** `buildFolderTree()` ใน `useFirestoreService.ts` คืนค่าเฉพาะ root folders (sub-folders ถูก nest ไว้ใน `.children`) แต่ `groupedByFolder` และ `folderNameMap` ใน `discover.vue` iterate แค่ level บนสุด ทำให้ sub-folder ID ไม่ถูก map
+- **ไฟล์ที่เกี่ยวข้อง:** `app/pages/dashboard/discover.vue` (computed `groupedByFolder`, `folderNameMap`)
+
+---
+
+## 9. Test Case Summary
 
 | Page | # Tests | Priority | Status |
 |------|---------|----------|--------|
