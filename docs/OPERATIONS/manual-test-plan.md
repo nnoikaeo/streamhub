@@ -68,7 +68,7 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 2.1.1 | User role — home view | 1. Login as User 2. Go to `/dashboard` | Shows personal section only (no company overview) | High | ☐ |
+| 2.1.1 | User role — home view | 1. Login as User 2. Go to `/dashboard` | Shows personal section only (no company overview) | High | ✅ |
 | 2.1.2 | Moderator role — home view | 1. Login as Moderator 2. Go to `/dashboard` | Shows personal section + company overview cards | High | ☐ |
 | 2.1.3 | Admin role — home view | 1. Login as Admin 2. Go to `/dashboard` | Shows personal section + company overview cards | High | ☐ |
 | 2.1.4a | Recent dashboards — empty state (first login) | 1. Login (no prior visits) 2. Go to `/dashboard` | "ไม่มีแดชบอร์ดล่าสุด" empty state แสดง | Medium | ✅ |
@@ -112,8 +112,8 @@
 | 2.3.1 | Owner views own dashboard | 1. Login as owner 2. Open dashboard | All actions available (edit, share, archive) | High | ☐ |
 | 2.3.2 | Authorized user views shared dashboard | 1. Login as user with access 2. Open dashboard | Dashboard renders, limited actions | High | ☐ |
 | 2.3.3 | Unauthorized user access | 1. Login as user without access 2. Open dashboard URL | "Access Denied" error + "Go Back" button | Critical | ☐ |
-| 2.3.4 | Admin views any dashboard | 1. Login as Admin 2. Open any dashboard | All actions available | High | ☐ |
-| 2.3.5 | Dashboard embed renders | 1. Open dashboard with Looker URL | Iframe/embed loads correctly | High | ☐ |
+| 2.3.4 | Admin views any dashboard | 1. Login as Admin 2. Open any dashboard | All actions available | High | ✅ |
+| 2.3.5 | Dashboard embed renders | 1. Open dashboard with Looker URL | Iframe/embed loads correctly | High | ✅ |
 | 2.3.6 | Fullscreen toggle | 1. Click fullscreen button 2. Click again to exit | Dashboard expands/shrinks | Low | ☐ |
 | 2.3.7 | Archive dashboard (Admin) | 1. Login as Admin 2. Click Archive | Dashboard marked as archived, badge shown | High | ☐ |
 | 2.3.8 | Unarchive dashboard (Admin) | 1. View archived dashboard 2. Click Unarchive | Dashboard restored to active | High | ☐ |
