@@ -474,6 +474,11 @@ onMounted(async () => {
   } catch (e) {
     console.warn('[discover] Failed to load tags/companies/users:', e)
   }
+  // Restore tag filter from URL query params (e.g. ?tag=id1,id2)
+  const tagParam = route.query.tag
+  if (tagParam && typeof tagParam === 'string') {
+    tagParam.split(',').filter(Boolean).forEach((id) => tagStore.toggleTagFilter(id))
+  }
 })
 
 const handleCompanyFilterChange = (code: string | null) => {
@@ -483,6 +488,14 @@ const handleCompanyFilterChange = (code: string | null) => {
 const handleTagFilterUpdate = (ids: string[]) => {
   tagStore.clearTagFilter()
   ids.forEach((id) => tagStore.toggleTagFilter(id))
+  // Sync tag filter to URL query params so the filter survives page refresh / copy-paste
+  const query = { ...route.query }
+  if (ids.length > 0) {
+    query.tag = ids.join(',')
+  } else {
+    delete query.tag
+  }
+  router.replace({ query })
 }
 
 /**
