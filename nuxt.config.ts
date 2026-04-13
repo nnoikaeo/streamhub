@@ -28,7 +28,7 @@ export default defineNuxtConfig({
     preset: 'firebase',
     firebase: {
       gen: 2,
-      nodeVersion: '20',
+      nodeVersion: '22',
     },
     externals: {
       external: ['sharp'],
