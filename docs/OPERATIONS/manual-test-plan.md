@@ -97,7 +97,7 @@
 | 2.2.7 | Switch view mode (Compact) | 1. Click Compact view button | Dashboard cards in compact layout | Medium | ✅ |
 | 2.2.8 | Group By Folder | 1. Select "Group By: Folder" | Dashboards grouped by folder with headers | Medium | ✅ |
 | 2.2.9 | Expand/Collapse All groups | 1. Group by folder 2. Click "Collapse All" 3. Click "Expand All" | Groups collapse then expand | Low | ✅ |
-| 2.2.10 | Admin — archive toggle | 1. Login as Admin 2. Toggle "Show Archived" | Archived dashboards appear/disappear | High | ☐ |
+| 2.2.10 | Admin — archive toggle | 1. Login as Admin 2. Toggle "Show Archived" | Archived dashboards appear/disappear | High | ✅ |
 | 2.2.11 | URL query params preserve filters | 1. Apply filters 2. Copy URL 3. Open in new tab | Same filters applied | Medium | ☐ |
 | 2.2.12 | Click dashboard card | 1. Click a dashboard card | Navigate to `/dashboard/view/{id}` | High | ☐ |
 
@@ -421,6 +421,7 @@
 |---|-----|---------|----------|--------|
 | BUG-001 | Dashboard ใน sub-folder ไม่แสดงใน "Group By: Folder" และไม่มีชื่อ folder ในคอลัมน์ Folder | TC 2.2.8 | High | 🔧 Fixed |
 | BUG-002 | Admin toggle "แสดงที่เก็บถาวร" ไม่แสดง archived dashboard | TC 2.2.10 | High | 🔧 Fixed |
+| BUG-003 | Tag filter ไม่ถูก sync เข้า URL query params — copy URL แล้วเปิด tab ใหม่ filter หาย | TC 2.2.11 | Medium | 🔧 Fixed |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
@@ -431,6 +432,11 @@
 - **อาการ:** Admin เปิด toggle "แสดงที่เก็บถาวร" แล้ว archived dashboard ไม่ปรากฏ
 - **Root Cause:** `loadDashboards()` ใน `useDashboardPage.ts` ไม่ได้ส่ง `includeArchived: true` ไปให้ service ทำให้ archived dashboards ไม่ถูก load เข้า `dashboards.value` ตั้งแต่แรก toggle บน UI จึงไม่มีผล
 - **ไฟล์ที่เกี่ยวข้อง:** `app/composables/useDashboardPage.ts` (function `loadDashboards`)
+
+**BUG-003 รายละเอียด:**
+- **อาการ:** เลือก tag filter แล้ว URL bar ไม่เปลี่ยน — copy URL ไปเปิด new tab ได้หน้าว่างไม่มี filter
+- **Root Cause:** `handleTagFilterUpdate()` อัปเดตเฉพาะ `tagStore` แต่ไม่ push query param ลง URL ตรงข้ามกับ folder ที่ใช้ `router.push` เสมอ และไม่มี restore tag จาก URL ตอน `onMounted`
+- **ไฟล์ที่เกี่ยวข้อง:** `app/pages/dashboard/discover.vue` (function `handleTagFilterUpdate`, `onMounted`)
 
 ---
 
