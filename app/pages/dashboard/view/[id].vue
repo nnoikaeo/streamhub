@@ -20,7 +20,7 @@
             <p>บัญชีปัจจุบันของคุณ {{ user?.email }} ไม่สามารถเข้าถึงรายงานนี้ หรือรายงานไม่มีอยู่</p>
           </div>
           <button type="button" class="back-button" @click="handleGoBack">
-            ← Go Back
+            ← ย้อนกลับ
           </button>
         </div>
       </div>
@@ -34,11 +34,11 @@
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           <div>
-            <h2>Error Loading Dashboard</h2>
+            <h2>เกิดข้อผิดพลาดในการโหลดรายงาน</h2>
             <p>{{ error }}</p>
           </div>
           <button type="button" class="back-button" @click="handleGoBack">
-            ← Go Back
+            ← ย้อนกลับ
           </button>
         </div>
       </div>
@@ -363,7 +363,7 @@ const loadDashboard = async () => {
     // Check access
     const hasAccess = await dashboardService.canAccessDashboard(dashboardId.value, currentUserId.value)
     if (!hasAccess) {
-      error.value = 'You do not have access to this dashboard'
+      error.value = 'คุณไม่มีสิทธิ์เข้าถึงรายงานนี้'
       // Log denied audit event (fire-and-forget)
       const authStore = useAuthStore()
       getIdToken().then(token => {
