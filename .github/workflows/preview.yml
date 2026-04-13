@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 02:00 UTC — purge stale preview channels
 
 concurrency:
   group: preview-${{ github.event.pull_request.number }}
@@ -15,6 +17,31 @@ permissions:
   pull-requests: write
 
 jobs:
+  # ── Scheduled purge: delete all preview channels (runs daily) ─────────────
+  purge:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Delete all preview channels
+        run: |
+          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > $RUNNER_TEMP/firebase-sa.json
+          npx firebase-tools@latest hosting:channel:list \
+            --project ${{ secrets.FIREBASE_PROJECT_ID }} \
+            --json | \
+          node -e "
+            const data = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            const channels = (data.result?.channels || [])
+              .filter(c => !['live'].includes(c.name.split('/').pop()));
+            channels.forEach(c => process.stdout.write(c.name.split('/').pop() + '\n'));
+          " | while read ch; do
+            npx firebase-tools@latest hosting:channel:delete "$ch" \
+              --project ${{ secrets.FIREBASE_PROJECT_ID }} \
+              --force || true
+          done
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+
   # ── Cleanup: delete preview channel when PR is closed/merged ──────────────
   cleanup:
     if: github.event.action == 'closed'
@@ -104,3 +131,4 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          expires: 3d
