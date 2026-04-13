@@ -447,7 +447,7 @@
 | Login | 6 | Critical | ✅ |
 | Invite Accept | 6 | Critical | ✅ |
 | Dashboard Home | 7 | High | ✅ |
-| Dashboard Discover | 12 | High | ☐ |
+| Dashboard Discover | 12 | High | ✅ |
 | Dashboard View | 10 | High | ☐ |
 | Admin Overview | 5 | High | ☐ |
 | Admin Users | 10 | High | ☐ |
