@@ -74,6 +74,19 @@
               />
               <span class="archive-toggle-label">แสดงที่เก็บถาวร</span>
             </label>
+            <button
+              v-if="hasActiveFilters"
+              type="button"
+              class="reset-filters-btn"
+              title="ล้างตัวกรองทั้งหมด"
+              @click="resetAllFilters"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              ล้างตัวกรอง
+            </button>
           </div>
 
           <!-- Dashboards Found Header -->
@@ -483,6 +496,20 @@ onMounted(async () => {
 
 const handleCompanyFilterChange = (code: string | null) => {
   selectedCompanyCode.value = code
+}
+
+const hasActiveFilters = computed(() =>
+  tagStore.selectedTagIds.length > 0
+  || !!selectedFolderId.value
+  || !!selectedCompanyCode.value
+  || searchQuery.value.trim().length > 0
+)
+
+const resetAllFilters = () => {
+  tagStore.clearTagFilter()
+  selectedCompanyCode.value = null
+  searchQuery.value = ''
+  router.replace('/dashboard/discover')
 }
 
 const handleTagFilterUpdate = (ids: string[]) => {
@@ -1012,6 +1039,27 @@ const dashboardCountText = computed(() => {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
+}
+
+.reset-filters-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.reset-filters-btn:hover {
+  color: var(--color-danger, #ef4444);
+  border-color: var(--color-danger, #ef4444);
+  background: color-mix(in srgb, var(--color-danger, #ef4444) 8%, transparent);
 }
 
 .archive-toggle {

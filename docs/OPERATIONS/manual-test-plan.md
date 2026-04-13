@@ -98,8 +98,8 @@
 | 2.2.8 | Group By Folder | 1. Select "Group By: Folder" | Dashboards grouped by folder with headers | Medium | ✅ |
 | 2.2.9 | Expand/Collapse All groups | 1. Group by folder 2. Click "Collapse All" 3. Click "Expand All" | Groups collapse then expand | Low | ✅ |
 | 2.2.10 | Admin — archive toggle | 1. Login as Admin 2. Toggle "Show Archived" | Archived dashboards appear/disappear | High | ✅ |
-| 2.2.11 | URL query params preserve filters | 1. Apply filters 2. Copy URL 3. Open in new tab | Same filters applied | Medium | ☐ |
-| 2.2.12 | Click dashboard card | 1. Click a dashboard card | Navigate to `/dashboard/view/{id}` | High | ☐ |
+| 2.2.11 | URL query params preserve filters | 1. Apply filters 2. Copy URL 3. Open in new tab | Same filters applied | Medium | ✅ |
+| 2.2.12 | Click dashboard card | 1. Click a dashboard card | Navigate to `/dashboard/view/{id}` | High | ✅ |
 
 ---
 
