@@ -131,11 +131,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.1.1 | Statistics display | 1. Go to `/admin/overview` | User/Dashboard/Folder/Company counts shown | High | ☐ |
-| 3.1.2 | Statistics accuracy | 1. Compare stats with actual data | Counts match actual Firestore records | Medium | ☐ |
-| 3.1.3 | Quick action — Manage Users | 1. Click "Manage Users" card | Navigate to `/admin/users` | Medium | ☐ |
-| 3.1.4 | Quick action — Manage Dashboards | 1. Click "Manage Dashboards" card | Navigate to `/admin/dashboards` | Medium | ☐ |
-| 3.1.5 | Non-admin redirect | 1. Login as User 2. Go to `/admin/overview` | Redirect to `/dashboard/discover` | Critical | ☐ |
+| 3.1.1 | Statistics display | 1. Go to `/admin/overview` | User/Dashboard/Folder/Company counts shown | High | ✅ |
+| 3.1.2 | Statistics accuracy | 1. Compare stats with actual data | Counts match actual Firestore records | Medium | ✅ |
+| 3.1.3 | Quick action — Manage Users | 1. Click "Manage Users" card | Navigate to `/admin/users` | Medium | ✅ |
+| 3.1.4 | Quick action — Manage Dashboards | 1. Click "Manage Dashboards" card | Navigate to `/admin/dashboards` | Medium | ✅ |
+| 3.1.5 | Non-admin redirect | 1. Login as User 2. Go to `/admin/overview` | Redirect to `/dashboard/discover` | Critical | ✅ |
 
 ---
 
@@ -455,7 +455,7 @@
 | Dashboard Home | 7 | High | ✅ |
 | Dashboard Discover | 12 | High | ✅ |
 | Dashboard View | 10 | High | ✅ |
-| Admin Overview | 5 | High | ☐ |
+| Admin Overview | 5 | High | ✅ |
 | Admin Users | 10 | High | ☐ |
 | Admin Folders | 8 | High | ☐ |
 | Admin Dashboards | 8 | High | ☐ |
