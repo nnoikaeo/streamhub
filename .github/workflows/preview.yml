@@ -94,6 +94,11 @@ jobs:
           NUXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NUXT_PUBLIC_FIREBASE_APP_ID }}
           NUXT_PUBLIC_USE_FIRESTORE: 'true'
           NUXT_PUBLIC_USE_JSON_MOCK: 'false'
+          # Prevent firebase-functions SDK from hitting GCP metadata server during
+          # Nitro prerender. In GitHub Actions (Azure infra), 169.254.169.254 responds
+          # as Azure IMDS (wrong format) causing a multi-minute hang.
+          FIREBASE_CONFIG: '{}'
+          NO_GCE_CHECK: 'true'
         run: npm run build
 
       - name: Prepare Cloud Function package.json
