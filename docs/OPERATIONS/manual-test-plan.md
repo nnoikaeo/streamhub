@@ -143,10 +143,10 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.2.1 | Search by email | 1. Type email in search bar | Matching users shown | High | ☐ |
-| 3.2.2 | Filter by role | 1. Select "Moderator" from role dropdown | Only moderators shown | High | ☐ |
-| 3.2.3 | Filter by company | 1. Select company from dropdown | Only users in that company shown | Medium | ☐ |
-| 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ☐ |
+| 3.2.1 | Search by email or name | 1. Type partial email in search bar → verify matching user shown 2. Clear search 3. Type partial name in search bar → verify matching user shown | Both email and name search return correct results | High | ✅ |
+| 3.2.2 | Filter by role | 1. Select "Moderator" from role dropdown | Only moderators shown | High | ✅ |
+| 3.2.3 | Filter by company | 1. Select company from dropdown | Only users in that company shown | Medium | ✅ |
+| 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ✅ |
 | 3.2.5 | Create new user | 1. Click "เพิ่มผู้ใช้" 2. Fill form 3. Submit | User added to table, toast shown | High | ☐ |
 | 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | ☐ |
 | 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ☐ |
