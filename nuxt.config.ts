@@ -24,6 +24,11 @@ export default defineNuxtConfig({
   // Static assets are served by Firebase Hosting via firebase.json.
   // sharp is excluded from the server bundle — SPA mode doesn't need
   // server-side image processing; @nuxt/image runs client-side only.
+  //
+  // Pre-render `/` so the SPA shell (index.html) lives on Hosting alongside
+  // its own chunk hashes. Decouples HTML ↔ JS from the Cloud Function, so
+  // preview channels cannot serve an index.html that references chunks on
+  // a different channel.
   nitro: {
     preset: 'firebase',
     firebase: {
@@ -32,6 +37,10 @@ export default defineNuxtConfig({
     },
     externals: {
       external: ['sharp'],
+    },
+    prerender: {
+      routes: ['/'],
+      crawlLinks: false,
     },
   },
 
