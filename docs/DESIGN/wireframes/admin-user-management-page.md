@@ -136,8 +136,8 @@ folders/{folderId}  ← updateDoc (for each changed folder)
 ## Groups UI Spec
 
 - **Data source:** `useAdminGroups` — fetch รายชื่อ `AdminGroup` ทั้งหมด
-- **Store:** `User.groups: string[]` เก็บ **ชื่อ** group (ไม่ใช่ ID) — เช่น `["sales", "finance"]`
-- **UI:** multi-select tag input — เลือกจาก dropdown, แสดงเป็น tag + ✕ ลบแต่ละรายการ
+- **Store:** `User.groups: string[]` เก็บ **ID** ของ group — เช่น `["sales", "finance"]` (ตรงกับ `AdminGroup.id` และ `dashboard.access.direct.groups[]`)
+- **UI:** multi-select — value = `group.id`, label = `group.name` (แสดงชื่อที่อ่านง่าย)
 - **Filter:** แสดงเฉพาะ group ที่ `isActive = true`
 
 ---
