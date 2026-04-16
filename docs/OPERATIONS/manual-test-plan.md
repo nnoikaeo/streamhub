@@ -1,6 +1,6 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 12 April 2569
+> **Last Updated:** 14 April 2569
 > **Total Test Cases:** 145
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
@@ -110,16 +110,16 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 2.3.1 | Owner views own dashboard | 1. Login as owner 2. Open dashboard | All actions available (edit, share, archive) | High | ☐ |
-| 2.3.2 | Authorized user views shared dashboard | 1. Login as user with access 2. Open dashboard | Dashboard renders, limited actions | High | ☐ |
-| 2.3.3 | Unauthorized user access | 1. Login as user without access 2. Open dashboard URL | "Access Denied" error + "Go Back" button | Critical | ☐ |
+| 2.3.1 | Views own dashboard (by role) | 1. Login as each role 2. Open dashboard | **Admin:** ปุ่ม แสดงข้อมูล + ย่อ + Share + menu (edit/archive) — **Moderator:** ย่อ + Share + menu — **User:** ย่อ + menu เท่านั้น (ไม่มี Share, ไม่มีแสดงข้อมูล) | High | ✅ |
+| 2.3.2 | Authorized user views shared dashboard | 1. Login as user with access 2. Open dashboard | Dashboard renders, ปุ่ม ย่อ + menu เท่านั้น, watermark อีเมลทับ iframe | High | ✅ |
+| 2.3.3 | Unauthorized user access | 1. Login as user without access 2. Open dashboard URL directly | Error: "เกิดข้อผิดพลาดในการโหลดรายงาน" + "คุณไม่มีสิทธิ์เข้าถึงรายงานนี้" + ปุ่ม "← ย้อนกลับ" | Critical | ✅ |
 | 2.3.4 | Admin views any dashboard | 1. Login as Admin 2. Open any dashboard | All actions available | High | ✅ |
 | 2.3.5 | Dashboard embed renders | 1. Open dashboard with Looker URL | Iframe/embed loads correctly | High | ✅ |
-| 2.3.6 | Fullscreen toggle | 1. Click fullscreen button 2. Click again to exit | Dashboard expands/shrinks | Low | ☐ |
-| 2.3.7 | Archive dashboard (Admin) | 1. Login as Admin 2. Click Archive | Dashboard marked as archived, badge shown | High | ☐ |
-| 2.3.8 | Unarchive dashboard (Admin) | 1. View archived dashboard 2. Click Unarchive | Dashboard restored to active | High | ☐ |
-| 2.3.9 | Edit dashboard metadata | 1. Click Edit 2. Change name 3. Save | Name updated in header | Medium | ☐ |
-| 2.3.10 | Go back button | 1. Click back button | Navigate to `/dashboard/discover` | Low | ☐ |
+| 2.3.6 | Fullscreen toggle | 1. เปิด dashboard (เริ่มใน fullscreen) 2. คลิก "ย่อ" 3. คลิก "เต็มจอ" กลับ | หน้าเปิดใน fullscreen โดย default (ปุ่ม "ย่อ") — คลิก "ย่อ" → แสดง top nav + sidebar header (ปุ่มเปลี่ยนเป็น "เต็มจอ") — คลิก "เต็มจอ" → กลับ fullscreen | Low | ✅ |
+| 2.3.7 | Archive dashboard (Admin) | 1. Login as Admin 2. เปิด dashboard ที่ต้องการ archive 3. คลิก `...` menu → เลือก "Archive" 4. ConfirmDialog เปิด → คลิก "เก็บถาวร" | Toast: "เก็บถาวรแดชบอร์ดสำเร็จ" + Redirect ไป `/dashboard/discover` — dashboard หายจาก list (ถ้า Admin เปิด toggle "แสดงที่เก็บถาวร" จะเห็น badge "เก็บถาวร" แทน) | High | ✅ |
+| 2.3.8 | Unarchive dashboard (Admin) | 1. Login as Admin 2. เปิด toggle "แสดงที่เก็บถาวร" บน `/dashboard/discover` 3. คลิก dashboard ที่มี badge "เก็บถาวร" 4. คลิก `...` menu → เลือก "Unarchive" | Toast: "ยกเลิกเก็บถาวรแดชบอร์ดสำเร็จ" — อยู่หน้าเดิม, badge "📦 เก็บถาวร" ใน Info sidebar หาย (ไม่มี ConfirmDialog) | High | ✅ |
+| 2.3.9 | Edit dashboard metadata | 1. Login as Admin 2. เปิด dashboard 3. คลิก `...` menu → เลือก "Edit" 4. Dialog "แก้ไขข้อมูลแดชบอร์ด" เปิด (ข้อมูลเดิม pre-filled: ชื่อ, รายละเอียด, แท็ก) 5. เปลี่ยนชื่อ / toggle tag 6. คลิก "บันทึก" — **Validation:** ลบชื่อจนว่าง → คลิก "บันทึก" — **Cancel:** เปิด dialog → แก้ข้อมูล → คลิก "ยกเลิก" | **Happy path:** Toast "บันทึกข้อมูลแดชบอร์ดสำเร็จ" + ชื่อใน header อัปเดตทันที, dialog ปิด — **Validation:** error "กรุณาระบุชื่อแดชบอร์ด" ใต้ field ชื่อ — **Cancel:** dialog ปิด ไม่มีการเปลี่ยนแปลง | Medium | ✅ |
+| 2.3.10 | Go back button | 1. เปิด dashboard 2. คลิกปุ่มลูกศร ← ซ้ายบน | Redirect ไป `/dashboard/discover` | Low | ✅ |
 
 ---
 
@@ -131,11 +131,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.1.1 | Statistics display | 1. Go to `/admin/overview` | User/Dashboard/Folder/Company counts shown | High | ☐ |
-| 3.1.2 | Statistics accuracy | 1. Compare stats with actual data | Counts match actual Firestore records | Medium | ☐ |
-| 3.1.3 | Quick action — Manage Users | 1. Click "Manage Users" card | Navigate to `/admin/users` | Medium | ☐ |
-| 3.1.4 | Quick action — Manage Dashboards | 1. Click "Manage Dashboards" card | Navigate to `/admin/dashboards` | Medium | ☐ |
-| 3.1.5 | Non-admin redirect | 1. Login as User 2. Go to `/admin/overview` | Redirect to `/dashboard/discover` | Critical | ☐ |
+| 3.1.1 | Statistics display | 1. Go to `/admin/overview` | User/Dashboard/Folder/Company counts shown | High | ✅ |
+| 3.1.2 | Statistics accuracy | 1. Compare stats with actual data | Counts match actual Firestore records | Medium | ✅ |
+| 3.1.3 | Quick action — Manage Users | 1. Click "Manage Users" card | Navigate to `/admin/users` | Medium | ✅ |
+| 3.1.4 | Quick action — Manage Dashboards | 1. Click "Manage Dashboards" card | Navigate to `/admin/dashboards` | Medium | ✅ |
+| 3.1.5 | Non-admin redirect | 1. Login as User 2. Go to `/admin/overview` | Redirect to `/dashboard/discover` | Critical | ✅ |
 
 ---
 
@@ -143,10 +143,10 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.2.1 | Search by email | 1. Type email in search bar | Matching users shown | High | ☐ |
-| 3.2.2 | Filter by role | 1. Select "Moderator" from role dropdown | Only moderators shown | High | ☐ |
-| 3.2.3 | Filter by company | 1. Select company from dropdown | Only users in that company shown | Medium | ☐ |
-| 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ☐ |
+| 3.2.1 | Search by email or name | 1. Type partial email in search bar → verify matching user shown 2. Clear search 3. Type partial name in search bar → verify matching user shown | Both email and name search return correct results | High | ✅ |
+| 3.2.2 | Filter by role | 1. Select "Moderator" from role dropdown | Only moderators shown | High | ✅ |
+| 3.2.3 | Filter by company | 1. Select company from dropdown | Only users in that company shown | Medium | ✅ |
+| 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ✅ |
 | 3.2.5 | Create new user | 1. Click "เพิ่มผู้ใช้" 2. Fill form 3. Submit | User added to table, toast shown | High | ☐ |
 | 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | ☐ |
 | 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ☐ |
@@ -422,6 +422,7 @@
 | BUG-001 | Dashboard ใน sub-folder ไม่แสดงใน "Group By: Folder" และไม่มีชื่อ folder ในคอลัมน์ Folder | TC 2.2.8 | High | 🔧 Fixed |
 | BUG-002 | Admin toggle "แสดงที่เก็บถาวร" ไม่แสดง archived dashboard | TC 2.2.10 | High | 🔧 Fixed |
 | BUG-003 | Tag filter ไม่ถูก sync เข้า URL query params — copy URL แล้วเปิด tab ใหม่ filter หาย | TC 2.2.11 | Medium | 🔧 Fixed |
+| ENV-001 | หน้าขาวพร้อม MIME type error "Expected JavaScript-or-Wasm but got text/html" หลัง deploy ใหม่ | TC 2.3.1 | Low | ℹ️ Not a Bug |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
@@ -438,6 +439,11 @@
 - **Root Cause:** `handleTagFilterUpdate()` อัปเดตเฉพาะ `tagStore` แต่ไม่ push query param ลง URL ตรงข้ามกับ folder ที่ใช้ `router.push` เสมอ และไม่มี restore tag จาก URL ตอน `onMounted`
 - **ไฟล์ที่เกี่ยวข้อง:** `app/pages/dashboard/discover.vue` (function `handleTagFilterUpdate`, `onMounted`)
 
+**ENV-001 รายละเอียด:**
+- **อาการ:** หน้าขาวพร้อม console error: `Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html"`
+- **Root Cause:** Browser cache สาเหตุ — tab ที่เปิดค้างไว้ก่อน deploy ใหม่ถือ `index.html` เก่าที่อ้างอิง JS chunk hash เก่า (เช่น `IhJDMPiJ.js`) ซึ่ง Firebase Hosting ลบออกหลัง deploy Firebase SPA rewrite จึงตอบด้วย `index.html` แทน JS จริง ทำให้ browser ปฏิเสธ
+- **วิธีแก้:** กด **Cmd+Shift+R** (Hard Refresh) หรือ clear cache — error หายทันที ไม่ใช่ app bug
+
 ---
 
 ## 9. Test Case Summary
@@ -448,8 +454,8 @@
 | Invite Accept | 6 | Critical | ✅ |
 | Dashboard Home | 7 | High | ✅ |
 | Dashboard Discover | 12 | High | ✅ |
-| Dashboard View | 10 | High | ☐ |
-| Admin Overview | 5 | High | ☐ |
+| Dashboard View | 10 | High | ✅ |
+| Admin Overview | 5 | High | ✅ |
 | Admin Users | 10 | High | ☐ |
 | Admin Folders | 8 | High | ☐ |
 | Admin Dashboards | 8 | High | ☐ |
