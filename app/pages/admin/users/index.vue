@@ -7,11 +7,13 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
  *
  * Features:
  * - Display all users in DataTable
- * - CRUD operations (Create, Read, Update, Delete)
+ * - Edit, Delete, Toggle Active operations
  * - Filter by role, company, active status
  * - Search by email or name
- * - Bulk actions (select, delete)
  * - Protected by admin middleware
+ *
+ * Note: Creating new users is handled exclusively via /admin/invitations
+ * to ensure every user account is backed by a real Firebase Auth UID.
  *
  * Route: /admin/users
  * Middleware: auth, admin
@@ -21,18 +23,18 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
  * 2. onMounted → fetchUsers() loads all users from useAdminUsers composable
  * 3. DataTable renders users with columns (email, name, role, company, groups, isActive)
  * 4. User actions:
- *    - Click "เพิ่มผู้ใช้ใหม่" → handleAddUser → showUserModal
  *    - Click "แก้ไข" → handleEditUser → showUserModal with selectedUser
  *    - Click "ลบ" → handleDeleteUser → showConfirmDialog with userToDelete
+ *    - Click toggle → handleToggleActive → showToggleDialog with userToToggle
  * 5. FormModal with UserForm → userFormRef.submit() → validates → handleSaveUser
- * 6. ConfirmDialog → confirmDeleteUser → deleteUser API call
+ * 6. ConfirmDialog → confirmDeleteUser / confirmToggleActive
  * 7. Filters: search, role, company, active status → filteredUsers computed property
  *
  * COMPONENTS USED:
  * - DataTable: Generic table component (auto-imported from ~/components/admin)
  * - FormModal: Modal wrapper for user form (auto-imported from ~/components/admin)
  * - UserForm: Form component for editing user data (explicitly imported - nested in ~/components/admin/forms/)
- * - ConfirmDialog: Confirmation dialog for delete action (auto-imported from ~/components/admin)
+ * - ConfirmDialog: Confirmation dialog for delete/toggle actions (auto-imported from ~/components/admin)
  *
  * COMPOSABLES USED:
  * - useAdminUsers: Fetch, update, delete users
@@ -60,12 +62,12 @@ definePageMeta({
 console.log('📄 [admin/users/index.vue] Users management page initialized')
 
 // States
-const { users, loading, fetchUsers, createUser, updateUser, deleteUser } = useAdminUsers()
+const { users, loading, fetchUsers, updateUser, deleteUser } = useAdminUsers()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
 const { folders, buildFolderTree } = useAdminFolders()
 
-// CRUD page state (modal, dialog, handlers)
+// CRUD page state (modal, dialog, handlers) — edit + delete + toggle only
 const {
   showFormModal: showUserModal,
   showConfirmDialog,
@@ -74,7 +76,6 @@ const {
   itemToDelete: userToDelete,
   itemToToggle: userToToggle,
   formRef: userFormRef,
-  handleAdd: handleAddUser,
   handleEdit: handleEditUser,
   handleDelete: handleDeleteUser,
   handleToggleActive,
@@ -83,16 +84,13 @@ const {
 } = useAdminCrudPage<User>({
   idKey: 'uid',
   displayKey: 'email',
-  createFn: createUser,
+  createFn: async () => undefined,
   updateFn: updateUser,
   deleteFn: deleteUser,
   resourceLabel: 'ผู้ใช้',
 })
 
 const { showToast } = useAppToast()
-
-// Ref to UserForm — triggers its internal useForm validation + submission via defineExpose
-// (userFormRef provided by useAdminCrudPage)
 
 // Debug: Log state changes
 watch(() => showUserModal.value, (newVal) => {
@@ -118,7 +116,7 @@ const filterCompany = ref<string | null>(null)
 const filterActive = ref<boolean | null>(null)
 
 /**
- * Column definitions for DataTable (Reordered)
+ * Column definitions for DataTable
  * - Name+Email combined display
  * - Role badge (styled by role: admin, moderator, user)
  * - Company
@@ -243,9 +241,6 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการผู้ใช้</h1>
-        <button @click="handleAddUser" class="page-header-action-btn">
-          ➕ เพิ่มผู้ใช้ใหม่
-        </button>
       </template>
 
       <template #filters>
@@ -297,10 +292,10 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         />
       </template>
 
-      <!-- User Form Modal -->
+      <!-- Edit User Form Modal -->
       <FormModal
         v-model="showUserModal"
-        :title="selectedUser ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้ใหม่'"
+        title="แก้ไขผู้ใช้"
         :loading="loading"
         @save="userFormRef?.submit()"
         @cancel="showUserModal = false"
