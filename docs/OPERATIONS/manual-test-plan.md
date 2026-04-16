@@ -141,18 +141,20 @@
 
 ### 3.2 Admin Users (`/admin/users`)
 
+> **Note:** การสร้างผู้ใช้ใหม่ทำผ่าน `/admin/invitations` เท่านั้น เพื่อให้ทุก account มี Firebase Auth UID จริง หน้านี้รองรับเฉพาะ Read / Edit / Delete / Toggle Active
+
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
 | 3.2.1 | Search by email or name | 1. Type partial email in search bar → verify matching user shown 2. Clear search 3. Type partial name in search bar → verify matching user shown | Both email and name search return correct results | High | ✅ |
 | 3.2.2 | Filter by role | 1. Select "Moderator" from role dropdown | Only moderators shown | High | ✅ |
 | 3.2.3 | Filter by company | 1. Select company from dropdown | Only users in that company shown | Medium | ✅ |
 | 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ✅ |
-| 3.2.5 | Create new user | 1. Click "เพิ่มผู้ใช้" 2. Fill form 3. Submit | User added to table, toast shown | High | ☐ |
+| 3.2.5 | ~~Create new user~~ | ~~N/A~~ | ~~Removed — use /admin/invitations instead~~ | ~~High~~ | N/A |
 | 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | ☐ |
 | 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ☐ |
-| 3.2.8 | Toggle user active status | 1. Click toggle switch on user row | Status updates inline via API | Medium | ☐ |
-| 3.2.9 | Form validation — missing email | 1. Open create form 2. Leave email empty 3. Submit | Validation error shown | Medium | ☐ |
-| 3.2.10 | Cancel modal without saving | 1. Open create form 2. Fill partially 3. Click Cancel | No changes made, modal closes | Low | ☐ |
+| 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | ☐ |
+| 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | N/A |
+| 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | ☐ |
 
 ---
 
