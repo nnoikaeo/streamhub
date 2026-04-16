@@ -151,6 +151,11 @@
 | 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ✅ |
 | 3.2.5 | ~~Create new user~~ | ~~N/A~~ | ~~Removed — use /admin/invitations instead~~ | ~~High~~ | N/A |
 | 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | ☐ |
+| 3.2.6a | Edit user — email is disabled | 1. Click Edit on any user | Email input is disabled (lock hint shown); cannot be changed | High | ☐ |
+| 3.2.6b | Edit user — change groups | 1. Click Edit 2. Check/uncheck groups in multi-select 3. Save | User's `groups` array updated, badges in table reflect change | High | ☐ |
+| 3.2.6c | Edit moderator — assign folders | 1. Edit moderator user 2. Check folders in picker 3. Save | Selected folders have user UID added to `assignedModerators` | High | ☐ |
+| 3.2.6d | Edit moderator → change role to user | 1. Edit moderator with folder assignments 2. Change role to user 3. Save | Folder picker hides; all previously assigned folders have UID removed from `assignedModerators` | High | ☐ |
+| 3.2.6e | Edit user — role user → moderator | 1. Edit user (role=user) 2. Change role to moderator 3. Folder picker appears 4. Check folders 5. Save | Folder picker appears on role change; selected folders get UID added | High | ☐ |
 | 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ☐ |
 | 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | ☐ |
 | 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | N/A |

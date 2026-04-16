@@ -45,11 +45,16 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 
 import { ref, computed, onMounted, watch } from 'vue'
 import type { User } from '~/types/dashboard'
+import type { UserFormSubmitPayload } from '~/components/admin/forms/UserForm.vue'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
+import {
+  diffFolderAssignments,
+  applyFolderAssignments,
+} from '~/utils/folderAssignment'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 
@@ -65,9 +70,11 @@ console.log('📄 [admin/users/index.vue] Users management page initialized')
 const { users, loading, fetchUsers, updateUser, deleteUser } = useAdminUsers()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
-const { folders, buildFolderTree } = useAdminFolders()
+const { folders, fetchFolders, updateFolder, buildFolderTree } = useAdminFolders()
 
 // CRUD page state (modal, dialog, handlers) — edit + delete + toggle only
+// Note: handleSave from useAdminCrudPage is replaced by a custom handler below
+// because UserForm now emits a structured payload (user + folder assignments).
 const {
   showFormModal: showUserModal,
   showConfirmDialog,
@@ -79,7 +86,6 @@ const {
   handleEdit: handleEditUser,
   handleDelete: handleDeleteUser,
   handleToggleActive,
-  handleSave: handleSaveUser,
   confirmDelete: confirmDeleteUser,
 } = useAdminCrudPage<User>({
   idKey: 'uid',
@@ -166,6 +172,55 @@ const filteredUsers = computed(() => {
 })
 
 /**
+ * Save handler for Edit User modal.
+ *
+ * Splits the form payload into two writes:
+ *   1. updateUser(uid, { name, company, role, groups })
+ *   2. applyFolderAssignments — syncs `assignedModerators` on each affected folder
+ *      based on role transition (see docs/OPERATIONS/edit-user-form-plan.md).
+ */
+const handleSaveUser = async (payload: UserFormSubmitPayload) => {
+  const { user, selectedFolderIds, previousRole } = payload
+  if (!user.uid) {
+    console.error('❌ [handleSaveUser] Missing uid in payload')
+    return
+  }
+
+  try {
+    await updateUser(user.uid, {
+      name: user.name,
+      company: user.company,
+      role: user.role,
+      groups: user.groups,
+    })
+
+    const currentRole = user.role ?? previousRole
+    const diff = diffFolderAssignments(
+      user.uid,
+      previousRole,
+      currentRole,
+      selectedFolderIds,
+      folders.value
+    )
+    const writes = await applyFolderAssignments(
+      user.uid,
+      diff,
+      folders.value,
+      updateFolder
+    )
+    if (writes > 0) {
+      await fetchFolders()
+    }
+
+    showUserModal.value = false
+    showToast('แก้ไขผู้ใช้เรียบร้อยแล้ว')
+  } catch (error) {
+    console.error('❌ [handleSaveUser] Error:', error)
+    showToast('เกิดข้อผิดพลาดในการบันทึกผู้ใช้', 'error')
+  }
+}
+
+/**
  * Custom toggle with toast (page-specific override)
  */
 const confirmToggleActive = async () => {
@@ -221,6 +276,7 @@ onMounted(async () => {
       fetchUsers(),
       fetchCompanies(),
       fetchRegions(),
+      fetchFolders(),
     ])
     console.log('✅ [Lifecycle] onMounted - Users fetched successfully')
   } catch (error) {
