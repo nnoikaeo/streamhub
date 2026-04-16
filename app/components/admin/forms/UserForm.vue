@@ -108,11 +108,13 @@ const companyGroupedOptions = computed(() => {
   return result
 })
 
-// Active groups → multi-select options (value = group name, see wireframe)
+// Active groups → multi-select options.
+// Value is group ID (matches User.groups[] and dashboard.access.direct.groups[]
+// in stored data; see useMockData.checkDirectAccess). Label is the human name.
 const groupOptions = computed(() =>
   groups.value
     .filter(g => g.isActive)
-    .map(g => ({ label: g.name, value: g.name }))
+    .map(g => ({ label: g.name, value: g.id }))
 )
 
 // Active folders only — tree picker filters these further by parentId
