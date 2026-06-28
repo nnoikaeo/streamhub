@@ -141,6 +141,63 @@ npm run build
 
 ---
 
+## Issue: Firestore Rules หมดอายุ — Login ไม่ได้
+
+**อาการ:** Login สำเร็จแต่หน้าแรกแสดง "สิทธิ์การเข้าถึงถูกปฏิเสธ" หรือ console แสดง `Missing or insufficient permissions`
+
+**สาเหตุ:** Firebase Firestore ใช้ "30-day trial rules" ที่หมดอายุอัตโนมัติ และ project ไม่มีไฟล์ `firestore.rules`
+
+**วิธีแก้:**
+1. ตรวจสอบ rules ปัจจุบันใน Firebase Console → Firestore → Rules
+2. ถ้า rules มีข้อความ `allow read, write: if request.time < timestamp.date(...)` และวันที่ผ่านไปแล้ว → rules หมดอายุ
+3. Deploy rules จาก `firestore.rules` ใน project root:
+   ```bash
+   firebase deploy --only firestore:rules --project streamhub-1c27a
+   ```
+4. CI **ไม่สามารถ** deploy rules ได้ (SA ขาดสิทธิ์ `firebaserules.googleapis.com`) ต้อง deploy มือเสมอ
+
+---
+
+## Issue: Production แสดงโค้ดเก่าหลัง CI Deploy
+
+**อาการ:** หลัง CI สำเร็จ แต่ browser ยังแสดง console error เก่า / UI ไม่อัปเดต แม้จะ Hard Refresh (Cmd+Shift+R) แล้ว
+
+**สาเหตุ:** Vite chunk hash บน Linux (CI) กับ macOS (local) ต่างกัน บางครั้ง CI produce chunk ชื่อเดิมแต่ content ต่างกัน หรือ Firebase CDN ยังไม่ propagate
+
+**วิธีตรวจสอบ:**
+```bash
+# เปรียบเทียบ entry chunk ระหว่าง production กับ local build
+curl -s "https://streamhub-1c27a.web.app/" | grep -o '"#entry":"[^"]*"'
+cat .output/public/index.html | grep -o '"#entry":"[^"]*"'
+```
+
+ถ้า hash ไม่ตรงกัน → production ยังใช้โค้ดเก่า
+
+**วิธีแก้:** Deploy hosting จาก local:
+```bash
+bash scripts/deploy-hosting.sh
+```
+
+---
+
+## Issue: `Firebase: Error (auth/invalid-api-key)` หลัง Deploy จาก Local
+
+**อาการ:** หลัง deploy hosting จาก local เอง หน้า login แสดง blank/500 พร้อม error `Firebase: Error (auth/invalid-api-key)`
+
+**สาเหตุ:** `generate-spa-index.mjs` ไม่ได้รับ env vars → เขียน `apiKey: ""` ลงใน index.html
+
+**วิธีแก้:** ใช้ `scripts/deploy-hosting.sh` ซึ่งโหลด `.env.local` อัตโนมัติ แทนการ run คำสั่งแยก
+
+```bash
+# ✅ ถูกต้อง
+bash scripts/deploy-hosting.sh
+
+# ❌ อันตราย (ไม่มี env vars)
+npm run build && firebase deploy --only hosting
+```
+
+---
+
 ## Issue: Firestore Rules Error
 
 **Error:** "Permission denied" when accessing Firestore
