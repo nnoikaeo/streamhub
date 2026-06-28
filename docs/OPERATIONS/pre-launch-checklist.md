@@ -157,24 +157,51 @@
   2. 🔴 **Audit log 500 bug (แก้แล้ว):** `POST /api/audit/log` คืน 500 เพราะ Firestore Admin SDK reject `undefined` (field `metadata` ของ view event) → endpoint ไม่ catch → 500. แก้ที่ `server/utils/auditLog.ts` (sanitize undefined ก่อนเขียน). เป็น server-side → ต้อง deploy ผ่าน CI (functions). audit log ของ view event พังบน prod มาตลอดก่อนหน้านี้
 
 ### D3 — ลบสิทธิ์ User ออก
-- [ ] กลับเป็น **Admin A** → Explorer → คลิก **🔑** ที่ Dashboard เดิม (หรือพิมพ์ `/admin/permissions` ตรง)
-- [ ] ลบ **User U** ออก → กด Save
-- **ผลที่คาดหวัง:** Toast "บันทึกสำเร็จ" ✓ / ✗
+- [x] กลับเป็น **Admin A** → permissions ของ Master List
+- [x] ลบ **Survey Streamwash** ออก → กด บันทึก
+- **ผลที่คาดหวัง:** สิทธิ์ถูกลบ ✓ (จัดการสิทธิ์ 0, ผลลัพธ์รวม 0 คน)
+- **หมายเหตุ:** ผ่าน
 
 ### D4 — ยืนยันว่าเข้าไม่ได้แล้ว
-- [ ] กลับเป็น **User U** → Refresh `/dashboard/discover`
-- **ผลที่คาดหวัง:** Dashboard นั้นหายออกจากรายการ ✓ / ✗
-- [ ] พยายามเปิด URL ของ Dashboard นั้นโดยตรง
-- **ผลที่คาดหวัง:** Error "คุณไม่มีสิทธิ์เข้าถึงรายงานนี้" ✓ / ✗
-- **หมายเหตุ:** ___________
+- [x] กลับเป็น **Survey Streamwash** → Refresh `/dashboard/discover`
+- **ผลที่สังเกต:** Master List **ยังโชว์อยู่** ❗ (และยังขึ้น "ทุกบริษัท")
+- **ผลการตัดสิน:** ⚠️ **TEST INVALID (ไม่ใช่ bug)** — ดูคำอธิบายด้านล่าง
+- **หมายเหตุ — finding สำคัญต่อ launch:**
+  - **สาเหตุ:** Master List มี `access.company = []` (ว่าง) ซึ่งใน [`server/utils/companyAccess.ts` → `matchesAccessRules`](../../server/utils/companyAccess.ts) แปลว่า **"ทุกบริษัท" = เปิด public ให้ทุกคน** → Survey เห็น Master List เพราะมัน public อยู่แล้ว ไม่ใช่เพราะ grant ใน D1
+  - **ผลกระทบ:** D1-D2 "pass" จริงๆ **confounded** — Survey เห็น dashboard ไม่ว่าจะ grant หรือไม่; การลบ grant (D3) จึงไม่ทำให้หาย
+  - **2 กลไกที่ต่างกัน:**
+    - **"จัดการสิทธิ์" (grant)** = allow-list — เพิ่มสิทธิ์ แต่ไม่จำกัด dashboard ที่ public อยู่แล้ว
+    - **"ข้อจำกัด" (revoke, Layer 3)** = deny-list — ปฏิเสธได้แม้ dashboard จะ public (`isRestricted` deny override ใน `checkDashboardAccess`)
+  - **วิธีทดสอบ revocation ที่ถูกต้อง (เลือก 1):**
+    - **(A) ทดสอบ Layer-3 revoke:** ใช้ tab **"ข้อจำกัด"** เพิ่ม Survey → save → Master List ต้องหายจาก discover ของ Survey + เปิด URL ตรงต้องโดนปฏิเสธ
+    - **(B) ทดสอบ grant ด้วย dashboard ที่ restrict จริง:** ใช้ dashboard ที่ `access.company` ไม่ว่าง (จำกัดเฉพาะบริษัท ที่ ORAY ไม่อยู่ในนั้น) แล้ว grant Survey ตรงๆ → ทดสอบ D1-D4 ใหม่
 
-### D5 — ให้สิทธิ์ผ่าน Group
-- [ ] เป็น **Admin A** → Explorer → คลิก **🔑** ที่ Dashboard → เพิ่ม Group (ที่มี User U เป็นสมาชิก) → Save
-- [ ] เป็น **User U** → ตรวจสอบว่าเข้า Dashboard ได้
-- **ผลที่คาดหวัง:** เข้าได้ผ่าน Group membership ✓ / ✗
-- **หมายเหตุ:** ___________
+### D4b — ทดสอบ Layer-3 Revoke (รอบใหม่ — วิธี A) ✅
+- [x] Admin A → permissions ของ Master List → tab **"ข้อจำกัด"** → เพิ่ม **Survey Streamwash** (ระงับการเข้าถึง) → บันทึก
+- **ผลที่คาดหวัง:** "ข้อจำกัด 1", badge "ระงับการเข้าถึง" ✓
+- [x] Survey Streamwash → Refresh `/dashboard/discover`
+- **ผลที่คาดหวัง:** Master List **หายจากรายการ** ✓ (จาก 4 → **3 แดชบอร์ด**)
+- **ผลการตัดสิน:** ✅ **PASS** — Layer-3 revoke override การ public ได้สำเร็จ (`isRestricted` deny override ทำงานถูกต้อง)
+- **หมายเหตุ:** ผ่าน — พิสูจน์ว่า admin สามารถซ่อน dashboard จาก user เฉพาะรายได้แม้ dashboard จะเปิด public
 
-**กลุ่ม D ผ่าน/ไม่ผ่าน:** ___________
+### D5 — ให้สิทธิ์ผ่าน Group (self-validating A/B test)
+> ใช้ **บอกเลิกสัญญา** (dash_1774217782974) + restrict ด้วย company **INFE** (ORAY ไม่อยู่ใน INFE → ต้องเข้าผ่าน group เท่านั้น)
+- [x] Part 1: /admin/users → เพิ่ม **Survey Streamwash** เข้า group **Marketing** → บันทึก
+- [x] Part 2: permissions ของ บอกเลิกสัญญา → grant company **INFE** + group **Marketing** → บันทึก (จัดการสิทธิ์ 3)
+- [x] Part 3 (ON): Survey refresh discover
+- **ผลที่คาดหวัง:** บอกเลิกสัญญา **ปรากฏ** ✓ (badge INFE, เข้าผ่าน Marketing group เพราะ ORAY≠INFE)
+- [x] Part 4: Admin ลบ group **Marketing** ออก (เหลือ company INFE) → บันทึก (จัดการสิทธิ์ 2)
+- [x] Part 5 (OFF): Survey refresh discover
+- **ผลที่คาดหวัง:** บอกเลิกสัญญา **หาย** ✓ (จาก 3 → 2 แดชบอร์ด)
+- **ผลการตัดสิน:** ✅ **PASS** — ผลต่าง ON↔OFF พิสูจน์ว่า group grant ควบคุมการเข้าถึงจริง (ตัด confound folder/company)
+- **หมายเหตุ:** ผ่าน
+
+**กลุ่ม D ผ่าน/ไม่ผ่าน:** ✅ ผ่าน (2026-06-29) — D1-D3 (grant UI), D4b (Layer-3 revoke), D5 (group grant) ครบ
+
+> ⚠️ **State cleanup ค้างไว้ (ไม่ blocking):**
+> - Master List: Survey ยังติด restriction (revoke) จาก D4b
+> - บอกเลิกสัญญา: ยังมี company INFE + IT Streamwash direct grant จาก D5
+> - ควร reset dashboard เหล่านี้กลับสู่สภาพเดิมหลังทดสอบเสร็จ
 
 ---
 

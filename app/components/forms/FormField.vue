@@ -49,7 +49,13 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
 <template>
   <div class="form-field">
     <!-- Label (skip for toggle — label is shown inline next to the switch) -->
-    <label v-if="label && type !== 'toggle'" :for="fieldId" class="form-label">
+    <!-- multi-select has no single input with id=fieldId (each checkbox uses
+         `${fieldId}-${value}`), so omit `for` to avoid an orphaned label. -->
+    <label
+      v-if="label && type !== 'toggle'"
+      :for="type === 'multi-select' ? undefined : fieldId"
+      class="form-label"
+    >
       {{ label }}
       <span v-if="required" class="required-badge">*</span>
     </label>
@@ -58,6 +64,7 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <input
       v-if="type === 'text' || type === 'email' || type === 'number'"
       :id="fieldId"
+      :name="fieldId"
       v-model="inputValue"
       :type="type"
       :placeholder="placeholder"
@@ -74,6 +81,7 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <textarea
       v-else-if="type === 'textarea'"
       :id="fieldId"
+      :name="fieldId"
       v-model="inputValue"
       :placeholder="placeholder"
       :rows="rows"
@@ -90,6 +98,7 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <select
       v-else-if="type === 'select'"
       :id="fieldId"
+      :name="fieldId"
       v-model="inputValue"
       :disabled="disabled"
       :aria-invalid="isFieldError"
@@ -109,6 +118,7 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <select
       v-else-if="type === 'grouped-select'"
       :id="fieldId"
+      :name="fieldId"
       v-model="inputValue"
       :disabled="disabled"
       :aria-invalid="isFieldError"
