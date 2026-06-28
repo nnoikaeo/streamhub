@@ -14,9 +14,10 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
-set -a
-source "$ENV_FILE"
-set +a
+# Load only NUXT_PUBLIC_* vars (safe for files with JSON values like GOOGLE_SERVICE_ACCOUNT_KEY)
+while IFS='=' read -r key value; do
+  [[ "$key" =~ ^NUXT_PUBLIC_ ]] && export "$key=$value"
+done < <(grep "^NUXT_PUBLIC_" "$ENV_FILE")
 
 export NUXT_PUBLIC_USE_FIRESTORE=true
 export NUXT_PUBLIC_USE_JSON_MOCK=false

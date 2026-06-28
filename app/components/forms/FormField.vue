@@ -43,7 +43,7 @@ const inputValue = computed({
 })
 
 const isFieldError = computed(() => !!props.error)
-const fieldId = computed(() => `field-${Math.random().toString(36).substr(2, 9)}`)
+const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
 </script>
 
 <template>

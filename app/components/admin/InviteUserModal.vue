@@ -256,20 +256,23 @@ onMounted(loadDropdownData)
         <div class="form-row form-row--3col">
           <!-- Email -->
           <div class="form-field form-field--email">
-            <label class="form-label">Email <span class="required">*</span></label>
+            <label for="invite-email" class="form-label">Email <span class="required">*</span></label>
             <input
+              id="invite-email"
               v-model="form.email"
               type="email"
+              name="invite-email"
               class="theme-form-input"
               placeholder="user@company.com"
+              autocomplete="off"
               @blur="checkPendingWarning(); checkDomainWarning()"
             />
           </div>
 
           <!-- Role -->
           <div class="form-field">
-            <label class="form-label">Role <span class="required">*</span></label>
-            <select v-model="form.role" class="theme-form-select">
+            <label for="invite-role" class="form-label">Role <span class="required">*</span></label>
+            <select id="invite-role" v-model="form.role" name="invite-role" class="theme-form-select">
               <option value="user">User</option>
               <option value="moderator">Moderator</option>
               <option value="admin">Admin</option>
@@ -278,12 +281,13 @@ onMounted(loadDropdownData)
 
           <!-- Company -->
           <div class="form-field">
-            <label class="form-label">บริษัท <span class="required">*</span></label>
+            <label for="invite-company" class="form-label">บริษัท <span class="required">*</span></label>
             <CompanyDropdownFilter
               v-model="form.company"
               :companies="adminCompanies"
               :regions="regions"
               :show-icon="false"
+              input-id="invite-company"
               placeholder="-- เลือกบริษัท --"
             />
           </div>
@@ -293,7 +297,7 @@ onMounted(loadDropdownData)
         <div class="form-row form-row--2col form-row--stretch">
           <!-- Groups -->
           <div class="form-field">
-            <label class="form-label">กลุ่มผู้ใช้</label>
+            <p class="form-label">กลุ่มผู้ใช้</p>
             <div class="multi-select-list">
               <label v-for="group in groups" :key="group.id" class="multi-select-item">
                 <input type="checkbox" :value="group.id" v-model="form.assignedGroups" />
@@ -305,9 +309,11 @@ onMounted(loadDropdownData)
 
           <!-- Message -->
           <div class="form-field">
-            <label class="form-label">ข้อความเพิ่มเติม</label>
+            <label for="invite-message" class="form-label">ข้อความเพิ่มเติม</label>
             <textarea
+              id="invite-message"
               v-model="form.message"
+              name="invite-message"
               class="theme-form-input message-textarea"
               maxlength="500"
               placeholder="ข้อความถึงผู้รับ invitation (ไม่บังคับ)"
@@ -317,7 +323,7 @@ onMounted(loadDropdownData)
 
         <!-- Folders (moderator only) — full width -->
         <div v-if="form.role === 'moderator'" class="form-field">
-          <label class="form-label">Folders ที่ดูแล</label>
+          <p class="form-label">Folders ที่ดูแล</p>
           <div class="multi-select-list">
             <label v-for="folder in folders" :key="folder.id" class="multi-select-item">
               <input type="checkbox" :value="folder.id" v-model="form.assignedFolders" />

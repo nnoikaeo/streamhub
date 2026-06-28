@@ -19,11 +19,14 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
+            id="dashboard-search"
             v-model="searchQuery"
             type="text"
+            name="dashboard-search"
             class="search-input"
             placeholder="ค้นหาแดชบอร์ด..."
             aria-label="ค้นหาแดชบอร์ด"
+            autocomplete="off"
           />
           <button
             v-if="searchQuery"

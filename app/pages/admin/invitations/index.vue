@@ -204,10 +204,14 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         <!-- Search -->
         <div class="filter-group">
           <input
+            id="invitation-search"
             v-model="searchQuery"
             type="text"
+            name="invitation-search"
+            aria-label="ค้นหาตาม email หรือผู้เชิญ"
             class="theme-form-input"
             placeholder="ค้นหาตาม email หรือผู้เชิญ..."
+            autocomplete="off"
           />
         </div>
 
@@ -348,6 +352,9 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           <div class="pagination-bar__left">
             <span>จำนวนรายการต่อหน้า</span>
             <select
+              id="invite-page-size"
+              name="invite-page-size"
+              aria-label="จำนวนรายการต่อหน้า"
               :value="itemsPerPage"
               class="page-size-select"
               @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"

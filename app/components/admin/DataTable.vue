@@ -372,6 +372,9 @@ const getGroupBadgeClass = (groupName: string): string => {
       <div class="pagination-bar__left">
         <span>จำนวนรายการต่อหน้า</span>
         <select
+          id="page-size"
+          name="page-size"
+          aria-label="จำนวนรายการต่อหน้า"
           :value="itemsPerPage"
           class="page-size-select"
           @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"

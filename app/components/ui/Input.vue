@@ -190,9 +190,7 @@ defineEmits<{
 /**
  * Generate unique ID for label association
  */
-const inputId = computed(() => {
-  return `input-${Math.random().toString(36).substring(2, 9)}`
-})
+const inputId = `input-${Math.random().toString(36).substring(2, 9)}`
 </script>
 
 <style scoped>

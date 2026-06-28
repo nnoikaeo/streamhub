@@ -10,6 +10,9 @@
       <line x1="9" y1="18" x2="15" y2="18" />
     </svg>
     <select
+      :id="inputId"
+      :name="inputId"
+      aria-label="กรองตามบริษัท"
       class="theme-form-select"
       :value="modelValue ?? ''"
       @change="handleChange"
@@ -53,11 +56,13 @@ const props = withDefaults(defineProps<{
   modelValue: string | null
   showIcon?: boolean
   placeholder?: string
+  inputId?: string
 }>(), {
   modelValue: null,
   regions: () => [],
   showIcon: true,
   placeholder: 'ทุกบริษัท',
+  inputId: 'company-filter',
 })
 
 const emit = defineEmits<{

@@ -302,14 +302,18 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       <template #filters>
         <div class="filter-group">
           <input
+            id="user-search"
             v-model="searchQuery"
             type="text"
+            name="user-search"
+            aria-label="ค้นหาตามอีเมล หรือ ชื่อ"
             class="theme-form-input"
             placeholder="ค้นหาตามอีเมล หรือ ชื่อ..."
+            autocomplete="off"
           />
         </div>
         <div class="filter-group">
-          <select v-model="filterRole" class="theme-form-select">
+          <select id="user-filter-role" v-model="filterRole" name="user-filter-role" aria-label="กรองตามบทบาท" class="theme-form-select">
             <option :value="null">-- บทบาททั้งหมด --</option>
             <option value="admin">Admin</option>
             <option value="moderator">Moderator</option>
@@ -326,7 +330,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           />
         </div>
         <div class="filter-group">
-          <select v-model="filterActive" class="theme-form-select">
+          <select id="user-filter-status" v-model="filterActive" name="user-filter-status" aria-label="กรองตามสถานะ" class="theme-form-select">
             <option :value="null">-- สถานะทั้งหมด --</option>
             <option :value="true">เปิดใช้งาน</option>
             <option :value="false">ปิดใช้งาน</option>
