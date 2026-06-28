@@ -58,11 +58,20 @@ console.log(`📦 Entry JS  : /_nuxt/${entryJS}`)
 console.log(`🎨 Entry CSS : ${entryCSS ? `/_nuxt/${entryCSS}` : '(none)'}`)
 
 // ── Read runtime config from env (same values baked in at build time) ─────────
+const apiKey = process.env.NUXT_PUBLIC_FIREBASE_API_KEY || ''
+if (!apiKey) {
+  console.error('❌ NUXT_PUBLIC_FIREBASE_API_KEY is not set.')
+  console.error('   For CI: check GitHub Secrets.')
+  console.error('   For local: run with env vars from .env.local')
+  console.error('   e.g. export $(grep NUXT_PUBLIC .env.local | xargs) && node scripts/generate-spa-index.mjs')
+  process.exit(1)
+}
+
 const publicConfig = {
   useFirestore: process.env.NUXT_PUBLIC_USE_FIRESTORE === 'true',
   useJsonMock: process.env.NUXT_PUBLIC_USE_JSON_MOCK !== 'false',
   firebase: {
-    apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY || '',
+    apiKey,
     authDomain: process.env.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
     projectId: process.env.NUXT_PUBLIC_FIREBASE_PROJECT_ID || '',
     storageBucket: process.env.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
