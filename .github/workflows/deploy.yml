@@ -16,7 +16,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -45,6 +45,18 @@ jobs:
           NUXT_PUBLIC_USE_FIRESTORE: 'true'
           NUXT_PUBLIC_USE_JSON_MOCK: 'false'
         run: npm run build
+
+      - name: Generate SPA index.html
+        env:
+          NUXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NUXT_PUBLIC_FIREBASE_API_KEY }}
+          NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NUXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NUXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NUXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NUXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NUXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NUXT_PUBLIC_FIREBASE_APP_ID }}
+          NUXT_PUBLIC_USE_FIRESTORE: 'true'
+          NUXT_PUBLIC_USE_JSON_MOCK: 'false'
+        run: node scripts/generate-spa-index.mjs
 
       - name: Prepare Cloud Function package.json
         run: |
@@ -77,3 +89,21 @@ jobs:
           npx firebase-tools deploy --project ${{ secrets.FIREBASE_PROJECT_ID }} --force
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+
+      - name: Verify deployment
+        run: |
+          sleep 10
+          DEPLOYED=$(curl -s "https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app/")
+          EXPECTED_ENTRY=$(grep -o '"#entry":"[^"]*"' .output/public/index.html | head -1)
+          DEPLOYED_ENTRY=$(echo "$DEPLOYED" | grep -o '"#entry":"[^"]*"' | head -1)
+          echo "Expected entry: $EXPECTED_ENTRY"
+          echo "Deployed entry: $DEPLOYED_ENTRY"
+          if [ "$EXPECTED_ENTRY" != "$DEPLOYED_ENTRY" ]; then
+            echo "❌ Deployed entry chunk does not match build output!"
+            exit 1
+          fi
+          if echo "$DEPLOYED" | grep -q '"apiKey":""'; then
+            echo "❌ Firebase API key is empty in deployed index.html!"
+            exit 1
+          fi
+          echo "✅ Deployment verified"

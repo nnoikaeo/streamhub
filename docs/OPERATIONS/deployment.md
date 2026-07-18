@@ -59,33 +59,61 @@ Set these in **Settings → Secrets and variables → Actions**:
 
 ## Manual Deploy
 
+### Deploy ทุกอย่าง (Hosting + Functions) ผ่าน CI
+
+Push to `main` → GitHub Actions build และ deploy ให้อัตโนมัติ เป็นวิธีหลักที่แนะนำ
+
+### Deploy Hosting เท่านั้น จาก Local
+
+ใช้เมื่อ CI deploy แล้ว production ยังแสดงโค้ดเก่า (chunk hash ไม่ตรง) หรือ hotfix เล็กน้อย:
+
 ```bash
-# 1. Install Firebase CLI (if not already)
-npm install -g firebase-tools
+bash scripts/deploy-hosting.sh
+```
 
-# 2. Login
-firebase login
+Script นี้จะ:
+1. โหลด env vars จาก `.env.local` อัตโนมัติ
+2. `npm run build`
+3. `node scripts/generate-spa-index.mjs` (พร้อม Firebase config)
+4. `firebase deploy --only hosting`
 
-# 3. Build with Firebase preset
+> **⚠️ อย่า** run `generate-spa-index.mjs` โดยตรงโดยไม่ set env vars — index.html จะมี apiKey ว่างเปล่าทำให้ login ไม่ได้
+
+### Firestore Security Rules (Manual เท่านั้น)
+
+CI service account **ไม่มีสิทธิ์** deploy Firestore rules ต้อง deploy มือเสมอ:
+
+```bash
+firebase deploy --only firestore:rules --project streamhub-1c27a
+```
+
+> **หมายเหตุ:** rules ไฟล์อยู่ที่ `firestore.rules` ใน root เพิ่ม section `"firestore"` ใน firebase.json ถ้าต้องการ (**แต่ CI จะ fail** เพราะ SA ไม่มีสิทธิ์ `firebaserules.googleapis.com`)
+
+### Service Account Key หมดอายุ / ไม่ถูกต้อง
+
+ถ้า CI fail ด้วย `Failed to authenticate`:
+1. ไปที่ [GCP Console → IAM → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) → `firebase-adminsdk-fbsvc@streamhub-1c27a.iam.gserviceaccount.com`
+2. Tab **Keys** → Add Key → JSON → Download
+3. อัปเดต GitHub Secret `FIREBASE_SERVICE_ACCOUNT` ด้วย JSON content ทั้งหมด
+4. ลบ key เก่าออกจาก GCP (ป้องกัน leak)
+
+```bash
+# Deploy ทุกอย่างด้วย manual (ถ้าต้องการ)
 npm run build
-
-# 4. Deploy everything (Hosting + Functions)
+export $(grep NUXT_PUBLIC .env.local | xargs)
+export NUXT_PUBLIC_USE_FIRESTORE=true NUXT_PUBLIC_USE_JSON_MOCK=false
+node scripts/generate-spa-index.mjs
 firebase deploy
-
-# Deploy only Hosting
-firebase deploy --only hosting
-
-# Deploy only Functions
-firebase deploy --only functions
 ```
 
 ## Pre-deployment Checklist
 
 - [ ] All tests passing (`npm test`)
-- [ ] No console errors/warnings
-- [ ] Environment variables set correctly
-- [ ] Firebase security rules updated
+- [ ] No console errors/warnings (ทดสอบด้วย role: user, moderator, admin)
+- [ ] Environment variables set correctly ใน GitHub Secrets
+- [ ] Firestore security rules อัปเดตแล้ว (deploy manual ถ้ามีเปลี่ยนแปลง)
 - [ ] Firestore indexes deployed (`firebase deploy --only firestore:indexes`)
+- [ ] หลัง CI deploy ตรวจสอบ smoke test pass ใน Actions log
 
 ## Custom Domain + SSL
 

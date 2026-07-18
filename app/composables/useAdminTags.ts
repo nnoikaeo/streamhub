@@ -10,6 +10,7 @@ export function useAdminTags() {
     idKey: 'id',
     displayKey: 'name',
     idPrefix: 'tag_',
+    skipCompanyFilter: true,
     defaults: {
       isActive: true
     }

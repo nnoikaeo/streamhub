@@ -19,11 +19,14 @@
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
+            id="dashboard-search"
             v-model="searchQuery"
             type="text"
+            name="dashboard-search"
             class="search-input"
             placeholder="ค้นหาแดชบอร์ด..."
             aria-label="ค้นหาแดชบอร์ด"
+            autocomplete="off"
           />
           <button
             v-if="searchQuery"
@@ -325,6 +328,7 @@ import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useCompanyAccess } from '~/composables/useCompanyAccess'
 import { useLazyLoad } from '~/composables/useLazyLoad'
+import { useAuthStore } from '~/stores/auth'
 
 const route = useRoute()
 
@@ -465,8 +469,13 @@ watch(viewMode, (mode) => {
   }
 })
 
-// ========== Users (for moderator display) ==========
+// ========== Users (for admin/moderator display only) ==========
 const { users, fetchUsers } = useAdminUsers()
+const authStore = useAuthStore()
+const isPrivilegedUser = computed(() => {
+  const role = authStore.user?.role
+  return role === 'admin' || role === 'moderator'
+})
 
 const userMap = computed(() => {
   const map: Record<string, any> = {}
@@ -477,15 +486,12 @@ const userMap = computed(() => {
 })
 
 onMounted(async () => {
-  try {
-    await Promise.all([
-      fetchTags(),
-      fetchCompanies(),
-      fetchRegions(),
-      fetchUsers(),
-    ])
-  } catch (e) {
-    console.warn('[discover] Failed to load tags/companies/users:', e)
+  const fetches: Promise<any>[] = [fetchTags(), fetchCompanies(), fetchRegions()]
+  if (isPrivilegedUser.value) fetches.push(fetchUsers())
+  const results = await Promise.allSettled(fetches)
+  const failed = results.filter(r => r.status === 'rejected')
+  if (failed.length > 0) {
+    console.warn('[discover] Some data failed to load:', failed.map((r: any) => r.reason?.message))
   }
   // Restore tag filter from URL query params (e.g. ?tag=id1,id2)
   const tagParam = route.query.tag

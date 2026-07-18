@@ -71,8 +71,12 @@
           </div>
           <div class="panel__search">
             <input
+              id="permission-grant-search"
               v-model="grantSearch"
               type="text"
+              name="permission-grant-search"
+              aria-label="ค้นหารายการที่จะให้สิทธิ์"
+              autocomplete="off"
               class="panel__search-input"
               :placeholder="grantMode === 'users' ? 'ค้นหาชื่อ หรืออีเมล...' : grantMode === 'groups' ? 'ค้นหาชื่อกลุ่ม...' : 'ค้นหารหัสหรือชื่อบริษัท...'"
             />
@@ -289,8 +293,12 @@
           </div>
           <div class="panel__search">
             <input
+              id="permission-restriction-search"
               v-model="restrictionSearch"
               type="text"
+              name="permission-restriction-search"
+              aria-label="ค้นหาผู้ใช้เพื่อตั้งข้อจำกัด"
+              autocomplete="off"
               class="panel__search-input"
               placeholder="ค้นหาชื่อ หรืออีเมล..."
             />
@@ -393,19 +401,24 @@
               {{ getUserName(pendingRestrictionUid) }}
             </div>
             <template v-if="restrictionMode === 'revoke'">
-              <label class="restriction-popup__label">เหตุผล (ไม่บังคับ)</label>
+              <label for="permission-revoke-reason" class="restriction-popup__label">เหตุผล (ไม่บังคับ)</label>
               <input
+                id="permission-revoke-reason"
                 v-model="popupReason"
                 type="text"
+                name="permission-revoke-reason"
+                autocomplete="off"
                 class="restriction-popup__input"
                 placeholder="เหตุผลในการระงับ..."
               />
             </template>
             <template v-else>
-              <label class="restriction-popup__label">วันหมดอายุ</label>
+              <label for="permission-expiry-date" class="restriction-popup__label">วันหมดอายุ</label>
               <input
+                id="permission-expiry-date"
                 v-model="popupExpiryDate"
                 type="date"
+                name="permission-expiry-date"
                 class="restriction-popup__input"
               />
             </template>

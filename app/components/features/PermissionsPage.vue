@@ -769,10 +769,14 @@ watch(() => props.allFolders, (folders) => {
           <div v-if="editMode === 'dashboard'" class="filter-search dashboard-search-wrapper">
             <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
               <input
+                id="permission-dashboard-search"
                 ref="searchInputRef"
                 v-show="!selectedDashboardId || dashboardSearchQuery || isDropdownOpen"
                 v-model="dashboardSearchQuery"
                 type="text"
+                name="permission-dashboard-search"
+                aria-label="ค้นหาแดชบอร์ดเพื่อจัดการสิทธิ์"
+                autocomplete="off"
                 class="theme-form-input"
                 :placeholder="'🔍 เลือกแดชบอร์ดเพื่อจัดการสิทธิ์... (พิมพ์เพื่อค้นหา)'"
                 :disabled="isLoading"
@@ -815,10 +819,14 @@ watch(() => props.allFolders, (folders) => {
           <div v-if="editMode === 'folder'" class="filter-search folder-search-wrapper">
             <div class="dashboard-search" :class="{ 'dashboard-search--open': isFolderDropdownOpen }">
               <input
+                id="permission-folder-search"
                 ref="folderSearchInputRef"
                 v-show="!selectedEditFolderId || folderSearchQuery || isFolderDropdownOpen"
                 v-model="folderSearchQuery"
                 type="text"
+                name="permission-folder-search"
+                aria-label="ค้นหาโฟลเดอร์เพื่อจัดการสิทธิ์"
+                autocomplete="off"
                 class="theme-form-input"
                 :placeholder="'🔍 เลือกโฟลเดอร์เพื่อจัดการสิทธิ์... (พิมพ์เพื่อค้นหา)'"
                 @focus="isFolderDropdownOpen = true"
@@ -1022,8 +1030,11 @@ watch(() => props.allFolders, (folders) => {
           <div class="inherit-toggle">
             <label class="inherit-toggle__label">
               <input
+                id="permission-inherit-toggle"
                 type="checkbox"
                 v-model="folderInheritEnabled"
+                name="permission-inherit-toggle"
+                aria-label="สิทธิ์สืบทอด"
                 class="inherit-toggle__checkbox"
               />
               <span class="inherit-toggle__text">สิทธิ์สืบทอด</span>

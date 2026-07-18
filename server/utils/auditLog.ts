@@ -167,7 +167,12 @@ export async function logAuditEvent(params: {
       const { getAdminDb } = await import('./firestoreAdmin')
       const db = getAdminDb()
       if (!db) throw new Error('Firestore Admin SDK not available')
-      await db.collection('audit-log').doc(entry.id).set(entry)
+      // Firestore Admin SDK rejects `undefined` field values (e.g. optional
+      // metadata on view events) — strip them before writing.
+      const sanitized = Object.fromEntries(
+        Object.entries(entry).filter(([, v]) => v !== undefined)
+      )
+      await db.collection('audit-log').doc(entry.id).set(sanitized)
     }
 
     try {
@@ -351,7 +356,12 @@ export async function logActivity(entry: Omit<LegacyAuditEntry, 'timestamp'>): P
       const { getAdminDb } = await import('./firestoreAdmin')
       const db = getAdminDb()
       if (!db) throw new Error('Firestore Admin SDK not available')
-      await db.collection('audit-log').doc(id).set(newEntry)
+      // Firestore Admin SDK rejects `undefined` field values (e.g. optional
+      // metadata) — strip them before writing.
+      const sanitized = Object.fromEntries(
+        Object.entries(newEntry).filter(([, v]) => v !== undefined)
+      )
+      await db.collection('audit-log').doc(id).set(sanitized)
     }
 
     try {

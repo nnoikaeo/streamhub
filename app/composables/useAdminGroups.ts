@@ -15,6 +15,7 @@ export function useAdminGroups() {
     resourceName: 'groups',
     idKey: 'id',
     displayKey: 'name',
+    skipCompanyFilter: true,
     defaults: {
       members: [],
       isActive: true

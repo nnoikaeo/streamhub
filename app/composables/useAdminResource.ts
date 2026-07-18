@@ -58,6 +58,12 @@ interface AdminResourceConfig<T> {
   defaults?: Partial<T>
 
   /**
+   * Skip company-based filtering when fetching. Set true for resources that
+   * have no company field (folders, tags, groups) so moderators see all items.
+   */
+  skipCompanyFilter?: boolean
+
+  /**
    * Custom extension methods for resource-specific utilities
    */
   extensions?: ResourceExtensions<T>
@@ -140,7 +146,8 @@ export function useAdminResource<T extends Record<string, any>>(
     idPrefix,
     defaults = {},
     extensions = {},
-    pluralName = resourceName.endsWith('s') ? resourceName : `${resourceName}s`
+    pluralName = resourceName.endsWith('s') ? resourceName : `${resourceName}s`,
+    skipCompanyFilter = false
   } = config
 
   // Firestore mode detection
@@ -242,11 +249,11 @@ export function useAdminResource<T extends Record<string, any>>(
       return { ...data, [idKey]: idValue } as T
     })
 
-    // Apply company-based filtering for non-admin users
+    // Apply company-based filtering for non-admin users (only for resources with a company field)
     const authStore = useAuthStore()
     const userRole = authStore.user?.role
     const userCompany = authStore.user?.company
-    if (userRole && userRole !== 'admin' && userCompany) {
+    if (!skipCompanyFilter && userRole && userRole !== 'admin' && userCompany) {
       items.value = docs.filter(item => (item as any).company === userCompany)
     } else {
       items.value = docs

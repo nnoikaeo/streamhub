@@ -89,9 +89,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminFolders } from '~/composables/useAdminFolders'
-import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
-import { useAdminGroups } from '~/composables/useAdminGroups'
 import type { Folder } from '~/types/dashboard'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import { usePermissionsStore } from '~/stores/permissions'
@@ -107,9 +105,7 @@ const permissionsStore = usePermissionsStore()
 const { getRecentDashboards } = useRecentDashboards()
 const { dashboards, fetchDashboards } = useAdminDashboards()
 const { folders, fetchFolders } = useAdminFolders()
-const { users, fetchUsers } = useAdminUsers()
 const { companies, fetchCompanies } = useAdminCompanies()
-const { groups, fetchGroups } = useAdminGroups()
 
 // Permissions
 const canCreateFolder = computed(() => permissionsStore.can('canCreateFolder'))
@@ -176,13 +172,9 @@ const companyDashboardsCount = computed(() => {
 
 const foldersCount = computed(() => folders.value.length)
 
-const totalUsersCount = computed(() => users.value.length)
-
 const dashboardsCount = computed(() => dashboards.value.length)
 
 const companiesCount = computed(() => companies.value.length)
-
-const groupsCount = computed(() => groups.value.length)
 
 // Recent dashboards - top 5 most recently visited by this user (localStorage)
 const recentDashboards = ref<Array<{ id: string; name: string; lastAccessed: string }>>([])
@@ -212,12 +204,10 @@ const handleShare = () => {
 // Fetch all data on mount
 onMounted(async () => {
   loadRecentDashboards()
+  const isPrivileged = isAdmin.value || isModerator.value
   await Promise.all([
     fetchDashboards(),
-    fetchFolders(),
-    fetchUsers(),
-    fetchCompanies(),
-    fetchGroups()
+    ...(isPrivileged ? [fetchFolders(), fetchCompanies()] : []),
   ])
 })
 </script>

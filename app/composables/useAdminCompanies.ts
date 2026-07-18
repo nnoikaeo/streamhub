@@ -15,6 +15,7 @@ export function useAdminCompanies() {
     resourceName: 'companies',
     idKey: 'code',
     displayKey: 'code',
+    skipCompanyFilter: true,
     defaults: {
       isActive: true
     }

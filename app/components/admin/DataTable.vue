@@ -220,6 +220,8 @@ const getGroupBadgeClass = (groupName: string): string => {
             <th v-if="selectable" class="w-12 p-4 text-center" style="user-select: none">
               <input
                 type="checkbox"
+                name="table-select-all"
+                aria-label="เลือกทั้งหมด"
                 :checked="isAllSelected"
                 @change="handleSelectAll"
                 class="table-checkbox"
@@ -271,6 +273,8 @@ const getGroupBadgeClass = (groupName: string): string => {
               <td v-if="selectable" class="w-12 p-4 text-center">
                 <input
                   type="checkbox"
+                  name="table-row-select"
+                  :aria-label="`เลือกแถว${item?.name ? ' ' + item.name : ''}`"
                   :checked="isRowSelected((currentPage - 1) * itemsPerPage + index)"
                   @change="handleRowSelect((currentPage - 1) * itemsPerPage + index)"
                   class="table-checkbox"
@@ -299,6 +303,8 @@ const getGroupBadgeClass = (groupName: string): string => {
                   <label class="ios-toggle">
                     <input
                       type="checkbox"
+                      name="row-status-toggle"
+                      :aria-label="`สลับสถานะ${item?.name ? ' ' + item.name : ''}`"
                       :checked="item.isActive"
                       @click.prevent="handleToggleActive(item)"
                     />
@@ -372,6 +378,9 @@ const getGroupBadgeClass = (groupName: string): string => {
       <div class="pagination-bar__left">
         <span>จำนวนรายการต่อหน้า</span>
         <select
+          id="page-size"
+          name="page-size"
+          aria-label="จำนวนรายการต่อหน้า"
           :value="itemsPerPage"
           class="page-size-select"
           @change="changePageSize(Number(($event.target as HTMLSelectElement).value))"
