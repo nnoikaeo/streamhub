@@ -9,7 +9,7 @@ definePageMeta({
 const route = useRoute()
 const code = route.query.code as string
 
-const { isFirestore: useFirestore, apiBase: getApiBase } = useServiceMode()
+const { apiBase: getApiBase } = useServiceMode()
 const apiBase = getApiBase('invitations')
 
 const authStore = useAuthStore()
@@ -107,11 +107,27 @@ const handleAccept = async () => {
   }
 }
 
-// Sign in with Google then accept (uses redirect — page navigates away to Google)
+// Sign in with Google via popup then check email match and accept
 const signInAndAccept = async () => {
   const { signInWithGoogle } = useAuth()
-  await signInWithGoogle()
-  // Page navigates away to Google, code below does not run
+  status.value = 'processing'
+  const result = await signInWithGoogle({ skipAutoAccept: true })
+  if (!result.success) {
+    if (result.error) {
+      status.value = 'error'
+      errorMessage.value = result.error
+    } else {
+      // User closed popup — restore previous state
+      status.value = 'valid'
+    }
+    return
+  }
+  // Signed in — check email match then accept
+  if (authStore.user?.email?.toLowerCase() === invitation.value?.email?.toLowerCase()) {
+    await handleAccept()
+  } else {
+    status.value = 'email_mismatch'
+  }
 }
 
 // Sign out and reset to valid state
@@ -145,29 +161,10 @@ watch(() => authStore.isAuthenticated, () => {
 })
 
 onMounted(async () => {
-  // First check if returning from Google redirect (skipAutoAccept: true — this page handles acceptance)
-  const { handleRedirectResult, initAuth } = useAuth()
-  const redirectResult = await handleRedirectResult({ skipAutoAccept: true })
-
-  if (redirectResult !== null) {
-    // Returning from Google redirect — verify invitation then process sign-in result
-    await verifyInvitation()
-    if (redirectResult.success) {
-      if (authStore.user?.email?.toLowerCase() === invitation.value?.email?.toLowerCase()) {
-        await handleAccept()
-      } else {
-        status.value = 'email_mismatch'
-      }
-    } else {
-      status.value = 'error'
-      errorMessage.value = redirectResult.error || 'ลงชื่อเข้าใช้ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'
-    }
-  } else {
-    // Normal page load — always call initAuth because SSR hydrates loading=false
-    // before client-side Firebase auth is initialized
-    await initAuth()
-    await verifyInvitation()
-  }
+  const { initAuth } = useAuth()
+  // Always call initAuth — SSR hydrates loading=false before client Firebase auth initializes
+  await initAuth()
+  await verifyInvitation()
 })
 </script>
 
