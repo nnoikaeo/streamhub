@@ -2,7 +2,7 @@
 
 **Project:** Dashboard Management System for Streamwash (150+ employees)
 **Strategy:** Iterative — Features → QA → Deploy
-**Last Updated:** 2026-04-12
+**Last Updated:** 2026-07-18
 
 ---
 
@@ -111,18 +111,11 @@
 - [x] **Go Back** — navigate to `/dashboard/discover` without folder filter
 - [x] **Dropdown styling** — fixed global button CSS override (added `.menu-item` to exclusion list in `main.css`)
 
-#### TODO (Dashboard View — ต้องทำต่อในอนาคต)
+#### Dashboard View actions ✅ COMPLETED
 
-- [ ] **แก้ไขข้อมูล** — implement dialog สำหรับแก้ไข name/description/tags ของ dashboard
-  - ไฟล์: `app/pages/dashboard/view/[id].vue` → `handleEditInfo()`
-  - ควรเปิด modal form คล้าย `DashboardForm.vue` แต่ inline บน view page
-- [ ] **ดาวน์โหลด** — implement export dashboard เป็น PDF หรือ screenshot
-  - ไฟล์: `app/pages/dashboard/view/[id].vue` → `handleDownload()`
-  - แนวทาง: ใช้ browser `window.print()` หรือ puppeteer API route
-- [ ] **เก็บถาวร** — implement confirm dialog แล้ว archive/soft-delete dashboard
-  - ไฟล์: `app/pages/dashboard/view/[id].vue` → `handleArchive()`
-  - ต้องเพิ่ม `status: 'archived'` field ใน Dashboard type + API
-  - เพิ่ม `isArchived` filter ใน discover page
+- [x] **แก้ไขข้อมูล** — edit dialog (name/description/tags) via `handleEditInfo()` + `handleEditSave()` in `app/pages/dashboard/view/[id].vue`
+- [x] **ดาวน์โหลด** — `handleDownload()` uses browser `window.print()` (print-mode CSS)
+- [x] **เก็บถาวร** — archive confirm dialog + soft-delete (`isArchived` / `archivedAt` on Dashboard)
 
 ---
 
@@ -177,14 +170,15 @@
 
 ---
 
-### Phase 7: QA & Bug Fixes 🔄 IN PROGRESS
+### Phase 7: QA & Bug Fixes ✅ COMPLETED
 **Goal:** Manual test plan execution, bug fixes, production stability
 
+- [x] **Pre-launch checklist A–E PASSED** (2026-07-18) — Route Protection, Admin Edit/Delete, Invitations, Permissions, Moderator folder-scoped access — see [pre-launch-checklist.md](pre-launch-checklist.md). App launch-ready at https://streamhub-1c27a.web.app
 - [x] **Manual Test Plan** — [manual-test-plan.md](manual-test-plan.md) (145 test cases)
   - [x] Section 1: Authentication & Onboarding (TC 1.1–1.2) ✅
   - [x] Section 2.1: Dashboard Home ✅
-  - [ ] Section 2.2: Dashboard Discover
-  - [ ] Section 2.3+: remaining dashboard, admin, moderator pages
+  - [x] Section 2.2: Dashboard Discover (12/12 passed; BUG-001/002/003 fixed) ✅
+  - [ ] Section 2.3+: remaining dashboard, admin, moderator pages (superseded by pre-launch A–E)
 - [x] **Recent Dashboards tracking** — เปลี่ยนจาก `updatedAt` → localStorage per-user (PR #237)
 - [x] **Fix embed URL in production** — `/api/embed/request` อ่าน user+dashboard จาก Firestore (PR #239)
 - [x] **Quick Actions uniform style** — ลบ primary style จากปุ่ม "สร้างแดชบอร์ด" (PR #241)
@@ -193,6 +187,31 @@
 **Plans:**
 - [archive/phase6-implementation-plan.md](archive/phase6-implementation-plan.md) *(archived — completed)*
 - [archive/user-invitations-plan.md](archive/user-invitations-plan.md) *(archived — completed)*
+
+---
+
+### Phase 8: Production Readiness Hardening ✅ COMPLETED
+**Goal:** Harden dev/production boundary, automated CI checks
+
+- [x] Harden Auth Middleware (PR #202)
+- [x] Fix Localhost Fallbacks + Env Validation (PR #203)
+- [x] Fix Audit Log Fallback (PR #205→#206)
+- [x] Health Check API + Status Page (PR #207→#208) — `/admin/health`
+- [x] Production Readiness Test Suite — 12 test files / 134 tests, CI runs `npm test` on deploy + preview
+- [x] Standardize service-mode flag — `useServiceMode` composable (Firestore vs JSON mock)
+- [x] Disable Mock API in production — `server/middleware/blockMockApi.ts` returns 404 for `/api/mock/*` in prod builds
+
+---
+
+## Remaining Backlog (non-blocking)
+
+Feature stubs, optional — app fully functional without them:
+
+- [ ] Home page **create folder** button — `app/pages/dashboard/index.vue` → `handleCreateFolder()`
+- [ ] Home page **share** button — `app/pages/dashboard/index.vue` → share handler
+- [ ] Explorer **folder creation dialog** — `app/composables/useDashboardPage.ts:329`
+- [ ] **Profile page** + nav — `app/components/ui/UserMenu.vue:156`
+- [ ] **Settings page** + nav — `app/components/ui/UserMenu.vue:165`
 
 ---
 
