@@ -61,8 +61,14 @@ const dashboardService = useDashboardService()
 const cameFromExplorer = computed(() => !!route.query.dashboard || !!route.query.folder)
 
 const goBackToExplorer = () => {
-  // Navigate back — browser history has the explorer page
-  router.back()
+  // Prefer browser back (preserves explorer folder + scroll position).
+  // Fall back to the Explorer breadcrumb link if history was lost (e.g. page refresh).
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
+  const explorerCrumb = props.breadcrumbs.find(b => b.to?.includes('/explorer'))
+  router.push(explorerCrumb?.to ?? '/admin/explorer')
 }
 
 // ─── State ──────────────────────────────────────────────────────────────
@@ -740,11 +746,22 @@ watch(() => props.allFolders, (folders) => {
   >
     <AdminPageContent>
       <template #header>
-        <h1 class="page-header__title">จัดการสิทธิ์</h1>
+        <div class="page-header__row">
+          <button
+            v-if="cameFromExplorer"
+            type="button"
+            class="back-to-explorer-btn"
+            @click="goBackToExplorer"
+          >
+            ← กลับไป Explorer
+          </button>
+          <h1 class="page-header__title">จัดการสิทธิ์</h1>
+        </div>
       </template>
 
       <template #filters>
-        <div class="filter-bar">
+        <!-- Filter bar hidden when arriving from Explorer — target is already chosen -->
+        <div v-if="!cameFromExplorer" class="filter-bar">
           <!-- Mode Toggle (Button Group) -->
           <div class="mode-toggle">
             <button
@@ -865,8 +882,8 @@ watch(() => props.allFolders, (folders) => {
           </div>
         </div>
 
-        <!-- Hint bar (shown when nothing selected) -->
-        <div v-if="!hasSelection" class="filter-hint">
+        <!-- Hint bar (shown when nothing selected, and not in focused explorer flow) -->
+        <div v-if="!hasSelection && !cameFromExplorer" class="filter-hint">
           💡 เลือกโหมด <strong>แดชบอร์ด</strong> หรือ <strong>โฟลเดอร์</strong> ด้านซ้าย แล้วค้นหารายการที่ต้องการจัดการสิทธิ์
         </div>
       </template>
@@ -896,6 +913,14 @@ watch(() => props.allFolders, (folders) => {
               </p>
             </div>
             <div class="editor-actions">
+              <button
+                v-if="cameFromExplorer"
+                type="button"
+                class="page-header-action-btn page-header-action-btn--secondary"
+                @click="goBackToExplorer"
+              >
+                ยกเลิก
+              </button>
               <button
                 type="button"
                 class="page-header-action-btn page-header-action-btn--secondary"
@@ -1007,6 +1032,14 @@ watch(() => props.allFolders, (folders) => {
               </p>
             </div>
             <div class="editor-actions">
+              <button
+                v-if="cameFromExplorer"
+                type="button"
+                class="page-header-action-btn page-header-action-btn--secondary"
+                @click="goBackToExplorer"
+              >
+                ยกเลิก
+              </button>
               <button
                 type="button"
                 class="page-header-action-btn page-header-action-btn--secondary"
@@ -1315,6 +1348,33 @@ watch(() => props.allFolders, (folders) => {
 /* Editor Section */
 .editor-section {
   padding: var(--spacing-lg);
+}
+
+/* Page header row with optional back button */
+.page-header__row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md, 1rem);
+  flex-wrap: wrap;
+}
+
+.back-to-explorer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius-md, 0.375rem);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.back-to-explorer-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .editor-header {
