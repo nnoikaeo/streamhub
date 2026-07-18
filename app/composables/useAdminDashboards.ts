@@ -17,6 +17,7 @@ export function useAdminDashboards() {
     idKey: 'id',
     displayKey: 'name',
     idPrefix: 'dash_',
+    skipCompanyFilter: true,
     defaults: {
       type: 'looker',
       isArchived: false,

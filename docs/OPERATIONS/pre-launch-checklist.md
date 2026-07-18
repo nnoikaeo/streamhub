@@ -208,28 +208,29 @@
 ## กลุ่ม E — Moderator: เข้าได้เฉพาะ Folder ที่ Assign (4.1.1–4.1.3)
 > ใช้เวลา ~20 นาที | ต้องการ: Login เป็น **Moderator M**
 
-> **ข้อมูลที่ต้องรู้ก่อนทดสอบ:**
-> - Folder ที่ M ได้รับ assign: `___________`
-> - Folder ที่ M ไม่ได้ assign: `___________`
+> **บัญชีที่ใช้ทดสอบ:** Nopphol Noikaeo (n.noikaeo@gmail.com, role: moderator, company: INFE)
+> - Folder ที่ M ได้รับ assign: **Finance**
+> - Folder ที่ M ไม่ได้ assign: **HR, Operations, Sales, แดชบอร์ดหลัก**
 
 ### E1 — เห็นเฉพาะ Folder ที่ Assign
-- [ ] Login เป็น **Moderator M** → ไปที่ `/manage/explorer`
-- **ผลที่คาดหวัง:** Folder ที่ assign ปรากฏ / คลิกได้ ✓ / ✗
-- **ผลที่คาดหวัง:** Folder ที่ไม่ได้ assign แสดงเป็น disabled หรือไม่โชว์ ✓ / ✗
-- **หมายเหตุ:** ___________
+- [x] Login เป็น **Nopphol Noikaeo** → ไปที่ `/manage/explorer`
+- **ผลที่คาดหวัง:** Folder ที่ assign (Finance) ปรากฏ / คลิกได้ ✓
+- **ผลที่คาดหวัง:** Folder ที่ไม่ได้ assign (HR/Operations/Sales) แสดงเป็น disabled ✓
+- **หมายเหตุ:** ผ่าน — แก้ bug BUG-E01 ก่อน (useAdminResource company filter ทำให้ folders ว่าง); หลังแก้ Finance โชว์ในแผง content, HR/Operations/Sales/แดชบอร์ดหลักเป็นสีจางใน tree
 
 ### E2 — สร้าง Dashboard ใน Folder ที่มีสิทธิ์
-- [ ] Navigate ไปที่ Folder ที่ **M ได้รับ assign**
-- [ ] คลิก "สร้างแดชบอร์ด" → กรอกข้อมูล → Submit
-- **ผลที่คาดหวัง:** Dashboard สร้างสำเร็จ, ปรากฏใน folder ✓ / ✗
-- **หมายเหตุ:** ___________
+- [x] Navigate ไปที่ Finance → Budget → 2026 (subfolder ที่สร้างใหม่)
+- [x] คลิก "+ แดชบอร์ดใหม่" → กรอก "Budget 2026" → Submit
+- **ผลที่คาดหวัง:** Dashboard สร้างสำเร็จ, ปรากฏใน folder ✓
+- **หมายเหตุ:** ผ่าน — แก้ bug BUG-E02 (Firestore rules ไม่อนุญาต moderator create subfolder) + BUG-E03 (dashboard delete ไม่ทำงานใน sub-folder); moderator สร้าง subfolder Finance>Budget>2026 ได้, สร้างและลบ dashboard ใน sub-folder ได้
 
 ### E3 — สร้าง Dashboard ใน Folder ที่ไม่มีสิทธิ์
-- [ ] Navigate ไปที่ Folder ที่ **M ไม่ได้รับ assign**
-- **ผลที่คาดหวัง:** ปุ่ม "สร้าง" ซ่อนอยู่ หรือกดแล้วได้ Error "ไม่มีสิทธิ์" ✓ / ✗
-- **หมายเหตุ:** ___________
+- [x] คลิก HR ใน tree → ไม่ clickable (disabled)
+- [x] พิมพ์ URL `/admin/explorer/folder_hr` ตรงๆ → redirect ออก
+- **ผลที่คาดหวัง:** ปุ่ม "สร้าง" ซ่อนอยู่ / navigate ไม่ได้ ✓
+- **หมายเหตุ:** ผ่าน — HR disabled ใน tree, URL bypass ถูก redirect; code watch guard ใน `/manage/explorer` redirect `/manage/explorer/[non-assigned-id]` กลับ root
 
-**กลุ่ม E ผ่าน/ไม่ผ่าน:** ___________
+**กลุ่ม E ผ่าน/ไม่ผ่าน:** ✅ ผ่าน (2026-07-18) — E1-E3 ครบ; พบและแก้ 3 bugs ระหว่างทดสอบ
 
 ---
 
@@ -240,8 +241,8 @@
 | A | Security: Route Protection | ✅ ผ่าน | A3 พบ non-blocking console error (race condition ใน redirect, ไม่กระทบ function) |
 | B | Admin Users: Edit & Delete | ✅ ผ่าน | พบ form field warnings (id/name) ใน UserForm modal — ยังไม่ blocking |
 | C | Invitations | ✅ ผ่าน | C3 Google 2FA ไม่สามารถ verify ได้ (โทรศัพท์อยู่ที่บริษัท) — flow ถูกต้อง |
-| D | Permissions | ✓ / ✗ | |
-| E | Moderator Access | ✓ / ✗ | |
+| D | Permissions | ✅ ผ่าน | D4 test invalid (dashboard public) → ทดสอบใหม่ด้วย D4b (Layer-3 revoke) + D5 (group grant) |
+| E | Moderator Access | ✅ ผ่าน | พบ 3 bugs ระหว่างทดสอบ — แก้และ deploy ครบ (BUG-E01/02/03) |
 
 ### ปัญหาที่พบ
 
@@ -253,6 +254,6 @@
 
 ### ผลการตัดสิน
 
-- [ ] **✅ ผ่านทุกกลุ่ม — พร้อม Launch**
+- [x] **✅ ผ่านทุกกลุ่ม — พร้อม Launch** (2026-07-18)
 - [ ] **⚠️ มีปัญหาที่ยอมรับได้ — Launch โดย track bug ไว้**
 - [ ] **❌ มีปัญหา Blocking — ต้องแก้ก่อน Launch**

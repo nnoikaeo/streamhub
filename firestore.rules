@@ -24,6 +24,25 @@ service cloud.firestore {
       return isAdmin() || isModerator();
     }
 
+    // Returns true if folderId is directly assigned to the current moderator
+    function isAssignedFolder(folderId) {
+      let f = get(/databases/$(database)/documents/folders/$(folderId)).data;
+      return 'assignedModerators' in f && f.assignedModerators.hasAny([request.auth.uid]);
+    }
+
+    // Returns true if folderId is in the moderator's manageable tree
+    // Checks: folder itself, its parent, or its grandparent (covers 3 levels deep)
+    function isManagedFolder(folderId) {
+      let f = get(/databases/$(database)/documents/folders/$(folderId)).data;
+      return isAssignedFolder(folderId) ||
+        (f.parentId != null && isAssignedFolder(f.parentId)) ||
+        (f.parentId != null &&
+          get(/databases/$(database)/documents/folders/$(f.parentId)).data.parentId != null &&
+          isAssignedFolder(
+            get(/databases/$(database)/documents/folders/$(f.parentId)).data.parentId
+          ));
+    }
+
     // ── users ─────────────────────────────────────────────────────────────────
     // Each user reads own doc (auth bootstrap on login).
     // Admins/mods read all users (permission management UI).
@@ -36,25 +55,31 @@ service cloud.firestore {
     // ── folders ───────────────────────────────────────────────────────────────
     // All authenticated users read (client-side filters visibility per role).
     // Admins write any folder.
-    // Moderators update only folders where they are in assignedModerators.
+    // Moderators can create sub-folders (parentId != null) — app enforces manageable-tree check.
+    // Moderators update: directly assigned folders OR folders whose parent/grandparent is assigned.
+    // Moderators delete: only sub-folders they created (not directly-assigned root folders).
     match /folders/{folderId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin();
+      allow create: if isAdmin() ||
+        (isModerator() && request.resource.data.parentId != null);
       allow update: if isAdmin() ||
-        (isModerator() && resource.data.assignedModerators.hasAny([request.auth.uid]));
-      allow delete: if isAdmin();
+        (isModerator() && isManagedFolder(folderId));
+      allow delete: if isAdmin() ||
+        (isModerator() && resource.data.createdBy == request.auth.uid &&
+          resource.data.parentId != null);
     }
 
     // ── dashboards ────────────────────────────────────────────────────────────
     // All authenticated users read (client-side filters by access.direct / company).
     // Admins write any dashboard.
-    // Moderators create/update dashboards in their assigned folders only.
+    // Moderators create/update/delete dashboards in their managed folder tree.
     match /dashboards/{dashboardId} {
       allow read: if isSignedIn();
       allow create: if isAdminOrMod();
       allow update: if isAdmin() ||
-        (isModerator() && get(/databases/$(database)/documents/folders/$(resource.data.folderId)).data.assignedModerators.hasAny([request.auth.uid]));
-      allow delete: if isAdmin();
+        (isModerator() && isManagedFolder(resource.data.folderId));
+      allow delete: if isAdmin() ||
+        (isModerator() && isManagedFolder(resource.data.folderId));
     }
 
     // ── companies ─────────────────────────────────────────────────────────────

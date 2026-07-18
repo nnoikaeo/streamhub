@@ -95,6 +95,7 @@ export function useAdminFolders() {
     idKey: 'id',
     displayKey: 'name',
     idPrefix: 'folder_',
+    skipCompanyFilter: true,
     defaults: {
       parentId: null,
       isActive: true,

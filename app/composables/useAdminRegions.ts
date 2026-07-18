@@ -15,6 +15,7 @@ export function useAdminRegions() {
     resourceName: 'regions',
     idKey: 'code',
     displayKey: 'name',
+    skipCompanyFilter: true,
     defaults: {
       isActive: true
     }
