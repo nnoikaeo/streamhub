@@ -4,9 +4,7 @@ import { mapErrorMessage } from '~/utils/errorMessages'
 import ErrorDialog from '~/components/ErrorDialog.vue'
 
 const router = useRouter()
-const route = useRoute()
-const { signInWithGoogle, handleRedirectResult } = useAuth()
-const authStore = useAuthStore()
+const { signInWithGoogle } = useAuth()
 const loading = ref(false)
 const showErrorDialog = ref(false)
 const errorInfo = ref({
@@ -15,48 +13,30 @@ const errorInfo = ref({
   showRequestAccess: false
 })
 
-console.log('📄 [login.vue] Page mounted')
-console.log('📄 [login.vue] Route info:', {
-  path: route.path,
-  name: route.name,
-  params: route.params
-})
-
 definePageMeta({
-  layout: false,  // Disable default layout
-  middleware: 'auth'  // Explicitly apply auth middleware
-})
-
-// Check if returning from Google redirect sign-in
-onMounted(async () => {
-  loading.value = true
-  try {
-    const result = await handleRedirectResult()
-    if (result === null) return // Normal page load, no redirect result
-
-    if (result.success) {
-      const targetRoute = '/dashboard'
-      console.log(`🎉 Redirecting to ${targetRoute} (role: ${authStore.user?.role})...`)
-      await router.push(targetRoute)
-    } else {
-      const error = new Error(result.error)
-      errorInfo.value = mapErrorMessage(error)
-      showErrorDialog.value = true
-    }
-  } catch (error: any) {
-    console.error('❌ Unexpected redirect error:', error)
-    errorInfo.value = mapErrorMessage(error)
-    showErrorDialog.value = true
-  } finally {
-    loading.value = false
-  }
+  layout: false,
+  middleware: 'auth'
 })
 
 const handleGoogleSignIn = async () => {
   loading.value = true
   showErrorDialog.value = false
-  await signInWithGoogle()
-  // Page navigates away to Google — code below does not run
+  try {
+    const result = await signInWithGoogle()
+    if (result.success) {
+      await router.push('/dashboard')
+    } else if (result.error) {
+      errorInfo.value = mapErrorMessage(new Error(result.error))
+      showErrorDialog.value = true
+    }
+    // result.success=false + no error = user closed popup, do nothing
+  } catch (error: any) {
+    console.error('❌ Unexpected sign-in error:', error)
+    errorInfo.value = mapErrorMessage(error)
+    showErrorDialog.value = true
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleCloseErrorDialog = () => {

@@ -9,13 +9,14 @@
           :class="{ 'folder-selected': isSelected(folder.id), 'folder-disabled': isDisabled(folder.id) }"
           @click="selectFolder(folder)"
         >
-          <!-- Expand/Collapse Button -->
+          <!-- Expand/Collapse Button (always rendered to keep icon alignment) -->
           <button
-            v-if="folder.children && folder.children.length > 0"
             type="button"
             class="expand-btn"
             :class="{ 'expand-open': expandedFolders.has(folder.id) }"
-            @click.stop="toggleExpand(folder.id)"
+            :disabled="!folder.children || folder.children.length === 0"
+            :aria-hidden="!folder.children || folder.children.length === 0"
+            @click.stop="folder.children && folder.children.length > 0 && toggleExpand(folder.id)"
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M8.59 16.58L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
@@ -275,10 +276,11 @@ const selectFolder = (folder: Folder) => {
   fill: currentColor;
 }
 
-/* Empty expand button for items without children */
+/* Invisible spacer for items without children — keeps icon column aligned */
 .expand-btn:disabled {
   opacity: 0;
   cursor: default;
+  pointer-events: none;
 }
 
 /* ========== FOLDER ICON ========== */
