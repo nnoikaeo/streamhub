@@ -1,4 +1,4 @@
-import { signOut, onAuthStateChanged, signInWithRedirect, getRedirectResult, GoogleAuthProvider } from 'firebase/auth'
+import { signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
 import { getDoc, doc } from 'firebase/firestore'
 import { useAuthStore, type UserData } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
@@ -7,7 +7,6 @@ export const useAuth = () => {
   const { $firebase } = useNuxtApp()
   const authStore = useAuthStore()
   const permissionsStore = usePermissionsStore()
-  const config = useRuntimeConfig()
   const { isFirestore: useFirestoreMode } = useServiceMode()
 
   /**
@@ -29,116 +28,100 @@ export const useAuth = () => {
     return data.data ?? null
   }
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (options?: { skipAutoAccept?: boolean }): Promise<{ success: boolean; error?: string }> => {
     const provider = new GoogleAuthProvider()
-    console.log('🔐 Starting Google Sign-in (redirect)...')
-    await signInWithRedirect($firebase.auth, provider)
-  }
-
-  /**
-   * Call on page mount to process the result of signInWithRedirect.
-   * Returns null if no redirect result (normal page load).
-   * Returns { success, error? } if returning from Google redirect.
-   */
-  const handleRedirectResult = async (options?: { skipAutoAccept?: boolean }) => {
+    console.log('🔐 Starting Google Sign-in (popup)...')
     try {
-      const userCredential = await getRedirectResult($firebase.auth)
-      if (!userCredential) return null
+      const userCredential = await signInWithPopup($firebase.auth, provider)
+      console.log('✅ Popup sign-in successful:', userCredential.user.email)
 
-      console.log('✅ Redirect sign-in successful:', userCredential.user.email)
+      const idToken = await userCredential.user.getIdToken()
+      const mockUser = await fetchUserProfile(userCredential.user.uid, idToken)
 
-      try {
-        const idToken = await userCredential.user.getIdToken()
-        const mockUser = await fetchUserProfile(userCredential.user.uid, idToken)
+      if (mockUser && mockUser.isActive === false) {
+        await $firebase.auth.signOut()
+        throw new Error('บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ')
+      }
 
-        if (mockUser && mockUser.isActive === false) {
-          await $firebase.auth.signOut()
-          throw new Error('บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ')
+      if (!mockUser) {
+        // skipAutoAccept: caller (invite page) handles acceptance itself
+        if (options?.skipAutoAccept) {
+          const userData: UserData = {
+            uid: userCredential.user.uid,
+            email: userCredential.user.email,
+            displayName: userCredential.user.displayName,
+            photoURL: userCredential.user.photoURL,
+            role: '',
+            company: ''
+          }
+          authStore.setUser(userData)
+          authStore.setLoading(false)
+          return { success: true }
         }
 
-        if (!mockUser) {
-          if (!options?.skipAutoAccept) try {
-            const invApiBase = useFirestoreMode ? '/api/invitations' : '/api/mock/invitations'
-            const invResponse = await $fetch<any>(`${invApiBase}/check`, {
-              query: { email: userCredential.user.email }
+        try {
+          const invApiBase = useFirestoreMode ? '/api/invitations' : '/api/mock/invitations'
+          const invResponse = await $fetch<any>(`${invApiBase}/check`, {
+            query: { email: userCredential.user.email }
+          })
+
+          if (invResponse.found && invResponse.data?.status === 'pending') {
+            const acceptResponse = await $fetch<any>(`${invApiBase}/accept`, {
+              method: 'POST',
+              body: {
+                invitationCode: invResponse.data.invitationCode,
+                uid: userCredential.user.uid,
+                email: userCredential.user.email,
+                displayName: userCredential.user.displayName,
+                photoURL: userCredential.user.photoURL
+              }
             })
 
-            if (invResponse.found && invResponse.data?.status === 'pending') {
-              const acceptResponse = await $fetch<any>(`${invApiBase}/accept`, {
-                method: 'POST',
-                body: {
-                  invitationCode: invResponse.data.invitationCode,
-                  uid: userCredential.user.uid,
-                  email: userCredential.user.email,
-                  displayName: userCredential.user.displayName,
-                  photoURL: userCredential.user.photoURL
-                }
-              })
-
-              if (acceptResponse.success) {
-                const newUser = acceptResponse.data.user
-                const userData: UserData = {
-                  uid: userCredential.user.uid,
-                  email: userCredential.user.email,
-                  displayName: userCredential.user.displayName,
-                  photoURL: userCredential.user.photoURL,
-                  role: newUser.role,
-                  company: newUser.company
-                }
-                authStore.setUser(userData)
-                authStore.setAuthError(null)
-                authStore.setLoading(false)
-                permissionsStore.initializePermissions(userData)
-                return { success: true }
+            if (acceptResponse.success) {
+              const newUser = acceptResponse.data.user
+              const userData: UserData = {
+                uid: userCredential.user.uid,
+                email: userCredential.user.email,
+                displayName: userCredential.user.displayName,
+                photoURL: userCredential.user.photoURL,
+                role: newUser.role,
+                company: newUser.company
               }
+              authStore.setUser(userData)
+              authStore.setAuthError(null)
+              authStore.setLoading(false)
+              permissionsStore.initializePermissions(userData)
+              return { success: true }
             }
-          } catch (invError) {
-            console.log('No pending invitation found for:', userCredential.user.email)
           }
-
-          if (options?.skipAutoAccept) {
-            const userData: UserData = {
-              uid: userCredential.user.uid,
-              email: userCredential.user.email,
-              displayName: userCredential.user.displayName,
-              photoURL: userCredential.user.photoURL,
-              role: '',
-              company: ''
-            }
-            authStore.setUser(userData)
-            authStore.setLoading(false)
-            return { success: true }
-          }
-          throw new Error(`User with UID "${userCredential.user.uid}" not found in system. Please contact administrator to create an account.`)
+        } catch (invError) {
+          console.log('No pending invitation found for:', userCredential.user.email)
         }
 
-        const userData: UserData = {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email,
-          displayName: userCredential.user.displayName,
-          photoURL: userCredential.user.photoURL,
-          role: mockUser.role,
-          company: mockUser.company
-        }
-        authStore.setUser(userData)
-        authStore.setAuthError(null)
-        authStore.setLoading(false)
-        permissionsStore.initializePermissions(userData)
-        console.log('✅ Permissions initialized for role:', mockUser.role)
-
-        return { success: true }
-      } catch (userError: any) {
-        console.error('❌ User profile not found:', userError.message)
-        authStore.setUser(null)
-        authStore.setAuthError(userError.message)
-        authStore.setLoading(false)
-        permissionsStore.initializePermissions(null)
-        return { success: false, error: userError.message }
+        throw new Error(`User with UID "${userCredential.user.uid}" not found in system. Please contact administrator to create an account.`)
       }
+
+      const userData: UserData = {
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: userCredential.user.displayName,
+        photoURL: userCredential.user.photoURL,
+        role: mockUser.role,
+        company: mockUser.company
+      }
+      authStore.setUser(userData)
+      authStore.setAuthError(null)
+      authStore.setLoading(false)
+      permissionsStore.initializePermissions(userData)
+      console.log('✅ Permissions initialized for role:', mockUser.role)
+
+      return { success: true }
     } catch (error: any) {
-      console.error('❌ Sign-in error:', error)
-      console.error('Error code:', error.code)
-      console.error('Error message:', error.message)
+      // User closed the popup — treat as cancelled, not an error
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        return { success: false }
+      }
+      console.error('❌ Sign-in error:', error.code, error.message)
       authStore.setAuthError(error.message)
       authStore.setLoading(false)
       return { success: false, error: error.message }
@@ -253,7 +236,6 @@ export const useAuth = () => {
     loading: computed(() => authStore.loading),
     isAuthenticated: computed(() => authStore.isAuthenticated),
     signInWithGoogle,
-    handleRedirectResult,
     logout,
     initAuth,
     getIdToken
