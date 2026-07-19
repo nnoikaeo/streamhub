@@ -14,7 +14,7 @@ definePageMeta({
 })
 
 const { breadcrumbs } = useAdminBreadcrumbs()
-const { invitations, loading, fetchInvitations, cancelInvitation, resendInvitation, delete: deleteInvitation } = useAdminInvitations()
+const { invitations, loading, fetchInvitations, cancelInvitation, resendInvitation } = useAdminInvitations()
 const { folders, buildFolderTree } = useAdminFolders()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
