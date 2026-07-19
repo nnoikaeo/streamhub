@@ -80,6 +80,22 @@ export function getInheritingAncestors(
 }
 
 /**
+ * Whether the user is a moderator assigned to the dashboard's folder, or any
+ * ancestor of it. Managing moderators can access dashboards they manage even
+ * when no explicit grant is set (default-private) — mirrors the Explorer view. [DESIGN-001]
+ */
+export function managesFolder(uid: string, folderId: string | null | undefined, folders: any[]): boolean {
+  let currentId: string | null = folderId || null
+  while (currentId) {
+    const folder = folders.find((f: any) => f.id === currentId)
+    if (!folder) break
+    if (folder.assignedModerators?.includes(uid)) return true
+    currentId = folder.parentId || null
+  }
+  return false
+}
+
+/**
  * Check if a single access+restrictions source blocks the user (restrictions check).
  */
 function isRestricted(restrictions: any, uid: string): boolean {
@@ -140,6 +156,11 @@ export function checkDashboardAccess(
     if (isRestricted(folder.restrictions, user.uid)) {
       return { allowed: false, reason: `Restricted by folder: ${folder.name || folder.id}` }
     }
+  }
+
+  // Moderator managing the dashboard's folder (or an ancestor) → allow [DESIGN-001]
+  if (user.role === 'moderator' && folders && managesFolder(user.uid, dashboard.folderId, folders)) {
+    return { allowed: true, reason: 'Moderator-managed folder' }
   }
 
   // OR-merge: Dashboard permissions OR any ancestor folder permissions

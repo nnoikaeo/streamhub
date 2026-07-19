@@ -78,6 +78,41 @@ describe('checkDashboardAccess — Looker-style visibility (DESIGN-001)', () => 
   })
 })
 
+describe('checkDashboardAccess — moderator folder management (DESIGN-001)', () => {
+  const mgrFolders = [
+    { id: 'f1', name: 'Sales', parentId: null, assignedModerators: ['mod1'], access: { direct: { users: [], groups: [] }, company: [] }, restrictions: { revoke: [], expiry: {} } },
+    { id: 'f1a', name: 'Sub', parentId: 'f1', assignedModerators: [], access: { direct: { users: [], groups: [] }, company: [] }, restrictions: { revoke: [], expiry: {} } },
+  ]
+
+  it('moderator sees a private dashboard in a folder they manage', () => {
+    const d = dash({ direct: { users: [], groups: [] }, company: [] }) // folderId f1
+    expect(checkDashboardAccess(d, user({ uid: 'mod1', role: 'moderator' }), mgrFolders).allowed).toBe(true)
+  })
+
+  it('moderator sees a private dashboard in a SUBfolder of a managed folder', () => {
+    const d = { ...dash({ direct: { users: [], groups: [] }, company: [] }), folderId: 'f1a' }
+    expect(checkDashboardAccess(d, user({ uid: 'mod1', role: 'moderator' }), mgrFolders).allowed).toBe(true)
+  })
+
+  it('moderator does NOT see a private dashboard in a folder they do not manage', () => {
+    const d = dash({ direct: { users: [], groups: [] }, company: [] })
+    expect(checkDashboardAccess(d, user({ uid: 'mod2', role: 'moderator' }), mgrFolders).allowed).toBe(false)
+  })
+
+  it('revoke overrides moderator folder management', () => {
+    const d = {
+      ...dash({ direct: { users: [], groups: [] }, company: [] }),
+      restrictions: { revoke: ['mod1'], expiry: {} },
+    }
+    expect(checkDashboardAccess(d, user({ uid: 'mod1', role: 'moderator' }), mgrFolders).allowed).toBe(false)
+  })
+
+  it('regular user gets nothing from folder management', () => {
+    const d = dash({ direct: { users: [], groups: [] }, company: [] })
+    expect(checkDashboardAccess(d, user({ uid: 'mod1', role: 'user' }), mgrFolders).allowed).toBe(false)
+  })
+})
+
 describe('checkDashboardAccess — folder inheritance', () => {
   it('private dashboard reachable via inheriting folder company grant', () => {
     const d = dash({ direct: { users: [], groups: [] }, company: [] })
