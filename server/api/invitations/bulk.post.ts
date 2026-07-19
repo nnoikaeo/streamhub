@@ -1,6 +1,7 @@
 import { getAdminDb, fsQuery } from '../../utils/firestoreAdmin'
 import { logActivity } from '../../utils/auditLog'
 import { sendInvitationEmail } from '../../utils/emailService'
+import { normalizeBulkItems } from '../../utils/bulkInvite'
 import type { Invitation } from '~/types/invitation'
 
 interface UserRecord {
@@ -15,12 +16,22 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     console.log('[API] POST /api/invitations/bulk')
 
-    const { emails, role, company, message, assignedFolders, assignedGroups, invitedBy, invitedByName } = body
+    const { items, emails, role, company, message, assignedFolders, assignedGroups, invitedBy, invitedByName } = body
 
-    if (!emails?.length || !role || !company) {
+    // Normalize to a per-item list. Prefer items[] (per-row role/company/group);
+    // fall back to flat arrays (emails[] + shared role/company) for backward compat.
+    const normalized = normalizeBulkItems({ items, emails, role, company, message, assignedFolders, assignedGroups })
+
+    if (!normalized.length) {
       throw createError({
         statusCode: 400,
-        message: 'emails, role, and company are required'
+        message: 'at least one invitation (email + role + company) is required'
+      })
+    }
+    if (normalized.some(it => !it.role || !it.company)) {
+      throw createError({
+        statusCode: 400,
+        message: 'each invitation requires email, role, and company'
       })
     }
 
@@ -40,8 +51,16 @@ export default defineEventHandler(async (event) => {
 
     const created: Invitation[] = []
     const skipped: { email: string; reason: string }[] = []
+    const seen = new Set<string>()
 
-    for (const email of emails) {
+    for (const item of normalized) {
+      const email = item.email
+      if (seen.has(email)) {
+        skipped.push({ email, reason: 'Duplicate email in batch' })
+        continue
+      }
+      seen.add(email)
+
       const activeUser = allUsers.find(u => u.email === email && u.isActive)
       if (activeUser) {
         skipped.push({ email, reason: 'User already active' })
@@ -65,14 +84,14 @@ export default defineEventHandler(async (event) => {
       const invitation: Invitation = {
         id,
         email,
-        role,
-        company,
+        role: item.role as Invitation['role'],
+        company: item.company,
         status: 'pending',
         invitedBy: invitedBy || 'system',
         invitedByName: invitedByName || 'System',
-        message: message || '',
-        assignedFolders: assignedFolders || [],
-        assignedGroups: assignedGroups || [],
+        message: item.message,
+        assignedFolders: item.assignedFolders,
+        assignedGroups: item.assignedGroups,
         invitationCode: crypto.randomUUID(),
         expiresAt: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         createdAt: now.toISOString(),

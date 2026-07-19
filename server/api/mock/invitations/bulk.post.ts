@@ -1,6 +1,7 @@
 import { readJSON, createItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
 import { sendInvitationEmail } from '../../../utils/emailService'
+import { normalizeBulkItems } from '../../../utils/bulkInvite'
 import type { Invitation } from '~/types/invitation'
 
 interface UserRecord {
@@ -15,12 +16,21 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     console.log('[API] POST /api/mock/invitations/bulk')
 
-    const { emails, role, company, message, assignedFolders, assignedGroups, invitedBy, invitedByName } = body
+    const { items, emails, role, company, message, assignedFolders, assignedGroups, invitedBy, invitedByName } = body
 
-    if (!emails?.length || !role || !company) {
+    // Normalize to a per-item list (items[] preferred; flat emails[] fallback).
+    const normalized = normalizeBulkItems({ items, emails, role, company, message, assignedFolders, assignedGroups })
+
+    if (!normalized.length) {
       throw createError({
         statusCode: 400,
-        message: 'emails, role, and company are required'
+        message: 'at least one invitation (email + role + company) is required'
+      })
+    }
+    if (normalized.some(it => !it.role || !it.company)) {
+      throw createError({
+        statusCode: 400,
+        message: 'each invitation requires email, role, and company'
       })
     }
 
@@ -29,8 +39,16 @@ export default defineEventHandler(async (event) => {
 
     const created: Invitation[] = []
     const skipped: { email: string; reason: string }[] = []
+    const seen = new Set<string>()
 
-    for (const email of emails) {
+    for (const it of normalized) {
+      const email = it.email
+      if (seen.has(email)) {
+        skipped.push({ email, reason: 'Duplicate email in batch' })
+        continue
+      }
+      seen.add(email)
+
       // Check if active user exists
       const activeUser = users.find(u => u.email === email && u.isActive)
       if (activeUser) {
@@ -58,22 +76,22 @@ export default defineEventHandler(async (event) => {
       const invitation: Invitation = {
         id: `inv_${Date.now()}_${created.length}`,
         email,
-        role,
-        company,
+        role: it.role as Invitation['role'],
+        company: it.company,
         status: 'pending',
         invitedBy: invitedBy || 'system',
         invitedByName: invitedByName || 'System',
-        message: message || '',
-        assignedFolders: assignedFolders || [],
-        assignedGroups: assignedGroups || [],
+        message: it.message,
+        assignedFolders: it.assignedFolders,
+        assignedGroups: it.assignedGroups,
         invitationCode: crypto.randomUUID(),
         expiresAt: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString(),
         createdAt: now.toISOString(),
         updatedAt: now.toISOString()
       }
 
-      const item = await createItem('invitations.json', invitation)
-      created.push(item as Invitation)
+      const created_item = await createItem('invitations.json', invitation)
+      created.push(created_item as Invitation)
     }
 
     // Send emails for each created invitation (best-effort, in parallel)
