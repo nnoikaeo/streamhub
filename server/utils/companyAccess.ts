@@ -95,21 +95,14 @@ function isRestricted(restrictions: any, uid: string): boolean {
  */
 function matchesAccessRules(access: any, user: any): boolean {
   if (!access) return false
+  // Explicit org-wide public
+  if (access.public === true) return true
   // Layer 1: Direct access
   if (access.direct?.users?.includes(user.uid)) return true
   if (user.groups?.some((g: string) => access.direct?.groups?.includes(g))) return true
   // Layer 2: Company-scoped
-  // Empty company = "all companies" ONLY when this source has no direct grants;
-  // if grants are set, empty company means "grant-only" (not public). [DESIGN-001]
-  if (Array.isArray(access.company)) {
-    const hasDirectGrants =
-      (access.direct?.users?.length || 0) + (access.direct?.groups?.length || 0) > 0
-    if (access.company.length === 0) {
-      if (!hasDirectGrants) return true
-    } else if (access.company.includes(user.company)) {
-      return true
-    }
-  }
+  if (Array.isArray(access.company) && access.company.includes(user.company)) return true
+  // Default: private [DESIGN-001]
   return false
 }
 

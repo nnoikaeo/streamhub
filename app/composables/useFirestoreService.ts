@@ -709,6 +709,9 @@ export class FirestoreService implements IDashboardService {
       if (new Date() > new Date(expiryDate as any)) return false
     }
 
+    // Explicit org-wide public
+    if (access?.public === true) return true
+
     // Layer 1a: direct user access
     if (access?.direct?.users?.includes(user.uid)) return true
 
@@ -716,17 +719,9 @@ export class FirestoreService implements IDashboardService {
     if (user.groups?.some((g: string) => access?.direct?.groups?.includes(g))) return true
 
     // Layer 2: company access
-    // Empty company = "all companies" ONLY when this dashboard has no direct
-    // grants. If direct users/groups are set, an empty company means "grant-only"
-    // (not public) so per-user/group grants actually restrict access. [DESIGN-001]
-    const hasDirectGrants =
-      (access?.direct?.users?.length || 0) + (access?.direct?.groups?.length || 0) > 0
-    if (access?.company?.length === 0) {
-      if (!hasDirectGrants) return true
-    } else if (access?.company?.includes(user.company)) {
-      return true
-    }
+    if (access?.company?.includes(user.company)) return true
 
+    // Default: private [DESIGN-001]
     return false
   }
 
