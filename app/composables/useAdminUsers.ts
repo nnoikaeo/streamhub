@@ -10,12 +10,15 @@
 import { useAdminResource } from './useAdminResource'
 import type { User } from '~/types/dashboard'
 
-export function useAdminUsers() {
+export function useAdminUsers(options?: { skipCompanyFilter?: boolean }) {
   const resource = useAdminResource<User>({
     resourceName: 'users',
     idKey: 'uid',
     displayKey: 'email',
     idPrefix: 'user_',
+    // Permission pickers need every user (cross-company sharing), so callers can
+    // opt out of the moderator company filter. [DESIGN-001]
+    skipCompanyFilter: options?.skipCompanyFilter ?? false,
     defaults: {
       role: 'user',
       groups: [],
