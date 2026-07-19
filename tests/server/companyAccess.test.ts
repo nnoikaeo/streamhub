@@ -1,10 +1,10 @@
 /**
  * Regression tests for server/utils/companyAccess.ts — checkDashboardAccess
  *
- * Covers DESIGN-001: an empty `access.company` array means "all companies"
- * ONLY when the source has no direct grants. Once direct users/groups are set,
- * an empty company must mean "grant-only" so per-user/group grants actually
- * restrict access (previously they were silently overridden to public).
+ * DESIGN-001 (v6.1, Looker-style visibility):
+ * - Default is PRIVATE: no public flag, no grants, no company → only admin.
+ * - access.public === true → every logged-in user can access.
+ * - direct users / groups / company grants restrict to those.
  */
 
 import { describe, it, expect } from 'vitest'
@@ -25,46 +25,62 @@ const dash = (access: any) => ({
   restrictions: { revoke: [], expiry: {} },
 })
 
-describe('checkDashboardAccess — empty company semantics (DESIGN-001)', () => {
-  it('empty company + NO grants → public (everyone allowed)', () => {
+describe('checkDashboardAccess — Looker-style visibility (DESIGN-001)', () => {
+  it('no grants + no public → PRIVATE (denied for non-admin)', () => {
     const d = dash({ direct: { users: [], groups: [] }, company: [] })
-    expect(checkDashboardAccess(d, user()).allowed).toBe(true)
+    expect(checkDashboardAccess(d, user()).allowed).toBe(false)
   })
 
-  it('empty company + direct users → only granted users (others denied)', () => {
+  it('public:true → everyone allowed', () => {
+    const d = dash({ public: true, direct: { users: [], groups: [] }, company: [] })
+    expect(checkDashboardAccess(d, user()).allowed).toBe(true)
+    expect(checkDashboardAccess(d, user({ uid: 'zzz', company: 'X' })).allowed).toBe(true)
+  })
+
+  it('direct users → only granted users', () => {
     const d = dash({ direct: { users: ['u1'], groups: [] }, company: [] })
     expect(checkDashboardAccess(d, user({ uid: 'u1' })).allowed).toBe(true)
     expect(checkDashboardAccess(d, user({ uid: 'u2' })).allowed).toBe(false)
   })
 
-  it('empty company + direct groups → only members of the group (others denied)', () => {
+  it('direct groups → only members', () => {
     const d = dash({ direct: { users: [], groups: ['finance'] }, company: [] })
     expect(checkDashboardAccess(d, user({ groups: ['finance'] })).allowed).toBe(true)
     expect(checkDashboardAccess(d, user({ groups: ['sales'] })).allowed).toBe(false)
   })
 
-  it('removing the last grant makes an empty-company dashboard public again', () => {
-    const granted = dash({ direct: { users: ['u1'], groups: [] }, company: [] })
-    expect(checkDashboardAccess(granted, user({ uid: 'u2' })).allowed).toBe(false)
-    const cleared = dash({ direct: { users: [], groups: [] }, company: [] })
-    expect(checkDashboardAccess(cleared, user({ uid: 'u2' })).allowed).toBe(true)
-  })
-
-  it('non-empty company still scopes by company regardless of grants', () => {
+  it('company → only matching company', () => {
     const d = dash({ direct: { users: [], groups: [] }, company: ['STTH'] })
     expect(checkDashboardAccess(d, user({ company: 'STTH' })).allowed).toBe(true)
     expect(checkDashboardAccess(d, user({ company: 'ORAY' })).allowed).toBe(false)
   })
 
-  it('admin always allowed', () => {
-    const d = dash({ direct: { users: ['u9'], groups: [] }, company: ['STTH'] })
+  it('removing the last grant makes a dashboard private (not public)', () => {
+    const granted = dash({ direct: { users: ['u1'], groups: [] }, company: [] })
+    expect(checkDashboardAccess(granted, user({ uid: 'u1' })).allowed).toBe(true)
+    const cleared = dash({ direct: { users: [], groups: [] }, company: [] })
+    expect(checkDashboardAccess(cleared, user({ uid: 'u1' })).allowed).toBe(false)
+  })
+
+  it('admin always allowed even on a private dashboard', () => {
+    const d = dash({ direct: { users: [], groups: [] }, company: [] })
     expect(checkDashboardAccess(d, user({ role: 'admin' })).allowed).toBe(true)
+  })
+
+  it('explicit revoke overrides public', () => {
+    const d = {
+      id: 'd1',
+      folderId: 'f1',
+      access: { public: true, direct: { users: [], groups: [] }, company: [] },
+      restrictions: { revoke: ['u1'], expiry: {} },
+    }
+    expect(checkDashboardAccess(d, user({ uid: 'u1' })).allowed).toBe(false)
   })
 })
 
-describe('checkDashboardAccess — folder inheritance still works', () => {
-  it('grant-only dashboard is still reachable via an inheriting folder', () => {
-    const d = dash({ direct: { users: ['u1'], groups: [] }, company: [] })
+describe('checkDashboardAccess — folder inheritance', () => {
+  it('private dashboard reachable via inheriting folder company grant', () => {
+    const d = dash({ direct: { users: [], groups: [] }, company: [] })
     const folders = [
       {
         id: 'f1',
@@ -74,9 +90,7 @@ describe('checkDashboardAccess — folder inheritance still works', () => {
         restrictions: { revoke: [], expiry: {} },
       },
     ]
-    // u2 is not granted on the dashboard, but is in company STTH via folder
     expect(checkDashboardAccess(d, user({ uid: 'u2', company: 'STTH' }), folders).allowed).toBe(true)
-    // u3 in ORAY: no dashboard grant, no folder company match → denied
     expect(checkDashboardAccess(d, user({ uid: 'u3', company: 'ORAY' }), folders).allowed).toBe(false)
   })
 })
