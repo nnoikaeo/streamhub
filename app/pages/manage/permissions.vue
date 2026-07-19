@@ -27,7 +27,9 @@ const { user } = useAuth()
 
 const { assignedFolderTree, allFolders, fetchFolders: fetchModFolders, canManageFolder } = useModeratorFolders()
 const { manageableDashboards, fetchDashboards } = useModeratorDashboards()
-const { users: allUsers, fetchUsers } = useAdminUsers()
+// Permission picker must list all users (cross-company sharing), so bypass the
+// moderator company filter. [DESIGN-001]
+const { users: allUsers, fetchUsers } = useAdminUsers({ skipCompanyFilter: true })
 const { companies, fetchCompanies } = useAdminCompanies()
 const { groups, fetchGroups } = useAdminGroups()
 
