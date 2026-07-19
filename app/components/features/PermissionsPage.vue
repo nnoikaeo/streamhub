@@ -78,6 +78,19 @@ const explorerPath = computed(() =>
 
 const goToExplorer = () => router.push(explorerPath.value)
 
+// Access-state cue for the dashboard being edited [DESIGN-001].
+// - 'public'    : no company + no direct grants → everyone can see it
+// - 'grant-only': no company but has direct grants → only granted users/groups
+// - 'restricted': company is set
+const dashboardAccessState = computed<'public' | 'grant-only' | 'restricted' | null>(() => {
+  if (editMode.value !== 'dashboard' || !selectedDashboardId.value) return null
+  const acc = permissionsToEdit.value.access
+  const companyCount = acc.company?.length || 0
+  const directCount = (acc.direct?.users?.length || 0) + (acc.direct?.groups?.length || 0)
+  if (companyCount > 0) return 'restricted'
+  return directCount > 0 ? 'grant-only' : 'public'
+})
+
 // ─── State ──────────────────────────────────────────────────────────────
 
 // Non-admin users (admin has implicit access to everything by role)
@@ -947,6 +960,22 @@ watch(() => props.allFolders, (folders) => {
             </div>
           </div>
 
+          <!-- Access-state banner [DESIGN-001] -->
+          <div v-if="dashboardAccessState === 'public'" class="access-banner access-banner--public">
+            <span class="access-banner__icon">🌐</span>
+            <div class="access-banner__body">
+              <strong>แดชบอร์ดนี้เป็นสาธารณะ — ผู้ใช้ทุกคนเห็นได้</strong>
+              <span>ยังไม่ได้จำกัดบริษัท และไม่มีสิทธิ์เฉพาะ. หากต้องการจำกัด ให้เพิ่มสิทธิ์เฉพาะผู้ใช้/กลุ่มด้านล่าง หรือเลือกบริษัท — เมื่อมีสิทธิ์เฉพาะ จะเห็นเฉพาะผู้ที่ได้รับเท่านั้น</span>
+            </div>
+          </div>
+          <div v-else-if="dashboardAccessState === 'grant-only'" class="access-banner access-banner--restricted">
+            <span class="access-banner__icon">🔒</span>
+            <div class="access-banner__body">
+              <strong>จำกัดเฉพาะผู้ที่ได้รับสิทธิ์ด้านล่าง</strong>
+              <span>ไม่ได้จำกัดตามบริษัท — เห็นเฉพาะผู้ใช้/กลุ่มที่กำหนด. ลบสิทธิ์ทั้งหมดออกจะกลับเป็นสาธารณะ (ทุกคนเห็น)</span>
+            </div>
+          </div>
+
           <!-- Inherited Permissions -->
           <div v-if="inheritedFolders.length > 0" class="inherited-section">
             <button type="button" class="inherited-section__toggle" @click="inheritedExpanded = !inheritedExpanded">
@@ -1725,6 +1754,31 @@ watch(() => props.allFolders, (folders) => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* Access-state banner [DESIGN-001] */
+.access-banner {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: var(--spacing-md);
+  border: 1px solid;
+}
+.access-banner__icon { font-size: 1.25rem; line-height: 1.4; }
+.access-banner__body { display: flex; flex-direction: column; gap: 0.15rem; }
+.access-banner__body strong { font-size: 0.9375rem; }
+.access-banner__body span { font-size: 0.8125rem; opacity: 0.85; }
+.access-banner--public {
+  background: #fffbeb;
+  border-color: #fde047;
+  color: #854d0e;
+}
+.access-banner--restricted {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
 }
 
 /* Empty State */
