@@ -161,9 +161,14 @@ function checkAccessRules(
     if (access.direct.groups.includes(group)) return true
   }
   // Layer 2: Company-scoped
-  // Empty company array means "all companies" — everyone has access
-  if (access.company.length === 0) return true
-  if (access.company.includes(user.company)) return true
+  // Empty company = "all companies" ONLY when this source has no direct grants;
+  // if grants are set, empty company means "grant-only" (not public). [DESIGN-001]
+  const hasDirectGrants = access.direct.users.length + access.direct.groups.length > 0
+  if (access.company.length === 0) {
+    if (!hasDirectGrants) return true
+  } else if (access.company.includes(user.company)) {
+    return true
+  }
   return false
 }
 
