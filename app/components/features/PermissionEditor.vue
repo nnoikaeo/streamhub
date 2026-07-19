@@ -475,6 +475,8 @@ interface Props {
   allGroups?: AdminGroup[]
   allCompanies?: Company[]
   showRestrictions?: boolean
+  /** Hide this user from the grant picker — they already have access (self). */
+  excludeUserId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -482,6 +484,7 @@ const props = withDefaults(defineProps<Props>(), {
   allGroups: () => [],
   allCompanies: () => [],
   showRestrictions: true,
+  excludeUserId: '',
 })
 
 const emit = defineEmits<{
@@ -589,7 +592,10 @@ function isUserAdded(uid: string): boolean {
 }
 
 const filteredUsers = computed(() => {
-  let list = nonAdminUsers.value
+  // Hide the current user (self) — they already have access, so granting is moot.
+  let list = props.excludeUserId
+    ? nonAdminUsers.value.filter((u) => u.uid !== props.excludeUserId)
+    : nonAdminUsers.value
   if (grantSearch.value) {
     const q = grantSearch.value.toLowerCase()
     list = list.filter(
