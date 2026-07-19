@@ -67,9 +67,16 @@ const goBackToExplorer = () => {
     router.back()
     return
   }
-  const explorerCrumb = props.breadcrumbs.find(b => b.to?.includes('/explorer'))
-  router.push(explorerCrumb?.to ?? '/admin/explorer')
+  router.push(explorerPath.value)
 }
+
+// Role-correct Explorer path — permissions is contextual, so a cold entry
+// (direct URL / overview card) should offer a way into Explorer to pick an item.
+const explorerPath = computed(() =>
+  route.path.startsWith('/manage') ? '/manage/explorer' : '/admin/explorer'
+)
+
+const goToExplorer = () => router.push(explorerPath.value)
 
 // ─── State ──────────────────────────────────────────────────────────────
 
@@ -1150,7 +1157,11 @@ watch(() => props.allFolders, (folders) => {
         <div v-else-if="!isLoading" class="empty-state">
           <div class="empty-state__icon">🔐</div>
           <h3>{{ editMode === 'dashboard' ? 'เลือกแดชบอร์ด' : 'เลือกโฟลเดอร์' }}</h3>
-          <p>{{ editMode === 'dashboard' ? 'เลือกแดชบอร์ดจากด้านบนเพื่อจัดการสิทธิ์' : 'เลือกโฟลเดอร์จากด้านบนเพื่อจัดการสิทธิ์' }}</p>
+          <p>{{ editMode === 'dashboard' ? 'เลือกแดชบอร์ดจากช่องค้นหาด้านบน หรือเปิดจาก Explorer เพื่อจัดการสิทธิ์' : 'เลือกโฟลเดอร์จากช่องค้นหาด้านบน หรือเปิดจาก Explorer เพื่อจัดการสิทธิ์' }}</p>
+          <button type="button" class="empty-state__cta" @click="goToExplorer">
+            🗂️ ไปที่ Explorer
+          </button>
+          <p class="empty-state__hint">แนะนำ: เปิดหน้านี้จากปุ่ม 🔐 จัดการสิทธิ์ ของแต่ละแดชบอร์ด/โฟลเดอร์ใน Explorer เพื่อจัดการสิทธิ์ได้ทันที</p>
         </div>
       </template>
     </AdminPageContent>
@@ -1742,6 +1753,33 @@ watch(() => props.allFolders, (folders) => {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
   margin: 0;
+}
+
+.empty-state__cta {
+  margin-top: var(--spacing-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--color-primary, #2f2b8f);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+
+.empty-state__cta:hover {
+  opacity: 0.9;
+}
+
+.empty-state__hint {
+  max-width: 32rem;
+  font-size: 0.8125rem !important;
+  color: var(--color-text-tertiary, #9ca3af) !important;
+  margin-top: var(--spacing-xs) !important;
 }
 
 /* Responsive */
