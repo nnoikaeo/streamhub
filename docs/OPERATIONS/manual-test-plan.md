@@ -269,7 +269,7 @@
 | 3.9.5 | Resend pending invitation | 1. Click "ส่งอีกครั้ง" on pending invitation 2. Confirm | New email sent, expiry extended | Critical | ✅ |
 | 3.9.6 | Cancel pending invitation | 1. Click "ยกเลิก" on pending invitation 2. Confirm | Status changes to "cancelled" | High | ✅ |
 | 3.9.7 | ~~Delete invitation record~~ | ~~N/A~~ | ~~Removed — design is cancel-only (no hard delete)~~ | ~~Medium~~ | N/A |
-| 3.9.8 | Bulk invite (multi-add) | 1. Click "เชิญหลายคน" 2. Add rows with mixed role/company/group 3. Submit | Multiple emails sent, records created **with per-row role/company/group** | High | ❌ |
+| 3.9.8 | Bulk invite (multi-add) | 1. Click "เชิญหลายคน" 2. Add rows with mixed role/company/group 3. Submit | Multiple emails sent, records created **with per-row role/company/group** | High | ✅ |
 | 3.9.9 | Expired invitation auto-detect | 1. View invitation past expiry date | Status shows "expired" (client-side) | Medium | ✅ |
 | 3.9.10 | Resend already accepted | 1. Try resend on accepted invitation | Resend button hidden or disabled | Medium | ✅ |
 
@@ -441,7 +441,7 @@
 | BUG-002 | Admin toggle "แสดงที่เก็บถาวร" ไม่แสดง archived dashboard | TC 2.2.10 | High | 🔧 Fixed |
 | BUG-003 | Tag filter ไม่ถูก sync เข้า URL query params — copy URL แล้วเปิด tab ใหม่ filter หาย | TC 2.2.11 | Medium | 🔧 Fixed |
 | ENV-001 | หน้าขาวพร้อม MIME type error "Expected JavaScript-or-Wasm but got text/html" หลัง deploy ใหม่ | TC 2.3.1 | Low | ℹ️ Not a Bug |
-| BUG-004 | Bulk invite ไม่ใช้ role/company/group รายแถว — ทุกคนได้ค่าของแถวแรก | TC 3.9.8 | High | 🐞 Open |
+| BUG-004 | Bulk invite ไม่ใช้ role/company/group รายแถว — ทุกคนได้ค่าของแถวแรก | TC 3.9.8 | High | 🔧 Fixed |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
@@ -468,6 +468,7 @@
 - **Root Cause:** `server/api/invitations/bulk.post.ts` destructure แค่ flat `{ emails, role, company, assignedGroups }` แล้ว loop `for (const email of emails)` ใช้ค่าเดียวกับทุก email — **เมิน array `items[]`** ที่ client ([BulkInviteModal.vue](../../app/components/admin/BulkInviteModal.vue)) ส่งมาพร้อม role/company/group รายแถว
 - **ไฟล์ที่เกี่ยวข้อง:** `server/api/invitations/bulk.post.ts` (+ `server/api/mock/invitations/bulk.post.ts` น่าจะมีปัญหาเดียวกัน)
 - **แนวทางแก้:** ถ้ามี `body.items` ให้ loop ตาม items ใช้ role/company/message/assignedGroups รายแถว; fallback ไป flat arrays เพื่อ backward compat
+- **🔧 Fixed (2026-07-19):** เพิ่ม `normalizeBulkItems` util + regression tests (PR #279); follow-up ปิด group leak (แถวไม่มี group ดึงของแถวก่อนหน้า) โดยแยก items[] mode (ไม่ inherit flat) vs emails[] mode (PR #280) — ยืนยันบน prod Firestore: purchase=user/STTH/[], mnc=moderator/STSB/[finance]
 
 ---
 
