@@ -126,10 +126,11 @@ export class FirestoreService implements IDashboardService {
       const dashSnap = await getDocs(collection(this.db, 'dashboards'))
       const allDashboards = dashSnap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() }) as Dashboard)
 
-      // Filter dashboards accessible to user
+      // Filter dashboards accessible to user (moderators see folders they manage)
+      const accessFolders = user.role === 'moderator' ? allFolders : []
       const accessibleDashboards = allDashboards.filter(dash => {
         if (dash.isArchived) return false
-        return this.checkAccess(dash, user)
+        return this.checkAccess(dash, user, accessFolders)
       })
 
       const accessibleFolderIds = new Set(accessibleDashboards.map(d => d.folderId))
@@ -224,8 +225,9 @@ export class FirestoreService implements IDashboardService {
       const snap = await getDocs(q)
       let dashboards = snap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() }) as Dashboard)
 
-      // Filter by access
-      dashboards = dashboards.filter(dash => this.checkAccess(dash, user))
+      // Filter by access (moderators also see dashboards in folders they manage)
+      const accessFolders = user.role === 'moderator' ? await this.getAllFolders() : []
+      dashboards = dashboards.filter(dash => this.checkAccess(dash, user, accessFolders))
 
       // Filter archived
       if (!options?.includeArchived) {
@@ -301,7 +303,8 @@ export class FirestoreService implements IDashboardService {
       const snap = await getDocs(q)
       const dashboards = snap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() }) as Dashboard)
 
-      return dashboards.filter(dash => this.checkAccess(dash, user))
+      const accessFolders = user.role === 'moderator' ? await this.getAllFolders() : []
+      return dashboards.filter(dash => this.checkAccess(dash, user, accessFolders))
     } catch (error) {
       console.error('❌ [FirestoreService] getDashboardsByFolder error:', error)
       return []
@@ -336,7 +339,8 @@ export class FirestoreService implements IDashboardService {
       const dashboard = await this.getDashboard(dashboardId)
       const user = await this.getUser(userId)
       if (!dashboard || !user) return false
-      return this.checkAccess(dashboard, user)
+      const accessFolders = user.role === 'moderator' ? await this.getAllFolders() : []
+      return this.checkAccess(dashboard, user, accessFolders)
     } catch (error) {
       console.error('❌ [FirestoreService] canAccessDashboard error:', error)
       return false
@@ -694,8 +698,12 @@ export class FirestoreService implements IDashboardService {
     return {}
   }
 
-  /** Check 3-layer access for a dashboard and user */
-  private checkAccess(dashboard: Dashboard, user: User): boolean {
+  /**
+   * Check 3-layer access for a dashboard and user.
+   * `folders` is only needed for moderator folder-management access [DESIGN-001];
+   * callers pass the folder list when the user is a moderator.
+   */
+  private checkAccess(dashboard: Dashboard, user: User, folders: Folder[] = []): boolean {
     // Admin bypass
     if (user.role === 'admin') return true
 
@@ -707,6 +715,11 @@ export class FirestoreService implements IDashboardService {
     const expiryDate = restrictions?.expiry?.[user.uid]
     if (expiryDate) {
       if (new Date() > new Date(expiryDate as any)) return false
+    }
+
+    // Moderator managing the dashboard's folder (or an ancestor) → allow [DESIGN-001]
+    if (user.role === 'moderator' && this.moderatorManagesFolder(dashboard.folderId, user.uid, folders)) {
+      return true
     }
 
     // Explicit org-wide public
@@ -723,6 +736,24 @@ export class FirestoreService implements IDashboardService {
 
     // Default: private [DESIGN-001]
     return false
+  }
+
+  /** Whether uid is a moderator assigned to folderId or any ancestor of it. [DESIGN-001] */
+  private moderatorManagesFolder(folderId: string | null | undefined, uid: string, folders: Folder[]): boolean {
+    let currentId: string | null = folderId || null
+    while (currentId) {
+      const folder: any = folders.find((f: any) => f.id === currentId)
+      if (!folder) break
+      if (folder.assignedModerators?.includes(uid)) return true
+      currentId = folder.parentId || null
+    }
+    return false
+  }
+
+  /** Fetch all folders (flat) — used to resolve moderator folder-management access. */
+  private async getAllFolders(): Promise<Folder[]> {
+    const snap = await getDocs(query(collection(this.db, 'folders')))
+    return snap.docs.map(d => convertTimestamps({ id: d.id, ...d.data() }) as Folder)
   }
 
   /** Check if folder or any descendant has accessible dashboards */
