@@ -155,20 +155,16 @@ function checkAccessRules(
   access: { direct: { users: string[]; groups: string[] }; company: string[] },
   user: User
 ): boolean {
+  // Explicit org-wide public
+  if ((access as any).public === true) return true
   // Layer 1: Direct access (OR logic)
   if (access.direct.users.includes(user.uid)) return true
   for (const group of user.groups) {
     if (access.direct.groups.includes(group)) return true
   }
   // Layer 2: Company-scoped
-  // Empty company = "all companies" ONLY when this source has no direct grants;
-  // if grants are set, empty company means "grant-only" (not public). [DESIGN-001]
-  const hasDirectGrants = access.direct.users.length + access.direct.groups.length > 0
-  if (access.company.length === 0) {
-    if (!hasDirectGrants) return true
-  } else if (access.company.includes(user.company)) {
-    return true
-  }
+  if (access.company.includes(user.company)) return true
+  // Default: private [DESIGN-001]
   return false
 }
 

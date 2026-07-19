@@ -132,12 +132,17 @@ export interface DirectAccess {
 }
 
 /**
- * Combined access control structure (v6.0)
- * Final logic: (Layer1 OR Layer2) AND NOT(Layer3_Restrictions)
+ * Combined access control structure (v6.1 — Looker-style visibility)
+ * Final logic: (public OR Layer1 OR Layer2) AND NOT(Layer3_Restrictions)
  *
+ * Default is PRIVATE: with no `public`, no direct grants, and no company,
+ * only admins (and inheriting folder grants) can access. [DESIGN-001]
+ *
+ * public: true  → every logged-in user can access (org-wide public)
  * company: string[] — selecting a company grants access to ALL users in that company
  */
 export interface AccessControl {
+  public?: boolean // Explicit org-wide public access (default false = private)
   direct: DirectAccess
   company: string[] // Company IDs — all users in these companies get access
 }
