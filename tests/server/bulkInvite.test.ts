@@ -45,6 +45,22 @@ describe('normalizeBulkItems — per-row (items[]) payload', () => {
     expect(item.assignedFolders).toEqual([])
     expect(item.assignedGroups).toEqual([])
   })
+
+  it('does NOT inherit shared flat groups for a row that omits them (BUG-004 leak)', () => {
+    const result = normalizeBulkItems({
+      items: [
+        { email: 'a@x.com', role: 'moderator', company: 'STSB', assignedGroups: ['finance'] },
+        { email: 'b@x.com', role: 'user', company: 'STCM' }, // no groups → must stay empty
+      ],
+      // client also sends flat fallbacks derived from row 1 — must be ignored per-row
+      role: 'moderator',
+      company: 'STSB',
+      assignedGroups: ['finance'],
+    })
+
+    expect(result[1]).toMatchObject({ email: 'b@x.com', role: 'user', company: 'STCM' })
+    expect(result[1].assignedGroups).toEqual([])
+  })
 })
 
 describe('normalizeBulkItems — flat (legacy emails[]) payload', () => {
