@@ -285,7 +285,7 @@
 | 3.10.4 | Set role restriction (Layer 3) | 1. Select dashboard 2. Set restriction 3. Save | Access overridden by restriction | Medium | ☐ |
 | 3.10.5 | Verify permission applies | 1. Grant user access to **restricted** dashboard 2. Login as that user 3. View dashboard | Dashboard accessible | High | ☐ |
 
-> ⚠️ **หมายเหตุการทดสอบ 3.10.x:** dashboard ที่มี `access.company = []` = **public ทุกคน** (design: empty company = all). ต้องทดสอบบน dashboard ที่ **restricted** (company ระบุ) เท่านั้น มิฉะนั้น add/remove user จะไม่เห็นผล. ดู DESIGN-001 ใน Known Bugs
+> ⚠️ **หมายเหตุการทดสอบ 3.10.x (อัปเดตหลัง DESIGN-001 fix — Looker model):** ตอนนี้ default = **private**. dashboard ที่ไม่มี grant + ไม่เปิด public = ไม่มีใครเห็น (นอกจาก admin). ทดสอบ add/remove user บน dashboard ใดก็ได้ที่ **ไม่เปิด public** — เพิ่ม user → เห็น, ลบ → หายจริง. ปุ่ม 🌐 สาธารณะ = เปิดให้ทุกคนในระบบเห็น
 
 ---
 
@@ -444,7 +444,7 @@
 | BUG-003 | Tag filter ไม่ถูก sync เข้า URL query params — copy URL แล้วเปิด tab ใหม่ filter หาย | TC 2.2.11 | Medium | 🔧 Fixed |
 | ENV-001 | หน้าขาวพร้อม MIME type error "Expected JavaScript-or-Wasm but got text/html" หลัง deploy ใหม่ | TC 2.3.1 | Low | ℹ️ Not a Bug |
 | BUG-004 | Bulk invite ไม่ใช้ role/company/group รายแถว — ทุกคนได้ค่าของแถวแรก | TC 3.9.8 | High | 🔧 Fixed |
-| DESIGN-001 | `access.company = []` = public ทุกคน — override direct user/group grant; 7/11 dashboards prod เป็น public (2 ตัวมี group grant ที่ถูก override) | TC 3.10.2 | High | 🤔 Decision needed |
+| DESIGN-001 | `access.company = []` = public ทุกคน — override direct user/group grant; 7/11 dashboards prod เป็น public (2 ตัวมี group grant ที่ถูก override) | TC 3.10.2 | High | 🔧 Fixed (Looker visibility model) |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
@@ -479,6 +479,14 @@
 - **Blast radius (prod, 2026-07-19):** 7/11 dashboards มี company=[] = public; 2 ตัว (`dash_hr_employee_data`, `dash_project_q1_analytics`) ตั้ง group grant ไว้แต่ถูก override เป็น public
 - **ไม่ใช่ code bug — เป็น design decision ที่เป็น footgun.** ต้องตัดสินใจ: (A) คงไว้ (empty=public by design) แต่เพิ่ม UI cue ว่า dashboard นี้ public / (B) เปลี่ยน semantics — ถ้ามี direct.users หรือ direct.groups แล้ว company=[] ควรหมายถึง "เฉพาะ grant" ไม่ใช่ "ทุกคน" (ต้องแก้ทั้ง 3 ที่ + rule + regression)
 - **ผลต่อการทดสอบ:** 3.10.1/2/3/5 ต้องทดสอบบน dashboard ที่ restricted (company ระบุ) เท่านั้น
+- **🔧 Fixed (2026-07-19) — เลือก Looker-style visibility model (PR #283 A+B → PR #284 default-private):**
+  - เพิ่ม `access.public` flag (default false = private); ลบ empty-company-means-all ทิ้ง
+  - Logic ใหม่ (3 จุดตรงกัน): `restrictions → deny; public → allow; direct/group/company match → allow; else DENY`
+  - **default = private** (ไม่มี grant + ไม่ public = เฉพาะ admin + folder inheritance)
+  - UI: toggle 🌐 สาธารณะ (admin+moderator) + banner สาธารณะ/ส่วนตัว(มีสิทธิ์)/ส่วนตัว(ยังไม่มีใคร)
+  - ไม่มี migration — dashboard ที่เคย public (ไม่มี grant) กลายเป็น private อัตโนมัติ (ตัดสินใจ: เข้มทันที)
+  - regression tests: `tests/server/companyAccess.test.ts`
+  - **หมายเหตุ:** บรรทัด useFirestoreService.ts:720 / useMockData.ts:165 / companyAccess.ts:104 ข้างบนเป็นเลขก่อนแก้ — logic ปัจจุบันเปลี่ยนแล้ว
 
 ---
 
