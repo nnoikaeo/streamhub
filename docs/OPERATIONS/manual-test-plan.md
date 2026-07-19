@@ -1,8 +1,18 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 14 April 2569
+> **Last Updated:** 19 July 2569
 > **Total Test Cases:** 145
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
+
+### Status Legend
+
+| Symbol | Meaning |
+|--------|---------|
+| ✅ | Verified by running the real UI (human tester / live browser) |
+| 🔍 | **Code-verified only** — logic confirmed in source, NOT yet exercised through the UI. Still needs a human UI pass to become ✅ |
+| ☐ | Not yet checked |
+
+> 🔍 cases were confirmed by reading the implementation (shared CRUD composables, middleware, forms). They cover create/edit/delete/toast/confirm-dialog mechanics, route protection, and UserForm field behavior. Cases needing real Google OAuth login, cross-browser, responsive, external side-effects (email send), uniqueness/delete-guard server checks, and live data remain ☐ for a human tester.
 
 ---
 
@@ -150,16 +160,16 @@
 | 3.2.3 | Filter by company | 1. Select company from dropdown | Only users in that company shown | Medium | ✅ |
 | 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ✅ |
 | 3.2.5 | ~~Create new user~~ | ~~N/A~~ | ~~Removed — use /admin/invitations instead~~ | ~~High~~ | N/A |
-| 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | ☐ |
-| 3.2.6a | Edit user — email is disabled | 1. Click Edit on any user | Email input is disabled (lock hint shown); cannot be changed | High | ☐ |
-| 3.2.6b | Edit user — change groups | 1. Click Edit 2. Check/uncheck groups in multi-select 3. Save | User's `groups` array updated, badges in table reflect change | High | ☐ |
-| 3.2.6c | Edit moderator — assign folders | 1. Edit moderator user 2. Check folders in picker 3. Save | Selected folders have user UID added to `assignedModerators` | High | ☐ |
-| 3.2.6d | Edit moderator → change role to user | 1. Edit moderator with folder assignments 2. Change role to user 3. Save | Folder picker hides; all previously assigned folders have UID removed from `assignedModerators` | High | ☐ |
-| 3.2.6e | Edit user — role user → moderator | 1. Edit user (role=user) 2. Change role to moderator 3. Folder picker appears 4. Check folders 5. Save | Folder picker appears on role change; selected folders get UID added | High | ☐ |
-| 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ☐ |
-| 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | ☐ |
+| 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | 🔍 |
+| 3.2.6a | Edit user — email is disabled | 1. Click Edit on any user | Email input is disabled (lock hint shown); cannot be changed | High | 🔍 |
+| 3.2.6b | Edit user — change groups | 1. Click Edit 2. Check/uncheck groups in multi-select 3. Save | User's `groups` array updated, badges in table reflect change | High | 🔍 |
+| 3.2.6c | Edit moderator — assign folders | 1. Edit moderator user 2. Check folders in picker 3. Save | Selected folders have user UID added to `assignedModerators` | High | 🔍 |
+| 3.2.6d | Edit moderator → change role to user | 1. Edit moderator with folder assignments 2. Change role to user 3. Save | Folder picker hides; all previously assigned folders have UID removed from `assignedModerators` | High | 🔍 |
+| 3.2.6e | Edit user — role user → moderator | 1. Edit user (role=user) 2. Change role to moderator 3. Folder picker appears 4. Check folders 5. Save | Folder picker appears on role change; selected folders get UID added | High | 🔍 |
+| 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | 🔍 |
+| 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | 🔍 |
 | 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | N/A |
-| 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | ☐ |
+| 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | 🔍 |
 
 ---
 
@@ -167,12 +177,12 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.3.1 | Create root folder | 1. Click "เพิ่มโฟลเดอร์" 2. No parent selected 3. Submit | Root folder created | High | ☐ |
-| 3.3.2 | Create child folder | 1. Click "เพิ่มโฟลเดอร์" 2. Select parent 3. Submit | Subfolder created under parent | High | ☐ |
-| 3.3.3 | Edit folder name | 1. Click Edit 2. Change name 3. Save | Name updated in table | Medium | ☐ |
-| 3.3.4 | Delete empty folder | 1. Click Delete on folder with no children/dashboards 2. Confirm | Folder removed | High | ☐ |
+| 3.3.1 | Create root folder | 1. Click "เพิ่มโฟลเดอร์" 2. No parent selected 3. Submit | Root folder created | High | 🔍 |
+| 3.3.2 | Create child folder | 1. Click "เพิ่มโฟลเดอร์" 2. Select parent 3. Submit | Subfolder created under parent | High | 🔍 |
+| 3.3.3 | Edit folder name | 1. Click Edit 2. Change name 3. Save | Name updated in table | Medium | 🔍 |
+| 3.3.4 | Delete empty folder | 1. Click Delete on folder with no children/dashboards 2. Confirm | Folder removed | High | 🔍 |
 | 3.3.5 | Delete folder with children | 1. Click Delete on folder with subfolders | Error: "ไม่สามารถลบโฟลเดอร์ที่มีโฟลเดอร์ย่อย" | High | ☐ |
-| 3.3.6 | Search by name | 1. Type name in search bar | Matching folders shown | Medium | ☐ |
+| 3.3.6 | Search by name | 1. Type name in search bar | Matching folders shown | Medium | 🔍 |
 | 3.3.7 | Toggle folder active status | 1. Click toggle switch | Status updates inline | Medium | ☐ |
 | 3.3.8 | Folder hierarchy display | 1. View table | Parent folder shown in column | Low | ☐ |
 
@@ -184,9 +194,9 @@
 |---|-----------|-------|-----------------|----------|--------|
 | 3.4.1 | Search by name | 1. Type dashboard name in search | Matching dashboards shown | High | ☐ |
 | 3.4.2 | Filter by archive status | 1. Toggle archive filter | Archived/active dashboards filtered | High | ☐ |
-| 3.4.3 | Create dashboard | 1. Click "เพิ่มแดชบอร์ด" 2. Fill name, folder, owner 3. Submit | Dashboard created, toast shown | High | ☐ |
-| 3.4.4 | Edit dashboard | 1. Click Edit 2. Change fields 3. Save | Dashboard updated in table | High | ☐ |
-| 3.4.5 | Delete dashboard | 1. Click Delete 2. Confirm | Dashboard removed | High | ☐ |
+| 3.4.3 | Create dashboard | 1. Click "เพิ่มแดชบอร์ด" 2. Fill name, folder, owner 3. Submit | Dashboard created, toast shown | High | 🔍 |
+| 3.4.4 | Edit dashboard | 1. Click Edit 2. Change fields 3. Save | Dashboard updated in table | High | 🔍 |
+| 3.4.5 | Delete dashboard | 1. Click Delete 2. Confirm | Dashboard removed | High | 🔍 |
 | 3.4.6 | Toggle archive status | 1. Click archive toggle on row | Dashboard archived/unarchived | High | ☐ |
 | 3.4.7 | Form validation | 1. Submit form with missing required fields | Validation errors shown | Medium | ☐ |
 | 3.4.8 | Dashboard with Looker URL | 1. Create dashboard with Looker URL 2. View it | Dashboard renders embed | Medium | ☐ |
@@ -199,12 +209,12 @@
 |---|-----------|-------|-----------------|----------|--------|
 | 3.5.1 | Search by name/code | 1. Type in search bar | Matching companies shown | Medium | ☐ |
 | 3.5.2 | Filter by region | 1. Select region from dropdown | Companies in that region shown | Medium | ☐ |
-| 3.5.3 | Create company | 1. Click "เพิ่มบริษัท" 2. Fill code, name 3. Submit | Company created | High | ☐ |
+| 3.5.3 | Create company | 1. Click "เพิ่มบริษัท" 2. Fill code, name 3. Submit | Company created | High | 🔍 |
 | 3.5.4 | Unique code validation | 1. Create company with existing code | Error: "รหัสบริษัทซ้ำ" | High | ☐ |
-| 3.5.5 | Edit company | 1. Click Edit 2. Change fields 3. Save | Company updated | Medium | ☐ |
-| 3.5.6 | Delete company | 1. Click Delete 2. Confirm | Company removed | Medium | ☐ |
-| 3.5.7 | Move Up/Down reorder | 1. Click Move Up on company | sortOrder swaps with adjacent | Medium | ☐ |
-| 3.5.8 | Toggle active status | 1. Click toggle switch | Status updates | Low | ☐ |
+| 3.5.5 | Edit company | 1. Click Edit 2. Change fields 3. Save | Company updated | Medium | 🔍 |
+| 3.5.6 | Delete company | 1. Click Delete 2. Confirm | Company removed | Medium | 🔍 |
+| 3.5.7 | Move Up/Down reorder | 1. Click Move Up on company | sortOrder swaps with adjacent | Medium | 🔍 |
+| 3.5.8 | Toggle active status | 1. Click toggle switch | Status updates | Low | 🔍 |
 
 ---
 
@@ -212,10 +222,10 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.6.1 | CRUD — Create region | 1. Click "เพิ่มภูมิภาค" 2. Fill code, name 3. Submit | Region created | Medium | ☐ |
-| 3.6.2 | CRUD — Edit region | 1. Click Edit 2. Change name 3. Save | Region updated | Medium | ☐ |
-| 3.6.3 | CRUD — Delete region | 1. Click Delete (no companies reference it) 2. Confirm | Region removed | Medium | ☐ |
-| 3.6.4 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | ☐ |
+| 3.6.1 | CRUD — Create region | 1. Click "เพิ่มภูมิภาค" 2. Fill code, name 3. Submit | Region created | Medium | 🔍 |
+| 3.6.2 | CRUD — Edit region | 1. Click Edit 2. Change name 3. Save | Region updated | Medium | 🔍 |
+| 3.6.3 | CRUD — Delete region | 1. Click Delete (no companies reference it) 2. Confirm | Region removed | Medium | 🔍 |
+| 3.6.4 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | 🔍 |
 | 3.6.5 | Unique code validation | 1. Create with existing code | Validation error shown | Medium | ☐ |
 
 ---
@@ -224,11 +234,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.7.1 | Create group with members | 1. Click "เพิ่มกลุ่ม" 2. Fill name 3. Select members 4. Submit | Group created with members | High | ☐ |
-| 3.7.2 | Edit group members | 1. Click Edit 2. Add/remove members 3. Save | Members updated | High | ☐ |
+| 3.7.1 | Create group with members | 1. Click "เพิ่มกลุ่ม" 2. Fill name 3. Select members 4. Submit | Group created with members | High | 🔍 |
+| 3.7.2 | Edit group members | 1. Click Edit 2. Add/remove members 3. Save | Members updated | High | 🔍 |
 | 3.7.3 | View group details | 1. Click View on group | Modal shows group info + member list | Medium | ☐ |
-| 3.7.4 | Delete group | 1. Click Delete 2. Confirm | Group removed | Medium | ☐ |
-| 3.7.5 | Toggle group active status | 1. Click toggle switch | Status updates | Low | ☐ |
+| 3.7.4 | Delete group | 1. Click Delete 2. Confirm | Group removed | Medium | 🔍 |
+| 3.7.5 | Toggle group active status | 1. Click toggle switch | Status updates | Low | 🔍 |
 | 3.7.6 | Search by name | 1. Type in search bar | Matching groups shown | Low | ☐ |
 
 ---
@@ -237,11 +247,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.8.1 | Create tag | 1. Click "เพิ่มแท็ก" 2. Fill name, slug 3. Submit | Tag created | Medium | ☐ |
+| 3.8.1 | Create tag | 1. Click "เพิ่มแท็ก" 2. Fill name, slug 3. Submit | Tag created | Medium | 🔍 |
 | 3.8.2 | Slug format validation | 1. Enter slug with spaces/uppercase | Error or auto-converts to lowercase-underscore | Medium | ☐ |
-| 3.8.3 | Edit tag | 1. Click Edit 2. Change name 3. Save | Tag updated | Medium | ☐ |
-| 3.8.4 | Delete tag | 1. Click Delete 2. Confirm | Tag removed | Medium | ☐ |
-| 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | ☐ |
+| 3.8.3 | Edit tag | 1. Click Edit 2. Change name 3. Save | Tag updated | Medium | 🔍 |
+| 3.8.4 | Delete tag | 1. Click Delete 2. Confirm | Tag removed | Medium | 🔍 |
+| 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | 🔍 |
 | 3.8.6 | Unique slug validation | 1. Create with existing slug | Validation error shown | Medium | ☐ |
 | 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected or features hidden | Low | ☐ |
 
@@ -354,20 +364,20 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 5.1.1 | Create → Toast success | 1. Create any resource | Toast: "สร้างสำเร็จ" | High | ☐ |
-| 5.1.2 | Update → Toast success | 1. Edit any resource | Toast: "อัปเดตสำเร็จ" | High | ☐ |
-| 5.1.3 | Delete → Confirm dialog | 1. Click Delete on any resource | ConfirmDialog opens before delete | High | ☐ |
-| 5.1.4 | Form validation — Zod errors | 1. Submit form with invalid data | Field-level error messages shown | High | ☐ |
-| 5.1.5 | Modal close without saving | 1. Open modal 2. Fill data 3. Click Cancel | No changes persisted | Medium | ☐ |
+| 5.1.1 | Create → Toast success | 1. Create any resource | Toast: "สร้างสำเร็จ" | High | 🔍 |
+| 5.1.2 | Update → Toast success | 1. Edit any resource | Toast: "อัปเดตสำเร็จ" | High | 🔍 |
+| 5.1.3 | Delete → Confirm dialog | 1. Click Delete on any resource | ConfirmDialog opens before delete | High | 🔍 |
+| 5.1.4 | Form validation — Zod errors | 1. Submit form with invalid data | Field-level error messages shown | High | 🔍 |
+| 5.1.5 | Modal close without saving | 1. Open modal 2. Fill data 3. Click Cancel | No changes persisted | Medium | 🔍 |
 | 5.1.6 | Loading state during API call | 1. Submit form (slow network) | Spinner shown, button disabled | Medium | ☐ |
 
 ### 5.2 Navigation & Middleware
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 5.2.1 | Unauthenticated → `/admin/*` | 1. Open admin URL without login | Redirect to `/login` | Critical | ☐ |
-| 5.2.2 | User role → `/admin/*` | 1. Login as User 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | ☐ |
-| 5.2.3 | Moderator → `/admin/*` | 1. Login as Moderator 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | ☐ |
+| 5.2.1 | Unauthenticated → `/admin/*` | 1. Open admin URL without login | Redirect to `/login` | Critical | 🔍 |
+| 5.2.2 | User role → `/admin/*` | 1. Login as User 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | 🔍 |
+| 5.2.3 | Moderator → `/admin/*` | 1. Login as Moderator 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | 🔍 |
 | 5.2.4 | Sidebar reflects role | 1. Login as each role | Sidebar shows role-appropriate menu items | High | ☐ |
 | 5.2.5 | Sidebar visibility on mobile | 1. Open on mobile viewport | Sidebar in drawer, toggle button visible | Medium | ☐ |
 
@@ -463,24 +473,24 @@
 | Dashboard Discover | 12 | High | ✅ |
 | Dashboard View | 10 | High | ✅ |
 | Admin Overview | 5 | High | ✅ |
-| Admin Users | 10 | High | ☐ |
-| Admin Folders | 8 | High | ☐ |
-| Admin Dashboards | 8 | High | ☐ |
-| Admin Companies | 8 | Medium | ☐ |
-| Admin Regions | 5 | Medium | ☐ |
-| Admin Groups | 6 | Medium | ☐ |
-| Admin Tags | 7 | Medium | ☐ |
-| Admin Invitations | 10 | Critical | ☐ |
-| Admin Permissions | 5 | High | ☐ |
-| Admin Health | 3 | Low | ☐ |
-| Admin Audit Logs | 8 | Medium | ☐ |
-| Admin Explorer | 7 | High | ☐ |
-| Moderator Explorer | 6 | High | ☐ |
-| Moderator Permissions | 5 | High | ☐ |
-| Cross-Cutting (CRUD) | 6 | High | ☐ |
-| Navigation & Middleware | 5 | Critical | ☐ |
-| Error Scenarios | 9 | Medium | ☐ |
-| **TOTAL** | **161** | — | — |
+| Admin Users | 10 | High | 🔍 (9 code-verified, rest ✅) |
+| Admin Folders | 8 | High | 🔍 partial (5/8; 3 need human) |
+| Admin Dashboards | 8 | High | 🔍 partial (3/8; 5 need human) |
+| Admin Companies | 8 | Medium | 🔍 partial (5/8; unique+search need human) |
+| Admin Regions | 5 | Medium | 🔍 partial (4/5; unique needs human) |
+| Admin Groups | 6 | Medium | 🔍 partial (4/6; view+search need human) |
+| Admin Tags | 7 | Medium | 🔍 partial (4/7; slug+unique+perm need human) |
+| Admin Invitations | 10 | Critical | ☐ (email side-effects — human) |
+| Admin Permissions | 5 | High | ☐ (cross-role view — human) |
+| Admin Health | 3 | Low | ☐ (live data — human) |
+| Admin Audit Logs | 8 | Medium | ☐ (live data — human) |
+| Admin Explorer | 7 | High | ☐ (login required — human) |
+| Moderator Explorer | 6 | High | ☐ (moderator login — human) |
+| Moderator Permissions | 5 | High | ☐ (moderator login — human) |
+| Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
+| Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
+| Error Scenarios | 9 | Medium | ☐ (runtime — human) |
+| **TOTAL** | **161** | 42 🔍 code-verified | 55 ✅ / 42 🔍 / 80 ☐ |
 
 ---
 
