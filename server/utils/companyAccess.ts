@@ -95,15 +95,14 @@ function isRestricted(restrictions: any, uid: string): boolean {
  */
 function matchesAccessRules(access: any, user: any): boolean {
   if (!access) return false
+  // Explicit org-wide public
+  if (access.public === true) return true
   // Layer 1: Direct access
   if (access.direct?.users?.includes(user.uid)) return true
   if (user.groups?.some((g: string) => access.direct?.groups?.includes(g))) return true
   // Layer 2: Company-scoped
-  // Empty company array means "all companies" — everyone has access
-  if (Array.isArray(access.company)) {
-    if (access.company.length === 0) return true
-    if (access.company.includes(user.company)) return true
-  }
+  if (Array.isArray(access.company) && access.company.includes(user.company)) return true
+  // Default: private [DESIGN-001]
   return false
 }
 

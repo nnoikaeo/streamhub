@@ -78,6 +78,31 @@ const explorerPath = computed(() =>
 
 const goToExplorer = () => router.push(explorerPath.value)
 
+// Access-state cue for the dashboard being edited [DESIGN-001].
+// - 'public'    : explicit public flag → every logged-in user can access
+// - 'restricted': has direct/company grants → only those
+// - 'private'   : nothing set → default private (only admin + inherited)
+const dashboardAccessState = computed<'public' | 'restricted' | 'private' | null>(() => {
+  if (editMode.value !== 'dashboard' || !selectedDashboardId.value) return null
+  const acc = permissionsToEdit.value.access
+  if (acc.public === true) return 'public'
+  const grantCount =
+    (acc.direct?.users?.length || 0) + (acc.direct?.groups?.length || 0) + (acc.company?.length || 0)
+  return grantCount > 0 ? 'restricted' : 'private'
+})
+
+// Writable public toggle bound to the active access object (dashboard or folder).
+const isPublic = computed<boolean>({
+  get: () => activePermissions.value.access.public === true,
+  set: (val: boolean) => {
+    const target = editMode.value === 'dashboard' ? permissionsToEdit : folderPermissions
+    target.value = {
+      ...target.value,
+      access: { ...target.value.access, public: val },
+    }
+  },
+})
+
 // ─── State ──────────────────────────────────────────────────────────────
 
 // Non-admin users (admin has implicit access to everything by role)
@@ -590,9 +615,18 @@ const loadFolderPermissions = () => {
 
 const handlePermissionsUpdate = (newPermissions: { access: AccessControl; restrictions: AccessRestrictions }) => {
   if (editMode.value === 'dashboard') {
-    permissionsToEdit.value = newPermissions
+    // PermissionEditor only edits direct/company — preserve the public flag [DESIGN-001]
+    const prevPublic = permissionsToEdit.value.access.public
+    permissionsToEdit.value = {
+      ...newPermissions,
+      access: { ...newPermissions.access, public: prevPublic },
+    }
   } else {
-    folderPermissions.value = newPermissions
+    const prevPublic = folderPermissions.value.access.public
+    folderPermissions.value = {
+      ...newPermissions,
+      access: { ...newPermissions.access, public: prevPublic },
+    }
   }
 }
 
@@ -944,6 +978,40 @@ watch(() => props.allFolders, (folders) => {
               >
                 {{ isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
               </button>
+            </div>
+          </div>
+
+          <!-- Public toggle + access-state banner (Looker-style) [DESIGN-001] -->
+          <div class="access-visibility">
+            <label class="access-toggle">
+              <input type="checkbox" v-model="isPublic" />
+              <span class="access-toggle__track"><span class="access-toggle__thumb" /></span>
+              <span class="access-toggle__label">
+                🌐 เข้าถึงสาธารณะ
+                <small>ผู้ใช้ทุกคนในระบบเห็นได้ (ไม่ต้องเพิ่มสิทธิ์)</small>
+              </span>
+            </label>
+
+            <div v-if="dashboardAccessState === 'public'" class="access-banner access-banner--public">
+              <span class="access-banner__icon">🌐</span>
+              <div class="access-banner__body">
+                <strong>สาธารณะ — ผู้ใช้ทุกคนในระบบเห็นได้</strong>
+                <span>ปิดสวิตช์ด้านบนเพื่อทำให้เป็นส่วนตัว แล้วกำหนดสิทธิ์เฉพาะผู้ใช้/กลุ่ม/บริษัท</span>
+              </div>
+            </div>
+            <div v-else-if="dashboardAccessState === 'restricted'" class="access-banner access-banner--restricted">
+              <span class="access-banner__icon">🔒</span>
+              <div class="access-banner__body">
+                <strong>ส่วนตัว — เฉพาะผู้ที่ได้รับสิทธิ์ด้านล่าง</strong>
+                <span>เห็นเฉพาะผู้ใช้/กลุ่ม/บริษัทที่กำหนด (และผู้ดูแลระบบ)</span>
+              </div>
+            </div>
+            <div v-else class="access-banner access-banner--private">
+              <span class="access-banner__icon">🔒</span>
+              <div class="access-banner__body">
+                <strong>ส่วนตัว — ยังไม่มีใครเข้าถึง (นอกจากผู้ดูแลระบบ)</strong>
+                <span>เพิ่มสิทธิ์เฉพาะผู้ใช้/กลุ่ม/บริษัทด้านล่าง หรือเปิดสวิตช์สาธารณะเพื่อให้ทุกคนเห็น</span>
+              </div>
             </div>
           </div>
 
@@ -1726,6 +1794,72 @@ watch(() => props.allFolders, (folders) => {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Access-state banner [DESIGN-001] */
+.access-banner {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: var(--spacing-md);
+  border: 1px solid;
+}
+.access-banner__icon { font-size: 1.25rem; line-height: 1.4; }
+.access-banner__body { display: flex; flex-direction: column; gap: 0.15rem; }
+.access-banner__body strong { font-size: 0.9375rem; }
+.access-banner__body span { font-size: 0.8125rem; opacity: 0.85; }
+.access-banner--public {
+  background: #fffbeb;
+  border-color: #fde047;
+  color: #854d0e;
+}
+.access-banner--restricted {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+.access-banner--private {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+/* Public visibility toggle */
+.access-visibility { margin-bottom: var(--spacing-md); }
+.access-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  cursor: pointer;
+  margin-bottom: 0.625rem;
+  user-select: none;
+}
+.access-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.access-toggle__track {
+  position: relative;
+  width: 2.5rem;
+  height: 1.375rem;
+  background: #cbd5e1;
+  border-radius: 9999px;
+  transition: background 150ms;
+  flex-shrink: 0;
+}
+.access-toggle__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1.125rem;
+  height: 1.125rem;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 150ms;
+}
+.access-toggle input:checked + .access-toggle__track { background: var(--color-primary, #2f2b8f); }
+.access-toggle input:checked + .access-toggle__track .access-toggle__thumb { transform: translateX(1.125rem); }
+.access-toggle input:focus-visible + .access-toggle__track { outline: 2px solid var(--color-primary, #2f2b8f); outline-offset: 2px; }
+.access-toggle__label { font-size: 0.9375rem; font-weight: 600; display: flex; flex-direction: column; }
+.access-toggle__label small { font-weight: 400; font-size: 0.75rem; color: var(--color-text-secondary, #6b7280); }
 
 /* Empty State */
 .empty-state {

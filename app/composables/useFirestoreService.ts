@@ -709,6 +709,9 @@ export class FirestoreService implements IDashboardService {
       if (new Date() > new Date(expiryDate as any)) return false
     }
 
+    // Explicit org-wide public
+    if (access?.public === true) return true
+
     // Layer 1a: direct user access
     if (access?.direct?.users?.includes(user.uid)) return true
 
@@ -716,10 +719,9 @@ export class FirestoreService implements IDashboardService {
     if (user.groups?.some((g: string) => access?.direct?.groups?.includes(g))) return true
 
     // Layer 2: company access
-    // Empty company array means "all companies"
-    if (access?.company?.length === 0) return true
     if (access?.company?.includes(user.company)) return true
 
+    // Default: private [DESIGN-001]
     return false
   }
 
