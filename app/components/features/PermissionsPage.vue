@@ -1050,6 +1050,7 @@ watch(() => props.allFolders, (folders) => {
               :all-companies="allCompanies"
               :permissions="permissionsToEdit"
               :show-restrictions="showRestrictions"
+              :exclude-user-id="user?.uid"
               @update:permissions="handlePermissionsUpdate"
             />
           </div>
@@ -1178,6 +1179,7 @@ watch(() => props.allFolders, (folders) => {
             :all-companies="allCompanies"
             :permissions="folderPermissions"
             :show-restrictions="showRestrictions"
+            :exclude-user-id="user?.uid"
             @update:permissions="handlePermissionsUpdate"
           />
 
