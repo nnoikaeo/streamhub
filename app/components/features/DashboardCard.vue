@@ -53,19 +53,16 @@
     <!-- Company Badges -->
     <div class="card-companies">
       <span
-        v-if="companyKeys.length === 0"
+        v-if="isPublic"
         class="company-badge company-badge--global"
       >
-        <svg class="company-badge__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="4" y="2" width="16" height="20" rx="1" />
-          <line x1="9" y1="6" x2="9" y2="6.01" />
-          <line x1="15" y1="6" x2="15" y2="6.01" />
-          <line x1="9" y1="10" x2="9" y2="10.01" />
-          <line x1="15" y1="10" x2="15" y2="10.01" />
-          <line x1="9" y1="14" x2="15" y2="14" />
-          <line x1="9" y1="18" x2="15" y2="18" />
-        </svg>
-        <span>ทุกบริษัท</span>
+        <span>🌐 สาธารณะ</span>
+      </span>
+      <span
+        v-else-if="companyKeys.length === 0"
+        class="company-badge company-badge--restricted"
+      >
+        <span>🔒 จำกัดสิทธิ์</span>
       </span>
       <span
         v-for="code in companyKeys"
@@ -156,12 +153,17 @@ const companyKeys = computed(() => {
   return access.company
 })
 
+// Empty company no longer means "all companies" — public only when the
+// explicit public flag is set, else access is restricted to grants. [DESIGN-001]
+const isPublic = computed(() => props.dashboard.access?.public === true)
+
 const visibleTags = computed(() => resolvedTags.value.slice(0, MAX_VISIBLE_TAGS.value))
 const hiddenCount = computed(() => Math.max(0, resolvedTags.value.length - MAX_VISIBLE_TAGS.value))
 
 // Company tooltip text for compact mode
 const companyTooltip = computed(() => {
-  if (companyKeys.value.length === 0) return 'ทุกบริษัท'
+  if (isPublic.value) return 'สาธารณะ — ผู้ใช้ทุกคนเห็นได้'
+  if (companyKeys.value.length === 0) return 'จำกัดสิทธิ์ — เฉพาะผู้ที่ได้รับสิทธิ์'
   return companyKeys.value.join(', ')
 })
 
@@ -285,6 +287,12 @@ const dashboardIconType = computed(() => props.dashboard.type || 'analysis')
   background: #ede9fe;
   border-color: #c4b5fd;
   color: #6d28d9;
+}
+
+.company-badge--restricted {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
 }
 
 .company-badge__icon {
