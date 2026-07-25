@@ -33,7 +33,8 @@
 
     <!-- Company Badge -->
     <div v-if="showCompany" class="list-item__company">
-      <span v-if="companyKeys.length === 0" class="company-chip company-chip--global">ทุกบริษัท</span>
+      <span v-if="isPublic" class="company-chip company-chip--global">🌐 สาธารณะ</span>
+      <span v-else-if="companyKeys.length === 0" class="company-chip company-chip--restricted">🔒 จำกัดสิทธิ์</span>
       <span v-else class="company-chip">{{ companyKeys.join(', ') }}</span>
     </div>
 
@@ -94,6 +95,11 @@ const companyKeys = computed(() => {
   if (!access?.company || access.company.length === 0) return []
   return access.company
 })
+
+// Visibility label reflecting the Looker-style model [DESIGN-001]:
+// empty company no longer means "all companies" — it's public only when the
+// explicit public flag is set, otherwise access is restricted to grants.
+const isPublic = computed(() => props.dashboard.access?.public === true)
 
 // Gradient swatch derived from dashboard name (same algorithm as DashboardPreview)
 const swatchGradient = computed(() => {
@@ -237,6 +243,11 @@ const swatchGradient = computed(() => {
 .company-chip--global {
   color: var(--color-primary, #3b82f6);
   background: color-mix(in srgb, var(--color-primary, #3b82f6) 10%, transparent);
+}
+
+.company-chip--restricted {
+  color: #b45309;
+  background: #fffbeb;
 }
 
 /* ---- Arrow ---- */
