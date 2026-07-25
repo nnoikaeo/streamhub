@@ -312,8 +312,12 @@
               @click="handleRestrictionClick(u.uid)"
             >
               <div class="user-item__info">
-                  <span class="user-item__name">{{ u.name }}</span>
+                  <span class="user-item__name">
+                    {{ u.name }}
+                    <span v-if="userHasAccessNow(u)" class="access-tag access-tag--has">มีสิทธิ์อยู่</span>
+                  </span>
                   <span class="user-item__email">{{ u.role ? ({ admin: 'Admin', moderator: 'Moderator', user: 'User' }[u.role] ?? u.role) + ' · ' + u.company : u.company }}</span>
+                  <span v-if="!userHasAccessNow(u)" class="access-hint">ยังไม่มีสิทธิ์ — ระงับตอนนี้ยังไม่มีผล (จนกว่าจะได้สิทธิ์)</span>
                 </div>
               <span class="user-item__add">+</span>
             </button>
@@ -591,6 +595,21 @@ function isUserAdded(uid: string): boolean {
   return localAccess.value.direct.users.includes(uid)
 }
 
+/**
+ * Whether a user currently has access via THIS dashboard's own grants
+ * (public / direct user / group / company). Folder-inherited access is not
+ * considered here — used only as a hint on the restriction (revoke) picker so
+ * the admin can see who a revoke actually affects. [restriction-picker hint]
+ */
+function userHasAccessNow(u: User): boolean {
+  const a = localAccess.value
+  if (a.public === true) return true
+  if (a.direct.users.includes(u.uid)) return true
+  if ((u.groups ?? []).some((g) => a.direct.groups.includes(g))) return true
+  if (a.company.includes(u.company)) return true
+  return false
+}
+
 const filteredUsers = computed(() => {
   // Hide the current user (self) — they already have access, so granting is moot.
   let list = props.excludeUserId
@@ -744,7 +763,10 @@ const filteredRestrictionUsers = computed(() => {
       (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
     )
   }
-  return list
+  // Users who currently have access sort to the top — revoking them has effect.
+  return [...list].sort(
+    (a, b) => Number(userHasAccessNow(b)) - Number(userHasAccessNow(a)),
+  )
 })
 
 function handleRestrictionClick(uid: string) {
@@ -1080,6 +1102,26 @@ function clearAllRestrictions() {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.access-tag {
+  display: inline-block;
+  margin-left: 0.375rem;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.access-tag--has {
+  background: #dcfce7;
+  color: #15803d;
+}
+.access-hint {
+  font-size: 0.6875rem;
+  color: var(--color-text-tertiary, #9ca3af);
+  white-space: normal;
+  line-height: 1.3;
 }
 
 .user-item__add {
