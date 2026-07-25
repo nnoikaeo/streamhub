@@ -337,12 +337,12 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 4.1.1 | View assigned folders | 1. Login as Moderator 2. Go to `/manage/explorer` | Assigned folders shown, others disabled | High | ☐ |
-| 4.1.2 | Create dashboard in assigned folder | 1. Navigate to assigned folder 2. Create dashboard | Dashboard created successfully | High | ☐ |
-| 4.1.3 | Create dashboard in unassigned folder | 1. Try to create in unassigned folder | Error: "ไม่มีสิทธิ์" or button hidden | High | ☐ |
-| 4.1.4 | Delete dashboard in assigned folder | 1. Delete own dashboard in assigned folder | Success | Medium | ☐ |
-| 4.1.5 | Cannot reassign moderators | 1. Open folder settings | Moderator assignment hidden/disabled | Medium | ☐ |
-| 4.1.6 | View unassigned folders (read-only) | 1. Click unassigned folder in tree | Shows content but no create/edit actions | Medium | ☐ |
+| 4.1.1 | View assigned folders | 1. Login as Moderator 2. Go to `/manage/explorer` | Assigned folders shown, others disabled | High | ✅ |
+| 4.1.2 | Create dashboard in assigned folder | 1. Navigate to assigned folder 2. Create dashboard | Dashboard created successfully | High | ✅ |
+| 4.1.3 | Create dashboard in unassigned folder | 1. Try to create in unassigned folder | Error: "ไม่มีสิทธิ์" or button hidden | High | ✅ |
+| 4.1.4 | Delete dashboard in assigned folder | 1. Delete own dashboard in assigned folder | Success | Medium | ✅ |
+| 4.1.5 | Cannot reassign moderators | 1. Open folder settings | Moderator assignment hidden/disabled | Medium | ✅ |
+| 4.1.6 | View unassigned folders (read-only) | 1. Click unassigned folder in tree | Shows content but no create/edit actions | Medium | ✅ |
 
 ---
 
