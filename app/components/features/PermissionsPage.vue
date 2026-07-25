@@ -120,7 +120,7 @@ const permissionsToEdit = ref<{
   access: AccessControl
   restrictions: AccessRestrictions
 }>({
-  access: { direct: { users: [], groups: [] }, company: [] },
+  access: { direct: { users: [], groups: [] }, company: [], public: false },
   restrictions: { revoke: [], expiry: {} },
 })
 
@@ -128,7 +128,7 @@ const originalPermissions = ref<{
   access: AccessControl
   restrictions: AccessRestrictions
 }>({
-  access: { direct: { users: [], groups: [] }, company: [] },
+  access: { direct: { users: [], groups: [] }, company: [], public: false },
   restrictions: { revoke: [], expiry: {} },
 })
 
@@ -146,7 +146,7 @@ const folderPermissions = ref<{
   access: AccessControl
   restrictions: AccessRestrictions
 }>({
-  access: { direct: { users: [], groups: [] }, company: [] },
+  access: { direct: { users: [], groups: [] }, company: [], public: false },
   restrictions: { revoke: [], expiry: {} },
 })
 
@@ -154,7 +154,7 @@ const originalFolderPermissions = ref<{
   access: AccessControl
   restrictions: AccessRestrictions
 }>({
-  access: { direct: { users: [], groups: [] }, company: [] },
+  access: { direct: { users: [], groups: [] }, company: [], public: false },
   restrictions: { revoke: [], expiry: {} },
 })
 
@@ -576,7 +576,10 @@ const loadDashboardPermissions = async () => {
 
     const perms = await dashboardService.getDashboardPermissions(selectedDashboardId.value)
     permissionsToEdit.value = {
-      access: perms.access,
+      // Normalize public to a real boolean — older dashboards have no `public`
+      // field at all, and Firestore's updateDoc() rejects literal `undefined`
+      // field values on save. [DESIGN-001]
+      access: { ...perms.access, public: perms.access.public === true },
       restrictions: perms.restrictions,
     }
     originalPermissions.value = JSON.parse(JSON.stringify(permissionsToEdit.value))
@@ -600,9 +603,10 @@ const loadFolderPermissions = () => {
   currentEditFolder.value = folder
   folderInheritEnabled.value = folder.inheritPermissions ?? false
 
+  // Normalize public to a real boolean — see loadDashboardPermissions. [DESIGN-001]
   const access: AccessControl = folder.access
-    ? JSON.parse(JSON.stringify(folder.access))
-    : { direct: { users: [], groups: [] }, company: [] }
+    ? { ...JSON.parse(JSON.stringify(folder.access)), public: folder.access.public === true }
+    : { direct: { users: [], groups: [] }, company: [], public: false }
   const restrictions: AccessRestrictions = folder.restrictions
     ? JSON.parse(JSON.stringify(folder.restrictions))
     : { revoke: [], expiry: {} }
@@ -615,14 +619,16 @@ const loadFolderPermissions = () => {
 
 const handlePermissionsUpdate = (newPermissions: { access: AccessControl; restrictions: AccessRestrictions }) => {
   if (editMode.value === 'dashboard') {
-    // PermissionEditor only edits direct/company — preserve the public flag [DESIGN-001]
-    const prevPublic = permissionsToEdit.value.access.public
+    // PermissionEditor only edits direct/company — preserve the public flag.
+    // Coerce to a real boolean: Firestore's updateDoc() rejects literal
+    // `undefined` field values on save. [DESIGN-001]
+    const prevPublic = permissionsToEdit.value.access.public === true
     permissionsToEdit.value = {
       ...newPermissions,
       access: { ...newPermissions.access, public: prevPublic },
     }
   } else {
-    const prevPublic = folderPermissions.value.access.public
+    const prevPublic = folderPermissions.value.access.public === true
     folderPermissions.value = {
       ...newPermissions,
       access: { ...newPermissions.access, public: prevPublic },
