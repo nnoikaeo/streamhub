@@ -280,7 +280,7 @@
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
 | 3.10.1 | Add user to dashboard | 1. Select **restricted** dashboard 2. Add user 3. Save | User gains access | High | ✅ |
-| 3.10.2 | Remove user from dashboard | 1. Select **restricted** dashboard 2. Remove user 3. Save | User loses access | High | ☐ |
+| 3.10.2 | Remove user from dashboard | 1. Select **restricted** dashboard 2. Remove user 3. Save | User loses access | High | ✅ |
 | 3.10.3 | Add group to dashboard | 1. Select **restricted** dashboard 2. Add group 3. Save | All group members gain access | High | ☐ |
 | 3.10.4 | Set role restriction (Layer 3) | 1. Select dashboard 2. Set restriction 3. Save | Access overridden by restriction | Medium | ☐ |
 | 3.10.5 | Verify permission applies | 1. Grant user access to **restricted** dashboard 2. Login as that user 3. View dashboard | Dashboard accessible | High | ✅ |
@@ -445,6 +445,7 @@
 | ENV-001 | หน้าขาวพร้อม MIME type error "Expected JavaScript-or-Wasm but got text/html" หลัง deploy ใหม่ | TC 2.3.1 | Low | ℹ️ Not a Bug |
 | BUG-004 | Bulk invite ไม่ใช้ role/company/group รายแถว — ทุกคนได้ค่าของแถวแรก | TC 3.9.8 | High | 🔧 Fixed |
 | DESIGN-001 | `access.company = []` = public ทุกคน — override direct user/group grant; 7/11 dashboards prod เป็น public (2 ตัวมี group grant ที่ถูก override) | TC 3.10.2 | High | 🔧 Fixed (Looker visibility model) |
+| BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + ลบ user ไม่ล้าง orphan ref ใน group.members | TC 3.10.3 | Medium | 🤔 Decision needed |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
@@ -487,6 +488,17 @@
   - ไม่มี migration — dashboard ที่เคย public (ไม่มี grant) กลายเป็น private อัตโนมัติ (ตัดสินใจ: เข้มทันที)
   - regression tests: `tests/server/companyAccess.test.ts`
   - **หมายเหตุ:** บรรทัด useFirestoreService.ts:720 / useMockData.ts:165 / companyAccess.ts:104 ข้างบนเป็นเลขก่อนแก้ — logic ปัจจุบันเปลี่ยนแล้ว
+
+**BUG-005 รายละเอียด:**
+- **อาการ:** เปิด modal "รายละเอียดกลุ่ม" ของ operations แสดง "สมาชิกในกลุ่ม 2 คน" แต่ list แสดงแค่ Janine 1 คน + ข้อความ "มีสมาชิก 1 คนที่ไม่พบข้อมูลในระบบ"
+- **Root cause (2 ชั้น):**
+  1. **Stale ref:** `group.members = ["user_janine_user", "user_sombat_user"]` — `user_sombat_user` ถูกลบออกจาก `users` collection ไปแล้ว (ลบ user ไม่ล้าง reference ใน `group.members`)
+  2. **Sync ขาด:** Survey Streamwash มี `user.groups` รวม `"operations"` (แก้ที่ `/admin/users` → UserForm) **แต่ไม่ปรากฏใน `operations.members[]`** เลย — [GroupForm.vue](../../app/components/admin/forms/GroupForm.vue) กับ [UserForm.vue](../../app/components/admin/forms/UserForm.vue) แก้คนละ field (`group.members[]` vs `user.groups[]`) โดยไม่ sync กัน
+- **ผลกระทบ:** หน้า `/admin/groups` (ดูสมาชิก) **แสดงผิด/เข้าใจผิดได้** — admin เห็น roster ไม่ตรงความจริง
+- **ไม่กระทบ access control:** dashboard access ผ่านกลุ่ม (`checkAccess`/`checkDashboardAccess`) เทียบกับ **`user.groups`** ไม่ใช่ `group.members` — สิทธิ์จริงทำงานถูกแม้ display ผิด (verified: Survey ได้ access ผ่าน group แม้ไม่โผล่ใน modal)
+- **ต้องตัดสินใจ:** (A) ใช้ `group.members` เป็น source of truth เดียว — GroupForm sync เขียนกลับ `user.groups` ของสมาชิกทุกคนตอน save + access-check เปลี่ยนไปอ่าน `group.members` แทน / (B) ใช้ `user.groups` เป็น source of truth — GroupForm member picker ให้แก้ `user.groups` ของ user ที่เลือกแทนที่จะเขียน `group.members` ของตัวเอง + ลบ field `members` ทิ้งหรือทำเป็น computed/denormalized cache / (C) เก็บ 2 field ไว้แต่เพิ่ม Cloud Function trigger sync สองทาง
+- **แนะนำเบื้องต้น:** (B) ง่ายสุด — `user.groups` เป็นตัวที่ access-control ใช้จริงอยู่แล้ว ให้เป็น source of truth เดียวไปเลย ไม่ต้องมี sync logic
+- **cleanup แยก:** ลบ orphan UID (`user_sombat_user`) ออกจาก `operations.members[]`
 
 ---
 
