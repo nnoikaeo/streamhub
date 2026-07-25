@@ -279,11 +279,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.10.1 | Add user to dashboard | 1. Select **restricted** dashboard 2. Add user 3. Save | User gains access | High | ☐ |
+| 3.10.1 | Add user to dashboard | 1. Select **restricted** dashboard 2. Add user 3. Save | User gains access | High | ✅ |
 | 3.10.2 | Remove user from dashboard | 1. Select **restricted** dashboard 2. Remove user 3. Save | User loses access | High | ☐ |
 | 3.10.3 | Add group to dashboard | 1. Select **restricted** dashboard 2. Add group 3. Save | All group members gain access | High | ☐ |
 | 3.10.4 | Set role restriction (Layer 3) | 1. Select dashboard 2. Set restriction 3. Save | Access overridden by restriction | Medium | ☐ |
-| 3.10.5 | Verify permission applies | 1. Grant user access to **restricted** dashboard 2. Login as that user 3. View dashboard | Dashboard accessible | High | ☐ |
+| 3.10.5 | Verify permission applies | 1. Grant user access to **restricted** dashboard 2. Login as that user 3. View dashboard | Dashboard accessible | High | ✅ |
 
 > ⚠️ **หมายเหตุการทดสอบ 3.10.x (อัปเดตหลัง DESIGN-001 fix — Looker model):** ตอนนี้ default = **private**. dashboard ที่ไม่มี grant + ไม่เปิด public = ไม่มีใครเห็น (นอกจาก admin). ทดสอบ add/remove user บน dashboard ใดก็ได้ที่ **ไม่เปิด public** — เพิ่ม user → เห็น, ลบ → หายจริง. ปุ่ม 🌐 สาธารณะ = เปิดให้ทุกคนในระบบเห็น
 
