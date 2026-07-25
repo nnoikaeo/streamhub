@@ -50,11 +50,13 @@ import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminGroups } from '~/composables/useAdminGroups'
 import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 import {
   diffFolderAssignments,
   applyFolderAssignments,
 } from '~/utils/folderAssignment'
+import { diffIds, applyUserGroupsSync } from '~/utils/groupSync'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 
@@ -71,6 +73,7 @@ const { users, loading, fetchUsers, updateUser, deleteUser } = useAdminUsers()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
 const { folders, fetchFolders, updateFolder, buildFolderTree } = useAdminFolders()
+const { groups, fetchGroups, updateGroup } = useAdminGroups()
 
 // CRUD page state (modal, dialog, handlers) — edit + delete + toggle only
 // Note: handleSave from useAdminCrudPage is replaced by a custom handler below
@@ -186,6 +189,9 @@ const handleSaveUser = async (payload: UserFormSubmitPayload) => {
     return
   }
 
+  // Capture groups before the write — selectedUser is the pre-edit record.
+  const previousGroups = selectedUser.value?.groups ?? []
+
   try {
     await updateUser(user.uid, {
       name: user.name,
@@ -210,6 +216,14 @@ const handleSaveUser = async (payload: UserFormSubmitPayload) => {
     )
     if (writes > 0) {
       await fetchFolders()
+    }
+
+    // Keep group.members[] in sync with this user's groups[] — access control
+    // reads groups[], but GroupViewModal/PermissionsPage read members[]. [BUG-005]
+    const groupDiff = diffIds(previousGroups, user.groups ?? [])
+    const groupWrites = await applyUserGroupsSync(user.uid, groupDiff, groups.value, updateGroup)
+    if (groupWrites > 0) {
+      await fetchGroups()
     }
 
     showUserModal.value = false
@@ -277,6 +291,7 @@ onMounted(async () => {
       fetchCompanies(),
       fetchRegions(),
       fetchFolders(),
+      fetchGroups(),
     ])
     console.log('✅ [Lifecycle] onMounted - Users fetched successfully')
   } catch (error) {

@@ -48,7 +48,9 @@ import type { AdminGroup } from '~/types/admin'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminGroups } from '~/composables/useAdminGroups'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
+import { diffIds, applyGroupMembersSync } from '~/utils/groupSync'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -60,6 +62,31 @@ console.log('📄 [admin/groups/index.vue] Groups management page initialized')
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { groups, loading, fetchGroups, createGroup, updateGroup, deleteGroup } = useAdminGroups()
 const { folders, buildFolderTree } = useAdminFolders()
+const { users: allUsers, fetchUsers, updateUser } = useAdminUsers()
+
+// Keep user.groups[] in sync with group.members[] on every create/update —
+// access control reads user.groups[], GroupViewModal/PermissionsPage read
+// group.members[]; editing either side must write through to the other. [BUG-005]
+const createGroupWithSync = async (data: Partial<AdminGroup>) => {
+  const created = await createGroup(data)
+  if (created) {
+    const diff = diffIds([], data.members ?? [])
+    const writes = await applyGroupMembersSync(created.id, diff, allUsers.value, updateUser)
+    if (writes > 0) await fetchUsers()
+  }
+  return created
+}
+
+const updateGroupWithSync = async (id: string, data: Partial<AdminGroup>) => {
+  const previousMembers = groups.value.find(g => g.id === id)?.members ?? []
+  const updated = await updateGroup(id, data)
+  if (data.members) {
+    const diff = diffIds(previousMembers, data.members)
+    const writes = await applyGroupMembersSync(id, diff, allUsers.value, updateUser)
+    if (writes > 0) await fetchUsers()
+  }
+  return updated
+}
 
 // CRUD page state (modal, dialog, handlers)
 const {
@@ -80,8 +107,8 @@ const {
 } = useAdminCrudPage<AdminGroup>({
   idKey: 'id',
   displayKey: 'name',
-  createFn: createGroup,
-  updateFn: updateGroup,
+  createFn: createGroupWithSync,
+  updateFn: updateGroupWithSync,
   deleteFn: deleteGroup,
   resourceLabel: 'กลุ่ม',
 })
@@ -223,7 +250,7 @@ const actions = [
 onMounted(async () => {
   try {
     console.log('🚀 [Lifecycle] onMounted - Starting to fetch groups...')
-    await fetchGroups()
+    await Promise.all([fetchGroups(), fetchUsers()])
     console.log('✅ [Lifecycle] onMounted - Groups fetched successfully')
   } catch (error) {
     console.error('❌ [Lifecycle] Error loading groups:', error)
