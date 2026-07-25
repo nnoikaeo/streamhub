@@ -354,9 +354,9 @@
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
 | 4.2.1 | View manageable dashboards | 1. Go to `/manage/permissions` | Only dashboards in assigned folders shown | High | ☐ |
-| 4.2.2 | Add user to dashboard | 1. Select dashboard 2. Add user 3. Save | User gains access | High | ☐ |
+| 4.2.2 | Add user to dashboard | 1. Select dashboard 2. Add user 3. Save | User gains access | High | ✅ |
 | 4.2.3 | Remove user from dashboard | 1. Select dashboard 2. Remove user 3. Save | User loses access | High | ☐ |
-| 4.2.4 | Layer 3 restrictions hidden | 1. Check permission editor | Layer 3 (restrictions) not visible | Medium | ☐ |
+| 4.2.4 | Layer 3 restrictions hidden | 1. Check permission editor | Layer 3 (restrictions) not visible | Medium | ✅ |
 | 4.2.5 | Cannot view unassigned dashboards | 1. Check list of dashboards | Unassigned dashboards not in list | Medium | ☐ |
 
 ---
@@ -445,6 +445,7 @@
 | ENV-001 | หน้าขาวพร้อม MIME type error "Expected JavaScript-or-Wasm but got text/html" หลัง deploy ใหม่ | TC 2.3.1 | Low | ℹ️ Not a Bug |
 | BUG-004 | Bulk invite ไม่ใช้ role/company/group รายแถว — ทุกคนได้ค่าของแถวแรก | TC 3.9.8 | High | 🔧 Fixed |
 | DESIGN-001 | `access.company = []` = public ทุกคน — override direct user/group grant; 7/11 dashboards prod เป็น public (2 ตัวมี group grant ที่ถูก override) | TC 3.10.2 | High | 🔧 Fixed (Looker visibility model) |
+| BUG-006 | Discover company column แสดง "ทุกบริษัท" เมื่อ access.company ว่าง — label เก่าจากยุคก่อน DESIGN-001 (empty ≠ public แล้ว) ทำให้เข้าใจผิดว่า dashboard เปิดทุกคน | TC 4.2 | Medium | 🔧 Fixed |
 | BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + ลบ user ไม่ล้าง orphan ref ใน group.members | TC 3.10.3 | Medium | 🤔 Decision needed |
 
 **BUG-001 รายละเอียด:**
