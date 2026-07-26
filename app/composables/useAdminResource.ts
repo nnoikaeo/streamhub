@@ -25,6 +25,27 @@ import type { Ref } from 'vue'
 import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore'
 
 /**
+ * Thrown when a create/update would violate a uniqueness constraint.
+ * Carries a user-facing (Thai) message that callers can surface directly.
+ */
+export class ValidationError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'ValidationError'
+  }
+}
+
+/**
+ * A field that must be unique across all items of a resource.
+ * `field` is the property checked; `message` is shown to the user on a clash.
+ * Comparison is case-insensitive and trims whitespace by default.
+ */
+interface UniqueFieldRule<T> {
+  field: keyof T
+  message: string
+}
+
+/**
  * Configuration for generic admin resource
  */
 interface AdminResourceConfig<T> {
@@ -72,6 +93,15 @@ interface AdminResourceConfig<T> {
    * Plural name for console logs (defaults to resourceName + 's')
    */
   pluralName?: string
+
+  /**
+   * Fields that must be unique across all items. Checked on create and update
+   * against the loaded list (no extra read). A clash throws a ValidationError
+   * carrying the rule's message. Use for natural-key resources whose create
+   * path would otherwise silently overwrite (e.g. company/region `code`) or for
+   * secondary keys that are not the doc id (e.g. tag `slug`).
+   */
+  uniqueFields?: UniqueFieldRule<T>[]
 }
 
 /**
@@ -147,7 +177,8 @@ export function useAdminResource<T extends Record<string, any>>(
     defaults = {},
     extensions = {},
     pluralName = resourceName.endsWith('s') ? resourceName : `${resourceName}s`,
-    skipCompanyFilter = false
+    skipCompanyFilter = false,
+    uniqueFields = []
   } = config
 
   // Firestore mode detection
@@ -307,6 +338,30 @@ export function useAdminResource<T extends Record<string, any>>(
   }
 
   /**
+   * Normalize a value for uniqueness comparison (trim + lowercase).
+   */
+  const normalizeUnique = (v: unknown): string => String(v ?? '').trim().toLowerCase()
+
+  /**
+   * Throw a ValidationError if `data` clashes with an existing item on any
+   * configured unique field. On update, pass `excludeId` to skip the item
+   * being edited. Fields absent/empty in `data` are ignored.
+   */
+  const assertUnique = (data: Partial<T>, excludeId?: string | number): void => {
+    if (uniqueFields.length === 0) return
+    for (const rule of uniqueFields) {
+      const value = data[rule.field]
+      if (value === undefined || value === null || value === '') continue
+      const target = normalizeUnique(value)
+      const clash = items.value.some(item => {
+        if (excludeId !== undefined && String(item[idKey as keyof T]) === String(excludeId)) return false
+        return normalizeUnique(item[rule.field]) === target
+      })
+      if (clash) throw new ValidationError(rule.message)
+    }
+  }
+
+  /**
    * Create new item
    */
   const create = async (data: Partial<T>): Promise<T | undefined> => {
@@ -314,6 +369,7 @@ export function useAdminResource<T extends Record<string, any>>(
     error.value = null
     try {
       const mergedData = mergeWithDefaults(data)
+      assertUnique(mergedData)
       const generatedId = generateId(mergedData)
 
       const requestBody = {
@@ -348,7 +404,13 @@ export function useAdminResource<T extends Record<string, any>>(
       }
     } catch (e: any) {
       error.value = e
-      console.error(`❌ Error creating ${resourceName}:`, e.message)
+      // A ValidationError is expected user input (e.g. duplicate key), not a
+      // system failure — log it quietly so it doesn't look like a crash.
+      if (e instanceof ValidationError) {
+        console.warn(`⚠️ ${resourceName} create blocked: ${e.message}`)
+      } else {
+        console.error(`❌ Error creating ${resourceName}:`, e.message)
+      }
       throw e
     } finally {
       loading.value = false
@@ -362,6 +424,7 @@ export function useAdminResource<T extends Record<string, any>>(
     loading.value = true
     error.value = null
     try {
+      assertUnique(updates, id)
       if (useFirestoreMode) {
         const db = getFirestoreDb()
         const now = new Date().toISOString()
