@@ -355,9 +355,9 @@ const ROLE_PERMISSIONS = {
 
 ---
 
-### Dashboard / Folder Access Structure (v6.0)
+### Dashboard / Folder Access Structure (v6.1 — Looker-style visibility)
 
-Dashboards and folders use a **simplified 3-layer permission model**:
+Dashboards and folders use a **default-private** model with an explicit public flag (DESIGN-001, 2026-07):
 
 ```typescript
 // Layer 1: Direct Access
@@ -372,6 +372,7 @@ type CompanyAccess = string[]  // Company IDs e.g. ["STTH", "STTN"]
 
 // Combined
 interface AccessControl {
+  public?: boolean         // Explicit org-wide public (default false = PRIVATE)
   direct: DirectAccess
   company: CompanyAccess
 }
@@ -382,6 +383,23 @@ interface AccessRestrictions {
   expiry: { [userId: string]: Date }  // Time-limited access
 }
 ```
+
+**Access evaluation (identical in all 3 checks — `useFirestoreService.checkAccess`, `useMockData`, `server/utils/companyAccess.ts`):**
+
+```
+restrictions revoke/expiry matches   → DENY (overrides everything below)
+user.role === 'admin'                → ALLOW (bypass)
+access.public === true               → ALLOW (every logged-in user)
+user.uid in direct.users             → ALLOW
+any user.groups[] in direct.groups   → ALLOW  (group membership read from user.groups[], NOT group.members[])
+user.company in company[]            → ALLOW
+moderator manages the folder (or an ancestor via assignedModerators) → ALLOW
+otherwise                            → DENY   (default private)
+```
+
+> ⚠️ **An empty `company: []` no longer means "all companies".** Before DESIGN-001 it did; now a dashboard with no public flag, no grants, and no company is **private** (admin + inheriting folders + managing moderators only). To make something org-wide public, set `access.public = true` (🌐 toggle in the permission editor).
+
+> Group grants resolve via each user's `user.groups[]` field (the field access control reads). `group.members[]` is a denormalized mirror kept in sync on save (`app/utils/groupSync.ts`, BUG-005).
 
 **Permission Metadata** (provenance tracking):
 
@@ -411,6 +429,12 @@ interface Folder {
 - Selecting a company grants access to ALL users in that company (no group/role filter)
 - New: `permissionMeta` for provenance tracking
 - New: `Folder.inheritPermissions` for folder-level cascade
+
+**Changes in v6.1 (DESIGN-001, 2026-07):**
+- New: `access.public?: boolean` — explicit org-wide public flag (default false)
+- **Default is now PRIVATE.** Empty `company: []` is no longer treated as "all companies"; per-user/group grants now actually restrict access
+- New: moderators can access dashboards in folders they manage (`assignedModerators`), matching their Explorer scope
+- Permission editor gained a 🌐 public toggle + a visibility banner (สาธารณะ / จำกัดสิทธิ์). Discover badges show 🌐 สาธารณะ or 🔒 จำกัดสิทธิ์ instead of "ทุกบริษัท"
 
 ---
 
