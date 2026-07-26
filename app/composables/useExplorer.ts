@@ -158,6 +158,10 @@ export function useExplorer(options: ExplorerOptions) {
   const showDashboardModal = ref(false)
   const showDeleteDialog = ref(false)
 
+  // Info dialog shown when a delete is blocked (e.g. non-empty folder)
+  const showBlockedDialog = ref(false)
+  const blockedMessage = ref('')
+
   const selectedFolder = ref<Folder | null>(null)
   const selectedDashboard = ref<Dashboard | null>(null)
 
@@ -197,7 +201,8 @@ export function useExplorer(options: ExplorerOptions) {
     if (options.canDeleteFolder) {
       const result = options.canDeleteFolder(folder)
       if (result !== true) {
-        alert(result)
+        blockedMessage.value = result
+        showBlockedDialog.value = true
         return
       }
     }
@@ -262,6 +267,11 @@ export function useExplorer(options: ExplorerOptions) {
     deleteTarget.value = null
   }
 
+  const dismissBlocked = () => {
+    showBlockedDialog.value = false
+    blockedMessage.value = ''
+  }
+
   return {
     // Location
     currentFolderId,
@@ -285,6 +295,9 @@ export function useExplorer(options: ExplorerOptions) {
     showFolderModal,
     showDashboardModal,
     showDeleteDialog,
+    showBlockedDialog,
+    blockedMessage,
+    dismissBlocked,
     selectedFolder,
     selectedDashboard,
     deleteTarget,

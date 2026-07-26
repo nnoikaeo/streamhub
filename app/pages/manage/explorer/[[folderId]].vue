@@ -70,6 +70,11 @@ const explorer = useExplorer({
     if (!canDeleteManagedFolder(folder.id)) {
       return 'คุณไม่มีสิทธิ์ลบโฟลเดอร์นี้ (สามารถลบได้เฉพาะโฟลเดอร์ย่อยที่คุณสร้างเอง)'
     }
+    const hasSubfolders = allFolders.value.some(f => (f.parentId ?? null) === folder.id)
+    const hasDashboards = manageableDashboards.value.some(d => d.folderId === folder.id)
+    if (hasSubfolders || hasDashboards) {
+      return 'ไม่สามารถลบโฟลเดอร์ที่มีเนื้อหาได้ กรุณาลบแดชบอร์ดและโฟลเดอร์ย่อยทั้งหมดก่อน'
+    }
     return true
   },
 })

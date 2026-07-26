@@ -57,13 +57,20 @@ interface Props {
    * When true, shows stronger warning styling
    */
   isDanger?: boolean
+
+  /**
+   * Hide the cancel button (default: false)
+   * Use for info/alert dialogs with a single dismiss action
+   */
+  hideCancel?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   confirmText: 'ยืนยัน',
   cancelText: 'ยกเลิก',
   loading: false,
-  isDanger: true
+  isDanger: true,
+  hideCancel: false
 })
 
 const emit = defineEmits<{
@@ -141,6 +148,7 @@ const handleBackdropClick = () => {
         <div class="confirm-actions">
           <!-- Cancel Button -->
           <button
+            v-if="!hideCancel"
             type="button"
             class="confirm-button confirm-button--secondary"
             :disabled="loading"
