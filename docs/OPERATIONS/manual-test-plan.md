@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 19 July 2569
-> **Total Test Cases:** 145
+> **Last Updated:** 26 July 2569
+> **Total Test Cases:** 162
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -522,17 +522,17 @@
 | Admin Regions | 5 | Medium | 🔍 partial (4/5; unique needs human) |
 | Admin Groups | 6 | Medium | 🔍 partial (4/6; view+search need human) |
 | Admin Tags | 7 | Medium | 🔍 partial (4/7; slug+unique+perm need human) |
-| Admin Invitations | 10 | Critical | ☐ (email side-effects — human) |
-| Admin Permissions | 5 | High | ☐ (cross-role view — human) |
-| Admin Health | 3 | Low | ☐ (live data — human) |
-| Admin Audit Logs | 8 | Medium | ☐ (live data — human) |
+| Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
+| Admin Permissions | 5 | High | ✅ (5/5) |
+| Admin Health | 3 | Low | ✅ (3/3) |
+| Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 7 | High | ☐ (login required — human) |
-| Moderator Explorer | 6 | High | ☐ (moderator login — human) |
-| Moderator Permissions | 5 | High | ☐ (moderator login — human) |
+| Moderator Explorer | 6 | High | ✅ (6/6) |
+| Moderator Permissions | 5 | High | ✅ (5/5) |
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **161** | 42 🔍 code-verified | 55 ✅ / 42 🔍 / 80 ☐ |
+| **TOTAL** | **162** | 42 🔍 code-verified | 83 ✅ / 42 🔍 / 36 ☐ (+1 N/A) |
 
 ---
 
