@@ -139,7 +139,7 @@ function normalizeAuditDoc(id: string, data: any): AuditEntry {
     userId: data.userId ?? data.performedBy ?? '',
     userName: data.userName ?? data.performedByEmail ?? '',
     userEmail: data.userEmail ?? '',
-    company: data.company ?? '',
+    company: data.company ?? data.metadata?.company ?? '',
     dashboardId: data.dashboardId ?? '',
     dashboardName: data.dashboardName ?? data.target ?? '',
     metadata: data.metadata,
