@@ -60,6 +60,14 @@ const explorer = useExplorer({
   createDashboard,
   updateDashboard,
   deleteDashboard,
+  canDeleteFolder: (folder) => {
+    const hasSubfolders = folders.value.some(f => (f.parentId ?? null) === folder.id)
+    const hasDashboards = dashboards.value.some(d => d.folderId === folder.id)
+    if (hasSubfolders || hasDashboards) {
+      return 'ไม่สามารถลบโฟลเดอร์ที่มีเนื้อหาได้ กรุณาลบแดชบอร์ดและโฟลเดอร์ย่อยทั้งหมดก่อน'
+    }
+    return true
+  },
 })
 
 // ─── Admin-specific computed ────────────────────────────────────────────
