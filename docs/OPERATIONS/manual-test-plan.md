@@ -508,8 +508,8 @@
 - **อาการ:** ที่ `/admin/explorer` กดถังขยะลบโฟลเดอร์ที่ยังมี dashboard/subfolder ข้างใน → modal ยืนยันแบบ generic ("คุณแน่ใจว่าต้องการลบ 'TEST-B'") ไม่มี warning ว่ามีเนื้อหา แล้วลบสำเร็จเงียบ ๆ ไม่มี error (spec TC 3.13.6 คาดหวัง "Error message shown")
 - **Root cause:** [admin/explorer/[[folderId]].vue](../../app/pages/admin/explorer/[[folderId]].vue) ไม่ส่ง `canDeleteFolder` guard เข้า `useExplorer` — [useExplorer.ts](../../app/composables/useExplorer.ts) จะบล็อกก็ต่อเมื่อมี callback นี้ (บรรทัด ~197) admin path เลยเรียก `deleteFolder` ลบ doc ตรง ๆ ไม่เช็คว่าว่างหรือ cascade
 - **ผลกระทบ:** dashboard/subfolder ที่ค้างข้างในกลายเป็น orphan — `folderId`/`parentId` ชี้ไป folder ที่ถูกลบไปแล้ว (data integrity)
-- **Fix:** เพิ่ม `canDeleteFolder` ใน admin explorer เช็ค subfolder + dashboard ก่อน ถ้าไม่ว่าง return error string บล็อกการลบ (mirror pattern ของ manage explorer ที่เช็คสิทธิ์) — เลือก option 1 (block) ให้ตรง spec แทน cascade
-- **หมายเหตุ (scope):** `/manage/explorer` (moderator) ก็มี orphan-risk เดียวกัน — `canDeleteFolder` เดิมเช็คแค่สิทธิ์ ไม่เช็คเนื้อหา ยังไม่แก้ในรอบนี้
+- **Fix:** เพิ่ม `canDeleteFolder` ใน admin explorer เช็ค subfolder + dashboard ก่อน ถ้าไม่ว่าง return error string บล็อกการลบ — เลือก option 1 (block) ให้ตรง spec แทน cascade เปลี่ยน native `alert()` ใน `useExplorer` เป็น `ConfirmDialog` แบบ OK-only (เพิ่ม prop `hideCancel`)
+- **manage explorer ด้วย:** `/manage/explorer` (moderator) มี orphan-risk เดียวกัน — `canDeleteFolder` เดิมเช็คแค่สิทธิ์ เพิ่ม content check (subfolder + dashboard ว่าง) ต่อจากเช็คสิทธิ์แล้วในรอบนี้
 
 ---
 
