@@ -301,18 +301,18 @@
 
 ### 3.12 Admin Audit Logs (`/admin/audit`)
 
-> ✅ **BUG-007 fix DEPLOYED (2026-07-26, CI run 30196196979).** Was: audit **read** path (`queryAuditLogs`/`getAuditSummary`) + admin gate were JSON-only while writes go to Firestore `audit-log` → prod page showed empty table + zero cards despite 20 docs (PR #300 commit mislabeled it BUG-006, which was already the discover-label fix #296). Fix live via CI (`--only hosting,functions`). §3.12 now ready to UI-verify.
+> ✅ **BUG-007 fix DEPLOYED (2026-07-26, CI run 30196196979).** Was: audit **read** path (`queryAuditLogs`/`getAuditSummary`) + admin gate were JSON-only while writes go to Firestore `audit-log` → prod page showed empty table + zero cards despite 20 docs (PR #300 commit mislabeled it BUG-006, which was already the discover-label fix #296). Fix live via CI (`--only hosting,functions`). Follow-up fixes: actor name for legacy rows (PR #304) + company column via dual-mode user lookup + legacy metadata.company (PR #305). Note: view logs written before PR #305 keep empty company; BULK_INVITE has no company in source data. Remaining ☐: 3.12.3–3.12.7.
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.12.1 | View audit logs | 1. Go to `/admin/audit` | Table shows activity records | Medium | ☐ (fix deployed — ready to test) |
-| 3.12.2 | Filter by action type | 1. Select "create" from action dropdown | Only create actions shown | Medium | ☐ |
+| 3.12.1 | View audit logs | 1. Go to `/admin/audit` | Table shows activity records | Medium | ✅ (20 records shown, matches Firestore) |
+| 3.12.2 | Filter by action type | 1. Select "create" from action dropdown | Only create actions shown | Medium | ✅ (filter view → 6 rows, matches Firestore view count) |
 | 3.12.3 | Filter by company | 1. Select company from dropdown | Company-specific actions shown | Medium | ☐ |
 | 3.12.4 | Filter by date range | 1. Set from/to dates | Actions within range shown | Medium | ☐ |
 | 3.12.5 | Search by user | 1. Type user email in search | User's actions shown | Medium | ☐ |
 | 3.12.6 | Multi-filter combination | 1. Apply action + company + date filters | Intersection of all criteria | Low | ☐ |
 | 3.12.7 | Export to CSV | 1. Click Export button | CSV file downloaded | Medium | ☐ |
-| 3.12.8 | Pagination works | 1. Navigate between pages | Correct page data loads | Low | ☐ |
+| 3.12.8 | Pagination works | 1. Navigate between pages | Correct page data loads | Low | ✅ (2 pages, page 2 = rows 11–20) |
 
 ---
 
