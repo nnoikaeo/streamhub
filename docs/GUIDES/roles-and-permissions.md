@@ -117,7 +117,7 @@ User: สมชาย (STTH)
 - ❌ Assign tags
 
 **View 2 — Manager Mode (via "จัดการ" menu → `/manage/explorer`):**
-- ✅ Create/Edit/Delete subfolders (in assigned folders)
+- ✅ Create/Edit/Delete subfolders (in assigned folders) — ลบได้เฉพาะโฟลเดอร์ว่าง (ไม่มี subfolder/dashboard ข้างใน) กัน orphan (BUG-008)
 - ✅ Set subfolder permissions (in assigned folders)
 - ✅ Create/Edit/Delete dashboards (in assigned folders)
 - ✅ Set dashboard permissions — Layer 1 (Direct) + Layer 2 (Company) for all companies
@@ -186,7 +186,7 @@ Moderator: นายหา (STTH)
 - ✅ View all dashboards (all companies)
 - ✅ Create/Edit/Delete dashboards (all companies)
 - ✅ Set dashboard permissions (all companies)
-- ✅ Create/Edit/Delete folders (all companies)
+- ✅ Create/Edit/Delete folders (all companies) — ลบได้เฉพาะโฟลเดอร์ว่าง (ไม่มี subfolder/dashboard ข้างใน) กัน orphan (BUG-008)
 - ✅ Assign folders to moderators
 - ✅ Create/Edit/Delete tags (global tag management)
 - ✅ Assign tags to any dashboard

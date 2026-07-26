@@ -104,10 +104,12 @@
 | Single click | Select (highlight) | Select (highlight) |
 | Double click | Navigate เข้า folder | เปิด dashboard view |
 | ✏️ Edit | เปิด FolderForm modal | เปิด DashboardForm modal |
-| 🗑️ Delete | ConfirmDialog → delete | ConfirmDialog → delete |
+| 🗑️ Delete | ว่าง → ConfirmDialog → delete / มีเนื้อหา → block dialog | ConfirmDialog → delete |
 
 > **หมายเหตุ:** Right-click context menu — ยังไม่ implement ในรุ่นนี้
 > ใช้ hover action buttons (✏️ 🗑️) แทน
+
+> **Delete guard (BUG-008):** ลบโฟลเดอร์ได้เฉพาะตอนว่างเท่านั้น ถ้ายังมี subfolder หรือ dashboard ข้างใน จะโชว์ block dialog ("ไม่สามารถลบได้" + OK) แทนการลบ — กัน orphan (`folderId`/`parentId` ค้าง) ใช้ทั้ง admin + moderator explorer
 
 ### Empty State
 ```
