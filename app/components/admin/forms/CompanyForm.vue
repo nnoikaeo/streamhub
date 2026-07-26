@@ -78,10 +78,19 @@ const { formData, errors, handleSubmit, setFieldTouched, setFieldValue } = useFo
   },
   validate,
   onSubmit: async (values) => {
+    // Firestore's setDoc rejects `undefined` field values. Send region as an
+    // empty string when blank (valid, and overwrites a cleared region on edit),
+    // and only include regionRole when a region + role are actually chosen —
+    // regionRole cannot be an empty string per the Company type.
     const submitData: Partial<Company> = {
-      ...values,
-      region: values.region || undefined,
-      regionRole: (values.regionRole as 'hub' | 'sub') || undefined,
+      code: values.code,
+      name: values.name,
+      description: values.description,
+      sortOrder: values.sortOrder,
+      region: values.region || '',
+    }
+    if (values.region && values.regionRole) {
+      submitData.regionRole = values.regionRole as 'hub' | 'sub'
     }
     emit('submit', submitData)
   },
