@@ -12,6 +12,7 @@
 | 🔍 | **Code-verified only** — logic confirmed in source, NOT yet exercised through the UI. Still needs a human UI pass to become ✅ |
 | ❌ | Tested via UI and **failed** — see Known Bugs |
 | ☐ | Not yet checked |
+| ⊘ N/A | **Intentionally not tested** — page/feature removed or superseded (e.g. legacy orphan route with no sidebar link); excluded from coverage |
 
 > 🔍 cases were confirmed by reading the implementation (shared CRUD composables, middleware, forms). They cover create/edit/delete/toast/confirm-dialog mechanics, route protection, and UserForm field behavior. Cases needing real Google OAuth login, cross-browser, responsive, external side-effects (email send), uniqueness/delete-guard server checks, and live data remain ☐ for a human tester.
 
@@ -198,16 +199,24 @@
 
 ### 3.4 Admin Dashboards (`/admin/dashboards`)
 
+> **⊘ NOT TESTED — Superseded by Explorer (`/admin/explorer`).** Like §3.3, this DataTable
+> page is a **legacy orphan route with no sidebar link** ([useRoleNavigation.ts](../../app/composables/useRoleNavigation.ts)
+> admin menu does not include it — only reachable by typing the URL directly). Dashboard
+> management now lives in the Explorer tree. Testing is **intentionally skipped**: the route
+> is not part of any user-facing flow and is a candidate for removal. All cases marked ⊘ N/A.
+> (Note: dashboards are leaf nodes with no children, so there is no delete-orphan risk of the
+> BUG-008/BUG-009 kind here.) Decision 2026-07-26.
+
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.4.1 | Search by name | 1. Type dashboard name in search | Matching dashboards shown | High | ☐ |
-| 3.4.2 | Filter by archive status | 1. Toggle archive filter | Archived/active dashboards filtered | High | ☐ |
-| 3.4.3 | Create dashboard | 1. Click "เพิ่มแดชบอร์ด" 2. Fill name, folder, owner 3. Submit | Dashboard created, toast shown | High | 🔍 |
-| 3.4.4 | Edit dashboard | 1. Click Edit 2. Change fields 3. Save | Dashboard updated in table | High | 🔍 |
-| 3.4.5 | Delete dashboard | 1. Click Delete 2. Confirm | Dashboard removed | High | 🔍 |
-| 3.4.6 | Toggle archive status | 1. Click archive toggle on row | Dashboard archived/unarchived | High | ☐ |
-| 3.4.7 | Form validation | 1. Submit form with missing required fields | Validation errors shown | Medium | ☐ |
-| 3.4.8 | Dashboard with Looker URL | 1. Create dashboard with Looker URL 2. View it | Dashboard renders embed | Medium | ☐ |
+| 3.4.1 | Search by name | 1. Type dashboard name in search | Matching dashboards shown | High | ⊘ N/A (orphan) |
+| 3.4.2 | Filter by archive status | 1. Toggle archive filter | Archived/active dashboards filtered | High | ⊘ N/A (orphan) |
+| 3.4.3 | Create dashboard | 1. Click "เพิ่มแดชบอร์ด" 2. Fill name, folder, owner 3. Submit | Dashboard created, toast shown | High | ⊘ N/A (orphan) |
+| 3.4.4 | Edit dashboard | 1. Click Edit 2. Change fields 3. Save | Dashboard updated in table | High | ⊘ N/A (orphan) |
+| 3.4.5 | Delete dashboard | 1. Click Delete 2. Confirm | Dashboard removed | High | ⊘ N/A (orphan) |
+| 3.4.6 | Toggle archive status | 1. Click archive toggle on row | Dashboard archived/unarchived | High | ⊘ N/A (orphan) |
+| 3.4.7 | Form validation | 1. Submit form with missing required fields | Validation errors shown | Medium | ⊘ N/A (orphan) |
+| 3.4.8 | Dashboard with Looker URL | 1. Create dashboard with Looker URL 2. View it | Dashboard renders embed | Medium | ⊘ N/A (orphan) |
 
 ---
 
@@ -532,8 +541,8 @@
 | Dashboard View | 10 | High | ✅ |
 | Admin Overview | 5 | High | ✅ |
 | Admin Users | 10 | High | 🔍 (9 code-verified, rest ✅) |
-| Admin Folders | 8 | High | 🔍 partial (5/8; 3 need human) |
-| Admin Dashboards | 8 | High | 🔍 partial (3/8; 5 need human) |
+| Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
+| Admin Dashboards | 8 | High | ⊘ N/A (8/8 — orphan route, superseded by Explorer, not tested) |
 | Admin Companies | 8 | Medium | 🔍 partial (5/8; unique+search need human) |
 | Admin Regions | 5 | Medium | 🔍 partial (4/5; unique needs human) |
 | Admin Groups | 6 | Medium | 🔍 partial (4/6; view+search need human) |
@@ -548,7 +557,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **162** | 42 🔍 code-verified | 90 ✅ / 42 🔍 / 29 ☐ (+1 N/A) |
+| **TOTAL** | **162** | — | 98 ✅ / 34 🔍 / 21 ☐ / 9 ⊘ N/A |
 
 ---
 
