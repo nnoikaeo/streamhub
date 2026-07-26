@@ -18,7 +18,10 @@ export function useAdminRegions() {
     skipCompanyFilter: true,
     defaults: {
       isActive: true
-    }
+    },
+    // `code` is the Firestore doc id — guard against a duplicate code silently
+    // overwriting the existing region via setDoc.
+    uniqueFields: [{ field: 'code', message: 'รหัสกลุ่มธุรกิจ/เขตพื้นที่ซ้ำ' }]
   })
 
   return {

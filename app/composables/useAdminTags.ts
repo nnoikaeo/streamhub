@@ -13,7 +13,10 @@ export function useAdminTags() {
     skipCompanyFilter: true,
     defaults: {
       isActive: true
-    }
+    },
+    // `id` is auto-generated (tag_*), so the doc never collides — but `slug` is
+    // a secondary key that must stay unique, otherwise two tags share a slug.
+    uniqueFields: [{ field: 'slug', message: 'slug นี้ถูกใช้แล้ว' }]
   })
 
   const fetchTags = async () => {
