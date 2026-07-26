@@ -1,6 +1,6 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 26 July 2569
+> **Last Updated:** 27 July 2569
 > **Total Test Cases:** 162
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
