@@ -5,6 +5,7 @@ const showToast = vi.fn()
 vi.stubGlobal('useAppToast', () => ({ showToast }))
 
 import { useAdminCrudPage } from '../../app/composables/useAdminCrudPage'
+import { ValidationError } from '../../app/composables/useAdminResource'
 
 interface Row {
   id: string
@@ -63,5 +64,43 @@ describe('useAdminCrudPage — canDelete guard', () => {
     await crud.confirmDelete()
 
     expect(deleteFn).toHaveBeenCalledWith('f3')
+  })
+})
+
+describe('useAdminCrudPage — handleSave error surfacing', () => {
+  it('shows a ValidationError message verbatim and keeps the modal open', async () => {
+    const createFn = vi.fn().mockRejectedValue(new ValidationError('รหัสบริษัทซ้ำ'))
+    const { crud } = makeCrud({ createFn, resourceLabel: 'บริษัท' })
+
+    crud.handleAdd() // create mode (no selectedItem)
+    expect(crud.showFormModal.value).toBe(true)
+
+    await crud.handleSave({ id: 'ACME', name: 'Acme' })
+
+    expect(createFn).toHaveBeenCalled()
+    expect(showToast).toHaveBeenCalledWith('รหัสบริษัทซ้ำ', 'error')
+    // modal stays open so the user can fix the duplicate code
+    expect(crud.showFormModal.value).toBe(true)
+  })
+
+  it('falls back to a generic message for non-validation errors', async () => {
+    const createFn = vi.fn().mockRejectedValue(new Error('network boom'))
+    const { crud } = makeCrud({ createFn, resourceLabel: 'บริษัท' })
+
+    crud.handleAdd()
+    await crud.handleSave({ id: 'X', name: 'X' })
+
+    expect(showToast).toHaveBeenCalledWith('เกิดข้อผิดพลาดในการบันทึกบริษัท', 'error')
+  })
+
+  it('closes the modal and shows success toast on a clean save', async () => {
+    const createFn = vi.fn().mockResolvedValue({ id: 'OK', name: 'Ok' })
+    const { crud } = makeCrud({ createFn, resourceLabel: 'บริษัท' })
+
+    crud.handleAdd()
+    await crud.handleSave({ id: 'OK', name: 'Ok' })
+
+    expect(showToast).toHaveBeenCalledWith('เพิ่มบริษัทเรียบร้อยแล้ว')
+    expect(crud.showFormModal.value).toBe(false)
   })
 })

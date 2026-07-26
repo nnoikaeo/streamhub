@@ -224,14 +224,14 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.5.1 | Search by name/code | 1. Type in search bar | Matching companies shown | Medium | ☐ |
-| 3.5.2 | Filter by region | 1. Select region from dropdown | Companies in that region shown | Medium | ☐ |
-| 3.5.3 | Create company | 1. Click "เพิ่มบริษัท" 2. Fill code, name 3. Submit | Company created | High | 🔍 |
-| 3.5.4 | Unique code validation | 1. Create company with existing code | Error: "รหัสบริษัทซ้ำ" | High | ☐ |
-| 3.5.5 | Edit company | 1. Click Edit 2. Change fields 3. Save | Company updated | Medium | 🔍 |
-| 3.5.6 | Delete company | 1. Click Delete 2. Confirm | Company removed | Medium | 🔍 |
-| 3.5.7 | Move Up/Down reorder | 1. Click Move Up on company | sortOrder swaps with adjacent | Medium | 🔍 |
-| 3.5.8 | Toggle active status | 1. Click toggle switch | Status updates | Low | 🔍 |
+| 3.5.1 | Search by name/code | 1. Type in search bar | Matching companies shown | Medium | ✅ |
+| 3.5.2 | Filter by region | 1. Select region from dropdown | Companies in that region shown | Medium | ✅ |
+| 3.5.3 | Create company | 1. Click "เพิ่มบริษัท" 2. Fill code, name 3. Submit | Company created | High | ✅ (was BUG-011 — blank region sent `undefined` → setDoc rejected; fixed) |
+| 3.5.4 | Unique code validation | 1. Create company with existing code | Error: "รหัสบริษัทซ้ำ" | High | ✅ (was BUG-010 — duplicate code silently overwrote existing company; fixed via `uniqueFields` guard) |
+| 3.5.5 | Edit company | 1. Click Edit 2. Change fields 3. Save | Company updated | Medium | ✅ |
+| 3.5.6 | Delete company | 1. Click Delete 2. Confirm | Company removed | Medium | ✅ |
+| 3.5.7 | Move Up/Down reorder | 1. Click Move Up on company | sortOrder swaps with adjacent | Medium | ✅ (swaps within same region only; a lone/ungrouped company is a no-op) |
+| 3.5.8 | Toggle active status | 1. Click toggle switch | Status updates | Low | ✅ |
 
 ---
 
@@ -467,6 +467,8 @@
 | BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + ลบ user ไม่ล้าง orphan ref ใน group.members | TC 3.10.3 | Medium | 🤔 Decision needed |
 | BUG-008 | Admin Explorer ลบโฟลเดอร์ที่มีเนื้อหาได้เงียบ ๆ ไม่มี error/warning — dashboard/subfolder ข้างในกลายเป็น orphan (`folderId`/`parentId` ชี้ไปยัง folder ที่ถูกลบ) | TC 3.13.6 | Medium | 🔧 Fixed |
 | BUG-009 | `/admin/folders` (DataTable, ต่างหน้ากับ BUG-008 ที่เป็น Explorer) ลบโฟลเดอร์ที่มี subfolder/dashboard ได้เงียบ ๆ — orphan แบบเดียวกัน; guard ของ Explorer ไม่ครอบหน้านี้ (คนละ composable: `useAdminCrudPage`) | TC 3.3.5 | High | 🔧 Fixed (เพิ่ม `canDelete` guard ใน `useAdminCrudPage` + wire หน้า folders) |
+| BUG-010 | สร้าง company/region ด้วย `code` ซ้ำ = **เขียนทับ record เดิมเงียบ ๆ (data loss)** — `useAdminResource.create` ใช้ `setDoc(docId=code)` ไม่เช็ค existence; tags `slug` ก็ไม่ถูกบังคับ unique | TC 3.5.4 / 3.6.5 / 3.8.6 | High | 🔧 Fixed (เพิ่ม `uniqueFields` + `assertUnique` บน create+update; companies/regions→`code`, tags→`slug`) |
+| BUG-011 | สร้าง company โดยไม่เลือก region → CompanyForm ส่ง `region: undefined` → Firestore `setDoc` reject ("Unsupported field value: undefined") = สร้างไม่ได้เลย | TC 3.5.3 | High | 🔧 Fixed (CompanyForm ส่ง region เป็น `''` เมื่อว่าง, omit regionRole) |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
@@ -543,7 +545,7 @@
 | Admin Users | 10 | High | 🔍 (9 code-verified, rest ✅) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
 | Admin Dashboards | 8 | High | ⊘ N/A (8/8 — orphan route, superseded by Explorer, not tested) |
-| Admin Companies | 8 | Medium | 🔍 partial (5/8; unique+search need human) |
+| Admin Companies | 8 | Medium | ✅ (8/8 — BUG-010 unique-code + BUG-011 blank-region fixed) |
 | Admin Regions | 5 | Medium | 🔍 partial (4/5; unique needs human) |
 | Admin Groups | 6 | Medium | 🔍 partial (4/6; view+search need human) |
 | Admin Tags | 7 | Medium | 🔍 partial (4/7; slug+unique+perm need human) |
@@ -557,7 +559,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **162** | — | 98 ✅ / 34 🔍 / 21 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **162** | — | 106 ✅ / 29 🔍 / 18 ☐ / 9 ⊘ N/A |
 
 ---
 

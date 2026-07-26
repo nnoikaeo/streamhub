@@ -18,7 +18,10 @@ export function useAdminCompanies() {
     skipCompanyFilter: true,
     defaults: {
       isActive: true
-    }
+    },
+    // `code` is the Firestore doc id — without this guard a duplicate code
+    // would silently overwrite the existing company via setDoc.
+    uniqueFields: [{ field: 'code', message: 'รหัสบริษัทซ้ำ' }]
   })
 
   // Create backward-compatible aliases for existing page code
