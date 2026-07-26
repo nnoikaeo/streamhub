@@ -307,11 +307,11 @@
 |---|-----------|-------|-----------------|----------|--------|
 | 3.12.1 | View audit logs | 1. Go to `/admin/audit` | Table shows activity records | Medium | ✅ (20 records shown, matches Firestore) |
 | 3.12.2 | Filter by action type | 1. Select "create" from action dropdown | Only create actions shown | Medium | ✅ (filter view → 6 rows, matches Firestore view count) |
-| 3.12.3 | Filter by company | 1. Select company from dropdown | Company-specific actions shown | Medium | ☐ |
+| 3.12.3 | Filter by company | 1. Select company from dropdown | Company-specific actions shown | Medium | ✅ (ORAY → 2 rows, matches export) |
 | 3.12.4 | Filter by date range | 1. Set from/to dates | Actions within range shown | Medium | ☐ |
-| 3.12.5 | Search by user | 1. Type user email in search | User's actions shown | Medium | ☐ |
-| 3.12.6 | Multi-filter combination | 1. Apply action + company + date filters | Intersection of all criteria | Low | ☐ |
-| 3.12.7 | Export to CSV | 1. Click Export button | CSV file downloaded | Medium | ☐ |
+| 3.12.5 | Search by user | 1. Type user email in search | User's actions shown | Medium | ✅ (search "survey" → 4 rows across name/email/dashboard) |
+| 3.12.6 | Multi-filter combination | 1. Apply action + company + date filters | Intersection of all criteria | Low | ✅ (view + ORAY → 0, AND logic confirmed) |
+| 3.12.7 | Export to CSV | 1. Click Export button | CSV file downloaded | Medium | ✅ (20 rows, 8 cols, UTF-8 BOM; verify Thai in Excel) |
 | 3.12.8 | Pagination works | 1. Navigate between pages | Correct page data loads | Low | ✅ (2 pages, page 2 = rows 11–20) |
 
 ---
