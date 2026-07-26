@@ -42,6 +42,7 @@ import { ref, computed, onMounted } from 'vue'
 import type { Folder } from '~/types/admin'
 import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 definePageMeta({
@@ -53,6 +54,7 @@ console.log('📄 [admin/folders/index.vue] Folders management page initialized'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { folders, loading, fetchFolders, createFolder, updateFolder, deleteFolder, buildFolderTree } = useAdminFolders()
+const { dashboards, fetchDashboards } = useAdminDashboards()
 
 // CRUD page state (modal, dialog, handlers)
 const {
@@ -77,6 +79,16 @@ const {
   updateFn: updateFolder,
   deleteFn: deleteFolder,
   resourceLabel: 'โฟลเดอร์',
+  // Block deleting a folder that still has subfolders or dashboards (prevents
+  // orphaned content — same guard as the explorer pages, see BUG-008).
+  canDelete: (folder) => {
+    const hasSubfolders = folders.value.some(f => (f.parentId ?? null) === folder.id)
+    const hasDashboards = dashboards.value.some(d => d.folderId === folder.id)
+    if (hasSubfolders || hasDashboards) {
+      return 'ไม่สามารถลบโฟลเดอร์ที่มีเนื้อหาได้ กรุณาลบแดชบอร์ดและโฟลเดอร์ย่อยทั้งหมดก่อน'
+    }
+    return true
+  },
 })
 
 // Filters
@@ -156,7 +168,7 @@ const actions = [
 onMounted(async () => {
   try {
     console.log('🚀 [Lifecycle] onMounted - Starting to fetch folders...')
-    await fetchFolders()
+    await Promise.all([fetchFolders(), fetchDashboards()])
     console.log('✅ [Lifecycle] onMounted - Folders fetched successfully')
   } catch (error) {
     console.error('❌ [Lifecycle] Error loading folders:', error)

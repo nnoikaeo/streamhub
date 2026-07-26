@@ -30,6 +30,11 @@ interface CrudPageConfig<T, K extends string | number = string> {
   updateFn: (id: K, data: Partial<T>) => Promise<T | undefined>
   /** Delete function from admin resource composable */
   deleteFn: (id: K) => Promise<boolean | undefined>
+  /**
+   * Optional pre-delete guard. Return `true` to allow deletion, or an error
+   * message string to block it (shown as an error toast). Runs before deleteFn.
+   */
+  canDelete?: (item: T) => true | string
   /** Optional callback after successful save */
   onSaved?: () => void
   /** Optional callback after successful delete */
@@ -39,7 +44,7 @@ interface CrudPageConfig<T, K extends string | number = string> {
 }
 
 export function useAdminCrudPage<T extends Record<string, any>, K extends string | number = string>(config: CrudPageConfig<T, K>) {
-  const { idKey, displayKey, createFn, updateFn, deleteFn, onSaved, onDeleted, resourceLabel = 'รายการ' } = config
+  const { idKey, displayKey, createFn, updateFn, deleteFn, canDelete, onSaved, onDeleted, resourceLabel = 'รายการ' } = config
   const { showToast } = useAppToast()
 
   // Modal state
@@ -114,6 +119,18 @@ export function useAdminCrudPage<T extends Record<string, any>, K extends string
   const confirmDelete = async () => {
     if (!itemToDelete.value) return
     const display = getDisplayVal(itemToDelete.value)
+
+    // Pre-delete guard (e.g. block deleting a folder that still has content)
+    if (canDelete) {
+      const verdict = canDelete(itemToDelete.value)
+      if (verdict !== true) {
+        showToast(verdict, 'error')
+        showConfirmDialog.value = false
+        itemToDelete.value = null
+        return
+      }
+    }
+
     try {
       await deleteFn(getId(itemToDelete.value))
       showConfirmDialog.value = false
