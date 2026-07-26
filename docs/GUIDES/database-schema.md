@@ -259,8 +259,9 @@ match /users/{userId} {
   updatedBy: string              // UID of who last updated
   assignedModerators?: string[]  // Moderator UIDs (not objects)
 
-  // 3-Layer permission model (same as Dashboard)
+  // Visibility model (same as Dashboard, v6.1 default-private)
   access?: {
+    public?: boolean             // Explicit org-wide public (default false)
     direct: {
       users: string[]            // UIDs with direct access
       groups: string[]           // Group IDs with access
@@ -345,11 +346,13 @@ match /users/{userId} {
   isArchived: boolean            // Archive status (replaces isActive)
   archivedAt?: Timestamp         // When archived
 
-  // 3-Layer Permission Model ← See roles-and-permissions.md for full details
+  // Visibility model (v6.1, default-private) ← See roles-and-permissions.md for full details
   access: {
+    public?: boolean             // Explicit org-wide public (default false = PRIVATE).
+                                 // NOTE: empty company[] is NOT "all companies" anymore (DESIGN-001)
     direct: {
       users: string[]            // Layer 1a: UIDs with direct access
-      groups: string[]           // Layer 1b: Group IDs with access
+      groups: string[]           // Layer 1b: Group IDs (resolved via user.groups[], not group.members[])
     }
     company: string[]            // Layer 2: Company codes (all users in these companies)
   }
