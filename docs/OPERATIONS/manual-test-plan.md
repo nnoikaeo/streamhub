@@ -176,16 +176,23 @@
 
 ### 3.3 Admin Folders (`/admin/folders`)
 
+> **⚠️ Superseded by Explorer (`/admin/explorer`).** This DataTable page is a legacy
+> orphan route with **no sidebar link** — folder management now happens in the Explorer
+> tree (folders + dashboards in one place). The page remains reachable by direct URL, so
+> it is kept functional and its delete path was hardened to match Explorer's content guard
+> (see BUG-008 / TC 3.3.5). Verified 8/8 on 2026-07-26 before deprecation; no further
+> routine testing required unless the route is revived. Candidate for removal.
+
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.3.1 | Create root folder | 1. Click "เพิ่มโฟลเดอร์" 2. No parent selected 3. Submit | Root folder created | High | 🔍 |
-| 3.3.2 | Create child folder | 1. Click "เพิ่มโฟลเดอร์" 2. Select parent 3. Submit | Subfolder created under parent | High | 🔍 |
-| 3.3.3 | Edit folder name | 1. Click Edit 2. Change name 3. Save | Name updated in table | Medium | 🔍 |
-| 3.3.4 | Delete empty folder | 1. Click Delete on folder with no children/dashboards 2. Confirm | Folder removed | High | 🔍 |
-| 3.3.5 | Delete folder with children | 1. Click Delete on folder with subfolders | Error: "ไม่สามารถลบโฟลเดอร์ที่มีโฟลเดอร์ย่อย" | High | ☐ |
-| 3.3.6 | Search by name | 1. Type name in search bar | Matching folders shown | Medium | 🔍 |
-| 3.3.7 | Toggle folder active status | 1. Click toggle switch | Status updates inline | Medium | ☐ |
-| 3.3.8 | Folder hierarchy display | 1. View table | Parent folder shown in column | Low | ☐ |
+| 3.3.1 | Create root folder | 1. Click "เพิ่มโฟลเดอร์" 2. No parent selected 3. Submit | Root folder created | High | ✅ |
+| 3.3.2 | Create child folder | 1. Click "เพิ่มโฟลเดอร์" 2. Select parent 3. Submit | Subfolder created under parent | High | ✅ |
+| 3.3.3 | Edit folder name | 1. Click Edit 2. Change name 3. Save | Name updated in table | Medium | ✅ |
+| 3.3.4 | Delete empty folder | 1. Click Delete on folder with no children/dashboards 2. Confirm | Folder removed | High | ✅ |
+| 3.3.5 | Delete folder with content | 1. Click Delete on folder with subfolders/dashboards 2. Confirm | Error toast: "ไม่สามารถลบโฟลเดอร์ที่มีเนื้อหาได้ กรุณาลบแดชบอร์ดและโฟลเดอร์ย่อยทั้งหมดก่อน" + folder NOT deleted | High | ✅ (was silent-delete orphan bug — fixed via `canDelete` guard, parity with BUG-008/explorer) |
+| 3.3.6 | Search by name | 1. Type name in search bar | Matching folders shown | Medium | ✅ |
+| 3.3.7 | Toggle folder active status | 1. Click toggle switch | Status updates inline | Medium | ✅ |
+| 3.3.8 | Folder hierarchy display | 1. View table | Parent folder shown in column | Low | ✅ |
 
 ---
 
@@ -450,6 +457,7 @@
 | BUG-006 | Discover company column แสดง "ทุกบริษัท" เมื่อ access.company ว่าง — label เก่าจากยุคก่อน DESIGN-001 (empty ≠ public แล้ว) ทำให้เข้าใจผิดว่า dashboard เปิดทุกคน | TC 4.2 | Medium | 🔧 Fixed |
 | BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + ลบ user ไม่ล้าง orphan ref ใน group.members | TC 3.10.3 | Medium | 🤔 Decision needed |
 | BUG-008 | Admin Explorer ลบโฟลเดอร์ที่มีเนื้อหาได้เงียบ ๆ ไม่มี error/warning — dashboard/subfolder ข้างในกลายเป็น orphan (`folderId`/`parentId` ชี้ไปยัง folder ที่ถูกลบ) | TC 3.13.6 | Medium | 🔧 Fixed |
+| BUG-009 | `/admin/folders` (DataTable, ต่างหน้ากับ BUG-008 ที่เป็น Explorer) ลบโฟลเดอร์ที่มี subfolder/dashboard ได้เงียบ ๆ — orphan แบบเดียวกัน; guard ของ Explorer ไม่ครอบหน้านี้ (คนละ composable: `useAdminCrudPage`) | TC 3.3.5 | High | 🔧 Fixed (เพิ่ม `canDelete` guard ใน `useAdminCrudPage` + wire หน้า folders) |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
