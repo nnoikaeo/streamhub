@@ -2,7 +2,8 @@ import { H3Event, readBody, getHeader } from 'h3'
 import { logAuditEvent, type AuditAction } from '../../utils/auditLog'
 import { sendBadRequest, sendUnauthorized } from '../../utils/apiResponse'
 import { findById } from '../../utils/jsonDatabase'
-import type { User, Dashboard } from '~/types/dashboard'
+import { resolveUser } from '../../utils/resolveUserRole'
+import type { Dashboard } from '~/types/dashboard'
 
 const VALID_ACTIONS: AuditAction[] = ['view', 'edit', 'archive', 'create', 'delete', 'denied']
 
@@ -23,8 +24,8 @@ export default defineEventHandler(async (event: H3Event) => {
     return sendBadRequest(event, `Invalid action. Must be one of: ${VALID_ACTIONS.join(', ')}`)
   }
 
-  // Resolve user info
-  const user = await findById<User>('users.json', auth.uid)
+  // Resolve user info — dual-mode (Firestore in prod, JSON in dev/mock)
+  const user = await resolveUser(auth.uid)
   const userName = user?.name || auth.name || 'Unknown'
   const userEmail = user?.email || auth.email || ''
   const company = user?.company || ''
