@@ -88,12 +88,18 @@ export default defineEventHandler(async (event: H3Event) => {
     checks.firebaseAuth = 'error'
   }
 
-  // 3. Email service: check NUXT_RESEND_API_KEY is set and non-placeholder
+  // 3. Email service: check the Resend key is set and non-placeholder.
+  //    The deployed Cloud Function binds the key as the RESEND_API_KEY secret,
+  //    so check both env names (checking only NUXT_* reported a false error).
+  const resolveResendKey = (): string =>
+    process.env.NUXT_RESEND_API_KEY
+    || process.env.RESEND_API_KEY
+    || ''
   try {
-    const resendKey = process.env.NUXT_RESEND_API_KEY
-    if (!resendKey) throw new Error('NUXT_RESEND_API_KEY not set')
+    const resendKey = resolveResendKey()
+    if (!resendKey) throw new Error('Resend API key not set')
     if (resendKey.startsWith('re_placeholder') || resendKey === 'your-resend-api-key') {
-      throw new Error('NUXT_RESEND_API_KEY is a placeholder')
+      throw new Error('Resend API key is a placeholder')
     }
     checks.emailService = 'ok'
   } catch {
@@ -113,7 +119,7 @@ export default defineEventHandler(async (event: H3Event) => {
   }
 
   // --- Environment info ---
-  const resendKey = process.env.NUXT_RESEND_API_KEY
+  const resendKey = resolveResendKey()
   const resendConfigured = !!(
     resendKey &&
     !resendKey.startsWith('re_placeholder') &&
