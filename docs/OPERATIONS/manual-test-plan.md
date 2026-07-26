@@ -301,9 +301,11 @@
 
 ### 3.12 Admin Audit Logs (`/admin/audit`)
 
+> ⛔ **BLOCKED pending functions deploy.** BUG-006 found 2026-07-26: audit **read** path (`queryAuditLogs`/`getAuditSummary`) + admin gate were JSON-only while writes go to Firestore `audit-log` → prod page showed empty table + zero cards despite 20 docs in Firestore. Fix merged (PR #300, develop+main). Awaiting CI functions redeploy (linux build) — mac build has wrong-arch sharp. Re-run all §3.12 after deploy.
+
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.12.1 | View audit logs | 1. Go to `/admin/audit` | Table shows activity records | Medium | ☐ |
+| 3.12.1 | View audit logs | 1. Go to `/admin/audit` | Table shows activity records | Medium | ☐ (blocked — fix in PR #300, awaiting deploy) |
 | 3.12.2 | Filter by action type | 1. Select "create" from action dropdown | Only create actions shown | Medium | ☐ |
 | 3.12.3 | Filter by company | 1. Select company from dropdown | Company-specific actions shown | Medium | ☐ |
 | 3.12.4 | Filter by date range | 1. Set from/to dates | Actions within range shown | Medium | ☐ |
