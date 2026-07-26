@@ -301,11 +301,11 @@
 
 ### 3.12 Admin Audit Logs (`/admin/audit`)
 
-> ⛔ **BLOCKED pending functions deploy.** BUG-007 found 2026-07-26 (commit/PR #300 mislabeled it BUG-006, which was already the discover-label fix #296): audit **read** path (`queryAuditLogs`/`getAuditSummary`) + admin gate were JSON-only while writes go to Firestore `audit-log` → prod page showed empty table + zero cards despite 20 docs in Firestore. Fix merged (PR #300, develop+main). Awaiting CI functions redeploy (linux build) — mac build has wrong-arch sharp. Re-run all §3.12 after deploy.
+> ✅ **BUG-007 fix DEPLOYED (2026-07-26, CI run 30196196979).** Was: audit **read** path (`queryAuditLogs`/`getAuditSummary`) + admin gate were JSON-only while writes go to Firestore `audit-log` → prod page showed empty table + zero cards despite 20 docs (PR #300 commit mislabeled it BUG-006, which was already the discover-label fix #296). Fix live via CI (`--only hosting,functions`). §3.12 now ready to UI-verify.
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.12.1 | View audit logs | 1. Go to `/admin/audit` | Table shows activity records | Medium | ☐ (blocked — fix in PR #300, awaiting deploy) |
+| 3.12.1 | View audit logs | 1. Go to `/admin/audit` | Table shows activity records | Medium | ☐ (fix deployed — ready to test) |
 | 3.12.2 | Filter by action type | 1. Select "create" from action dropdown | Only create actions shown | Medium | ☐ |
 | 3.12.3 | Filter by company | 1. Select company from dropdown | Company-specific actions shown | Medium | ☐ |
 | 3.12.4 | Filter by date range | 1. Set from/to dates | Actions within range shown | Medium | ☐ |
