@@ -105,7 +105,7 @@ Mobile (≤768px):
 **รายละเอียด:**
 - เพิ่ม `groupBy` ref: `'folder' | 'tag' | 'company' | 'none'`
 - สร้าง `groupedByTag` computed: จัดกลุ่มตาม tag (dashboard ที่มีหลาย tag ปรากฏหลายกลุ่ม + กลุ่ม "ไม่มีแท็ก")
-- สร้าง `groupedByCompany` computed: จัดกลุ่มตาม access.company (+ "ทุกบริษัท" + "เฉพาะสิทธิ์")
+- สร้าง `groupedByCompany` computed: จัดกลุ่มตาม access.company (+ "🌐 สาธารณะ" เมื่อ `access.public` + "🔒 จำกัดสิทธิ์" เมื่อ company ว่างและไม่ public) — *อัปเดตหลัง DESIGN-001: empty company ไม่ใช่ "ทุกบริษัท" อีกต่อไป*
 - สร้าง `activeGroups` computed: เลือก grouping ตาม mode ที่ active
 - ปรับ `isGroupedView` ให้คำนึงถึง groupBy mode
 - ปรับ `dashboardCountText` ให้แสดงตาม groupBy (เช่น "พบ 10 แดชบอร์ดใน 6 แท็ก")
