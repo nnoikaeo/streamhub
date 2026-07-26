@@ -293,9 +293,9 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.11.1 | Health page loads | 1. Go to `/admin/health` | Status indicators displayed | Medium | ☐ |
-| 3.11.2 | All services OK | 1. Verify green indicators | Firestore, Auth, Email all green | Medium | ☐ |
-| 3.11.3 | Environment info | 1. Check mode display | Shows "production" and correct App URL | Low | ☐ |
+| 3.11.1 | Health page loads | 1. Go to `/admin/health` | Status indicators displayed | Medium | ✅ |
+| 3.11.2 | All services OK | 1. Verify green indicators | Firestore, Auth, Email all green | Medium | ⚠️ Firestore ✅ / Auth ✅ / Email ❌ (Resend not configured in Functions env). Page reports degraded correctly. |
+| 3.11.3 | Environment info | 1. Check mode display | Shows "production" and correct App URL | Low | ✅ (Mode=production, App URL correct, Data Source=Firestore; Version="unknown" — minor) |
 
 ---
 
