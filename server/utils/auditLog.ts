@@ -118,6 +118,66 @@ export async function listAuditLogFiles(): Promise<string[]> {
 }
 
 // ============================================================================
+// READ SOURCE (Firestore in prod, monthly JSON files in dev/mock)
+// ============================================================================
+
+/**
+ * Normalize a raw `audit-log` document into the AuditEntry shape the UI expects.
+ * Handles two historical formats stored in the same collection:
+ *  - New format (logAuditEvent): userName/userEmail/dashboardName/action(lowercase)
+ *  - Legacy invitation format (logActivity): performedBy/performedByEmail/target
+ */
+function normalizeAuditDoc(id: string, data: any): AuditEntry {
+  return {
+    id,
+    action: data.action ?? '',
+    level: data.level ?? 'NORMAL',
+    userId: data.userId ?? data.performedBy ?? '',
+    userName: data.userName ?? data.performedBy ?? '',
+    userEmail: data.userEmail ?? data.performedByEmail ?? '',
+    company: data.company ?? '',
+    dashboardId: data.dashboardId ?? '',
+    dashboardName: data.dashboardName ?? data.target ?? '',
+    metadata: data.metadata,
+    userAgent: data.userAgent,
+    timestamp: data.timestamp ?? new Date(0).toISOString(),
+  }
+}
+
+/**
+ * Read every audit entry from the active data source.
+ * Firestore mode reads the `audit-log` collection (matches the write path);
+ * JSON mode merges monthly rotation files.
+ */
+async function readAllAuditEntries(): Promise<AuditEntry[]> {
+  if (process.env.NUXT_PUBLIC_USE_FIRESTORE === 'true') {
+    try {
+      const { getAdminDb } = await import('./firestoreAdmin')
+      const db = getAdminDb()
+      if (!db) return []
+      const snap = await db.collection('audit-log').get()
+      return snap.docs.map(d => normalizeAuditDoc(d.id, d.data()))
+    } catch (err) {
+      console.error('[AuditLog] Firestore read failed:', err)
+      return []
+    }
+  }
+
+  // JSON mode (dev / mock) — merge monthly files
+  const allFiles = await listAuditLogFiles()
+  let allLogs: AuditEntry[] = []
+  for (const file of allFiles) {
+    try {
+      const logs = await readJSON<AuditEntry>(file)
+      allLogs = allLogs.concat(logs)
+    } catch {
+      // Skip corrupted files
+    }
+  }
+  return allLogs
+}
+
+// ============================================================================
 // MAIN API
 // ============================================================================
 
@@ -235,21 +295,7 @@ export async function queryAuditLogs(filters: {
   const page = filters.page || 1
   const limit = filters.limit || 25
 
-  // Determine which monthly files to read
-  const allFiles = await listAuditLogFiles()
-  let allLogs: AuditEntry[] = []
-
-  for (const file of allFiles) {
-    try {
-      const logs = await readJSON<AuditEntry>(file)
-      allLogs = allLogs.concat(logs)
-    } catch {
-      // Skip corrupted files
-    }
-  }
-
-  // Also include legacy audit-log.json (old format) — skip for now as format differs
-  // Future: migrate legacy entries
+  const allLogs = await readAllAuditEntries()
 
   // Sort newest first
   allLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -309,17 +355,7 @@ export async function getAuditSummary(): Promise<{
   thisMonth: number
   uniqueUsers: number
 }> {
-  const allFiles = await listAuditLogFiles()
-  let allLogs: AuditEntry[] = []
-
-  for (const file of allFiles) {
-    try {
-      const logs = await readJSON<AuditEntry>(file)
-      allLogs = allLogs.concat(logs)
-    } catch {
-      // skip
-    }
-  }
+  const allLogs = await readAllAuditEntries()
 
   const now = new Date()
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()

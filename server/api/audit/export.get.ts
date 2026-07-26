@@ -1,8 +1,7 @@
 import { H3Event, getQuery, setResponseHeader } from 'h3'
 import { queryAuditLogs, type AuditAction } from '../../utils/auditLog'
 import { sendForbidden, sendUnauthorized } from '../../utils/apiResponse'
-import { findById } from '../../utils/jsonDatabase'
-import type { User } from '~/types/dashboard'
+import { resolveUserRole } from '../../utils/resolveUserRole'
 
 export default defineEventHandler(async (event: H3Event) => {
   const auth = event.context.auth
@@ -10,9 +9,9 @@ export default defineEventHandler(async (event: H3Event) => {
     return sendUnauthorized(event, 'Authentication required')
   }
 
-  // Admin only
-  const user = await findById<User>('users.json', auth.uid)
-  if (!user || user.role !== 'admin') {
+  // Admin only — dual-mode (Firestore in prod, JSON in dev/mock)
+  const role = await resolveUserRole(auth.uid)
+  if (role !== 'admin') {
     return sendForbidden(event, 'Admin access required')
   }
 
