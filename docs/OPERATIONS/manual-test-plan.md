@@ -320,13 +320,13 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.13.1 | Navigate folder hierarchy | 1. Click folders in tree | Breadcrumb updates, content changes | High | ☐ |
-| 3.13.2 | Create subfolder | 1. Click "สร้างโฟลเดอร์" 2. Fill form 3. Submit | Subfolder appears in tree and list | High | ☐ |
-| 3.13.3 | Create dashboard in folder | 1. Navigate to folder 2. Click "สร้างแดชบอร์ด" 3. Submit | Dashboard appears in current folder | High | ☐ |
-| 3.13.4 | Assign moderators to folder | 1. Click folder settings 2. Select moderators 3. Save | Moderators assigned | High | ☐ |
-| 3.13.5 | Delete empty folder | 1. Click Delete on empty folder 2. Confirm | Folder removed from tree | Medium | ☐ |
-| 3.13.6 | Delete folder with content | 1. Click Delete on folder with dashboards | Error message shown | Medium | ☐ |
-| 3.13.7 | Breadcrumb navigation | 1. Navigate deep 2. Click breadcrumb segment | Jumps to that folder level | Low | ☐ |
+| 3.13.1 | Navigate folder hierarchy | 1. Click folders in tree | Breadcrumb updates, content changes | High | ✅ (Root›Finance›Budget›2026, content swaps) |
+| 3.13.2 | Create subfolder | 1. Click "สร้างโฟลเดอร์" 2. Fill form 3. Submit | Subfolder appears in tree and list | High | ✅ (TEST-A under Payroll) |
+| 3.13.3 | Create dashboard in folder | 1. Navigate to folder 2. Click "สร้างแดชบอร์ด" 3. Submit | Dashboard appears in current folder | High | ✅ (Test Dashboard in TEST-A) |
+| 3.13.4 | Assign moderators to folder | 1. Click folder settings 2. Select moderators 3. Save | Moderators assigned | High | ✅ (assigned Finance→Nopphol; moderator explorer confirms access) |
+| 3.13.5 | Delete empty folder | 1. Click Delete on empty folder 2. Confirm | Folder removed from tree | Medium | ✅ (empty TEST-A removed, no error) |
+| 3.13.6 | Delete folder with content | 1. Click Delete on folder with dashboards | Error message shown | Medium | 🐛 BUG-008 — folder deleted silently, dashboard orphaned (fixed: content guard added) |
+| 3.13.7 | Breadcrumb navigation | 1. Navigate deep 2. Click breadcrumb segment | Jumps to that folder level | Low | ✅ |
 
 ---
 
@@ -449,6 +449,7 @@
 | DESIGN-001 | `access.company = []` = public ทุกคน — override direct user/group grant; 7/11 dashboards prod เป็น public (2 ตัวมี group grant ที่ถูก override) | TC 3.10.2 | High | 🔧 Fixed (Looker visibility model) |
 | BUG-006 | Discover company column แสดง "ทุกบริษัท" เมื่อ access.company ว่าง — label เก่าจากยุคก่อน DESIGN-001 (empty ≠ public แล้ว) ทำให้เข้าใจผิดว่า dashboard เปิดทุกคน | TC 4.2 | Medium | 🔧 Fixed |
 | BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + ลบ user ไม่ล้าง orphan ref ใน group.members | TC 3.10.3 | Medium | 🤔 Decision needed |
+| BUG-008 | Admin Explorer ลบโฟลเดอร์ที่มีเนื้อหาได้เงียบ ๆ ไม่มี error/warning — dashboard/subfolder ข้างในกลายเป็น orphan (`folderId`/`parentId` ชี้ไปยัง folder ที่ถูกลบ) | TC 3.13.6 | Medium | 🔧 Fixed |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
@@ -503,6 +504,13 @@
 - **แนะนำเบื้องต้น:** (B) ง่ายสุด — `user.groups` เป็นตัวที่ access-control ใช้จริงอยู่แล้ว ให้เป็น source of truth เดียวไปเลย ไม่ต้องมี sync logic
 - **cleanup แยก:** ลบ orphan UID (`user_sombat_user`) ออกจาก `operations.members[]`
 
+**BUG-008 รายละเอียด:**
+- **อาการ:** ที่ `/admin/explorer` กดถังขยะลบโฟลเดอร์ที่ยังมี dashboard/subfolder ข้างใน → modal ยืนยันแบบ generic ("คุณแน่ใจว่าต้องการลบ 'TEST-B'") ไม่มี warning ว่ามีเนื้อหา แล้วลบสำเร็จเงียบ ๆ ไม่มี error (spec TC 3.13.6 คาดหวัง "Error message shown")
+- **Root cause:** [admin/explorer/[[folderId]].vue](../../app/pages/admin/explorer/[[folderId]].vue) ไม่ส่ง `canDeleteFolder` guard เข้า `useExplorer` — [useExplorer.ts](../../app/composables/useExplorer.ts) จะบล็อกก็ต่อเมื่อมี callback นี้ (บรรทัด ~197) admin path เลยเรียก `deleteFolder` ลบ doc ตรง ๆ ไม่เช็คว่าว่างหรือ cascade
+- **ผลกระทบ:** dashboard/subfolder ที่ค้างข้างในกลายเป็น orphan — `folderId`/`parentId` ชี้ไป folder ที่ถูกลบไปแล้ว (data integrity)
+- **Fix:** เพิ่ม `canDeleteFolder` ใน admin explorer เช็ค subfolder + dashboard ก่อน ถ้าไม่ว่าง return error string บล็อกการลบ — เลือก option 1 (block) ให้ตรง spec แทน cascade เปลี่ยน native `alert()` ใน `useExplorer` เป็น `ConfirmDialog` แบบ OK-only (เพิ่ม prop `hideCancel`)
+- **manage explorer ด้วย:** `/manage/explorer` (moderator) มี orphan-risk เดียวกัน — `canDeleteFolder` เดิมเช็คแค่สิทธิ์ เพิ่ม content check (subfolder + dashboard ว่าง) ต่อจากเช็คสิทธิ์แล้วในรอบนี้
+
 ---
 
 ## 9. Test Case Summary
@@ -526,13 +534,13 @@
 | Admin Permissions | 5 | High | ✅ (5/5) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
-| Admin Explorer | 7 | High | ☐ (login required — human) |
+| Admin Explorer | 7 | High | ✅ (6/7 ✅ / 1 🐛 BUG-008 fixed) |
 | Moderator Explorer | 6 | High | ✅ (6/6) |
 | Moderator Permissions | 5 | High | ✅ (5/5) |
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **162** | 42 🔍 code-verified | 83 ✅ / 42 🔍 / 36 ☐ (+1 N/A) |
+| **TOTAL** | **162** | 42 🔍 code-verified | 90 ✅ / 42 🔍 / 29 ☐ (+1 N/A) |
 
 ---
 

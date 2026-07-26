@@ -282,6 +282,18 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
         @cancel="explorer.cancelDelete"
       />
 
+      <!-- Blocked Delete Info Dialog (e.g. non-empty folder) -->
+      <ConfirmDialog
+        :is-open="explorer.showBlockedDialog.value"
+        title="ไม่สามารถลบได้"
+        :message="explorer.blockedMessage.value"
+        confirm-text="ตกลง"
+        :is-danger="true"
+        :hide-cancel="true"
+        @confirm="explorer.dismissBlocked"
+        @cancel="explorer.dismissBlocked"
+      />
+
       <!-- Moderator Assignment Modal (admin only) -->
       <ModeratorAssignmentModal
         v-if="showModeratorColumn"
