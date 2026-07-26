@@ -404,7 +404,13 @@ export function useAdminResource<T extends Record<string, any>>(
       }
     } catch (e: any) {
       error.value = e
-      console.error(`❌ Error creating ${resourceName}:`, e.message)
+      // A ValidationError is expected user input (e.g. duplicate key), not a
+      // system failure — log it quietly so it doesn't look like a crash.
+      if (e instanceof ValidationError) {
+        console.warn(`⚠️ ${resourceName} create blocked: ${e.message}`)
+      } else {
+        console.error(`❌ Error creating ${resourceName}:`, e.message)
+      }
       throw e
     } finally {
       loading.value = false

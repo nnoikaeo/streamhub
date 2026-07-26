@@ -112,12 +112,12 @@ export function useAdminCrudPage<T extends Record<string, any>, K extends string
       showToast(isEdit ? `แก้ไข${resourceLabel}เรียบร้อยแล้ว` : `เพิ่ม${resourceLabel}เรียบร้อยแล้ว`)
       onSaved?.()
     } catch (error) {
-      console.error('Error saving:', error)
       // Surface uniqueness/validation messages verbatim; keep the modal open so
       // the user can correct the input. Fall back to a generic message otherwise.
       if (error instanceof ValidationError) {
         showToast(error.message, 'error')
       } else {
+        console.error('Error saving:', error)
         showToast(`เกิดข้อผิดพลาดในการบันทึก${resourceLabel}`, 'error')
       }
     }
