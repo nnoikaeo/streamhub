@@ -128,13 +128,17 @@ export async function listAuditLogFiles(): Promise<string[]> {
  *  - Legacy invitation format (logActivity): performedBy/performedByEmail/target
  */
 function normalizeAuditDoc(id: string, data: any): AuditEntry {
+  // Legacy invitation docs store the actor's uid in `performedBy` and a
+  // human label (name, sometimes an email) in `performedByEmail`; there is
+  // no separate actor-email field. Map the label to userName and leave
+  // userEmail blank rather than surfacing the raw uid.
   return {
     id,
     action: data.action ?? '',
     level: data.level ?? 'NORMAL',
     userId: data.userId ?? data.performedBy ?? '',
-    userName: data.userName ?? data.performedBy ?? '',
-    userEmail: data.userEmail ?? data.performedByEmail ?? '',
+    userName: data.userName ?? data.performedByEmail ?? '',
+    userEmail: data.userEmail ?? '',
     company: data.company ?? '',
     dashboardId: data.dashboardId ?? '',
     dashboardName: data.dashboardName ?? data.target ?? '',
