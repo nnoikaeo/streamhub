@@ -353,11 +353,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 4.2.1 | View manageable dashboards | 1. Go to `/manage/permissions` | Only dashboards in assigned folders shown | High | ☐ |
+| 4.2.1 | View manageable dashboards | 1. Go to `/manage/permissions` | Only dashboards in assigned folders shown | High | ✅ |
 | 4.2.2 | Add user to dashboard | 1. Select dashboard 2. Add user 3. Save | User gains access | High | ✅ |
-| 4.2.3 | Remove user from dashboard | 1. Select dashboard 2. Remove user 3. Save | User loses access | High | ☐ |
+| 4.2.3 | Remove user from dashboard | 1. Select dashboard 2. Remove user 3. Save | User loses access | High | ✅ |
 | 4.2.4 | Layer 3 restrictions hidden | 1. Check permission editor | Layer 3 (restrictions) not visible | Medium | ✅ |
-| 4.2.5 | Cannot view unassigned dashboards | 1. Check list of dashboards | Unassigned dashboards not in list | Medium | ☐ |
+| 4.2.5 | Cannot view unassigned dashboards | 1. Check list of dashboards | Unassigned dashboards not in list | Medium | ✅ |
 
 ---
 
