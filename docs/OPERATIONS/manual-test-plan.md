@@ -1,6 +1,6 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 27 July 2569
+> **Last Updated:** 28 July 2569
 > **Total Test Cases:** 163
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
@@ -595,6 +595,24 @@
 | nattha@streamwash.com | Moderator | STTH | Secondary moderator |
 | teerak@streamwash.com | User | STTH | Primary test user |
 | survey.streamwash@gmail.com | User | STTH | Secondary test user |
+
+### Local vs Production — where results match (and where they don't)
+
+Local dev (`npm run dev`) runs with `NUXT_PUBLIC_USE_FIRESTORE=true` against the
+**same production Firestore project** (`streamhub-1c27a`) — **no emulator, no separate
+DB**. So local and prod **share the same data**, and testing CRUD locally writes to the
+real production database. (Always clean up test records.)
+
+| Feature type | prod == local? | Why |
+|--------------|----------------|-----|
+| Client-side Firestore CRUD (§3.3–3.8 admin, §2 dashboards, §4 moderator) | ✅ Same | Same deployed code + same Firestore data; reads/writes go straight from the browser through security rules |
+| Cloud Functions / Nitro server routes (§3.9 invitations/email, §3.11 health, §3.12 audit read) | ⚠️ Can differ | Local runs the Nitro dev server; prod runs **separately-deployed Cloud Functions**. These can diverge — **BUG-007** was exactly this (audit read worked on local/mock but returned empty on prod). **Verify these on prod, not only local.** |
+| Auth / OAuth | mostly same | Same Firebase Auth project; prod uses the deployed `authDomain` (see authentication guide's authDomain caveat) |
+
+**Takeaways:**
+- §3.3–3.8 results verified locally **are** representative of prod (same code + same DB; the fixes are all deployed to `main`/prod).
+- Server-function-backed sections must still be exercised against the live prod URL.
+- Local is **not** an isolated sandbox — it mutates prod data. A true sandbox would need the Firestore emulator or a second Firebase project (not currently configured).
 
 ---
 
