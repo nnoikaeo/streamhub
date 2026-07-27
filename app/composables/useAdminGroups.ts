@@ -19,7 +19,10 @@ export function useAdminGroups() {
     defaults: {
       members: [],
       isActive: true
-    }
+    },
+    // `id` is a user-typed natural key used as the Firestore doc id — without
+    // this guard a duplicate id would silently overwrite the existing group.
+    uniqueFields: [{ field: 'id', message: 'รหัสกลุ่มซ้ำ' }]
   })
 
   // Create backward-compatible aliases for existing page code
