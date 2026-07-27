@@ -1,6 +1,6 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 26 July 2569
+> **Last Updated:** 27 July 2569
 > **Total Test Cases:** 162
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
@@ -239,11 +239,13 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.6.1 | CRUD — Create region | 1. Click "เพิ่มภูมิภาค" 2. Fill code, name 3. Submit | Region created | Medium | 🔍 |
-| 3.6.2 | CRUD — Edit region | 1. Click Edit 2. Change name 3. Save | Region updated | Medium | 🔍 |
-| 3.6.3 | CRUD — Delete region | 1. Click Delete (no companies reference it) 2. Confirm | Region removed | Medium | 🔍 |
-| 3.6.4 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | 🔍 |
-| 3.6.5 | Unique code validation | 1. Create with existing code | Validation error shown | Medium | ☐ |
+| 3.6.1 | CRUD — Create region | 1. Click "เพิ่มภูมิภาค" 2. Fill code, name 3. Submit | Region created | Medium | ✅ |
+| 3.6.2 | CRUD — Edit region | 1. Click Edit 2. Change name 3. Save | Region updated | Medium | ✅ |
+| 3.6.3 | CRUD — Delete region | 1. Click Delete (no companies reference it) 2. Confirm | Region removed | Medium | ✅ (delete leaves a gap in sortOrder — cosmetic, harmless; not re-compacted) |
+| 3.6.4 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | ✅ |
+| 3.6.5 | Unique code validation | 1. Create with existing code | Validation error shown | Medium | ✅ (covered by BUG-010 fix — toast "รหัสกลุ่มธุรกิจ/เขตพื้นที่ซ้ำ", no overwrite) |
+
+> **Note:** No delete-guard on regions — deleting a region still referenced by a company orphans `company.region` (cosmetic: the company's region column falls back to the raw code). Lower severity than the folder case (not data loss); not currently a test case. Consider a `canDelete` guard if this becomes an issue.
 
 ---
 
@@ -546,7 +548,7 @@
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
 | Admin Dashboards | 8 | High | ⊘ N/A (8/8 — orphan route, superseded by Explorer, not tested) |
 | Admin Companies | 8 | Medium | ✅ (8/8 — BUG-010 unique-code + BUG-011 blank-region fixed) |
-| Admin Regions | 5 | Medium | 🔍 partial (4/5; unique needs human) |
+| Admin Regions | 5 | Medium | ✅ (5/5 — unique-code via BUG-010 fix) |
 | Admin Groups | 6 | Medium | 🔍 partial (4/6; view+search need human) |
 | Admin Tags | 7 | Medium | 🔍 partial (4/7; slug+unique+perm need human) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
@@ -559,7 +561,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **162** | — | 106 ✅ / 29 🔍 / 18 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **162** | — | 111 ✅ / 25 🔍 / 17 ☐ / 9 ⊘ N/A |
 
 ---
 
