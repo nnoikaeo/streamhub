@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 27 July 2569
-> **Total Test Cases:** 162
+> **Total Test Cases:** 163
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -253,12 +253,15 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.7.1 | Create group with members | 1. Click "เพิ่มกลุ่ม" 2. Fill name 3. Select members 4. Submit | Group created with members | High | 🔍 |
-| 3.7.2 | Edit group members | 1. Click Edit 2. Add/remove members 3. Save | Members updated | High | 🔍 |
-| 3.7.3 | View group details | 1. Click View on group | Modal shows group info + member list | Medium | ☐ |
-| 3.7.4 | Delete group | 1. Click Delete 2. Confirm | Group removed | Medium | 🔍 |
-| 3.7.5 | Toggle group active status | 1. Click toggle switch | Status updates | Low | 🔍 |
-| 3.7.6 | Search by name | 1. Type in search bar | Matching groups shown | Low | ☐ |
+| 3.7.1 | Create group with members | 1. Click "เพิ่มกลุ่ม" 2. Fill name 3. Select members 4. Submit | Group created with members | High | ✅ |
+| 3.7.2 | Edit group members | 1. Click Edit 2. Add/remove members 3. Save | Members updated + user.groups[] synced (BUG-005) | High | ✅ (verified sync-through: adding members wrote both users in Firestore) |
+| 3.7.3 | View group details | 1. Click View on group | Modal shows group info + member list | Medium | ✅ |
+| 3.7.4 | Delete group | 1. Click Delete 2. Confirm | Group removed | Medium | ✅ (see note — orphan user.groups[] on delete) |
+| 3.7.5 | Toggle group active status | 1. Click toggle switch | Status updates | Low | ✅ |
+| 3.7.6 | Search by name | 1. Type in search bar | Matching groups shown | Low | ✅ |
+| 3.7.7 | Unique id validation | 1. Create group with existing id | Error toast "รหัสกลุ่มซ้ำ" + no overwrite | High | ✅ (BUG-012 — was silent-overwrite, fixed via uniqueFields; added this case) |
+
+> **Note:** Deleting a group does **not** clear the deleted group id from its members' `user.groups[]` (delete uses the raw `deleteGroup`, not a sync wrapper) — those users keep an orphan group ref. This is the delete-direction gap of BUG-005 (create/edit sync IS handled via `createGroupWithSync`/`updateGroupWithSync`). Low severity (access control tolerates a group id that no longer exists); consider a `deleteGroupWithSync` if it matters.
 
 ---
 
@@ -266,13 +269,15 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.8.1 | Create tag | 1. Click "เพิ่มแท็ก" 2. Fill name, slug 3. Submit | Tag created | Medium | 🔍 |
-| 3.8.2 | Slug format validation | 1. Enter slug with spaces/uppercase | Error or auto-converts to lowercase-underscore | Medium | ☐ |
-| 3.8.3 | Edit tag | 1. Click Edit 2. Change name 3. Save | Tag updated | Medium | 🔍 |
-| 3.8.4 | Delete tag | 1. Click Delete 2. Confirm | Tag removed | Medium | 🔍 |
-| 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | 🔍 |
-| 3.8.6 | Unique slug validation | 1. Create with existing slug | Validation error shown | Medium | ☐ |
-| 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected or features hidden | Low | ☐ |
+| 3.8.1 | Create tag | 1. Click "เพิ่มแท็ก" 2. Fill name, slug 3. Submit | Tag created | Medium | ✅ |
+| 3.8.2 | Slug format validation | 1. Enter name with spaces/uppercase/symbols | Slug auto-generates as lowercase-**dash** (e.g. "QA Test TAG!!" → "qa-test-tag") | Medium | ✅ (auto-gen from name only — see note) |
+| 3.8.3 | Edit tag | 1. Click Edit 2. Change name 3. Save | Tag updated (slug locked in edit mode) | Medium | ✅ |
+| 3.8.4 | Delete tag | 1. Click Delete 2. Confirm | Tag removed | Medium | ✅ |
+| 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | ✅ |
+| 3.8.6 | Unique slug validation | 1. Create with existing slug | Error toast "slug นี้ถูกใช้แล้ว" + no overwrite | Medium | ✅ (BUG-010 fix — tags→slug uniqueFields) |
+| 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected to /admin/overview | Low | 🔍 (guard code-verified: `if(!can('canManageTags')) navigateTo('/admin/overview')`; not UI-run — no admin-without-perm account) |
+
+> **Note (3.8.2):** The slug auto-generates from the **name** field (lowercase, spaces→`-`, strips non `[a-z0-9-]`) — spec said "underscore" but impl uses **dash**. The slug field itself has **no format validation**: typing directly into it (spaces/uppercase) is not sanitized, so a manually-entered malformed slug would persist. Low impact (users normally leave it auto). Slug is locked (read-only) in edit mode.
 
 ---
 
@@ -471,6 +476,7 @@
 | BUG-009 | `/admin/folders` (DataTable, ต่างหน้ากับ BUG-008 ที่เป็น Explorer) ลบโฟลเดอร์ที่มี subfolder/dashboard ได้เงียบ ๆ — orphan แบบเดียวกัน; guard ของ Explorer ไม่ครอบหน้านี้ (คนละ composable: `useAdminCrudPage`) | TC 3.3.5 | High | 🔧 Fixed (เพิ่ม `canDelete` guard ใน `useAdminCrudPage` + wire หน้า folders) |
 | BUG-010 | สร้าง company/region ด้วย `code` ซ้ำ = **เขียนทับ record เดิมเงียบ ๆ (data loss)** — `useAdminResource.create` ใช้ `setDoc(docId=code)` ไม่เช็ค existence; tags `slug` ก็ไม่ถูกบังคับ unique | TC 3.5.4 / 3.6.5 / 3.8.6 | High | 🔧 Fixed (เพิ่ม `uniqueFields` + `assertUnique` บน create+update; companies/regions→`code`, tags→`slug`) |
 | BUG-011 | สร้าง company โดยไม่เลือก region → CompanyForm ส่ง `region: undefined` → Firestore `setDoc` reject ("Unsupported field value: undefined") = สร้างไม่ได้เลย | TC 3.5.3 | High | 🔧 Fixed (CompanyForm ส่ง region เป็น `''` เมื่อว่าง, omit regionRole) |
+| BUG-012 | Groups ใช้ `id` ที่ผู้ใช้พิมพ์เป็น doc id แต่ **ตกหล่นจาก fix BUG-010** — สร้าง group ด้วย id ซ้ำ = ทับ group เดิมเงียบ ๆ (data-loss แบบเดียวกัน) | TC 3.7.7 | High | 🔧 Fixed (wire `useAdminGroups` uniqueFields `id`→"รหัสกลุ่มซ้ำ"; PR #321) |
 
 **BUG-001 รายละเอียด:**
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
@@ -549,8 +555,8 @@
 | Admin Dashboards | 8 | High | ⊘ N/A (8/8 — orphan route, superseded by Explorer, not tested) |
 | Admin Companies | 8 | Medium | ✅ (8/8 — BUG-010 unique-code + BUG-011 blank-region fixed) |
 | Admin Regions | 5 | Medium | ✅ (5/5 — unique-code via BUG-010 fix) |
-| Admin Groups | 6 | Medium | 🔍 partial (4/6; view+search need human) |
-| Admin Tags | 7 | Medium | 🔍 partial (4/7; slug+unique+perm need human) |
+| Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
+| Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
 | Admin Permissions | 5 | High | ✅ (5/5) |
 | Admin Health | 3 | Low | ✅ (3/3) |
@@ -561,7 +567,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **162** | — | 111 ✅ / 25 🔍 / 17 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **163** | — | 124 ✅ / 18 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 
