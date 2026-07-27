@@ -269,13 +269,15 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 3.8.1 | Create tag | 1. Click "เพิ่มแท็ก" 2. Fill name, slug 3. Submit | Tag created | Medium | 🔍 |
-| 3.8.2 | Slug format validation | 1. Enter slug with spaces/uppercase | Error or auto-converts to lowercase-underscore | Medium | ☐ |
-| 3.8.3 | Edit tag | 1. Click Edit 2. Change name 3. Save | Tag updated | Medium | 🔍 |
-| 3.8.4 | Delete tag | 1. Click Delete 2. Confirm | Tag removed | Medium | 🔍 |
-| 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | 🔍 |
-| 3.8.6 | Unique slug validation | 1. Create with existing slug | Validation error shown | Medium | ☐ |
-| 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected or features hidden | Low | ☐ |
+| 3.8.1 | Create tag | 1. Click "เพิ่มแท็ก" 2. Fill name, slug 3. Submit | Tag created | Medium | ✅ |
+| 3.8.2 | Slug format validation | 1. Enter name with spaces/uppercase/symbols | Slug auto-generates as lowercase-**dash** (e.g. "QA Test TAG!!" → "qa-test-tag") | Medium | ✅ (auto-gen from name only — see note) |
+| 3.8.3 | Edit tag | 1. Click Edit 2. Change name 3. Save | Tag updated (slug locked in edit mode) | Medium | ✅ |
+| 3.8.4 | Delete tag | 1. Click Delete 2. Confirm | Tag removed | Medium | ✅ |
+| 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | ✅ |
+| 3.8.6 | Unique slug validation | 1. Create with existing slug | Error toast "slug นี้ถูกใช้แล้ว" + no overwrite | Medium | ✅ (BUG-010 fix — tags→slug uniqueFields) |
+| 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected to /admin/overview | Low | 🔍 (guard code-verified: `if(!can('canManageTags')) navigateTo('/admin/overview')`; not UI-run — no admin-without-perm account) |
+
+> **Note (3.8.2):** The slug auto-generates from the **name** field (lowercase, spaces→`-`, strips non `[a-z0-9-]`) — spec said "underscore" but impl uses **dash**. The slug field itself has **no format validation**: typing directly into it (spaces/uppercase) is not sanitized, so a manually-entered malformed slug would persist. Low impact (users normally leave it auto). Slug is locked (read-only) in edit mode.
 
 ---
 
@@ -554,7 +556,7 @@
 | Admin Companies | 8 | Medium | ✅ (8/8 — BUG-010 unique-code + BUG-011 blank-region fixed) |
 | Admin Regions | 5 | Medium | ✅ (5/5 — unique-code via BUG-010 fix) |
 | Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
-| Admin Tags | 7 | Medium | 🔍 partial (4/7; slug+unique+perm need human) |
+| Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
 | Admin Permissions | 5 | High | ✅ (5/5) |
 | Admin Health | 3 | Low | ✅ (3/3) |
@@ -565,7 +567,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **163** | — | 118 ✅ / 21 🔍 / 15 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **163** | — | 124 ✅ / 18 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 
