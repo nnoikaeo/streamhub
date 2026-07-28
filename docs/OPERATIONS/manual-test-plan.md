@@ -388,6 +388,13 @@
 
 ## 5. Cross-Cutting Concerns
 
+> **⏸️ §5 / §6 / §7 deferred — post-launch hardening (non-blocking).** The app
+> passed its pre-launch checklist (groups A–E, all ✅) and is entering user trial.
+> The remaining ☐ items here (loading states, sidebar-by-role, mobile drawer, error
+> scenarios, cross-browser & responsive) are robustness/compat coverage, **not launch
+> gates** — route protection (§5.2.1–3) already passed as pre-launch group A. Revisit
+> opportunistically after trial feedback. Decision 2026-07-28.
+
 ### 5.1 CRUD Pattern (ทุกหน้า Admin)
 
 | # | Test Case | Steps | Expected Result | Priority | Status |

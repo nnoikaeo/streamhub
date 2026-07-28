@@ -99,6 +99,7 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 |--------|---------|
 | `bash scripts/deploy-hosting.sh` | Build + deploy Hosting only (safe, loads .env.local) |
 | `firebase deploy --only firestore:rules --project streamhub-1c27a` | Deploy Firestore security rules |
+| `npm run audit:orphans` | Read-only Firestore data-hygiene check (dangling folderId / group / region / member refs) |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
 | `npm run lint` | Lint check |
