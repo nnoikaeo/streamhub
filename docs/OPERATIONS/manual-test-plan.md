@@ -162,16 +162,16 @@
 | 3.2.3 | Filter by company | 1. Select company from dropdown | Only users in that company shown | Medium | ✅ |
 | 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ✅ |
 | 3.2.5 | ~~Create new user~~ | ~~N/A~~ | ~~Removed — use /admin/invitations instead~~ | ~~High~~ | N/A |
-| 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | 🔍 |
-| 3.2.6a | Edit user — email is disabled | 1. Click Edit on any user | Email input is disabled (lock hint shown); cannot be changed | High | 🔍 |
-| 3.2.6b | Edit user — change groups | 1. Click Edit 2. Check/uncheck groups in multi-select 3. Save | User's `groups` array updated, badges in table reflect change | High | 🔍 |
-| 3.2.6c | Edit moderator — assign folders | 1. Edit moderator user 2. Check folders in picker 3. Save | Selected folders have user UID added to `assignedModerators` | High | 🔍 |
-| 3.2.6d | Edit moderator → change role to user | 1. Edit moderator with folder assignments 2. Change role to user 3. Save | Folder picker hides; all previously assigned folders have UID removed from `assignedModerators` | High | 🔍 |
-| 3.2.6e | Edit user — role user → moderator | 1. Edit user (role=user) 2. Change role to moderator 3. Folder picker appears 4. Check folders 5. Save | Folder picker appears on role change; selected folders get UID added | High | 🔍 |
-| 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | 🔍 |
-| 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | 🔍 |
+| 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | ✅ |
+| 3.2.6a | Edit user — email is disabled | 1. Click Edit on any user | Email input is disabled (lock hint shown); cannot be changed | High | ✅ |
+| 3.2.6b | Edit user — change groups | 1. Click Edit 2. Check/uncheck groups in multi-select 3. Save | User's `groups` array updated, badges in table reflect change | High | ✅ |
+| 3.2.6c | Edit moderator — assign folders | 1. Edit moderator user 2. Check folders in picker 3. Save | Selected folders have user UID added to `assignedModerators` | High | ✅ (deep-verified: logged in as the user → moderator explorer showed the assigned Finance folder) |
+| 3.2.6d | Edit moderator → change role to user | 1. Edit moderator with folder assignments 2. Change role to user 3. Save | Folder picker hides; all previously assigned folders have UID removed from `assignedModerators` | High | ✅ (deep-verified: after revert, the user no longer saw the Finance folder) |
+| 3.2.6e | Edit user — role user → moderator | 1. Edit user (role=user) 2. Change role to moderator 3. Folder picker appears 4. Check folders 5. Save | Folder picker appears on role change; selected folders get UID added | High | ✅ |
+| 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ✅ (pre-launch group B4, 2026-06-28 — not re-run on prod to avoid deleting a real account) |
+| 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | ✅ |
 | 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | N/A |
-| 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | 🔍 |
+| 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | ✅ |
 
 ---
 
@@ -550,7 +550,7 @@
 | Dashboard Discover | 12 | High | ✅ |
 | Dashboard View | 10 | High | ✅ |
 | Admin Overview | 5 | High | ✅ |
-| Admin Users | 10 | High | 🔍 (9 code-verified, rest ✅) |
+| Admin Users | 10 | High | ✅ (all UI-verified on prod; 3.2.7 delete via pre-launch B4) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
 | Admin Dashboards | 8 | High | ⊘ N/A (8/8 — orphan route, superseded by Explorer, not tested) |
 | Admin Companies | 8 | Medium | ✅ (8/8 — BUG-010 unique-code + BUG-011 blank-region fixed) |
@@ -567,7 +567,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **163** | — | 124 ✅ / 18 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **163** | — | 133 ✅ / 9 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 
