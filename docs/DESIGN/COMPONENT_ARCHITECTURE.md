@@ -253,7 +253,7 @@ Page-specific components for dashboard functionality.
 
 **Used by:** dashboard cards, dashboard detail, `TagSelector`, `TagForm` preview, the `แท็ก` column of `/admin/tags` (via the `#cell-name` slot of `DataTable` — see below), and the Explorer list rows (second line under the dashboard name — see `ExplorerContentsPanel`). Admin sees the real badge while picking a color, so the table cannot drift from what users see.
 
-**Note:** the badge does not read `isActive` — a disabled tag still renders at full color. The status toggle column carries that state instead.
+**Switched-off tags:** a tag with `isActive: false` renders dimmed (opacity 0.55) with a dashed outline and a `<name> — ปิดใช้งาน` tooltip, so the state is not carried by colour alone. The check is `=== false`, so ad-hoc tag objects that omit the field still render as active.
 
 ---
 
