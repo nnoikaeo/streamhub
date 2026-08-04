@@ -171,7 +171,20 @@ Error: There was an error deploying functions
 
 **สาเหตุ:** ไม่ใช่ build error — `EXPIRED` คือ Cloud Build ค้างคิวจนหมดอายุก่อนได้เริ่ม เป็นอาการฝั่ง capacity ของ us-central1 ถ้าโค้ดพังจริงจะขึ้น `FAILURE` พร้อม log คอมไพล์แทน
 
-**สังเกตให้แน่ใจว่าไม่ใช่โค้ด:** เทียบกับ commit ก่อนหน้า ถ้า commit ที่ล้มไม่ได้แตะโค้ดแอปเลย (เช่น แก้แต่ docs) แล้วรอบก่อนหน้าสำเร็จ = ยืนยันว่าเป็นเรื่อง infra
+**พิสูจน์ให้เห็นตัวเลข:**
+
+```bash
+npm run cloudbuild:status              # 15 build ล่าสุด พร้อมเวลารอคิว/เวลารัน
+npm run cloudbuild:status -- <buildId> # รายละเอียด build เดียว (id อยู่ใน log ของ CI)
+```
+
+deploy ที่ปกติของโปรเจกต์นี้ **รอคิว ~1 วินาที รัน ~40 วินาที** ถ้าเห็น `queued ~600s / ran 0s / EXPIRED` แปลว่า build ไม่เคยได้ worker เลย — เป็นเรื่อง capacity ฝั่ง Google ไม่ใช่โค้ด และ `statusDetail` กับ `failureInfo` จะว่างทั้งคู่ (ถ้า build พังจริงจะมีข้อความอยู่ในนั้น)
+
+**เช็คซ้ำอีกทาง:** ถ้า commit ที่ล้มไม่ได้แตะโค้ดแอปเลย (เช่น แก้แต่ docs) แล้วรอบก่อนหน้าสำเร็จ = ยืนยันว่าเป็นเรื่อง infra
+
+```bash
+git diff <live-revision> <HEAD> -- app server nuxt.config.ts package.json   # ว่าง = ไม่มีอะไรค้าง deploy
+```
 
 **prod พังไหม:** ไม่ — hosting deploy ไปแล้ว (`hosting: file upload complete` มาก่อนขั้น functions) ส่วน functions ที่ deploy ไม่สำเร็จจะ**คงเวอร์ชันเดิมไว้** ไม่ได้ถูกลบหรือทับ
 

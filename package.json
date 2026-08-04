@@ -20,6 +20,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "audit:orphans": "tsx scripts/audit-orphans.mjs",
+    "cloudbuild:status": "node scripts/cloudbuild-status.mjs",
     "seed:firestore": "tsx scripts/seed-firestore.ts",
     "seed:firestore:dry": "tsx scripts/seed-firestore.ts --dry-run",
     "seed:firestore:clean": "tsx scripts/seed-firestore.ts --clean"
