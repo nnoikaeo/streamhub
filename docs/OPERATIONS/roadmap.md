@@ -212,6 +212,7 @@ Feature stubs, optional — app fully functional without them:
 - [ ] Explorer **folder creation dialog** — `app/composables/useDashboardPage.ts:329`
 - [ ] **Profile page** + nav — `app/components/ui/UserMenu.vue:156`
 - [ ] **Settings page** + nav — `app/components/ui/UserMenu.vue:165`
+- [ ] **Dashboard view back button returns to origin** — `app/pages/dashboard/view/[id].vue` → `handleGoBack()` hardcodes `router.push('/dashboard/discover')`, so opening a dashboard from Explorer (`/manage/explorer`, `/admin/explorer`) or elsewhere still lands on Discover. Should `router.back()` when in-app history exists, falling back to `/dashboard/discover` on cold entry (mirror `PermissionsPage.goBackToExplorer`)
 
 ---
 
