@@ -158,6 +158,41 @@ npm run build
 
 ---
 
+## Issue: CI ล้มที่ `Build failed with status: EXPIRED`
+
+**อาการ:** งาน Deploy to Firebase ล้ม ท้าย log เป็น
+
+```
+i  functions: updating Node.js 22 (2nd Gen) function server(us-central1)...
+Build failed with status: EXPIRED and message: An unexpected error occurred.
+⚠  functions: Deploys failed. Skipping deletes.
+Error: There was an error deploying functions
+```
+
+**สาเหตุ:** ไม่ใช่ build error — `EXPIRED` คือ Cloud Build ค้างคิวจนหมดอายุก่อนได้เริ่ม เป็นอาการฝั่ง capacity ของ us-central1 ถ้าโค้ดพังจริงจะขึ้น `FAILURE` พร้อม log คอมไพล์แทน
+
+**สังเกตให้แน่ใจว่าไม่ใช่โค้ด:** เทียบกับ commit ก่อนหน้า ถ้า commit ที่ล้มไม่ได้แตะโค้ดแอปเลย (เช่น แก้แต่ docs) แล้วรอบก่อนหน้าสำเร็จ = ยืนยันว่าเป็นเรื่อง infra
+
+**prod พังไหม:** ไม่ — hosting deploy ไปแล้ว (`hosting: file upload complete` มาก่อนขั้น functions) ส่วน functions ที่ deploy ไม่สำเร็จจะ**คงเวอร์ชันเดิมไว้** ไม่ได้ถูกลบหรือทับ
+
+**วิธีแก้:** rerun งานที่ล้ม ไม่ต้องแก้โค้ด
+
+```bash
+gh run list --branch main --limit 3
+gh run rerun <run-id> --failed
+gh run watch <run-id> --exit-status
+```
+
+**ตรวจว่า functions ยังมีชีวิต:**
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" https://streamhub-1c27a.web.app/
+curl -s https://streamhub-1c27a.web.app/api/health    # 401 Unauthorized = function ตอบอยู่ ปกติ
+```
+
+> เกิดจริง 2026-08-04 บน commit d4f87d5 (docs อย่างเดียว) — rerun ผ่านทันทีโดยไม่แตะโค้ด
+
+---
+
 ## Issue: Production แสดงโค้ดเก่าหลัง CI Deploy
 
 **อาการ:** หลัง CI สำเร็จ แต่ browser ยังแสดง console error เก่า / UI ไม่อัปเดต แม้จะ Hard Refresh (Cmd+Shift+R) แล้ว
