@@ -355,6 +355,7 @@
 | 3.13.6 | Delete folder with content | 1. Click Delete on folder with dashboards | Error message shown | Medium | 🐛 BUG-008 — folder deleted silently, dashboard orphaned (fixed: content guard added) |
 | 3.13.7 | Breadcrumb navigation | 1. Navigate deep 2. Click breadcrumb segment | Jumps to that folder level | Low | ✅ |
 | 3.13.8 | Assign tags to a dashboard | 1. Click Edit on a dashboard 2. Click "+ Add tag" 3. Tick a tag 4. Click "บันทึก" | Dropdown stays open, tag becomes a removable badge, modal closes only on Save | Medium | 🐛 BUG-013 — first click saved and closed the modal (fixed; re-verified on prod 2026-08-04) |
+| 3.13.9 | Tags shown in the list | 1. Open a folder holding tagged and untagged dashboards | Tagged rows show TagBadge chips on a second line under the name; untagged rows and folder rows are unchanged; columns do not shift | Low | ✅ (prod 2026-08-04 — 5 dashboards × 2 tags each, งบทดลอง/ภาคตะวันออกเฉียงเหนือ) |
 
 ---
 
