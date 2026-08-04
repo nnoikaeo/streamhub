@@ -208,7 +208,12 @@ const nextTagSortOrder = computed(() =>
           :actions="actions"
           empty-message="ไม่พบแท็ก"
           @toggleActive="handleToggleActive"
-        />
+        >
+          <!-- แสดงชื่อแท็กเป็น badge สีจริง เพื่อเทียบสีข้ามแถวได้โดยไม่ต้องเปิด modal -->
+          <template #cell-name="{ item }">
+            <TagBadge :tag="item" size="md" />
+          </template>
+        </DataTable>
       </template>
 
       <!-- Tag Form Modal -->
