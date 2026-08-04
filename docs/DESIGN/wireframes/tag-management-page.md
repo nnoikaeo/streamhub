@@ -345,6 +345,29 @@ Displayed on dashboard cards, dashboard detail pages, and list views.
 └──────────────────────────────────────────┘
 ```
 
+### In the Explorer list (`/admin/explorer`, `/manage/explorer`)
+
+Tags render as a **second line under the dashboard name**, not as a column — the grid keeps its existing columns, so nothing shifts horizontally and folder rows are unchanged.
+
+```
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ชื่อ                                  ผู้ดูแล    ประเภท    สถานะ    ⋯     │
+├────────────────────────────────────────────────────────────────────────────┤
+│ 📁 สรุปรวมภาค                 3                  โฟลเดอร์  ใช้งาน   🔑👥✏️🗑 │
+│ ▦ งบทดลอง [STNR]                                  แดชบอร์ด ใช้งาน   🔑✏️🗑  │
+│    ┌──────────┐ ┌────────────────────┐                                     │
+│    │ • งบทดลอง │ │ • ภาคตะวันออกเฉียงเหนือ │  ← ทุกแท็ก ไม่ตัด "+N"          │
+│    └──────────┘ └────────────────────┘                                     │
+│ ▦ งบทดลอง [STUB]                                  แดชบอร์ด ใช้งาน   🔑✏️🗑  │
+│    ▲ ไม่มีแท็ก = ไม่มีบรรทัดที่สอง สูงเท่าเดิมทุกพิกเซล                        │
+└────────────────────────────────────────────────────────────────────────────┘
+```
+
+- Badges indent by `1rem + spacing-sm` so they align under the name text, not under the icon
+- No `+N more` cap here — the whole point of the second line is that it has room
+- Trade-off: rows with tags are ~20px taller than rows without, so row heights are uneven
+- Tags that were **deleted** (orphan id on the dashboard) or **switched off** (`isActive: false`) are skipped in the list; the edit modal still shows them, so nothing is silently unassigned
+
 ---
 
 ## 5. Component Summary
