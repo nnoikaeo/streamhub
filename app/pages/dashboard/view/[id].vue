@@ -456,6 +456,13 @@ const loadDashboard = async () => {
 
 // Event handlers
 const handleGoBack = async () => {
+  // Prefer browser back so the previous page (Explorer folder + scroll, Discover
+  // filters, Home) is restored. Fall back to Discover when there is no in-app
+  // history — direct link or hard refresh.
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
   await router.push('/dashboard/discover')
 }
 
