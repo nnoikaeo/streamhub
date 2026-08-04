@@ -459,7 +459,12 @@ const handleGoBack = async () => {
   // Prefer browser back so the previous page (Explorer folder + scroll, Discover
   // filters, Home) is restored. Fall back to Discover when there is no in-app
   // history — direct link or hard refresh.
-  if (window.history.length > 1) {
+  //
+  // Vue Router records the previous in-app entry in history.state.back, which is
+  // null on a cold entry. window.history.length counts the whole tab instead, so
+  // it can't tell a cold entry from a real in-app visit and would navigate the
+  // user out of the app (back to google.com, etc.).
+  if (window.history.state?.back) {
     router.back()
     return
   }
