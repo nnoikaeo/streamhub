@@ -209,6 +209,11 @@ const nextTagSortOrder = computed(() =>
           empty-message="ไม่พบแท็ก"
           @toggleActive="handleToggleActive"
         >
+          <!-- ตำแหน่งในลิสต์ ไม่ใช่ค่า sortOrder ดิบ ซึ่งมีช่องโหว่หลังลบแท็ก -->
+          <template #cell-sortOrder="{ index }">
+            {{ index + 1 }}
+          </template>
+
           <!-- แสดงชื่อแท็กเป็น badge สีจริง เพื่อเทียบสีข้ามแถวได้โดยไม่ต้องเปิด modal -->
           <template #cell-name="{ item }">
             <TagBadge :tag="item" size="md" />

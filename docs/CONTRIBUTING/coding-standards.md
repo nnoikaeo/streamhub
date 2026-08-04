@@ -322,7 +322,13 @@ The slot outlet in `DataTable.vue` keeps the default rendering as **fallback con
 </slot>
 ```
 
-Slot props: `item` (the whole row) and `value` (that column's raw value).
+Slot props: `item` (the whole row), `value` (that column's raw value), and `index` (0-based position in the full filtered list, already offset by the current page — so page 2 starts at 10, not 0).
+
+Use `index` when the column should show a **position** rather than a stored field. `/admin/tags` renders `ลำดับ` as `index + 1`, because printing the raw `sortOrder` leaves gaps in the numbering after a tag is deleted:
+
+```vue
+<template #cell-sortOrder="{ index }">{{ index + 1 }}</template>
+```
 
 The four legacy flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`, `isGroupsColumn`) still work — leave them alone, but write new custom cells as slots.
 
