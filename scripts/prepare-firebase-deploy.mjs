@@ -48,12 +48,11 @@ if (removed > 0) {
   console.log(`✅ Removed ${removed} platform-specific package(s) from .output/server/package.json`)
 }
 
-// 3. Create .gcloudignore to include node_modules in Cloud Build upload.
-//    node_modules are pre-installed in CI, so uploading them avoids running
-//    npm install inside Cloud Build and prevents build timeout (EXPIRED).
+// 3. Create .gcloudignore to exclude local node_modules from Cloud Build upload
+//    Cloud Build will run a clean npm install on Linux instead.
 const gcloudignorePath = resolve(serverDir, '.gcloudignore')
-writeFileSync(gcloudignorePath, '')
-console.log('✅ Created .output/server/.gcloudignore (node_modules included in upload)')
+writeFileSync(gcloudignorePath, 'node_modules/\n')
+console.log('✅ Created .output/server/.gcloudignore (excludes node_modules from upload)')
 
 // 4. Create functions.yaml so Firebase CLI discovers functions via YAML
 //    (avoids requiring firebase-functions to be importable locally)
