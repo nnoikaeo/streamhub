@@ -277,6 +277,9 @@
 | 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | ✅ |
 | 3.8.6 | Unique slug validation | 1. Create with existing slug | Error toast "slug นี้ถูกใช้แล้ว" + no overwrite | Medium | ✅ (BUG-010 fix — tags→slug uniqueFields) |
 | 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected to /admin/overview | Low | 🔍 (guard code-verified: `if(!can('canManageTags')) navigateTo('/admin/overview')`; not UI-run — no admin-without-perm account) |
+| 3.8.8 | Tag color visible in list | 1. Open `/admin/tags` | `แท็ก` column shows each tag as a colored `TagBadge` (size md) — not plain text — so colors can be compared across rows without opening the edit modal | Low | ✅ (verified on prod 2026-08-04) |
+
+> **Known cosmetic gaps (not blocking, no ticket yet):** (1) `TagBadge` ignores `isActive`, so a disabled tag renders at full color in the list — the status toggle is the only state indicator. (2) The `ลำดับ` column prints the raw `sortOrder`, so the numbers show gaps after a tag is deleted (currently 1–7, then 9). Both were spotted during the 3.8.8 change and deliberately left out of scope.
 
 > **Note (3.8.2):** The slug auto-generates from the **name** field (lowercase, spaces→`-`, strips non `[a-z0-9-]`) — spec said "underscore" but impl uses **dash**. The slug field itself has **no format validation**: typing directly into it (spaces/uppercase) is not sanitized, so a manually-entered malformed slug would persist. Low impact (users normally leave it auto). Slug is locked (read-only) in edit mode.
 

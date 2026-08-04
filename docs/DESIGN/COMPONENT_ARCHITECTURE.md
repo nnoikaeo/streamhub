@@ -251,6 +251,10 @@ Page-specific components for dashboard functionality.
 - Color-coded chip with tag color at 15% opacity background
 - Max 3 tags displayed + "+N more" overflow with tooltip
 
+**Used by:** dashboard cards, dashboard detail, `TagSelector`, `TagForm` preview, and the `แท็ก` column of `/admin/tags` (via the `#cell-name` slot of `DataTable` — see below). Admin sees the real badge while picking a color, so the table cannot drift from what users see.
+
+**Note:** the badge does not read `isActive` — a disabled tag still renders at full color. The status toggle column carries that state instead.
+
 ---
 
 ### TagFilter
@@ -327,6 +331,33 @@ Basic reusable components (buttons, cards, forms, etc.).
 - `.theme-alert` / `.theme-badge` / `.theme-spinner`
 
 **See:** [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) for complete reference
+
+---
+
+### DataTable
+**File:** `app/components/admin/DataTable.vue`
+
+**Purpose:** Shared table for every `/admin/*` list page — sorting, pagination, row actions, status toggle
+
+**Props:** `columns: Column[]`, `data: T[]`, `loading?`, `emptyMessage?`, `actions?: Action<T>[]`, `selectable?`, `hoverable?`, `striped?`
+
+**Events:** `@select`, `@rowClick`, `@toggleActive`
+
+**Custom cells — `#cell-<key>` slot:**
+
+```vue
+<DataTable :columns="columns" :data="filteredTags" :actions="actions">
+  <template #cell-name="{ item }">
+    <TagBadge :tag="item" size="md" />
+  </template>
+</DataTable>
+```
+
+- Slot props: `item` (whole row), `value` (that column's raw value)
+- The default text rendering is the slot's **fallback content**, so pages that pass no slot are unaffected
+- Prefer this over adding another `isXxxColumn` flag — it keeps `DataTable` from importing feature components. The four existing flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`, `isGroupsColumn`) predate the slot and stay as-is.
+
+**See:** [coding-standards.md > Custom Cells in DataTable](../CONTRIBUTING/coding-standards.md#custom-cells-in-datatable)
 
 ---
 
