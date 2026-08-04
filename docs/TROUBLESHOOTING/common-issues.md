@@ -262,6 +262,26 @@ ssh -T git@github.com
 
 ---
 
+## Issue: แก้ไข "รหัสบริษัท (Code)" ใน `/admin/companies` ไม่ได้
+
+**อาการ:** ช่อง Code เป็นสีเทา แก้ไม่ได้ในโหมดแก้ไข (ตอนสร้างใหม่แก้ได้)
+
+**สาเหตุ:** ไม่ใช่บั๊ก — `code` คือ **document id ของ Firestore** (`useAdminCompanies` ตั้ง `idKey: 'code'` แล้ว `useAdminResource.create` เขียนด้วย `setDoc(docId=code)`) Firestore ไม่มีคำสั่ง rename document id ฟอร์มจึงล็อกไว้ เหมือน `slug` ของแท็กและ `code` ของ region
+
+**วิธีเปลี่ยนรหัส:** ใช้สคริปต์ที่ทำ copy → repoint → delete ใน batch เดียว (atomic)
+
+```bash
+node scripts/migrate-company-code.mjs ORAY OAYT            # dry run — ไม่เขียนอะไร
+node scripts/migrate-company-code.mjs ORAY OAYT --apply    # เขียนจริง
+npm run audit:orphans                                       # ตรวจ dangling ref
+```
+
+สคริปต์จะ **ปฏิเสธที่จะรัน** ถ้าเจอ reference ที่มันย้ายไม่เป็น (dashboards / folders / groups ถือรหัสเก่าอยู่) และจะ**ไม่แก้** `invitations` (เป็นประวัติคำเชิญ) กับ `audit-log` (audit trail ต้องคงเดิม) — ทั้งสองอย่างถูกรายงานออกมาให้เห็นว่าเหลืออะไรไว้บ้าง
+
+> ทำแบบเดียวกันด้วยมือได้ แต่ต้อง **ย้ายผู้ใช้ก่อนลบบริษัทเก่า** เสมอ ไม่งั้น `user.company` จะชี้ไปยังบริษัทที่ไม่มีอยู่
+
+---
+
 ## Debugging Tips
 
 ### Enable Debug Logs
