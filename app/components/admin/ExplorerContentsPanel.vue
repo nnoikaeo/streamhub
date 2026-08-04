@@ -15,6 +15,7 @@
  */
 
 import type { Folder, Dashboard, User } from '~/types/dashboard'
+import type { Tag } from '~/types/tag'
 
 interface Props {
   subfolders: Folder[]
@@ -24,6 +25,8 @@ interface Props {
   currentFolderId: string | null
   /** All users — used to resolve moderator names */
   allUsers?: User[]
+  /** All tags — used to resolve the tag ids stored on each dashboard */
+  availableTags?: Tag[]
   /** Show moderator column + manage button (admin only) */
   showModeratorColumn?: boolean
   /** Recursive dashboard counts per folder (shown as badge on subfolder rows) */
@@ -32,6 +35,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   showModeratorColumn: false,
+  availableTags: () => [],
 })
 
 const emit = defineEmits<{
@@ -57,6 +61,18 @@ const getModeratorNames = (folder: Folder): string[] => {
   return folder.assignedModerators
     .map(uid => props.allUsers!.find(u => u.uid === uid)?.name)
     .filter(Boolean) as string[]
+}
+
+/**
+ * Resolve a dashboard's tag ids to Tag objects.
+ * Skips ids with no matching tag (orphan refs left by a deleted tag) and
+ * tags that are switched off — the edit modal still shows those.
+ */
+const getDashboardTags = (dashboard: Dashboard): Tag[] => {
+  if (!props.availableTags.length || !dashboard.tags?.length) return []
+  return dashboard.tags
+    .map(id => props.availableTags.find(t => t.id === id))
+    .filter((tag): tag is Tag => !!tag && tag.isActive)
 }
 
 /** Dynamic grid columns based on whether moderator column is shown */
@@ -209,13 +225,23 @@ const gridColumns = computed(() =>
         :style="{ gridTemplateColumns: gridColumns }"
         @dblclick="emit('open-dashboard', dashboard)"
       >
-        <span class="col-name">
-          <span class="item-icon item-icon--dashboard">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-            </svg>
+        <span class="col-name col-name--stacked">
+          <span class="name-line">
+            <span class="item-icon item-icon--dashboard">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+              </svg>
+            </span>
+            <span class="item-name">{{ dashboard.name }}</span>
           </span>
-          <span class="item-name">{{ dashboard.name }}</span>
+          <span v-if="getDashboardTags(dashboard).length > 0" class="row-tags">
+            <TagBadge
+              v-for="tag in getDashboardTags(dashboard)"
+              :key="tag.id"
+              :tag="tag"
+              size="sm"
+            />
+          </span>
         </span>
         <span v-if="showModeratorColumn" class="col-moderators" />
         <span class="col-type">
@@ -401,6 +427,29 @@ const gridColumns = computed(() =>
   white-space: nowrap;
   font-size: 0.875rem;
   color: var(--color-text-primary, #1f2937);
+}
+
+/* ── Tags under the dashboard name (second line) ── */
+.col-name--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.name-line {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 0.5rem);
+  min-width: 0;
+  width: 100%;
+}
+
+.row-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  /* line the badges up with the name, past the icon + its gap */
+  padding-left: calc(1rem + var(--spacing-sm, 0.5rem));
 }
 
 /* ── Moderator column ── */

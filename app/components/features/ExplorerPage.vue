@@ -216,6 +216,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
           :loading="loading"
           :current-folder-id="explorer.currentFolderId.value"
           :all-users="allUsers"
+          :available-tags="availableTags"
           :show-moderator-column="showModeratorColumn"
           :dashboard-counts="dashboardCounts"
           @new-folder="explorer.handleNewFolder"
