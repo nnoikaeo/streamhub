@@ -293,6 +293,45 @@ Implemented in `app/pages/dashboard/view/[id].vue` → `handleGoBack()` and `app
 
 ---
 
+## Custom Cells in `DataTable`
+
+`DataTable` is the shared admin table. To render a cell as something other than text, pass a **`#cell-<key>` slot** from the page — do **not** add another `isXxxColumn` flag.
+
+```vue
+<!-- ✅ GOOD — the page owns the rendering, DataTable stays generic -->
+<DataTable :columns="columns" :data="filteredTags" :actions="actions">
+  <template #cell-name="{ item }">
+    <TagBadge :tag="item" size="md" />
+  </template>
+</DataTable>
+```
+
+```vue
+<!-- ❌ BAD — forces the generic admin table to import a feature component -->
+<!-- columns: [{ key: 'name', isTagColumn: true }] -->
+<div v-else-if="column.isTagColumn">
+  <TagBadge :tag="item" />
+</div>
+```
+
+The slot outlet in `DataTable.vue` keeps the default rendering as **fallback content**, so a page that passes no slot behaves exactly as before:
+
+```vue
+<slot v-else :name="`cell-${column.key}`" :item="item" :value="item[column.key]">
+  <span>{{ getCellValue(item, column.key) }}</span>
+</slot>
+```
+
+Slot props: `item` (the whole row) and `value` (that column's raw value).
+
+The four legacy flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`, `isGroupsColumn`) still work — leave them alone, but write new custom cells as slots.
+
+**Reuse the real component.** `/admin/tags` renders `TagBadge`, the same component Explorer and dashboard cards use, so the admin table shows what users actually see. A hand-rolled preview in the table would drift from the real badge.
+
+Implemented in `app/components/admin/DataTable.vue` and `app/pages/admin/tags/index.vue`.
+
+---
+
 ## Tailwind CSS
 
 ```vue
