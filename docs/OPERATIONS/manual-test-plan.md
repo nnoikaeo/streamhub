@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 28 July 2569
-> **Total Test Cases:** 163
+> **Total Test Cases:** 164
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -131,7 +131,8 @@
 | 2.3.7 | Archive dashboard (Admin) | 1. Login as Admin 2. เปิด dashboard ที่ต้องการ archive 3. คลิก `...` menu → เลือก "Archive" 4. ConfirmDialog เปิด → คลิก "เก็บถาวร" | Toast: "เก็บถาวรแดชบอร์ดสำเร็จ" + Redirect ไป `/dashboard/discover` — dashboard หายจาก list (ถ้า Admin เปิด toggle "แสดงที่เก็บถาวร" จะเห็น badge "เก็บถาวร" แทน) | High | ✅ |
 | 2.3.8 | Unarchive dashboard (Admin) | 1. Login as Admin 2. เปิด toggle "แสดงที่เก็บถาวร" บน `/dashboard/discover` 3. คลิก dashboard ที่มี badge "เก็บถาวร" 4. คลิก `...` menu → เลือก "Unarchive" | Toast: "ยกเลิกเก็บถาวรแดชบอร์ดสำเร็จ" — อยู่หน้าเดิม, badge "📦 เก็บถาวร" ใน Info sidebar หาย (ไม่มี ConfirmDialog) | High | ✅ |
 | 2.3.9 | Edit dashboard metadata | 1. Login as Admin 2. เปิด dashboard 3. คลิก `...` menu → เลือก "Edit" 4. Dialog "แก้ไขข้อมูลแดชบอร์ด" เปิด (ข้อมูลเดิม pre-filled: ชื่อ, รายละเอียด, แท็ก) 5. เปลี่ยนชื่อ / toggle tag 6. คลิก "บันทึก" — **Validation:** ลบชื่อจนว่าง → คลิก "บันทึก" — **Cancel:** เปิด dialog → แก้ข้อมูล → คลิก "ยกเลิก" | **Happy path:** Toast "บันทึกข้อมูลแดชบอร์ดสำเร็จ" + ชื่อใน header อัปเดตทันที, dialog ปิด — **Validation:** error "กรุณาระบุชื่อแดชบอร์ด" ใต้ field ชื่อ — **Cancel:** dialog ปิด ไม่มีการเปลี่ยนแปลง | Medium | ✅ |
-| 2.3.10 | Go back button | 1. เปิด dashboard 2. คลิกปุ่มลูกศร ← ซ้ายบน | Redirect ไป `/dashboard/discover` | Low | ✅ |
+| 2.3.10 | Go back button — from Explorer | 1. เปิด `/manage/explorer` หรือ `/admin/explorer` 2. เปิด dashboard จากโฟลเดอร์ 3. คลิกปุ่มลูกศร ← ซ้ายบน | กลับ Explorer โฟลเดอร์เดิม (tree ยัง expand, scroll เดิม) ไม่ใช่ Discover | Low | ✅ |
+| 2.3.11 | Go back button — cold entry | 1. เปิด tab ใหม่ (มี history จากเว็บอื่น เช่น google.com) 2. paste URL `/dashboard/view/<id>` ตรงๆ 3. คลิกปุ่มลูกศร ← ซ้ายบน | Redirect ไป `/dashboard/discover` — ต้องไม่ออกไปเว็บนอกแอป | Low | ✅ |
 
 ---
 
@@ -555,7 +556,7 @@
 | Invite Accept | 6 | Critical | ✅ |
 | Dashboard Home | 7 | High | ✅ |
 | Dashboard Discover | 12 | High | ✅ |
-| Dashboard View | 10 | High | ✅ |
+| Dashboard View | 11 | High | ✅ |
 | Admin Overview | 5 | High | ✅ |
 | Admin Users | 10 | High | ✅ (all UI-verified on prod; 3.2.7 delete via pre-launch B4) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
@@ -574,7 +575,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **163** | — | 133 ✅ / 9 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **164** | — | 134 ✅ / 9 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 
