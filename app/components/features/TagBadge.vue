@@ -2,7 +2,8 @@
   <span class="tag-badge" :class="`tag-badge--${size}`" :style="badgeStyle">
     <span class="tag-badge__dot" :style="{ backgroundColor: tag.color }" />
     <span class="tag-badge__name">{{ tag.name }}</span>
-    <button v-if="removable" class="tag-badge__remove" @click.stop="$emit('remove')">✕</button>
+    <!-- type="button": removable badges live in TagSelector inside FormModal's <form> -->
+    <button v-if="removable" type="button" class="tag-badge__remove" @click.stop="$emit('remove')">✕</button>
   </span>
 </template>
 
