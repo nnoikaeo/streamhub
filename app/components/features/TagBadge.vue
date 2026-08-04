@@ -1,5 +1,10 @@
 <template>
-  <span class="tag-badge" :class="`tag-badge--${size}`" :style="badgeStyle">
+  <span
+    class="tag-badge"
+    :class="[`tag-badge--${size}`, { 'tag-badge--inactive': isInactive }]"
+    :style="badgeStyle"
+    :title="isInactive ? `${tag.name} — ปิดใช้งาน` : undefined"
+  >
     <span class="tag-badge__dot" :style="{ backgroundColor: tag.color }" />
     <span class="tag-badge__name">{{ tag.name }}</span>
     <!-- type="button": removable badges live in TagSelector inside FormModal's <form> -->
@@ -22,6 +27,9 @@ const props = withDefaults(defineProps<{
 
 defineEmits<{ remove: [] }>()
 
+/** A tag that was switched off still renders, but reads as disabled */
+const isInactive = computed(() => props.tag.isActive === false)
+
 const badgeStyle = computed(() => ({
   backgroundColor: `${props.tag.color}26`, // 15% opacity (hex 26 ≈ 15%)
   color: props.tag.color,
@@ -38,6 +46,12 @@ const badgeStyle = computed(() => ({
   font-weight: 500;
   white-space: nowrap;
   cursor: default;
+}
+
+/* Switched-off tag: dimmed, dashed outline — still readable, clearly not in play */
+.tag-badge--inactive {
+  opacity: 0.55;
+  border-style: dashed;
 }
 
 .tag-badge--sm {
