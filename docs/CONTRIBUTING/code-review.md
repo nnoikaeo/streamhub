@@ -12,7 +12,9 @@ How we review pull requests **and** keep documentation up-to-date.
 
 ### Before Submitting PR
 
-- [ ] Tests pass: `npm run lint && npm run build`
+- [ ] Tests pass: `npm test` + build succeeds: `npm run build`
+- [ ] Lint adds no new problems: `npx eslint .` (716 pre-existing — 510 errors / 206 warnings; compare the count, or lint only your changed files)
+- [ ] Typecheck adds no new errors: `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` (44 pre-existing — compare the count, don't expect zero)
 - [ ] No console errors/warnings
 - [ ] Commit messages are clear
 - [ ] PR description explains changes

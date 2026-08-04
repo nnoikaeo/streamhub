@@ -102,4 +102,6 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | `npm run audit:orphans` | Read-only Firestore data-hygiene check (dangling folderId / group / region / member refs) |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm run lint` | Lint check |
+| `npm test` | Vitest suite |
+| `npx eslint .` | Lint check (no `lint` npm script exists). 716 pre-existing problems: compare the count before/after |
+| `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). 44 pre-existing errors: compare the count before/after |
