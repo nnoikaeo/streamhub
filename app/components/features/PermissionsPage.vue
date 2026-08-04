@@ -63,7 +63,11 @@ const cameFromExplorer = computed(() => !!route.query.dashboard || !!route.query
 const goBackToExplorer = () => {
   // Prefer browser back (preserves explorer folder + scroll position).
   // Fall back to the Explorer breadcrumb link if history was lost (e.g. page refresh).
-  if (window.history.length > 1) {
+  //
+  // history.state.back is the previous in-app entry and is null on a cold entry.
+  // window.history.length counts the whole tab, so it would send a direct-link
+  // visitor back out of the app.
+  if (window.history.state?.back) {
     router.back()
     return
   }
