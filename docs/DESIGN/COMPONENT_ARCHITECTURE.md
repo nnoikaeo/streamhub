@@ -353,7 +353,7 @@ Basic reusable components (buttons, cards, forms, etc.).
 </DataTable>
 ```
 
-- Slot props: `item` (whole row), `value` (that column's raw value)
+- Slot props: `item` (whole row), `value` (that column's raw value), `index` (0-based position in the filtered list, page offset included)
 - The default text rendering is the slot's **fallback content**, so pages that pass no slot are unaffected
 - Prefer this over adding another `isXxxColumn` flag — it keeps `DataTable` from importing feature components. The four existing flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`, `isGroupsColumn`) predate the slot and stay as-is.
 
