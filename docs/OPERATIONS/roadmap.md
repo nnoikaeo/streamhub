@@ -212,7 +212,8 @@ Feature stubs, optional — app fully functional without them:
 - [ ] Explorer **folder creation dialog** — `app/composables/useDashboardPage.ts:329`
 - [ ] **Profile page** + nav — `app/components/ui/UserMenu.vue:156`
 - [ ] **Settings page** + nav — `app/components/ui/UserMenu.vue:165`
-- [x] **Dashboard view back button returns to origin** ✅ DONE — `handleGoBack()` in `app/pages/dashboard/view/[id].vue` now uses `router.back()` when in-app history exists, falling back to `/dashboard/discover` on cold entry (mirrors `PermissionsPage.goBackToExplorer`). Archive flow keeps the explicit push to Discover (previous listing is stale after archiving)
+- [x] **Dashboard view back button returns to origin** ✅ DONE (PR #328, #329) — `handleGoBack()` in `app/pages/dashboard/view/[id].vue` now uses `router.back()` when in-app history exists, falling back to `/dashboard/discover` on cold entry. Archive flow keeps the explicit push to Discover (previous listing is stale after archiving)
+- [x] **Back-navigation cold-entry guard** ✅ DONE (PR #329, #330) — back handlers must test `window.history.state?.back` (the previous **in-app** entry, `null` on cold entry), not `window.history.length` (counts the whole tab, so a direct link opened after visiting another site navigated out of the app). Applied in `app/pages/dashboard/view/[id].vue` → `handleGoBack()` and `app/components/features/PermissionsPage.vue` → `goBackToExplorer()`. Use the same check for any new back button
 
 ---
 
