@@ -251,7 +251,7 @@ Page-specific components for dashboard functionality.
 - Color-coded chip with tag color at 15% opacity background
 - Max 3 tags displayed + "+N more" overflow with tooltip
 
-**Used by:** dashboard cards, dashboard detail, `TagSelector`, `TagForm` preview, and the `แท็ก` column of `/admin/tags` (via the `#cell-name` slot of `DataTable` — see below). Admin sees the real badge while picking a color, so the table cannot drift from what users see.
+**Used by:** dashboard cards, dashboard detail, `TagSelector`, `TagForm` preview, the `แท็ก` column of `/admin/tags` (via the `#cell-name` slot of `DataTable` — see below), and the Explorer list rows (second line under the dashboard name — see `ExplorerContentsPanel`). Admin sees the real badge while picking a color, so the table cannot drift from what users see.
 
 **Note:** the badge does not read `isActive` — a disabled tag still renders at full color. The status toggle column carries that state instead.
 
@@ -358,6 +358,21 @@ Basic reusable components (buttons, cards, forms, etc.).
 - Prefer this over adding another `isXxxColumn` flag — it keeps `DataTable` from importing feature components. The four existing flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`, `isGroupsColumn`) predate the slot and stay as-is.
 
 **See:** [coding-standards.md > Custom Cells in DataTable](../CONTRIBUTING/coding-standards.md#custom-cells-in-datatable)
+
+---
+
+### ExplorerContentsPanel
+**File:** `app/components/admin/ExplorerContentsPanel.vue`
+
+**Purpose:** Right panel of the Explorer page — subfolders first, then dashboards (Windows Explorer convention)
+
+**Props:** `subfolders`, `dashboards`, `isAdmin`, `loading`, `currentFolderId`, `allUsers?`, `availableTags?`, `showModeratorColumn?`, `dashboardCounts?`
+
+**Layout:** CSS grid, not a table. `gridColumns` switches between two templates depending on `showModeratorColumn`, and **every row must declare the same number of cells** — that is why folder rows carry an empty `<span>` where the moderator column sits.
+
+**Dashboard tags:** rendered as a second line under the name (`TagBadge` size sm), so no column is added and folder rows are untouched. `getDashboardTags()` resolves the ids stored on the dashboard and drops two kinds of bad data: ids whose tag was deleted (orphan refs, the kind `npm run audit:orphans` reports) and tags with `isActive: false`. Both still appear in the edit modal, so nothing is silently unassigned.
+
+**See:** [tag-management-page.md > In the Explorer list](wireframes/tag-management-page.md#in-the-explorer-list-adminexplorer-manageexplorer)
 
 ---
 
