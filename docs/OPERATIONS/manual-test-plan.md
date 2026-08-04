@@ -231,7 +231,7 @@
 | 3.5.4 | Unique code validation | 1. Create company with existing code | Error: "รหัสบริษัทซ้ำ" | High | ✅ (was BUG-010 — duplicate code silently overwrote existing company; fixed via `uniqueFields` guard) |
 | 3.5.5 | Edit company | 1. Click Edit 2. Change fields 3. Save | Company updated | Medium | ✅ |
 | 3.5.6 | Delete company | 1. Click Delete on a company with no members 2. Confirm | Company removed | Medium | ✅ |
-| 3.5.9 | Delete company that still has members | 1. Click Delete on a company with users 2. Confirm | Blocked with error toast "ไม่สามารถลบบริษัทที่ยังมีผู้ใช้อยู่ (N คน)…"; company survives, no user is left with a dead `company` ref | High | ☐ |
+| 3.5.9 | Delete company that still has members | 1. Click Delete on a company with users 2. Confirm | Blocked with error toast "ไม่สามารถลบบริษัทที่ยังมีผู้ใช้อยู่ (N คน)…"; company survives, no user is left with a dead `company` ref | High | ✅ (prod 2026-08-05 — OAYT with 1 member: toast shown, row survives, dialog closed) |
 | 3.5.7 | Move Up/Down reorder | 1. Click Move Up on company | sortOrder swaps with adjacent | Medium | ✅ (swaps within same region only; a lone/ungrouped company is a no-op) |
 | 3.5.8 | Toggle active status | 1. Click toggle switch | Status updates | Low | ✅ |
 
