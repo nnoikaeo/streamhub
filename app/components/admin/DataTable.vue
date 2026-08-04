@@ -337,8 +337,10 @@ const getGroupBadgeClass = (groupName: string): string => {
                   </span>
                 </div>
 
-                <!-- Regular cell display -->
-                <span v-else>{{ getCellValue(item, column.key) }}</span>
+                <!-- Regular cell display — overridable per column via #cell-<key> slot -->
+                <slot v-else :name="`cell-${column.key}`" :item="item" :value="item[column.key]">
+                  <span>{{ getCellValue(item, column.key) }}</span>
+                </slot>
               </td>
 
               <!-- Action buttons -->
