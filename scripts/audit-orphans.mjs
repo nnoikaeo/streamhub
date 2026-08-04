@@ -10,7 +10,8 @@
  *   2. folders.parentId           → missing folder      (orphan sub-folder)
  *   3. users.groups[]             → missing group       (dead group ref)
  *   4. companies.region           → missing region      (dead region ref)
- *   5. groups.members[]           → missing user        (dead member ref)
+ *   5. users.company              → missing company     (dead company ref)
+ *   6. groups.members[]           → missing user        (dead member ref)
  *
  * Auth: reads GOOGLE_SERVICE_ACCOUNT_KEY (or GOOGLE_APPLICATION_CREDENTIALS)
  * from .env.local — the same admin credentials used by scripts/seed-firestore.ts.
@@ -65,6 +66,7 @@ const folderIds = new Set(folders.map(f => f._id))
 const groupIds = new Set(groups.map(g => g._id))
 const regionCodes = new Set(regions.map(r => r._id))
 const userIds = new Set(users.map(u => u._id))
+const companyCodes = new Set(companies.map(c => c._id))
 
 console.log(`\n📊 folders=${folders.length} dashboards=${dashboards.length} groups=${groups.length} users=${users.length} companies=${companies.length} regions=${regions.length}\n`)
 
@@ -90,6 +92,12 @@ report('Users with dead group refs (user.groups[] → missing group)',
 report('Companies with missing region ref',
   companies.filter(c => c.region && !regionCodes.has(c.region)),
   c => `code=${c._id} name="${c.name ?? '?'}" region=${c.region}`)
+
+// Deleting a company from /admin/companies does not touch its members, so a
+// user can be left pointing at a company code that no longer exists.
+report('Users with a dead company ref (user.company → missing company)',
+  users.filter(u => u.company && !companyCodes.has(u.company)),
+  u => `uid=${u._id} email=${u.email ?? '?'} name="${u.name ?? '?'}" company=${u.company}`)
 
 report('Groups with dead member refs (group.members[] → missing user)',
   groups.map(g => ({ g, dead: (g.members ?? []).filter(m => !userIds.has(m)) })).filter(x => x.dead.length),
