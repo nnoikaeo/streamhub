@@ -128,10 +128,10 @@ const dashboards: Dashboard[] = []
 
 ### Linting
 
-Runs ESLint automatically:
+Runs ESLint (no npm script — invoke directly):
 
 ```bash
-npm run lint
+npx eslint .
 ```
 
 ### Line Length
@@ -261,6 +261,38 @@ computed: {
 
 ---
 
+## Back Navigation
+
+A "← back" button should return the user to where they came from, and only fall back to a fixed route on a **cold entry** (direct link or hard refresh).
+
+```typescript
+// ✅ GOOD — history.state.back is the previous IN-APP entry, null on cold entry
+const handleGoBack = async () => {
+  if (window.history.state?.back) {
+    router.back()
+    return
+  }
+  await router.push('/dashboard/discover')
+}
+
+// ❌ BAD — hardcoded, ignores where the user came from
+const handleGoBack = async () => {
+  await router.push('/dashboard/discover')
+}
+
+// ❌ BAD — history.length counts the WHOLE TAB, so a direct link opened
+// after visiting another site navigates the user out of the app
+if (window.history.length > 1) router.back()
+```
+
+`router.back()` preserves Explorer folder + scroll position, which `router.push()` cannot.
+
+**Exception:** after a destructive action (archive, delete), push the list route explicitly — the previous page's listing is stale and `router.back()` would restore an entry that no longer exists. See `confirmArchive()` in `app/pages/dashboard/view/[id].vue`.
+
+Implemented in `app/pages/dashboard/view/[id].vue` → `handleGoBack()` and `app/components/features/PermissionsPage.vue` → `goBackToExplorer()`.
+
+---
+
 ## Tailwind CSS
 
 ```vue
@@ -355,10 +387,24 @@ describe('useAuth', () => {
 
 ```bash
 # Run before committing
-npm run lint      # Check linting
-npm run type-check # Check TypeScript
-npm run build     # Test build
+npm test                                          # Vitest suite
+npx eslint .                                      # Check linting
+npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json   # Check TypeScript
+npm run build                                     # Test build
 ```
+
+⚠️ There is no `lint` or `type-check` npm script — use the `npx` forms above.
+
+⚠️ Point `vue-tsc` at `.nuxt/tsconfig.app.json`, **not** the root `tsconfig.json`. The root config is `"files": []` plus project references, so `vue-tsc -p tsconfig.json` checks nothing and exits 0 with no output — a false pass.
+
+Only `npm test` and `npm run build` are expected to come back clean. Lint and typecheck both carry a backlog:
+
+| Check | Pre-existing baseline (2026-08-04) |
+|-------|------------------------------------|
+| `npx eslint .` | 716 problems — 510 errors / 206 warnings |
+| `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 44 errors |
+
+Compare the count before and after your change (`git stash`, re-run, `git stash pop`), or scope the run to the files you touched — don't expect zero.
 
 ---
 
