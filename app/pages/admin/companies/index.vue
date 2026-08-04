@@ -21,6 +21,7 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
+import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 
 definePageMeta({
@@ -34,6 +35,9 @@ const { breadcrumbs } = useAdminBreadcrumbs()
 const { companies, loading, fetchCompanies, createCompany, updateCompany, deleteCompany } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
 const { folders, buildFolderTree } = useAdminFolders()
+// Needed only to count members before a delete — skipCompanyFilter so the
+// count covers every user, not just the current company's.
+const { users, fetchUsers } = useAdminUsers({ skipCompanyFilter: true })
 
 // CRUD page state (modal, dialog, handlers)
 const {
@@ -58,6 +62,15 @@ const {
   updateFn: updateCompany,
   deleteFn: deleteCompany,
   resourceLabel: 'บริษัท',
+  // Deleting a company does not touch its members, so without this guard the
+  // users would keep a `company` code that no longer resolves.
+  canDelete: (company) => {
+    const memberCount = users.value.filter(u => u.company === company.code).length
+    if (memberCount > 0) {
+      return `ไม่สามารถลบบริษัทที่ยังมีผู้ใช้อยู่ (${memberCount} คน) กรุณาย้ายผู้ใช้ไปบริษัทอื่นก่อน`
+    }
+    return true
+  },
 })
 
 // Filters
@@ -213,9 +226,10 @@ const actions = [
 
 onMounted(async () => {
   try {
-    console.log('🚀 [Lifecycle] onMounted - Starting to fetch companies and regions...')
-    await Promise.all([fetchCompanies(), fetchRegions()])
-    console.log('✅ [Lifecycle] onMounted - Companies and regions fetched successfully')
+    console.log('🚀 [Lifecycle] onMounted - Starting to fetch companies, regions and users...')
+    // users are only used by the pre-delete member-count guard
+    await Promise.all([fetchCompanies(), fetchRegions(), fetchUsers()])
+    console.log('✅ [Lifecycle] onMounted - Companies, regions and users fetched successfully')
   } catch (error) {
     console.error('❌ [Lifecycle] Error loading data:', error)
   }
