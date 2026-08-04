@@ -14,8 +14,8 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 - See full workflow: [docs/CONTRIBUTING/workflow.md](docs/CONTRIBUTING/workflow.md)
 
 ### Deploy
-- **Push to `main` deploys BOTH hosting and functions** via GitHub Actions (`--only hosting,functions --force`) — a back-merge to `main` needs no manual deploy step
-- **Hosting from local**: only when CI is down or prod still serves an old chunk — always `bash scripts/deploy-hosting.sh`, never run build + deploy manually without env vars
+- **Push to `main` deploys BOTH hosting and functions** via GitHub Actions (`--only hosting,functions --force`)
+- **Hosting from local**: `bash scripts/deploy-hosting.sh` — never run build + deploy manually without env vars. Running it after a back-merge is normal practice, not a sign CI failed: CI's last "Verify deployment" step sleeps only 10s before comparing the live entry chunk, so it often goes red on edge propagation while the deploy itself succeeded
 - **Functions from local**: never — a mac-built `sharp` is the wrong arch for the linux runtime; let CI build them
 - **Firestore rules**: must deploy manually — `firebase deploy --only firestore:rules --project streamhub-1c27a` — CI service account lacks permission
 - Never run `node scripts/generate-spa-index.mjs` directly without env vars (produces blank Firebase config → login broken)
