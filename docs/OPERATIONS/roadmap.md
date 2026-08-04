@@ -108,7 +108,7 @@
 - [x] **Breadcrumb Thai** — "Dashboard" → "แดชบอร์ด"
 - [x] **Share button** — navigate to `/admin/permissions` (admin/moderator only)
 - [x] **⋮ Dropdown menu** — Thai labels (แก้ไขข้อมูล / ดาวน์โหลด / เก็บถาวร), z-index fix, hover fix
-- [x] **Go Back** — navigate to `/dashboard/discover` without folder filter
+- [x] **Go Back** — `router.back()` to the page of origin (Explorer folder/scroll preserved), falls back to `/dashboard/discover` on cold entry
 - [x] **Dropdown styling** — fixed global button CSS override (added `.menu-item` to exclusion list in `main.css`)
 
 #### Dashboard View actions ✅ COMPLETED
@@ -212,7 +212,7 @@ Feature stubs, optional — app fully functional without them:
 - [ ] Explorer **folder creation dialog** — `app/composables/useDashboardPage.ts:329`
 - [ ] **Profile page** + nav — `app/components/ui/UserMenu.vue:156`
 - [ ] **Settings page** + nav — `app/components/ui/UserMenu.vue:165`
-- [ ] **Dashboard view back button returns to origin** — `app/pages/dashboard/view/[id].vue` → `handleGoBack()` hardcodes `router.push('/dashboard/discover')`, so opening a dashboard from Explorer (`/manage/explorer`, `/admin/explorer`) or elsewhere still lands on Discover. Should `router.back()` when in-app history exists, falling back to `/dashboard/discover` on cold entry (mirror `PermissionsPage.goBackToExplorer`)
+- [x] **Dashboard view back button returns to origin** ✅ DONE — `handleGoBack()` in `app/pages/dashboard/view/[id].vue` now uses `router.back()` when in-app history exists, falling back to `/dashboard/discover` on cold entry (mirrors `PermissionsPage.goBackToExplorer`). Archive flow keeps the explicit push to Discover (previous listing is stale after archiving)
 
 ---
 
