@@ -10,7 +10,8 @@
         :removable="true"
         @remove="removeTag(tag.id)"
       />
-      <button class="tag-selector__add-btn" @click="toggleDropdown">+ Add tag</button>
+      <!-- type="button": this sits inside FormModal's <form>, and a bare button submits it -->
+      <button type="button" class="tag-selector__add-btn" @click="toggleDropdown">+ Add tag</button>
     </div>
 
     <!-- Dropdown -->
@@ -48,6 +49,7 @@
         <template v-if="canCreateTag">
           <button
             v-if="search.trim()"
+            type="button"
             class="tag-selector__create-btn"
             @click="createTag"
           >
