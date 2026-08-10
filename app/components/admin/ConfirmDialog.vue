@@ -164,7 +164,7 @@ const handleBackdropClick = () => {
             :disabled="loading"
             @click="handleConfirm"
           >
-            <span v-if="loading" class="confirm-spinner"></span>
+            <span v-if="loading" class="confirm-spinner"/>
             {{ loading ? 'กำลังดำเนินการ...' : confirmText }}
           </button>
         </div>

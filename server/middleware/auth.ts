@@ -1,4 +1,5 @@
-import { H3Event, getRequestURL, getHeader, getQuery } from 'h3'
+import type { H3Event } from 'h3'
+import { getRequestURL, getHeader, getQuery } from 'h3'
 import { verifyIdToken, isFirebaseAdminAvailable } from '../utils/firebaseAdmin'
 import { sendUnauthorized } from '../utils/apiResponse'
 
@@ -47,7 +48,7 @@ export default defineEventHandler(async (event: H3Event) => {
   // ─── DEV MODE: single early-return block ───
   // In development, allow uid query param as auth fallback.
   // This entire block is dead code in production builds (process.dev is false at build time).
-  if (process.dev) {
+  if (import.meta.dev) {
     const query = getQuery(event)
     const uid = query.uid as string
     const authHeader = getHeader(event, 'authorization')

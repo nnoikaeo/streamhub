@@ -106,6 +106,7 @@ const handleMoveUp = async (region: Region) => {
   if (index <= 0) return
 
   const prev = sorted[index - 1]
+  if (!prev) return
   const currentOrder = region.sortOrder ?? index + 1
   const prevOrder = prev.sortOrder ?? index
 
@@ -119,6 +120,7 @@ const handleMoveDown = async (region: Region) => {
   if (index < 0 || index >= sorted.length - 1) return
 
   const next = sorted[index + 1]
+  if (!next) return
   const currentOrder = region.sortOrder ?? index + 1
   const nextOrder = next.sortOrder ?? index + 2
 
@@ -199,7 +201,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการกลุ่มธุรกิจ/เขตพื้นที่</h1>
-        <button @click="handleAddRegion" class="page-header-action-btn">
+        <button class="page-header-action-btn" @click="handleAddRegion">
           ➕ เพิ่มกลุ่มธุรกิจ/เขตพื้นที่ใหม่
         </button>
       </template>
@@ -212,7 +214,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             type="text"
             class="theme-form-input"
             placeholder="ค้นหาตามรหัสหรือชื่อกลุ่มธุรกิจ/เขตพื้นที่..."
-          />
+          >
         </div>
 
         <!-- Active Status Filter -->
@@ -225,7 +227,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         </div>
 
         <!-- Clear Filters -->
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+        <button class="theme-btn theme-btn--ghost" @click="clearFilters">
           🔄 ล้างตัวกรอง
         </button>
       </template>
@@ -237,7 +239,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           :loading="loading"
           :actions="actions"
           empty-message="ไม่พบกลุ่มธุรกิจ/เขตพื้นที่"
-          @toggleActive="handleToggleActive"
+          @toggle-active="handleToggleActive"
         />
       </template>
 

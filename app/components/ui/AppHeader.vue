@@ -3,7 +3,7 @@
     <div class="header-container">
       <!-- Logo / Brand -->
       <div class="header-brand">
-        <img src="/logo.png" alt="StreamHub Logo" class="brand-logo" />
+        <img src="/logo.png" alt="StreamHub Logo" class="brand-logo" >
       </div>
 
       <!-- Admin Menu (Hidden) -->
@@ -54,8 +54,6 @@
  */
 import UserMenu from './UserMenu.vue'
 
-const authStore = useAuthStore()
-const isAdmin = computed(() => authStore.user?.role === 'admin')
 </script>
 
 <style scoped>

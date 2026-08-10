@@ -99,8 +99,8 @@ export function useAdminFolders() {
     defaults: {
       parentId: null,
       isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: new Date(),
+      updatedAt: new Date()
     },
     extensions: {
       /**

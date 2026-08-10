@@ -191,7 +191,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการโฟลเดอร์</h1>
-        <button @click="handleAddFolder" class="page-header-action-btn">
+        <button class="page-header-action-btn" @click="handleAddFolder">
           ➕ เพิ่มโฟลเดอร์ใหม่
         </button>
       </template>
@@ -203,7 +203,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             type="text"
             class="theme-form-input"
             placeholder="ค้นหาตามชื่อโฟลเดอร์..."
-          />
+          >
         </div>
 
         <div class="filter-group">
@@ -214,7 +214,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           </select>
         </div>
 
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+        <button class="theme-btn theme-btn--ghost" @click="clearFilters">
           🔄 ล้างตัวกรอง
         </button>
       </template>
@@ -226,7 +226,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           :loading="loading"
           :actions="actions"
           empty-message="ไม่พบโฟลเดอร์"
-          @toggleActive="handleToggleActive"
+          @toggle-active="handleToggleActive"
         />
       </template>
 

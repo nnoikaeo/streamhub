@@ -172,8 +172,6 @@ const companyDashboardsCount = computed(() => {
 
 const foldersCount = computed(() => folders.value.length)
 
-const dashboardsCount = computed(() => dashboards.value.length)
-
 const companiesCount = computed(() => companies.value.length)
 
 // Recent dashboards - top 5 most recently visited by this user (localStorage)

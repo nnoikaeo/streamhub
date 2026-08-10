@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+import { useAdminCrudPage } from '../../app/composables/useAdminCrudPage'
+import { ValidationError } from '../../app/composables/useAdminResource'
+
 // Mock useAppToast auto-import at module scope
 const showToast = vi.fn()
 vi.stubGlobal('useAppToast', () => ({ showToast }))
-
-import { useAdminCrudPage } from '../../app/composables/useAdminCrudPage'
-import { ValidationError } from '../../app/composables/useAdminResource'
 
 interface Row {
   id: string

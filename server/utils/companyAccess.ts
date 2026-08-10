@@ -1,4 +1,5 @@
-import { H3Event, getQuery } from 'h3'
+import type { H3Event } from 'h3'
+import { getQuery } from 'h3'
 import { findById } from './jsonDatabase'
 
 interface CompanyAccessResult {

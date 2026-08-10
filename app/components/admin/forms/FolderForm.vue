@@ -51,8 +51,6 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
   },
 })
 
-const isEditMode = computed(() => !!props.folder)
-
 /**
  * Get all descendants of a folder (to exclude from parent selection)
  */
@@ -131,7 +129,7 @@ defineExpose({ submit: handleSubmit })
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="folder-form">
+  <form class="folder-form" @submit.prevent="handleSubmit">
     <FormField
       v-model="formData.name"
       type="text"

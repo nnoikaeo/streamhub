@@ -114,7 +114,7 @@ const onEnter = (el: Element) => {
   const element = el as HTMLElement
   element.style.height = '0'
   element.style.opacity = '0'
-  element.offsetHeight // Trigger reflow
+  void element.offsetHeight // Trigger reflow
   element.style.height = element.scrollHeight + 'px'
   element.style.opacity = '1'
 }
@@ -128,7 +128,7 @@ const onAfterEnter = (el: Element) => {
 const onLeave = (el: Element) => {
   const element = el as HTMLElement
   element.style.height = element.scrollHeight + 'px'
-  element.offsetHeight // Trigger reflow
+  void element.offsetHeight // Trigger reflow
   element.style.height = '0'
   element.style.opacity = '0'
 }
@@ -141,9 +141,9 @@ const onLeave = (el: Element) => {
       class="accordion-header"
       :class="{ 'accordion-header--open': isOpen, 'accordion-header--disabled': disabled }"
       :disabled="disabled"
-      @click="handleToggle"
       :aria-expanded="isOpen"
       :aria-label="`${title} menu`"
+      @click="handleToggle"
     >
       <svg
         class="accordion-icon"
@@ -180,8 +180,8 @@ const onLeave = (el: Element) => {
         <div class="accordion-footer">
           <button
             class="view-all-button"
-            @click="navigateToDiscoverAll"
             title="View all dashboards without folder filter"
+            @click="navigateToDiscoverAll"
           >
             <span class="view-all-icon">📊</span>
             <span class="view-all-label">ดูแดชบอร์ดทั้งหมด</span>

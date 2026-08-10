@@ -1,4 +1,5 @@
-import { H3Event, getRequestURL, setHeader } from 'h3'
+import type { H3Event } from 'h3'
+import { getRequestURL, setHeader } from 'h3'
 
 /**
  * Server middleware that sets security headers on every response.

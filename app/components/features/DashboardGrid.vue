@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { type Dashboard } from '../../types/dashboard'
+import type { Dashboard } from '../../types/dashboard'
 import type { ViewMode } from '~/types/dashboard'
 import DashboardCard from './DashboardCard.vue'
 

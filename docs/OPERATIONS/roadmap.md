@@ -208,11 +208,21 @@
 
 ---
 
+### Phase 9: Lint & Typecheck Debt 🔄 IN PROGRESS
+**Goal:** Get the verify commands back to a meaningful signal
+
+- [x] **eslint 716 → 382** (PR #353) — autofix, dead-code removal, and every remaining rule cleared except `no-explicit-any`. Two rules turned off with rationale in `eslint.config.mjs`: `vue/multi-word-component-names` for the `ui/` primitives, `vue/require-default-prop` for type-first props
+- [x] **vue-tsc 44 → 0** (PR #353) — surfaced two live bugs: `QuickShareDialog` read `user.id` on a type that only has `uid` (share from Discover emitted `userIds: [undefined]`), and `PermissionsPage` wrote `setByName: user.value?.name`, recording provenance blank
+- [ ] **`no-explicit-any` — 382 left** — 152 `server/`, 151 `app/`, 74 `tests/`, 5 `scripts/`. Suggested tranches: (1) error-narrowing helper + the 71 `catch (e: any)`, (2) `server/`, (3) `app/`, (4) `tests/`. Touches auth and permission paths, so one reviewed PR per tranche
+
+---
+
 ## Remaining Backlog (non-blocking)
 
 Feature stubs, optional — app fully functional without them:
 
-- [ ] Home page **create folder** button — `app/pages/dashboard/index.vue` → `handleCreateFolder()`
+- [ ] QuickActions **create dashboard** button routes to `/dashboard/create`, **which does not exist** — `app/pages/dashboard/index.vue` → `navigateTo('/dashboard/create')` gives a 404. Visible to moderator + admin. Worse than the stubs below, which at least say something
+- [ ] Home page **create folder** button — `app/pages/dashboard/index.vue` → `handleCreateFolder()` (`alert('… coming soon!')`)
 - [ ] Home page **share** button — `app/pages/dashboard/index.vue` → share handler
 - [ ] Explorer **folder creation dialog** — `app/composables/useDashboardPage.ts:329`
 - [ ] **Profile page** + nav — `app/components/ui/UserMenu.vue:156`

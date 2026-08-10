@@ -78,7 +78,7 @@ const previewTag = computed<Tag>(() => ({
   id: 'preview',
   name: (formData.name as string) || 'Preview',
   slug: (formData.slug as string) || 'preview',
-  color: (formData.color as string) || PRESET_COLORS[0],
+  color: (formData.color as string) || PRESET_COLORS[0]!,
   description: (formData.description as string) || '',
   createdBy: '',
   isActive: formData.isActive as boolean,

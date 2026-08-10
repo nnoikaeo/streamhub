@@ -4,7 +4,7 @@
  * Should be used in combination with 'auth' middleware
  */
 
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore()
   const permissionsStore = usePermissionsStore()
   const { initAuth } = useAuth()

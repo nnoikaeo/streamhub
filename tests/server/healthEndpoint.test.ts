@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
+import { isFirestoreMode, getAdminDb } from '../../server/utils/firestoreAdmin'
+import { isFirebaseAdminAvailable } from '../../server/utils/firebaseAdmin'
+import { findById } from '../../server/utils/jsonDatabase'
+import { sendUnauthorized, sendForbidden } from '../../server/utils/apiResponse'
+import { getAuth } from 'firebase-admin/auth'
+import { getApps } from 'firebase-admin/app'
+
 /**
  * Unit tests for server/api/health.get.ts
  *
@@ -40,13 +47,6 @@ vi.mock('firebase-admin/auth', () => ({
 vi.mock('firebase-admin/app', () => ({
   getApps: vi.fn(),
 }))
-
-import { isFirestoreMode, getAdminDb } from '../../server/utils/firestoreAdmin'
-import { isFirebaseAdminAvailable } from '../../server/utils/firebaseAdmin'
-import { findById } from '../../server/utils/jsonDatabase'
-import { sendUnauthorized, sendForbidden } from '../../server/utils/apiResponse'
-import { getAuth } from 'firebase-admin/auth'
-import { getApps } from 'firebase-admin/app'
 
 // Import handler after all mocks are registered
 const { default: healthHandler } = await import('../../server/api/health.get')
@@ -131,7 +131,7 @@ describe('GET /api/health', () => {
     it('returns 403 when user role is not admin', async () => {
       vi.mocked(findById).mockResolvedValue({ uid: 'uid-1', role: 'user' } as any)
 
-      const result = await healthHandler(makeEvent('uid-1'))
+      await healthHandler(makeEvent('uid-1'))
 
       expect(sendForbidden).toHaveBeenCalledOnce()
     })
@@ -165,7 +165,7 @@ describe('GET /api/health', () => {
       } as any
       vi.mocked(getAdminDb).mockReturnValue(db)
 
-      const result = await healthHandler(makeEvent('uid-1'))
+      await healthHandler(makeEvent('uid-1'))
 
       expect(sendForbidden).toHaveBeenCalledOnce()
     })
@@ -181,7 +181,7 @@ describe('GET /api/health', () => {
       } as any
       vi.mocked(getAdminDb).mockReturnValue(db)
 
-      const result = await healthHandler(makeEvent('uid-1'))
+      await healthHandler(makeEvent('uid-1'))
 
       expect(sendForbidden).toHaveBeenCalledOnce()
     })

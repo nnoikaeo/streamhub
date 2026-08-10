@@ -317,7 +317,7 @@ export function useAdminResource<T extends Record<string, any>>(
     } catch (e: any) {
       if (e?.response?.status === 403 || e?.statusCode === 403) {
         console.error(`🚫 Access denied fetching ${resourceName}:`, e.data?.message)
-        try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch {}
+        try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch { /* toast unavailable outside a component scope */ }
         items.value = []
         return
       }
@@ -381,7 +381,7 @@ export function useAdminResource<T extends Record<string, any>>(
         const db = getFirestoreDb()
         const docId = String(requestBody[idKey as string] || generatedId || `${idPrefix || ''}${Date.now()}`)
         const now = new Date().toISOString()
-        const newItem = { ...requestBody, createdAt: now, updatedAt: now } as T
+        const newItem = { ...requestBody, createdAt: now, updatedAt: now } as unknown as T
         await setDoc(doc(db, resourceName, docId), newItem)
         console.log(`✅ ${resourceName} "${docId}" created in Firestore`)
         await fetch()
@@ -432,7 +432,7 @@ export function useAdminResource<T extends Record<string, any>>(
         await updateDoc(doc(db, resourceName, String(id)), updateData)
         console.log(`✅ ${resourceName} "${id}" updated in Firestore`)
         await fetch()
-        return { [idKey]: id, ...updateData } as T
+        return { [idKey]: id, ...updateData } as unknown as T
       }
 
       const requestBody = {

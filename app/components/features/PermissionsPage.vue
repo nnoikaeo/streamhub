@@ -17,7 +17,6 @@ import PermissionEditor from '~/components/features/PermissionEditor.vue'
 import { useDashboardService } from '~/composables/useDashboardService'
 import { useAuth } from '~/composables/useAuth'
 import type { Dashboard, User, AccessControl, AccessRestrictions, Folder, PermissionMetadata } from '~/types/dashboard'
-import type { AdminGroup, Company } from '~/types/admin'
 
 interface Props {
   /** Dashboards available for selection */
@@ -194,7 +193,7 @@ const sortedDashboards = computed(() => {
 })
 
 const filteredDashboards = computed(() => {
-  let list = sortedDashboards.value
+  const list = sortedDashboards.value
 
   if (!dashboardSearchQuery.value) return list
   const q = dashboardSearchQuery.value.toLowerCase()
@@ -472,7 +471,6 @@ interface EffectiveAccessEntry {
 
 const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   const perms = activePermissions.value
-  const isFolderMode = editMode.value === 'folder'
   const userMap = new Map<string, EffectiveAccessEntry>()
 
   const addUser = (uid: string, source: string) => {
@@ -536,7 +534,9 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   const restricted = new Set<string>(perms.restrictions.revoke)
   const now = new Date()
   for (const [uid, date] of Object.entries(perms.restrictions.expiry)) {
-    if (new Date(date as string) < now) restricted.add(uid)
+    // Firestore hands these back as Timestamps or ISO strings depending on path
+    const expiresAt = date instanceof Date ? date : new Date(date as string)
+    if (expiresAt < now) restricted.add(uid)
   }
   for (const folder of inheritedFolders.value) {
     if (!folder.restrictions) continue
@@ -695,7 +695,7 @@ const saveFolderPermissions = async () => {
 
     const permissionMeta: PermissionMetadata = {
       setBy: user.value?.uid ?? '',
-      setByName: user.value?.name ?? '',
+      setByName: user.value?.displayName ?? '',
       setAt: new Date().toISOString(),
     }
 
@@ -837,9 +837,9 @@ watch(() => props.allFolders, (folders) => {
           <div v-if="editMode === 'dashboard'" class="filter-search dashboard-search-wrapper">
             <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
               <input
+                v-show="!selectedDashboardId || dashboardSearchQuery || isDropdownOpen"
                 id="permission-dashboard-search"
                 ref="searchInputRef"
-                v-show="!selectedDashboardId || dashboardSearchQuery || isDropdownOpen"
                 v-model="dashboardSearchQuery"
                 type="text"
                 name="permission-dashboard-search"
@@ -850,7 +850,7 @@ watch(() => props.allFolders, (folders) => {
                 :disabled="isLoading"
                 @focus="isDropdownOpen = true"
                 @input="isDropdownOpen = true"
-              />
+              >
               <div
                 v-if="selectedDashboardId && !dashboardSearchQuery && !isDropdownOpen"
                 class="dashboard-search__selected"
@@ -861,8 +861,8 @@ watch(() => props.allFolders, (folders) => {
                 <button
                   type="button"
                   class="dashboard-search__clear"
-                  @click.stop="clearSelection"
                   title="ล้างการเลือก"
+                  @click.stop="clearSelection"
                 >✕</button>
               </div>
               <div v-if="isDropdownOpen" class="dashboard-dropdown">
@@ -887,9 +887,9 @@ watch(() => props.allFolders, (folders) => {
           <div v-if="editMode === 'folder'" class="filter-search folder-search-wrapper">
             <div class="dashboard-search" :class="{ 'dashboard-search--open': isFolderDropdownOpen }">
               <input
+                v-show="!selectedEditFolderId || folderSearchQuery || isFolderDropdownOpen"
                 id="permission-folder-search"
                 ref="folderSearchInputRef"
-                v-show="!selectedEditFolderId || folderSearchQuery || isFolderDropdownOpen"
                 v-model="folderSearchQuery"
                 type="text"
                 name="permission-folder-search"
@@ -899,7 +899,7 @@ watch(() => props.allFolders, (folders) => {
                 :placeholder="'🔍 เลือกโฟลเดอร์เพื่อจัดการสิทธิ์... (พิมพ์เพื่อค้นหา)'"
                 @focus="isFolderDropdownOpen = true"
                 @input="isFolderDropdownOpen = true"
-              />
+              >
               <div
                 v-if="selectedEditFolderId && !folderSearchQuery && !isFolderDropdownOpen"
                 class="dashboard-search__selected"
@@ -910,8 +910,8 @@ watch(() => props.allFolders, (folders) => {
                 <button
                   type="button"
                   class="dashboard-search__clear"
-                  @click.stop="clearFolderSelection"
                   title="ล้างการเลือก"
+                  @click.stop="clearFolderSelection"
                 >✕</button>
               </div>
               <div v-if="isFolderDropdownOpen" class="dashboard-dropdown">
@@ -943,12 +943,12 @@ watch(() => props.allFolders, (folders) => {
         <!-- Status Messages -->
         <div v-if="successMessage" class="alert alert-success" role="status">
           <span>{{ successMessage }}</span>
-          <button type="button" class="alert-close" @click="successMessage = null" aria-label="Dismiss">✕</button>
+          <button type="button" class="alert-close" aria-label="Dismiss" @click="successMessage = null">✕</button>
         </div>
 
         <div v-if="errorMessage" class="alert alert-error" role="alert">
           <span>{{ errorMessage }}</span>
-          <button type="button" class="alert-close" @click="errorMessage = null" aria-label="Dismiss">✕</button>
+          <button type="button" class="alert-close" aria-label="Dismiss" @click="errorMessage = null">✕</button>
         </div>
 
         <!-- ═══ Dashboard Mode ═══ -->
@@ -975,16 +975,16 @@ watch(() => props.allFolders, (folders) => {
               <button
                 type="button"
                 class="page-header-action-btn page-header-action-btn--secondary"
-                @click="resetEditor"
                 :disabled="!hasChanges"
+                @click="resetEditor"
               >
                 รีเซ็ต
               </button>
               <button
                 type="button"
                 class="page-header-action-btn"
-                @click="savePermissions"
                 :disabled="!hasChanges || isSaving"
+                @click="savePermissions"
               >
                 {{ isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
               </button>
@@ -994,7 +994,7 @@ watch(() => props.allFolders, (folders) => {
           <!-- Public toggle + access-state banner (Looker-style) [DESIGN-001] -->
           <div class="access-visibility">
             <label class="access-toggle">
-              <input type="checkbox" v-model="isPublic" />
+              <input v-model="isPublic" type="checkbox" >
               <span class="access-toggle__track"><span class="access-toggle__thumb" /></span>
               <span class="access-toggle__label">
                 🌐 เข้าถึงสาธารณะ
@@ -1129,16 +1129,16 @@ watch(() => props.allFolders, (folders) => {
               <button
                 type="button"
                 class="page-header-action-btn page-header-action-btn--secondary"
-                @click="resetEditor"
                 :disabled="!hasChanges"
+                @click="resetEditor"
               >
                 รีเซ็ต
               </button>
               <button
                 type="button"
                 class="page-header-action-btn"
-                @click="savePermissions"
                 :disabled="!hasChanges || isSaving"
+                @click="savePermissions"
               >
                 {{ isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
               </button>
@@ -1150,12 +1150,12 @@ watch(() => props.allFolders, (folders) => {
             <label class="inherit-toggle__label">
               <input
                 id="permission-inherit-toggle"
-                type="checkbox"
                 v-model="folderInheritEnabled"
+                type="checkbox"
                 name="permission-inherit-toggle"
                 aria-label="สิทธิ์สืบทอด"
                 class="inherit-toggle__checkbox"
-              />
+              >
               <span class="inherit-toggle__text">สิทธิ์สืบทอด</span>
             </label>
             <span class="inherit-toggle__hint">เมื่อเปิด สิทธิ์จะส่งต่อไปยังแดชบอร์ดทุกตัวในโฟลเดอร์นี้</span>

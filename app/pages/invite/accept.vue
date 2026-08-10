@@ -173,7 +173,7 @@ onMounted(async () => {
     <div class="invite-card">
       <!-- Logo -->
       <div class="flex justify-center mb-6">
-        <img :src="logoImage" alt="StreamHub Logo" class="invite-logo" />
+        <img :src="logoImage" alt="StreamHub Logo" class="invite-logo" >
       </div>
 
       <ClientOnly>
@@ -212,7 +212,7 @@ onMounted(async () => {
             คำเชิญส่งถึง: <span class="font-medium text-slate-700">{{ invitation?.email }}</span>
           </p>
 
-          <button @click="signInAndAccept" class="invite-button">
+          <button class="invite-button" @click="signInAndAccept">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#ffffff"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#ffffff"/>
@@ -250,7 +250,7 @@ onMounted(async () => {
             ลงชื่อเข้าเป็น: <span class="font-medium text-slate-700">{{ authStore.user?.email }}</span>
           </p>
 
-          <button @click="handleAccept" class="invite-button invite-button--accept">
+          <button class="invite-button invite-button--accept" @click="handleAccept">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
@@ -277,7 +277,7 @@ onMounted(async () => {
             </p>
           </div>
 
-          <button @click="handleSignOutAndRetry" class="invite-button invite-button--warning">
+          <button class="invite-button invite-button--warning" @click="handleSignOutAndRetry">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>

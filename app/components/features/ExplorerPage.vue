@@ -76,6 +76,11 @@ const props = withDefaults(defineProps<Props>(), {
   showModeratorColumn: false,
 })
 
+// The `explorer` prop is a composable instance holding refs. Pulling the writable
+// ones into locals keeps v-model writing to the ref itself instead of looking like
+// a prop mutation.
+const { globalSearch, showFolderModal, showDashboardModal } = props.explorer
+
 // Local template refs for form components
 const folderFormRef = ref<{ submit: () => Promise<void> } | null>(null)
 const dashboardFormRef = ref<{ submit: () => Promise<void> } | null>(null)
@@ -144,12 +149,12 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
             <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
           </svg>
           <input
-            v-model="explorer.globalSearch.value"
+            v-model="globalSearch"
             type="search"
             class="explorer-search-input"
             placeholder="ค้นหาโฟลเดอร์หรือแดชบอร์ดทั้งหมด..."
             aria-label="ค้นหาทั้งหมด"
-          />
+          >
         </div>
         <!-- Dropdown Results -->
         <div v-if="explorer.showDropdown.value" class="search-dropdown">
@@ -235,11 +240,11 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
 
       <!-- Folder Form Modal -->
       <FormModal
-        v-model="explorer.showFolderModal.value"
+        v-model="showFolderModal"
         :title="explorer.selectedFolder.value ? 'แก้ไขโฟลเดอร์' : 'โฟลเดอร์ใหม่'"
         :loading="foldersLoading"
         @save="folderFormRef?.submit()"
-        @cancel="explorer.showFolderModal.value = false"
+        @cancel="showFolderModal = false"
       >
         <FolderForm
           ref="folderFormRef"
@@ -252,11 +257,11 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
 
       <!-- Dashboard Form Modal -->
       <FormModal
-        v-model="explorer.showDashboardModal.value"
+        v-model="showDashboardModal"
         :title="explorer.selectedDashboard.value ? 'แก้ไขแดชบอร์ด' : 'แดชบอร์ดใหม่'"
         :loading="dashboardsLoading"
         @save="dashboardFormRef?.submit()"
-        @cancel="explorer.showDashboardModal.value = false"
+        @cancel="showDashboardModal = false"
       >
         <DashboardForm
           ref="dashboardFormRef"

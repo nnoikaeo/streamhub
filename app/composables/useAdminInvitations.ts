@@ -2,7 +2,7 @@ import type { Invitation } from '~/types/invitation'
 import { useAdminResource } from './useAdminResource'
 
 export function useAdminInvitations() {
-  const { isFirestore: useFirestore, apiBase: getApiBase } = useServiceMode()
+  const { apiBase: getApiBase } = useServiceMode()
   const apiBase = getApiBase('invitations')
 
   const resource = useAdminResource<Invitation>({

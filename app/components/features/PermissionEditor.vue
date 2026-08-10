@@ -79,7 +79,7 @@
               autocomplete="off"
               class="panel__search-input"
               :placeholder="grantMode === 'users' ? 'ค้นหาชื่อ หรืออีเมล...' : grantMode === 'groups' ? 'ค้นหาชื่อกลุ่ม...' : 'ค้นหารหัสหรือชื่อบริษัท...'"
-            />
+            >
           </div>
           <div class="panel__body">
             <!-- Users mode -->
@@ -197,8 +197,8 @@
               <button
                 type="button"
                 class="selected-item__remove"
-                @click="removeDirectUser(uid)"
                 aria-label="ลบสิทธิ์"
+                @click="removeDirectUser(uid)"
               >
                 ✕
               </button>
@@ -219,8 +219,8 @@
               <button
                 type="button"
                 class="selected-item__remove"
-                @click="removeDirectGroup(gid)"
                 aria-label="ลบสิทธิ์"
+                @click="removeDirectGroup(gid)"
               >
                 ✕
               </button>
@@ -243,8 +243,8 @@
               <button
                 type="button"
                 class="selected-item__remove"
-                @click="removeCompany(code)"
                 aria-label="ลบสิทธิ์"
+                @click="removeCompany(code)"
               >
                 ✕
               </button>
@@ -301,7 +301,7 @@
               autocomplete="off"
               class="panel__search-input"
               placeholder="ค้นหาชื่อ หรืออีเมล..."
-            />
+            >
           </div>
           <div class="panel__body">
             <button
@@ -357,8 +357,8 @@
               <button
                 type="button"
                 class="selected-item__remove"
-                @click="removeRevoke(uid)"
                 aria-label="ลบข้อจำกัด"
+                @click="removeRevoke(uid)"
               >
                 ✕
               </button>
@@ -379,8 +379,8 @@
               <button
                 type="button"
                 class="selected-item__remove"
-                @click="removeExpiry(uid as string)"
                 aria-label="ลบข้อจำกัด"
+                @click="removeExpiry(uid as string)"
               >
                 ✕
               </button>
@@ -414,7 +414,7 @@
                 autocomplete="off"
                 class="restriction-popup__input"
                 placeholder="เหตุผลในการระงับ..."
-              />
+              >
             </template>
             <template v-else>
               <label for="permission-expiry-date" class="restriction-popup__label">วันหมดอายุ</label>
@@ -424,7 +424,7 @@
                 type="date"
                 name="permission-expiry-date"
                 class="restriction-popup__input"
-              />
+              >
             </template>
           </div>
           <div class="restriction-popup__actions">
@@ -503,17 +503,6 @@ function deepClone<T>(obj: T): T {
 
 function getUserName(uid: string): string {
   return props.allUsers.find((u) => u.uid === uid)?.name ?? 'Unknown'
-}
-
-function getUserCompany(uid: string): string {
-  return props.allUsers.find((u) => u.uid === uid)?.company ?? ''
-}
-
-function getRoleLabel(uid: string): string {
-  const role = props.allUsers.find((u) => u.uid === uid)?.role
-  if (!role) return ''
-  const labels: Record<string, string> = { admin: 'Admin', moderator: 'Moderator', user: 'User' }
-  return labels[role] ?? role
 }
 
 function getUserRoleCompany(uid: string): string {
@@ -800,8 +789,7 @@ function removeRevoke(uid: string) {
 }
 
 function removeExpiry(uid: string) {
-  const newExpiry = { ...localRestrictions.value.expiry }
-  delete newExpiry[uid]
+  const { [uid]: _removed, ...newExpiry } = localRestrictions.value.expiry
   localRestrictions.value.expiry = newExpiry
   emitUpdate()
 }

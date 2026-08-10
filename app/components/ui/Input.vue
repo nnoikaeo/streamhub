@@ -34,7 +34,7 @@
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
         @blur="$emit('blur')"
         @focus="$emit('focus')"
-      />
+      >
 
       <!-- Clear Button -->
       <button
@@ -64,8 +64,6 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-
 /**
  * Input Component - Form input field with validation and states
  *
@@ -97,7 +95,7 @@ import { computed } from 'vue'
  * />
  */
 
-const props = defineProps({
+defineProps({
   /**
    * Input value (v-model)
    */

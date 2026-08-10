@@ -44,6 +44,10 @@
  * </AppLayout>
  */
 
+// Import header/footer components (will be created later)
+import AppHeader from '~/components/ui/AppHeader.vue'
+import AppFooter from '~/components/ui/AppFooter.vue'
+
 defineProps({
   /**
    * Show/hide sidebar
@@ -63,10 +67,6 @@ defineProps({
     default: 15,
   },
 })
-
-// Import header/footer components (will be created later)
-import AppHeader from '~/components/ui/AppHeader.vue'
-import AppFooter from '~/components/ui/AppFooter.vue'
 </script>
 
 <style scoped>

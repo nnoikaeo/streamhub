@@ -1,5 +1,5 @@
 <template>
-  <div class="tag-selector" ref="selectorRef">
+  <div ref="selectorRef" class="tag-selector">
     <!-- Selected tags as removable badges -->
     <div class="tag-selector__current">
       <TagBadge
@@ -23,7 +23,7 @@
         class="tag-selector__search"
         placeholder="Search tags..."
         type="text"
-      />
+      >
 
       <!-- Tag list -->
       <ul class="tag-selector__list">

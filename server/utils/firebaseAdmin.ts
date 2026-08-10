@@ -16,7 +16,7 @@ function ensureInitialized(): boolean {
 
   // Skip if already initialized
   if (getApps().length > 0) {
-    adminApp = getApps()[0]
+    adminApp = getApps()[0] ?? null
     return true
   }
 
@@ -52,7 +52,7 @@ function ensureInitialized(): boolean {
     }
 
     initError = 'No Firebase Admin credentials found'
-    if (process.dev) {
+    if (import.meta.dev) {
       console.warn('[firebaseAdmin] No credentials — DEV mode will use mock auth')
     } else {
       console.error('[firebaseAdmin] CRITICAL: No credentials found — production requires Firebase Admin credentials')

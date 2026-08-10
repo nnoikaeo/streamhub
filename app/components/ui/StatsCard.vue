@@ -5,9 +5,9 @@
   >
     <!-- Loading State -->
     <div v-if="loading" class="stats-card__loading">
-      <div class="skeleton skeleton--icon"></div>
-      <div class="skeleton skeleton--text"></div>
-      <div class="skeleton skeleton--text" style="width: 70%"></div>
+      <div class="skeleton skeleton--icon"/>
+      <div class="skeleton skeleton--text"/>
+      <div class="skeleton skeleton--text" style="width: 70%"/>
     </div>
 
     <!-- Content -->

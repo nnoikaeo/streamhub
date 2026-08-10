@@ -12,7 +12,7 @@ export const getFirebaseConfig = () => {
     appId: config.public.firebase.appId
   }
 
-  if (process.client) {
+  if (import.meta.client) {
     console.log('🔍 Firebase Config Loaded:', {
       apiKey: firebaseConfig.apiKey?.substring(0, 20) + '...',
       authDomain: firebaseConfig.authDomain,

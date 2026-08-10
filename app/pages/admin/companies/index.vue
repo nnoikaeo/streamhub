@@ -252,7 +252,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการบริษัท</h1>
-        <button @click="handleAddCompany" class="page-header-action-btn">
+        <button class="page-header-action-btn" @click="handleAddCompany">
           ➕ เพิ่มบริษัทใหม่
         </button>
       </template>
@@ -265,7 +265,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             type="text"
             class="theme-form-input"
             placeholder="ค้นหาตามรหัสหรือชื่อบริษัท..."
-          />
+          >
         </div>
 
         <!-- Active Status Filter -->
@@ -287,7 +287,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         </div>
 
         <!-- Clear Filters -->
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+        <button class="theme-btn theme-btn--ghost" @click="clearFilters">
           🔄 ล้างตัวกรอง
         </button>
       </template>
@@ -299,7 +299,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           :loading="loading"
           :actions="actions"
           empty-message="ไม่พบบริษัท"
-          @toggleActive="handleToggleActive"
+          @toggle-active="handleToggleActive"
         />
       </template>
 

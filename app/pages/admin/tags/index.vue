@@ -100,6 +100,7 @@ const handleMoveUp = async (tag: Tag) => {
   const index = sorted.findIndex(t => t.id === tag.id)
   if (index <= 0) return
   const prev = sorted[index - 1]
+  if (!prev) return
   const currentOrder = tag.sortOrder ?? index + 1
   const prevOrder = prev.sortOrder ?? index
   await updateTag(tag.id, { sortOrder: prevOrder })
@@ -112,6 +113,7 @@ const handleMoveDown = async (tag: Tag) => {
   const index = sorted.findIndex(t => t.id === tag.id)
   if (index < 0 || index >= sorted.length - 1) return
   const next = sorted[index + 1]
+  if (!next) return
   const currentOrder = tag.sortOrder ?? index + 1
   const nextOrder = next.sortOrder ?? index + 2
   await updateTag(tag.id, { sortOrder: nextOrder })
@@ -172,7 +174,7 @@ const nextTagSortOrder = computed(() =>
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการแท็ก</h1>
-        <button @click="handleAddTag" class="page-header-action-btn">
+        <button class="page-header-action-btn" @click="handleAddTag">
           ➕ เพิ่มแท็กใหม่
         </button>
       </template>
@@ -184,7 +186,7 @@ const nextTagSortOrder = computed(() =>
             type="text"
             class="theme-form-input"
             placeholder="ค้นหาตามชื่อหรือ slug..."
-          />
+          >
         </div>
 
         <div class="filter-group">
@@ -195,7 +197,7 @@ const nextTagSortOrder = computed(() =>
           </select>
         </div>
 
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+        <button class="theme-btn theme-btn--ghost" @click="clearFilters">
           🔄 ล้างตัวกรอง
         </button>
       </template>
@@ -207,7 +209,7 @@ const nextTagSortOrder = computed(() =>
           :loading="loading"
           :actions="actions"
           empty-message="ไม่พบแท็ก"
-          @toggleActive="handleToggleActive"
+          @toggle-active="handleToggleActive"
         >
           <!-- ตำแหน่งในลิสต์ ไม่ใช่ค่า sortOrder ดิบ ซึ่งมีช่องโหว่หลังลบแท็ก -->
           <template #cell-sortOrder="{ index }">

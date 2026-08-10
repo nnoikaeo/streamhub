@@ -135,7 +135,7 @@ const formatDate = (dateStr?: string): string => {
         </div>
       </section>
 
-      <hr class="group-view__divider" />
+      <hr class="group-view__divider" >
 
       <!-- Members Section -->
       <section class="group-view__section">

@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+import { readBody, sendRedirect } from 'h3'
+import { createToken, consumeToken } from '../../server/utils/embedTokenStore'
+import { findById } from '../../server/utils/jsonDatabase'
+import { validateCompanyAccess, checkDashboardAccess } from '../../server/utils/companyAccess'
+
+// Import handlers (defineEventHandler is mocked to return the function directly)
+import requestHandler from '../../server/api/embed/request.post'
+import tokenHandler from '../../server/api/embed/[token].get'
+
 // --- Mock dependencies before importing handlers ---
 
 // Mock embedTokenStore
@@ -32,15 +41,6 @@ vi.mock('h3', () => ({
   sendRedirect: vi.fn((_event, url, code) => ({ __redirect: true, url, code })),
   setResponseStatus: vi.fn(),
 }))
-
-import { readBody, sendRedirect } from 'h3'
-import { createToken, consumeToken } from '../../server/utils/embedTokenStore'
-import { findById, readJSON } from '../../server/utils/jsonDatabase'
-import { validateCompanyAccess, checkDashboardAccess } from '../../server/utils/companyAccess'
-
-// Import handlers (defineEventHandler is mocked to return the function directly)
-import requestHandler from '../../server/api/embed/request.post'
-import tokenHandler from '../../server/api/embed/[token].get'
 
 // Helper: create a fake H3Event
 function createMockEvent(overrides: any = {}) {
@@ -150,7 +150,7 @@ describe('GET /api/embed/[token]', () => {
     vi.mocked((globalThis as any).getRouterParam).mockReturnValue('valid-token')
     vi.mocked(consumeToken).mockReturnValue('https://lookerstudio.google.com/embed/abc')
 
-    const result = await tokenHandler(event)
+    await tokenHandler(event)
 
     expect(sendRedirect).toHaveBeenCalledWith(event, 'https://lookerstudio.google.com/embed/abc', 302)
   })

@@ -16,7 +16,7 @@
         stroke="currentColor"
         stroke-width="2"
       >
-        <polyline points="6 9 12 15 18 9"></polyline>
+        <polyline points="6 9 12 15 18 9"/>
       </svg>
     </button>
 
@@ -36,7 +36,7 @@
         </div>
 
         <!-- Divider -->
-        <div class="dropdown-divider"></div>
+        <div class="dropdown-divider"/>
 
         <!-- Menu Items -->
         <button
@@ -45,8 +45,8 @@
           @click="handleProfile"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
           </svg>
           <span>โปรไฟล์</span>
         </button>
@@ -57,14 +57,14 @@
           @click="handleSettings"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24"></path>
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24"/>
           </svg>
           <span>การตั้งค่า</span>
         </button>
 
         <!-- Divider -->
-        <div class="dropdown-divider"></div>
+        <div class="dropdown-divider"/>
 
         <!-- Logout -->
         <button
@@ -73,9 +73,9 @@
           @click="handleLogout"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
           <span>ออกจากระบบ</span>
         </button>

@@ -25,7 +25,7 @@ const { groups: allGroups, fetchGroups } = useAdminGroups()
 const authStore = useAuthStore()
 const { getIdToken } = useAuth()
 
-const { isFirestore: useFirestore, apiBase: getApiBase } = useServiceMode()
+const { apiBase: getApiBase } = useServiceMode()
 const apiBase = getApiBase('invitations')
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -230,7 +230,7 @@ onMounted(loadDropdownData)
       <p class="text-sm text-gray-600 mb-2">ลิงก์สำหรับยืนยัน:</p>
       <div class="invite-link-box">
         <code class="invite-link-text">{{ inviteLink }}</code>
-        <button @click="copyLink" class="theme-btn theme-btn--ghost theme-btn--sm">
+        <button class="theme-btn theme-btn--ghost theme-btn--sm" @click="copyLink">
           {{ copied ? '✅ คัดลอกแล้ว' : '📋 คัดลอก' }}
         </button>
       </div>
@@ -266,7 +266,7 @@ onMounted(loadDropdownData)
               placeholder="user@company.com"
               autocomplete="off"
               @blur="checkPendingWarning(); checkDomainWarning()"
-            />
+            >
           </div>
 
           <!-- Role -->
@@ -300,7 +300,7 @@ onMounted(loadDropdownData)
             <p class="form-label">กลุ่มผู้ใช้</p>
             <div class="multi-select-list">
               <label v-for="group in groups" :key="group.id" class="multi-select-item">
-                <input type="checkbox" :value="group.id" v-model="form.assignedGroups" />
+                <input v-model="form.assignedGroups" type="checkbox" :value="group.id" >
                 {{ group.name }}
               </label>
               <p v-if="groups.length === 0" class="text-sm text-gray-400">ไม่มี group</p>
@@ -326,7 +326,7 @@ onMounted(loadDropdownData)
           <p class="form-label">Folders ที่ดูแล</p>
           <div class="multi-select-list">
             <label v-for="folder in folders" :key="folder.id" class="multi-select-item">
-              <input type="checkbox" :value="folder.id" v-model="form.assignedFolders" />
+              <input v-model="form.assignedFolders" type="checkbox" :value="folder.id" >
               {{ folder.name }}
             </label>
             <p v-if="folders.length === 0" class="text-sm text-gray-400">ไม่มี folder</p>

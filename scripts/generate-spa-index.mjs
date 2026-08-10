@@ -14,7 +14,7 @@
  * Usage: node scripts/generate-spa-index.mjs
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { writeFileSync, existsSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -107,7 +107,7 @@ const colorModeScript = `"use strict";(()=>{const t=window,e=document.documentEl
 // fetching _payload.json for each route (which doesn't exist in SPA mode).
 const nuxtDataPayload = JSON.stringify([{ serverRendered: 1 }, false])
 
-const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script type="importmap">{"imports":{"#entry":"/_nuxt/${entryJS}"}}<\/script>${cssTag}<link rel="modulepreload" as="script" crossorigin href="/_nuxt/${entryJS}"><script type="module" src="/_nuxt/${entryJS}" crossorigin><\/script><script>${colorModeScript}<\/script></head><body><div id="__nuxt" class="isolate"></div><div id="teleports"></div><script>window.__NUXT__={};window.__NUXT__.config=${JSON.stringify(nuxtConfig)}<\/script><script type="application/json" data-nuxt-data="nuxt-app" data-ssr="false" id="__NUXT_DATA__">${nuxtDataPayload}<\/script></body></html>`
+const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><script type="importmap">{"imports":{"#entry":"/_nuxt/${entryJS}"}}</script>${cssTag}<link rel="modulepreload" as="script" crossorigin href="/_nuxt/${entryJS}"><script type="module" src="/_nuxt/${entryJS}" crossorigin></script><script>${colorModeScript}</script></head><body><div id="__nuxt" class="isolate"></div><div id="teleports"></div><script>window.__NUXT__={};window.__NUXT__.config=${JSON.stringify(nuxtConfig)}</script><script type="application/json" data-nuxt-data="nuxt-app" data-ssr="false" id="__NUXT_DATA__">${nuxtDataPayload}</script></body></html>`
 
 writeFileSync(outputPath, html)
 console.log(`✅ Written: .output/public/index.html (${html.length} bytes)`)

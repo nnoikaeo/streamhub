@@ -1,5 +1,5 @@
 export function validateProductionEnv() {
-  if (process.dev) return
+  if (import.meta.dev) return
 
   const required = ['NUXT_APP_URL', 'NUXT_PUBLIC_USE_FIRESTORE']
   const missing = required.filter(k => !process.env[k])

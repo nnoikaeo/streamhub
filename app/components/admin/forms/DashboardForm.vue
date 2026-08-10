@@ -14,7 +14,6 @@ import type { Tag } from '~/types/tag'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAuthStore } from '~/stores/auth'
 import { createObjectValidator, validators } from '~/utils/formValidators'
-import { extractReportId } from '~/utils/lookerUrl'
 import LookerUrlInput from '~/components/features/LookerUrlInput.vue'
 import { onMounted } from 'vue'
 
@@ -133,7 +132,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <form @submit.prevent="handleSubmit" class="dashboard-form">
+  <form class="dashboard-form" @submit.prevent="handleSubmit">
     <FormField
       v-model="formData.name"
       type="text"

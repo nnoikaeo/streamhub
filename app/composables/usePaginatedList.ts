@@ -138,9 +138,9 @@ export const usePaginatedList = <T>({
 
       // For first page, replace items; for other pages, append
       if (page === 1) {
-        items.value = response.items
+        items.value = response.items as typeof items.value
       } else {
-        items.value.push(...response.items)
+        items.value.push(...(response.items as typeof items.value))
       }
 
       currentPage.value = page
