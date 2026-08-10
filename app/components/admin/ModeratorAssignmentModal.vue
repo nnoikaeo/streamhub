@@ -124,7 +124,7 @@ const handleCancel = () => {
             type="search"
             class="panel-search-input"
             placeholder="ค้นหาชื่อ หรืออีเมล..."
-          />
+          >
         </div>
         <div class="panel-list">
           <div v-if="filteredAvailable.length === 0" class="panel-empty">

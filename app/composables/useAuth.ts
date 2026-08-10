@@ -94,7 +94,7 @@ export const useAuth = () => {
               return { success: true }
             }
           }
-        } catch (invError) {
+        } catch {
           console.log('No pending invitation found for:', userCredential.user.email)
         }
 

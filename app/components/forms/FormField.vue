@@ -64,8 +64,8 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <input
       v-if="type === 'text' || type === 'email' || type === 'number'"
       :id="fieldId"
-      :name="fieldId"
       v-model="inputValue"
+      :name="fieldId"
       :type="type"
       :placeholder="placeholder"
       :disabled="disabled"
@@ -75,14 +75,14 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
       :class="{ 'form-input--error': isFieldError }"
       @blur="$emit('blur')"
       @focus="$emit('focus')"
-    />
+    >
 
     <!-- Textarea -->
     <textarea
       v-else-if="type === 'textarea'"
       :id="fieldId"
-      :name="fieldId"
       v-model="inputValue"
+      :name="fieldId"
       :placeholder="placeholder"
       :rows="rows"
       :disabled="disabled"
@@ -98,8 +98,8 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <select
       v-else-if="type === 'select'"
       :id="fieldId"
-      :name="fieldId"
       v-model="inputValue"
+      :name="fieldId"
       :disabled="disabled"
       :aria-invalid="isFieldError"
       :aria-describedby="error ? `${fieldId}-error` : undefined"
@@ -118,8 +118,8 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <select
       v-else-if="type === 'grouped-select'"
       :id="fieldId"
-      :name="fieldId"
       v-model="inputValue"
+      :name="fieldId"
       :disabled="disabled"
       :aria-invalid="isFieldError"
       :aria-describedby="error ? `${fieldId}-error` : undefined"
@@ -151,7 +151,7 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
         :disabled="disabled"
         :aria-invalid="isFieldError"
         class="form-checkbox"
-      />
+      >
       <label :for="fieldId" class="form-checkbox-label">{{ label }}</label>
     </div>
 
@@ -159,9 +159,9 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <div v-else-if="type === 'toggle'" class="form-toggle-wrapper">
       <label :for="fieldId" class="form-toggle-label">{{ label }}</label>
       <button
+        :id="fieldId"
         type="button"
         role="switch"
-        :id="fieldId"
         :aria-checked="!!inputValue"
         :disabled="disabled"
         class="form-toggle"
@@ -184,6 +184,7 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
           :checked="Array.isArray(inputValue) && inputValue.includes(opt.value)"
           type="checkbox"
           :disabled="disabled"
+          class="form-checkbox"
           @change="
             (e: any) => {
               const arr = Array.isArray(inputValue) ? [...inputValue] : []
@@ -195,8 +196,7 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
               emit('update:modelValue', arr)
             }
           "
-          class="form-checkbox"
-        />
+        >
         <label :for="`${fieldId}-${opt.value}`" class="form-checkbox-label">
           {{ opt.label }}
         </label>

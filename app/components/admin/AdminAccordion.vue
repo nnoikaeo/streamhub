@@ -112,9 +112,9 @@ const onLeave = (el: Element) => {
       class="accordion-header"
       :class="{ 'accordion-header--open': isOpen, 'accordion-header--disabled': disabled }"
       :disabled="disabled"
-      @click="handleToggle"
       :aria-expanded="isOpen"
       :aria-label="`${title} menu`"
+      @click="handleToggle"
     >
       <svg
         class="accordion-icon"

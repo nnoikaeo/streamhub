@@ -278,7 +278,7 @@ const nextGroupSortOrder = computed(() =>
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการกลุ่ม</h1>
-        <button @click="handleAddGroup" class="page-header-action-btn">
+        <button class="page-header-action-btn" @click="handleAddGroup">
           ➕ เพิ่มกลุ่มใหม่
         </button>
       </template>
@@ -290,7 +290,7 @@ const nextGroupSortOrder = computed(() =>
             type="text"
             class="theme-form-input"
             placeholder="ค้นหาตามชื่อหรือรหัสกลุ่ม..."
-          />
+          >
         </div>
 
         <div class="filter-group">
@@ -301,7 +301,7 @@ const nextGroupSortOrder = computed(() =>
           </select>
         </div>
 
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+        <button class="theme-btn theme-btn--ghost" @click="clearFilters">
           🔄 ล้างตัวกรอง
         </button>
       </template>
@@ -313,7 +313,7 @@ const nextGroupSortOrder = computed(() =>
           :loading="loading"
           :actions="actions"
           empty-message="ไม่พบกลุ่ม"
-          @toggleActive="handleToggleActive"
+          @toggle-active="handleToggleActive"
         />
       </template>
 

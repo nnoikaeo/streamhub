@@ -26,9 +26,20 @@ import type {
   SavePermissionsResponse,
   AccessControl,
   AccessRestrictions,
-  PermissionMetadata,
   AuditLogEntry,
 } from '~/types/dashboard'
+
+// ============================================================================
+// MOCK SERVICE IMPLEMENTATION
+// ============================================================================
+
+import {
+  getMockFoldersByParent,
+  getMockDashboardById,
+  getMockDashboardsByFolder,
+  getFolderPath as getMockFolderPath,
+  getAccessibleDashboards,
+} from './useMockData'
 
 // ============================================================================
 // SERVICE INTERFACE
@@ -141,7 +152,7 @@ export interface IDashboardService {
    * Only accessible to Admin role
    */
   saveDashboardPermissions(
-    request: SavePermissionsRequest
+    _request: SavePermissionsRequest
   ): Promise<SavePermissionsResponse>
 
   /**
@@ -251,18 +262,6 @@ export interface IDashboardService {
    */
   unarchiveDashboard(dashboardId: string): Promise<Dashboard>
 }
-
-// ============================================================================
-// MOCK SERVICE IMPLEMENTATION
-// ============================================================================
-
-import {
-  getMockFoldersByParent,
-  getMockDashboardById,
-  getMockDashboardsByFolder,
-  getFolderPath as getMockFolderPath,
-  getAccessibleDashboards,
-} from './useMockData'
 
 export class MockDashboardService implements IDashboardService {
   private currentUserId: string | null = null
@@ -733,7 +732,7 @@ export class MockDashboardService implements IDashboardService {
     }
   }
 
-  async getAuditLog(dashboardId: string): Promise<AuditLogEntry[]> {
+  async getAuditLog(_dashboardId: string): Promise<AuditLogEntry[]> {
     // Mock: return empty for now
     return []
   }

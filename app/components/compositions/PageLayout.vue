@@ -79,7 +79,7 @@ interface Props {
   sidebarWidth?: number
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   breadcrumbs: undefined,
   folders: () => [],
   allowSearch: true,

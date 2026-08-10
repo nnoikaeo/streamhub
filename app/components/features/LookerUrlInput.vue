@@ -125,7 +125,7 @@ onMounted(async () => {
           'input-invalid': inputUrl.trim() && !urlInfo.isValid,
         }"
         placeholder="https://lookerstudio.google.com/reporting/..."
-      />
+      >
       <!-- Browse Reports button (only when API is configured) -->
       <button
         v-if="lookerApiEnabled"
@@ -235,7 +235,7 @@ onMounted(async () => {
               type="text"
               class="search-input"
               placeholder="Search reports..."
-            />
+            >
           </div>
           <div class="dialog-body">
             <div v-if="apiLoading" class="dialog-loading">
@@ -251,7 +251,7 @@ onMounted(async () => {
                   <th>Title</th>
                   <th>Owner</th>
                   <th>Last Modified</th>
-                  <th></th>
+                  <th/>
                 </tr>
               </thead>
               <tbody>

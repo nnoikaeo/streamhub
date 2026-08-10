@@ -80,7 +80,7 @@ const isChecked = (id: string) => props.modelValue.includes(id)
         :checked="isChecked(node.id)"
         class="folder-tree__checkbox"
         @change="(e: any) => toggle(node.id, e.target.checked)"
-      />
+      >
       <label :for="`folder-check-${node.id}`" class="folder-tree__label">
         <span v-if="node.depth > 0" class="folder-tree__prefix">└──</span>
         📁 {{ node.name }}

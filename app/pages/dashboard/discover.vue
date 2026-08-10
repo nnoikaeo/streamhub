@@ -27,7 +27,7 @@
             placeholder="ค้นหาแดชบอร์ด..."
             aria-label="ค้นหาแดชบอร์ด"
             autocomplete="off"
-          />
+          >
           <button
             v-if="searchQuery"
             type="button"
@@ -74,7 +74,7 @@
                 v-model="showArchived"
                 type="checkbox"
                 class="archive-toggle-checkbox"
-              />
+              >
               <span class="archive-toggle-label">แสดงที่เก็บถาวร</span>
             </label>
             <button
@@ -188,7 +188,7 @@
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <span>{{ error }}</span>
-            <button type="button" class="theme-alert__close" @click="error = null" aria-label="Dismiss error">
+            <button type="button" class="theme-alert__close" aria-label="Dismiss error" @click="error = null">
               ✕
             </button>
           </div>
@@ -307,7 +307,7 @@
  * After (Strategy 4): ~50 lines of pure presentation
  */
 
-import type { Folder, Dashboard } from '~/types/dashboard'
+import type { Folder, Dashboard, ViewMode, DisplayGroup  } from '~/types/dashboard'
 import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
@@ -320,7 +320,6 @@ import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
 import GroupBySwitcher, { type GroupByMode } from '~/components/features/GroupBySwitcher.vue'
 import { computed, ref, watch, onMounted } from 'vue'
-import type { ViewMode, DisplayGroup } from '~/types/dashboard'
 import { useTagStore } from '~/stores/tags'
 import { useAdminTags } from '~/composables/useAdminTags'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
@@ -349,7 +348,6 @@ const {
   folders,
   selectedFolderId,
   selectedDashboard,
-  folderPath,
   breadcrumbItems,
   isLoading,
   isInitializing,
@@ -359,7 +357,6 @@ const {
 
   // Permissions from store
   canCreateFolder,
-  canShareDashboard,
 
   // Methods
   selectFolder,
@@ -771,9 +768,6 @@ const {
 } = useLazyLoad(activeGroups, { batchSize: 4 })
 
 /** Unified sentinel ref — binds to whichever lazy load is active */
-const lazyHasMore = computed(() =>
-  isGroupedView.value ? hasMoreGroups.value : hasMoreDashboards.value,
-)
 const lazyIsLoadingMore = computed(() =>
   isGroupedView.value ? isLoadingMoreGroups.value : isLoadingMoreDashboards.value,
 )

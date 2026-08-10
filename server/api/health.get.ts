@@ -1,4 +1,4 @@
-import { H3Event } from 'h3'
+import type { H3Event } from 'h3'
 import { sendUnauthorized, sendForbidden } from '../utils/apiResponse'
 import { getAdminDb, isFirestoreMode } from '../utils/firestoreAdmin'
 import { isFirebaseAdminAvailable } from '../utils/firebaseAdmin'
@@ -128,7 +128,7 @@ export default defineEventHandler(async (event: H3Event) => {
   const isLocalhost = appUrl.includes('localhost')
 
   const environment: HealthResponse['environment'] = {
-    mode: process.dev ? 'development' : 'production',
+    mode: import.meta.dev ? 'development' : 'production',
     useFirestore,
     appUrl: isLocalhost ? '[localhost]' : appUrl,
     resendConfigured,

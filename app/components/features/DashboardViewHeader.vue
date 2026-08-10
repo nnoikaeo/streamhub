@@ -4,9 +4,9 @@
       <button
         type="button"
         class="back-nav-button"
-        @click="emit('go-back')"
         aria-label="Go back to dashboards"
         title="Go back"
+        @click="emit('go-back')"
       >
         ←
       </button>
@@ -28,8 +28,8 @@
         v-if="showShare"
         type="button"
         class="action-button share-button"
-        @click="emit('share')"
         title="Quick share this dashboard"
+        @click="emit('share')"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="18" cy="5" r="3" />
@@ -44,9 +44,9 @@
         type="button"
         class="action-button menu-button"
         :class="{ 'menu-open': menuOpen }"
-        @click="emit('toggle-menu')"
         aria-label="More options"
         title="More options"
+        @click="emit('toggle-menu')"
       >
         ⋮
       </button>
@@ -59,7 +59,7 @@
         <button type="button" role="menuitem" class="menu-item" @click="emit('download')">
           ดาวน์โหลด
         </button>
-        <hr class="menu-divider" />
+        <hr class="menu-divider" >
         <button v-if="dashboard.isArchived" type="button" role="menuitem" class="menu-item" @click="emit('unarchive')">
           ยกเลิกเก็บถาวร
         </button>

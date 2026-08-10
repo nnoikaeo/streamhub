@@ -149,7 +149,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
             class="explorer-search-input"
             placeholder="ค้นหาโฟลเดอร์หรือแดชบอร์ดทั้งหมด..."
             aria-label="ค้นหาทั้งหมด"
-          />
+          >
         </div>
         <!-- Dropdown Results -->
         <div v-if="explorer.showDropdown.value" class="search-dropdown">

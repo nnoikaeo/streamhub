@@ -1,4 +1,5 @@
-import { H3Event, getQuery, setResponseHeader } from 'h3'
+import type { H3Event } from 'h3'
+import { getQuery, setResponseHeader } from 'h3'
 import { queryAuditLogs, type AuditAction } from '../../utils/auditLog'
 import { sendForbidden, sendUnauthorized } from '../../utils/apiResponse'
 import { resolveUserRole } from '../../utils/resolveUserRole'

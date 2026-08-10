@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 
+import { useAdminResource, ValidationError } from '../../app/composables/useAdminResource'
+
 // --- Stub the Nuxt auto-imports that useAdminResource touches at setup and
 //     inside create()/update() up to the assertUnique guard. The guard runs
 //     BEFORE any Firestore/mock call, so no auth/$fetch stubs are needed for
@@ -11,8 +13,6 @@ vi.stubGlobal('useState', (key: string, init?: () => any) => {
   return stateStore.get(key)
 })
 vi.stubGlobal('useServiceMode', () => ({ isFirestore: false, isMock: true }))
-
-import { useAdminResource, ValidationError } from '../../app/composables/useAdminResource'
 
 interface Group {
   id: string

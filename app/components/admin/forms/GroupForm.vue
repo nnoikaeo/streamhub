@@ -226,7 +226,7 @@ defineExpose({ submit: handleSubmit })
               type="text"
               class="panel__search-input"
               placeholder="ค้นหาชื่อ หรืออีเมล..."
-            />
+            >
           </div>
           <div class="panel__body">
             <button
@@ -274,8 +274,8 @@ defineExpose({ submit: handleSubmit })
               <button
                 type="button"
                 class="selected-item__remove"
-                @click="removeMember(user.uid)"
                 aria-label="ลบสมาชิก"
+                @click="removeMember(user.uid)"
               >
                 ✕
               </button>

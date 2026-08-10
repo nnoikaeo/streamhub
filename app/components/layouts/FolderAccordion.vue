@@ -141,9 +141,9 @@ const onLeave = (el: Element) => {
       class="accordion-header"
       :class="{ 'accordion-header--open': isOpen, 'accordion-header--disabled': disabled }"
       :disabled="disabled"
-      @click="handleToggle"
       :aria-expanded="isOpen"
       :aria-label="`${title} menu`"
+      @click="handleToggle"
     >
       <svg
         class="accordion-icon"
@@ -180,8 +180,8 @@ const onLeave = (el: Element) => {
         <div class="accordion-footer">
           <button
             class="view-all-button"
-            @click="navigateToDiscoverAll"
             title="View all dashboards without folder filter"
+            @click="navigateToDiscoverAll"
           >
             <span class="view-all-icon">📊</span>
             <span class="view-all-label">ดูแดชบอร์ดทั้งหมด</span>

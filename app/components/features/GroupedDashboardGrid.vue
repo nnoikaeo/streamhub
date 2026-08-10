@@ -54,8 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Dashboard, User, DisplayGroup } from '~/types/dashboard'
-import type { ViewMode } from '~/types/dashboard'
+import type { Dashboard, User, DisplayGroup, ViewMode  } from '~/types/dashboard'
 import DashboardGrid from './DashboardGrid.vue'
 import GroupDivider from './GroupDivider.vue'
 

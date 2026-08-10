@@ -325,7 +325,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             class="theme-form-input"
             placeholder="ค้นหาตามอีเมล หรือ ชื่อ..."
             autocomplete="off"
-          />
+          >
         </div>
         <div class="filter-group">
           <select id="user-filter-role" v-model="filterRole" name="user-filter-role" aria-label="กรองตามบทบาท" class="theme-form-select">
@@ -351,7 +351,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             <option :value="false">ปิดใช้งาน</option>
           </select>
         </div>
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+        <button class="theme-btn theme-btn--ghost" @click="clearFilters">
           🔄 ล้างตัวกรอง
         </button>
       </template>

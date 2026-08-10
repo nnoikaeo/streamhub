@@ -52,15 +52,15 @@ const handleRequestAccess = () => {
         <!-- Actions -->
         <div class="error-actions">
           <button
-            @click="onClose"
             class="error-button error-button--primary"
+            @click="onClose"
           >
             กลับไปหน้าแรก
           </button>
           <button
             v-if="showRequestAccess"
-            @click="handleRequestAccess"
             class="error-button error-button--secondary"
+            @click="handleRequestAccess"
           >
             ขอสิทธิ์การเข้าถึง
           </button>

@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 // FolderTree component - Badge alignment fix (CSS transform)
-import { type Folder } from '~/types/dashboard'
+import type { Folder } from '~/types/dashboard'
 import { ref } from 'vue'
 
 /**

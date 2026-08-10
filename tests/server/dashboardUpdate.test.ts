@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+import { findById, updateItem } from '../../server/utils/jsonDatabase'
+import { logAuditEvent } from '../../server/utils/auditLog'
+import handler from '../../server/api/mock/dashboards/[id].put'
+
 // --- Mock dependencies before importing handler ---
 
 vi.mock('../../server/utils/jsonDatabase', () => ({
@@ -14,10 +18,6 @@ vi.mock('../../server/utils/auditLog', () => ({
     // Mock h3 utilities
     ; (globalThis as any).readBody = vi.fn()
     ; (globalThis as any).getHeader = vi.fn(() => '')
-
-import { findById, updateItem } from '../../server/utils/jsonDatabase'
-import { logAuditEvent } from '../../server/utils/auditLog'
-import handler from '../../server/api/mock/dashboards/[id].put'
 
 // Helper: create a fake H3Event
 function createMockEvent(id: string, body: any, auth?: any) {

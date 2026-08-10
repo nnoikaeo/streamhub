@@ -58,14 +58,15 @@ describe('server/middleware/auth.ts — production path security', () => {
     expect(authSource).toContain('devMode: true')
   })
 
-  it('uid fallback is only inside if (process.dev) block', () => {
-    // Split source at the first `if (process.dev)` occurrence.
-    // Everything BEFORE that line must NOT contain devMode.
-    const processDevIndex = authSource.indexOf('if (process.dev)')
-    expect(processDevIndex).toBeGreaterThan(-1)
+  it('uid fallback is only inside the dev guard block', () => {
+    // Split source at the dev guard. Nuxt statically replaces both spellings at
+    // build time, so either is accepted — what matters is that the guard exists
+    // and everything BEFORE it is free of devMode.
+    const devGuard = authSource.match(/if \((?:process|import\.meta)\.dev\)/)
+    expect(devGuard).not.toBeNull()
 
-    const beforeProcessDev = authSource.slice(0, processDevIndex)
-    expect(beforeProcessDev).not.toContain('devMode')
+    const beforeDevGuard = authSource.slice(0, devGuard!.index)
+    expect(beforeDevGuard).not.toContain('devMode')
   })
 
   it('production path uses sendUnauthorized', () => {

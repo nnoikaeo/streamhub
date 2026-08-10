@@ -17,7 +17,6 @@ import type {
   AuditLogEntry,
   AccessControl,
   AccessRestrictions,
-  PermissionMetadata,
   SavePermissionsRequest,
   SaveFolderPermissionsRequest,
   FolderPermissionsResponse,
@@ -542,7 +541,7 @@ export class JSONMockService implements IDashboardService {
   /**
    * Get audit log (not implemented in mock)
    */
-  async getAuditLog(options?: any): Promise<AuditLogEntry[]> {
+  async getAuditLog(_options?: unknown): Promise<AuditLogEntry[]> {
     try {
       this.log('getAuditLog called')
       return []

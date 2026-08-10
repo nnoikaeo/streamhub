@@ -118,20 +118,6 @@ const displayDashboards = computed(() =>
   }))
 )
 
-/**
- * Toggle archive status (page-specific — not a generic active toggle)
- */
-const handleToggleArchive = async (dashboard: Dashboard) => {
-  try {
-    await updateDashboard(dashboard.id, {
-      isArchived: !dashboard.isArchived,
-      archivedAt: !dashboard.isArchived ? new Date() : undefined
-    })
-  } catch (error) {
-    console.error('❌ Error toggling dashboard:', error)
-  }
-}
-
 const clearFilters = () => {
   searchQuery.value = ''
   filterArchived.value = null
@@ -174,7 +160,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
         <!-- Page Header -->
         <div class="page-header">
           <h1 class="page-header__title">จัดการแดชบอร์ด</h1>
-          <button @click="handleAddDashboard" class="page-header-action-btn">
+          <button class="page-header-action-btn" @click="handleAddDashboard">
             ➕ เพิ่มแดชบอร์ดใหม่
           </button>
         </div>
@@ -189,7 +175,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                 type="text"
                 class="theme-form-input"
                 placeholder="ค้นหาตามชื่อแดชบอร์ด..."
-              />
+              >
             </div>
 
             <!-- Archive Filter -->
@@ -202,7 +188,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             </div>
 
             <!-- Clear Filters -->
-            <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+            <button class="theme-btn theme-btn--ghost" @click="clearFilters">
               🔄 ล้างตัวกรอง
             </button>
           </div>

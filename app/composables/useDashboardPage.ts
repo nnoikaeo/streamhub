@@ -68,9 +68,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
 
   // Extract options
   const {
-    initialFolderId = null,
     enableInfiniteScroll = true,
-    autoLoad = true,
     onFolderChange,
     onDashboardSelect,
   } = options

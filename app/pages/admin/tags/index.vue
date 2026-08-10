@@ -172,7 +172,7 @@ const nextTagSortOrder = computed(() =>
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการแท็ก</h1>
-        <button @click="handleAddTag" class="page-header-action-btn">
+        <button class="page-header-action-btn" @click="handleAddTag">
           ➕ เพิ่มแท็กใหม่
         </button>
       </template>
@@ -184,7 +184,7 @@ const nextTagSortOrder = computed(() =>
             type="text"
             class="theme-form-input"
             placeholder="ค้นหาตามชื่อหรือ slug..."
-          />
+          >
         </div>
 
         <div class="filter-group">
@@ -195,7 +195,7 @@ const nextTagSortOrder = computed(() =>
           </select>
         </div>
 
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost">
+        <button class="theme-btn theme-btn--ghost" @click="clearFilters">
           🔄 ล้างตัวกรอง
         </button>
       </template>
@@ -207,7 +207,7 @@ const nextTagSortOrder = computed(() =>
           :loading="loading"
           :actions="actions"
           empty-message="ไม่พบแท็ก"
-          @toggleActive="handleToggleActive"
+          @toggle-active="handleToggleActive"
         >
           <!-- ตำแหน่งในลิสต์ ไม่ใช่ค่า sortOrder ดิบ ซึ่งมีช่องโหว่หลังลบแท็ก -->
           <template #cell-sortOrder="{ index }">

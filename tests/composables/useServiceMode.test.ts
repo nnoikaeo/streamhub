@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+import { useServiceMode } from '../../app/composables/useServiceMode'
+
 // Mock useRuntimeConfig at module scope
 let mockConfig = { public: { useFirestore: false, useJsonMock: true } }
 vi.stubGlobal('useRuntimeConfig', () => mockConfig)
-
-import { useServiceMode } from '../../app/composables/useServiceMode'
 
 function setConfig(overrides: Record<string, any>) {
   mockConfig = { public: { useFirestore: false, useJsonMock: true, ...overrides } }

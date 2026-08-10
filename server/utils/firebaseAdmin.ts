@@ -52,7 +52,7 @@ function ensureInitialized(): boolean {
     }
 
     initError = 'No Firebase Admin credentials found'
-    if (process.dev) {
+    if (import.meta.dev) {
       console.warn('[firebaseAdmin] No credentials — DEV mode will use mock auth')
     } else {
       console.error('[firebaseAdmin] CRITICAL: No credentials found — production requires Firebase Admin credentials')

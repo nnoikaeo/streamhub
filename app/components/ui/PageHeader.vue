@@ -26,7 +26,7 @@
       </div>
     </div>
 
-    <div v-if="divider" class="page-header__divider"></div>
+    <div v-if="divider" class="page-header__divider"/>
   </div>
 </template>
 

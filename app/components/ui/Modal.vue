@@ -27,8 +27,8 @@
             <button
               class="modal-close"
               type="button"
-              @click="closeModal"
               :aria-label="`Close ${title}`"
+              @click="closeModal"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18" />

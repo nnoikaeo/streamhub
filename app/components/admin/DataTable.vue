@@ -206,7 +206,7 @@ const getGroupBadgeClass = (groupName: string): string => {
   <div class="flex flex-col gap-4 w-full">
     <!-- Loading state -->
     <div v-if="loading" class="flex flex-col items-center justify-center gap-4 p-8" style="color: var(--color-text-secondary)">
-      <div class="spinner"></div>
+      <div class="spinner"/>
       <p>กำลังโหลด...</p>
     </div>
 
@@ -223,9 +223,9 @@ const getGroupBadgeClass = (groupName: string): string => {
                 name="table-select-all"
                 aria-label="เลือกทั้งหมด"
                 :checked="isAllSelected"
-                @change="handleSelectAll"
                 class="table-checkbox"
-              />
+                @change="handleSelectAll"
+              >
             </th>
 
             <!-- Column headers -->
@@ -276,9 +276,9 @@ const getGroupBadgeClass = (groupName: string): string => {
                   name="table-row-select"
                   :aria-label="`เลือกแถว${item?.name ? ' ' + item.name : ''}`"
                   :checked="isRowSelected((currentPage - 1) * itemsPerPage + index)"
-                  @change="handleRowSelect((currentPage - 1) * itemsPerPage + index)"
                   class="table-checkbox"
-                />
+                  @change="handleRowSelect((currentPage - 1) * itemsPerPage + index)"
+                >
               </td>
 
               <!-- Data cells -->
@@ -307,8 +307,8 @@ const getGroupBadgeClass = (groupName: string): string => {
                       :aria-label="`สลับสถานะ${item?.name ? ' ' + item.name : ''}`"
                       :checked="item.isActive"
                       @click.prevent="handleToggleActive(item)"
-                    />
-                    <span class="toggle-slider"></span>
+                    >
+                    <span class="toggle-slider"/>
                   </label>
                 </div>
 

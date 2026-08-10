@@ -21,7 +21,7 @@ const { groups: allGroups, fetchGroups } = useAdminGroups()
 const authStore = useAuthStore()
 const { getIdToken } = useAuth()
 
-const { isFirestore: useFirestore, apiBase: getApiBase } = useServiceMode()
+const { apiBase: getApiBase } = useServiceMode()
 const apiBase = getApiBase('invitations')
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -279,7 +279,7 @@ onMounted(loadDropdownData)
               class="theme-form-input"
               placeholder="user@company.com"
               @keydown.enter.prevent="addToQueue"
-            />
+            >
           </div>
           <div class="form-field">
             <label class="form-label">Role <span class="required">*</span></label>
@@ -307,7 +307,7 @@ onMounted(loadDropdownData)
             <label class="form-label">กลุ่มผู้ใช้</label>
             <div class="multi-select-list">
               <label v-for="group in groups" :key="group.id" class="multi-select-item">
-                <input type="checkbox" :value="group.id" v-model="form.assignedGroups" />
+                <input v-model="form.assignedGroups" type="checkbox" :value="group.id" >
                 {{ group.name }}
               </label>
               <p v-if="groups.length === 0" class="text-sm text-gray-400">ไม่มี group</p>
@@ -352,7 +352,7 @@ onMounted(loadDropdownData)
                   <th>Role</th>
                   <th>บริษัท</th>
                   <th>กลุ่ม</th>
-                  <th></th>
+                  <th/>
                 </tr>
               </thead>
               <tbody>

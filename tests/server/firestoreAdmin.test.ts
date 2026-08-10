@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+import { getApps } from 'firebase-admin/app'
+import { getFirestore } from 'firebase-admin/firestore'
+import { ensureAdminInitialized } from '../../server/utils/firebaseAdmin'
+import { getAdminDb } from '../../server/utils/firestoreAdmin'
+
 // Mock firebase-admin/app before importing firestoreAdmin
 vi.mock('firebase-admin/app', () => ({
   getApps: vi.fn(),
@@ -13,11 +18,6 @@ vi.mock('firebase-admin/firestore', () => ({
 vi.mock('../../server/utils/firebaseAdmin', () => ({
   ensureAdminInitialized: vi.fn(),
 }))
-
-import { getApps } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
-import { ensureAdminInitialized } from '../../server/utils/firebaseAdmin'
-import { getAdminDb } from '../../server/utils/firestoreAdmin'
 
 describe('getAdminDb', () => {
   beforeEach(() => {

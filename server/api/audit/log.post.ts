@@ -1,4 +1,5 @@
-import { H3Event, readBody, getHeader } from 'h3'
+import type { H3Event } from 'h3'
+import { readBody, getHeader } from 'h3'
 import { logAuditEvent, type AuditAction } from '../../utils/auditLog'
 import { sendBadRequest, sendUnauthorized } from '../../utils/apiResponse'
 import { findById } from '../../utils/jsonDatabase'

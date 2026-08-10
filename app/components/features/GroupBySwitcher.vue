@@ -1,7 +1,7 @@
 <script setup lang="ts">
 export type GroupByMode = 'folder' | 'tag' | 'company' | 'none'
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   modelValue: GroupByMode
   showFolders?: boolean
   isAdmin?: boolean

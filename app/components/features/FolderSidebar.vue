@@ -27,8 +27,8 @@
           v-if="allowCreate"
           class="create-folder-btn"
           type="button"
-          @click="$emit('create-folder')"
           :title="'สร้างโฟลเดอร์ใหม่'"
+          @click="$emit('create-folder')"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -44,7 +44,7 @@
           type="text"
           placeholder="ค้นหาโฟลเดอร์..."
           class="search-input"
-        />
+        >
       </div>
 
       <!-- Folder Tree -->
@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { computed, ref, unref } from 'vue'
-import { type Folder } from '~/types/dashboard'
+import type { Folder } from '~/types/dashboard'
 import { useDashboardStore } from '~/stores/dashboard'
 import FolderTree from './FolderTree.vue'
 

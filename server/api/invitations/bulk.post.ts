@@ -1,4 +1,4 @@
-import { getAdminDb, fsQuery } from '../../utils/firestoreAdmin'
+import { getAdminDb } from '../../utils/firestoreAdmin'
 import { logActivity } from '../../utils/auditLog'
 import { sendInvitationEmail } from '../../utils/emailService'
 import { normalizeBulkItems } from '../../utils/bulkInvite'

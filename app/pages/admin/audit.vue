@@ -14,7 +14,7 @@
  * Pattern: AdminPageContent + custom table (server-side pagination)
  */
 
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import { useAuth } from '~/composables/useAuth'
@@ -339,10 +339,10 @@ onMounted(async () => {
           />
         </div>
         <div class="filter-group">
-          <input v-model="filterDateFrom" type="date" class="theme-form-input" @change="applyFilters" />
+          <input v-model="filterDateFrom" type="date" class="theme-form-input" @change="applyFilters" >
         </div>
         <div class="filter-group">
-          <input v-model="filterDateTo" type="date" class="theme-form-input" @change="applyFilters" />
+          <input v-model="filterDateTo" type="date" class="theme-form-input" @change="applyFilters" >
         </div>
         <button type="button" class="theme-btn theme-btn--ghost theme-btn--sm" @click="resetFilters">
           🔄 ล้างตัวกรอง
@@ -358,7 +358,7 @@ onMounted(async () => {
             type="text"
             class="theme-form-input"
             placeholder="🔎 ค้นหาชื่อผู้ใช้, email, แดชบอร์ด..."
-          />
+          >
         </div>
 
         <!-- Loading -->

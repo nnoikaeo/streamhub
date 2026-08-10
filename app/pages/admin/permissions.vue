@@ -16,7 +16,7 @@ import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminGroups } from '~/composables/useAdminGroups'
 import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
-import type { Dashboard, Folder } from '~/types/dashboard'
+import type { Dashboard } from '~/types/dashboard'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -24,7 +24,6 @@ definePageMeta({
 })
 
 const router = useRouter()
-const route = useRoute()
 const { user } = useAuth()
 const dashboardService = useDashboardService()
 const { breadcrumbs } = useAdminBreadcrumbs()

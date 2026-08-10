@@ -42,14 +42,6 @@ const changePageSize = (size: number) => {
   currentPage.value = 1
 }
 
-const statusTabs = [
-  { label: 'ทั้งหมด', value: '' },
-  { label: 'รอตอบรับ', value: 'pending' as InvitationStatus },
-  { label: 'ยอมรับแล้ว', value: 'accepted' as InvitationStatus },
-  { label: 'หมดอายุ', value: 'expired' as InvitationStatus },
-  { label: 'ยกเลิก', value: 'cancelled' as InvitationStatus },
-]
-
 const filteredInvitations = computed(() => {
   return [...invitations.value]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -191,10 +183,10 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       <template #header>
         <h1 class="page-header__title">คำเชิญผู้ใช้</h1>
         <div class="flex gap-2">
-          <button @click="showBulkModal = true" class="theme-btn theme-btn--ghost">
+          <button class="theme-btn theme-btn--ghost" @click="showBulkModal = true">
             📨 เชิญหลายคน
           </button>
-          <button @click="showInviteModal = true" class="page-header-action-btn">
+          <button class="page-header-action-btn" @click="showInviteModal = true">
             ➕ เชิญผู้ใช้
           </button>
         </div>
@@ -212,7 +204,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             class="theme-form-input"
             placeholder="ค้นหาตาม email หรือผู้เชิญ..."
             autocomplete="off"
-          />
+          >
         </div>
 
         <!-- Company filter -->
@@ -226,7 +218,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           />
         </div>
 
-        <button @click="clearFilters" class="theme-btn theme-btn--ghost theme-btn--sm">
+        <button class="theme-btn theme-btn--ghost theme-btn--sm" @click="clearFilters">
           🔄 ล้างตัวกรอง
         </button>
       </template>
@@ -324,19 +316,19 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                   <div class="action-buttons">
                     <!-- Pending actions -->
                     <template v-if="effectiveStatus(inv) === 'pending'">
-                      <button @click="copyInviteLink(inv)" class="action-btn action-btn--ghost" title="คัดลอกลิงก์">
+                      <button class="action-btn action-btn--ghost" title="คัดลอกลิงก์" @click="copyInviteLink(inv)">
                         🔗 คัดลอก
                       </button>
-                      <button @click="handleResendInvitation(inv)" class="action-btn action-btn--primary" title="ส่งอีกครั้ง">
+                      <button class="action-btn action-btn--primary" title="ส่งอีกครั้ง" @click="handleResendInvitation(inv)">
                         📨 ส่งอีกครั้ง
                       </button>
-                      <button @click="handleCancelInvitation(inv)" class="action-btn action-btn--danger" title="ยกเลิก">
+                      <button class="action-btn action-btn--danger" title="ยกเลิก" @click="handleCancelInvitation(inv)">
                         ✕ ยกเลิก
                       </button>
                     </template>
                     <!-- Expired / Cancelled actions -->
                     <template v-else-if="effectiveStatus(inv) === 'expired' || effectiveStatus(inv) === 'cancelled'">
-                      <button @click="handleResendInvitation(inv)" class="action-btn action-btn--primary" title="ส่งอีกครั้ง">
+                      <button class="action-btn action-btn--primary" title="ส่งอีกครั้ง" @click="handleResendInvitation(inv)">
                         📨 ส่งอีกครั้ง
                       </button>
                     </template>

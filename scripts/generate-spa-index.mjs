@@ -14,7 +14,7 @@
  * Usage: node scripts/generate-spa-index.mjs
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { writeFileSync, existsSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
