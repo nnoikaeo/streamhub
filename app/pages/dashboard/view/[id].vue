@@ -44,7 +44,11 @@
       </div>
 
       <!-- Dashboard View -->
-      <div v-else-if="dashboard" class="dashboard-view-content" :class="{ 'is-fullscreen': isFullscreen, 'is-printing': isPrinting }">
+      <div
+        v-else-if="dashboard"
+        class="dashboard-view-content is-fullscreen"
+        :class="{ 'is-printing': isPrinting }"
+      >
         <!-- Top Navigation Bar -->
         <DashboardViewHeader
           :dashboard="dashboard"
@@ -73,6 +77,38 @@
               </svg>
               {{ showInfoSidebar ? 'ซ่อนข้อมูล' : 'แสดงข้อมูล' }}
             </button>
+            <!-- Embed Zoom Control -->
+            <div v-if="embedUrl" class="zoom-control" role="group" aria-label="ปรับขนาดแดชบอร์ด">
+              <button
+                type="button"
+                class="zoom-button"
+                title="ย่อขนาดแดชบอร์ด (เห็นเนื้อหามากขึ้น)"
+                aria-label="ย่อขนาดแดชบอร์ด"
+                :disabled="embedZoom <= ZOOM_MIN"
+                @click="zoomOut"
+              >
+                −
+              </button>
+              <button
+                type="button"
+                class="zoom-level"
+                title="กลับไปขนาด 100%"
+                aria-label="รีเซ็ตขนาดแดชบอร์ดเป็น 100%"
+                @click="resetZoom"
+              >
+                {{ Math.round(embedZoom * 100) }}%
+              </button>
+              <button
+                type="button"
+                class="zoom-button"
+                title="ขยายขนาดแดชบอร์ด"
+                aria-label="ขยายขนาดแดชบอร์ด"
+                :disabled="embedZoom >= ZOOM_MAX"
+                @click="zoomIn"
+              >
+                +
+              </button>
+            </div>
             <button
               type="button"
               class="action-button fullscreen-button"
@@ -189,6 +225,7 @@
               <iframe
                 :src="embedUrl"
                 class="embed-iframe"
+                :style="embedZoomStyle"
                 title="Looker Dashboard"
                 frameborder="0"
                 referrerpolicy="no-referrer"
@@ -290,9 +327,19 @@ const iframeLoading = ref(true)
 const iframeError = ref(false)
 const showInfoSidebar = ref(false)
 const showEditDialog = ref(false)
-const isFullscreen = ref(true)
+const isFullscreen = ref(false)
 const watermarkOffset = ref({ x: 0, y: 0 })
 let watermarkTimer: ReturnType<typeof setInterval> | null = null
+
+// Embed zoom — Chrome's own zoom is a no-op here because the Looker Studio
+// report always rescales itself to fit the iframe width, so zooming the page
+// grows the iframe and the report by the same factor. Shrinking the embed
+// ourselves (taller iframe scaled down) is what actually reveals more rows.
+const ZOOM_MIN = 0.4
+const ZOOM_MAX = 1
+const ZOOM_STEP = 0.1
+const ZOOM_STORAGE_KEY = 'streamhub:embed-zoom'
+const embedZoom = ref(1)
 
 // Computed properties
 const dashboardId = computed(() => route.params.id as string)
@@ -304,6 +351,20 @@ const watermarkEmail = computed(() => user.value?.email || '')
 const watermarkStyle = computed(() => ({
   transform: `translate(${watermarkOffset.value.x}px, ${watermarkOffset.value.y}px)`,
 }))
+
+// Keep the iframe as wide as the pane but proportionally taller, then scale the
+// whole thing back down: the report keeps fitting the (unchanged) iframe width,
+// so the extra height translates into more visible rows. `left` re-centres the
+// now-narrower result inside the pane.
+const embedZoomStyle = computed(() => {
+  const zoom = embedZoom.value
+  if (zoom === 1) return {}
+  return {
+    height: `${100 / zoom}%`,
+    transform: `scale(${zoom})`,
+    left: `${(1 - zoom) * 50}%`,
+  }
+})
 
 const ownerName = computed(() => {
   if (owner.value) {
@@ -559,19 +620,69 @@ const handleUnarchive = async () => {
   }
 }
 
-const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value
+// Vendor-prefixed Fullscreen API (Safari still ships the webkit- names only)
+type FullscreenElement = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void }
+type FullscreenDocument = Document & {
+  webkitFullscreenElement?: Element | null
+  webkitExitFullscreen?: () => Promise<void> | void
 }
 
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && isFullscreen.value && !showEditDialog.value) {
-    isFullscreen.value = false
+const getFullscreenElement = () => {
+  const doc = document as FullscreenDocument
+  return doc.fullscreenElement || doc.webkitFullscreenElement || null
+}
+
+// Fullscreen the document root, not just the dashboard pane: dialogs and toasts
+// render outside this page's subtree and would be invisible otherwise.
+const toggleFullscreen = async () => {
+  const doc = document as FullscreenDocument
+  const target = document.documentElement as FullscreenElement
+  try {
+    if (getFullscreenElement()) {
+      await (doc.exitFullscreen ? doc.exitFullscreen() : doc.webkitExitFullscreen?.())
+    } else {
+      await (target.requestFullscreen ? target.requestFullscreen() : target.webkitRequestFullscreen?.())
+    }
+  } catch (err) {
+    console.error('Failed to toggle fullscreen:', err)
+    showToast('เบราว์เซอร์ไม่อนุญาตให้เข้าสู่โหมดเต็มจอ', 'error')
+  }
+}
+
+const handleFullscreenChange = () => {
+  isFullscreen.value = !!getFullscreenElement()
+}
+
+const applyZoom = (value: number) => {
+  const clamped = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(value * 100) / 100))
+  embedZoom.value = clamped
+  try {
+    localStorage.setItem(ZOOM_STORAGE_KEY, String(clamped))
+  } catch {
+    // Private mode / storage disabled — zoom still works for this session
+  }
+}
+
+const zoomIn = () => applyZoom(embedZoom.value + ZOOM_STEP)
+const zoomOut = () => applyZoom(embedZoom.value - ZOOM_STEP)
+const resetZoom = () => applyZoom(1)
+
+const restoreZoom = () => {
+  try {
+    const saved = Number(localStorage.getItem(ZOOM_STORAGE_KEY))
+    if (Number.isFinite(saved) && saved >= ZOOM_MIN && saved <= ZOOM_MAX) {
+      embedZoom.value = saved
+    }
+  } catch {
+    // Ignore — fall back to 100%
   }
 }
 
 // Lifecycle
 onMounted(async () => {
-  document.addEventListener('keydown', handleKeydown)
+  restoreZoom()
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
   window.addEventListener('beforeprint', onBeforePrint)
   window.addEventListener('afterprint', onAfterPrint)
   // Shift watermark position every 30 seconds to deter screenshot stitching
@@ -585,7 +696,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
   window.removeEventListener('beforeprint', onBeforePrint)
   window.removeEventListener('afterprint', onAfterPrint)
   if (watermarkTimer) {
@@ -968,9 +1080,14 @@ onUnmounted(() => {
 }
 
 .embed-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border: none;
+  /* Zoom scales down from the top-left; `left` (set inline) re-centres it */
+  transform-origin: top left;
 }
 
 .dashboard-placeholder {
@@ -1040,6 +1157,56 @@ onUnmounted(() => {
 .fullscreen-button svg {
   width: 1rem;
   height: 1rem;
+}
+
+/* Native fullscreen targets the document root, which defaults to a black
+   backdrop — keep the same white surface the overlay already uses. */
+:global(html:fullscreen) {
+  background: white;
+}
+
+/* ========== Embed Zoom Control ========== */
+.zoom-control {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 0.375rem;
+  background: white;
+  overflow: hidden;
+}
+
+.zoom-button,
+.zoom-level {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  padding: 0.5rem 0.75rem;
+  transition: background 0.2s;
+}
+
+.zoom-button {
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.zoom-level {
+  min-width: 3.5rem;
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  font-variant-numeric: tabular-nums;
+}
+
+.zoom-button:hover:not(:disabled),
+.zoom-level:hover {
+  background: var(--color-bg-light);
+}
+
+.zoom-button:disabled {
+  color: var(--color-border);
+  cursor: not-allowed;
 }
 
 /* ========== Watermark Overlay ========== */
@@ -1135,10 +1302,14 @@ onUnmounted(() => {
     overflow: visible !important;
   }
 
+  /* Drop the zoom transform so the print layout keeps its own sizing */
   .embed-iframe {
+    position: static !important;
     width: 100% !important;
     height: 100vh !important;
     border: none !important;
+    transform: none !important;
+    left: auto !important;
   }
 }
 </style>
