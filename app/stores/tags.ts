@@ -36,8 +36,9 @@ export const useTagStore = defineStore('tags', () => {
 
   const updateTag = (id: string, data: Partial<Tag>) => {
     const index = tags.value.findIndex((t) => t.id === id)
-    if (index !== -1) {
-      tags.value[index] = { ...tags.value[index], ...data }
+    const existing = tags.value[index]
+    if (existing) {
+      tags.value[index] = { ...existing, ...data }
     }
   }
 

@@ -100,6 +100,7 @@ const handleMoveUp = async (tag: Tag) => {
   const index = sorted.findIndex(t => t.id === tag.id)
   if (index <= 0) return
   const prev = sorted[index - 1]
+  if (!prev) return
   const currentOrder = tag.sortOrder ?? index + 1
   const prevOrder = prev.sortOrder ?? index
   await updateTag(tag.id, { sortOrder: prevOrder })
@@ -112,6 +113,7 @@ const handleMoveDown = async (tag: Tag) => {
   const index = sorted.findIndex(t => t.id === tag.id)
   if (index < 0 || index >= sorted.length - 1) return
   const next = sorted[index + 1]
+  if (!next) return
   const currentOrder = tag.sortOrder ?? index + 1
   const nextOrder = next.sortOrder ?? index + 2
   await updateTag(tag.id, { sortOrder: nextOrder })

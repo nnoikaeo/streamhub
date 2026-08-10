@@ -227,17 +227,21 @@ export async function updateItem<T extends Record<string, any>>(
     }
 
     // Update item and set updatedAt
+    const existing = items[index]
+    if (!existing) {
+      return null
+    }
     const now = new Date().toISOString()
     items[index] = {
-      ...items[index],
+      ...existing,
       ...updates,
       updatedAt: now,
-    }
+    } as T
 
     await writeJSON(filename, items)
 
     console.log(`[jsonDatabase] Updated item in ${filename}:`, id)
-    return items[index]
+    return items[index] ?? null
   } catch (error) {
     console.error(`[jsonDatabase] Error updating item in ${filename}:`, error)
     throw error

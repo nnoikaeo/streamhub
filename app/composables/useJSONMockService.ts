@@ -79,7 +79,7 @@ export class JSONMockService implements IDashboardService {
     }
 
     try {
-      return await $fetch(url, mergedOptions) as T
+      return await $fetch<T>(url as string, mergedOptions) as T
     } catch (error: any) {
       const status = error?.response?.status || error?.statusCode
       if (status === 401) {

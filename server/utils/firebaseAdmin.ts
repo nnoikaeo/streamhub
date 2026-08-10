@@ -16,7 +16,7 @@ function ensureInitialized(): boolean {
 
   // Skip if already initialized
   if (getApps().length > 0) {
-    adminApp = getApps()[0]
+    adminApp = getApps()[0] ?? null
     return true
   }
 

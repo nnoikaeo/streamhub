@@ -78,7 +78,7 @@ export function useAdminBreadcrumbs() {
       }
     }
     if (route.path in routeMap) return routeMap[route.path]!
-    if (route.path.startsWith('/admin/explorer/')) return routeMap['/admin/explorer']
+    if (route.path.startsWith('/admin/explorer/')) return routeMap['/admin/explorer']!
     return [
       { label: 'ผู้ดูแลระบบ', to: '/admin/overview' },
     ]

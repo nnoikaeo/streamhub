@@ -21,8 +21,8 @@ export function useAdminDashboards() {
     defaults: {
       type: 'looker',
       isArchived: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
       access: {
         direct: { users: [], groups: [] },
         company: []
@@ -55,6 +55,7 @@ export function useAdminDashboards() {
 
   // Create backward-compatible aliases for existing page code
   return {
+    ...resource,
     dashboards: resource.items,
     loading: resource.loading,
     error: resource.error,
@@ -66,6 +67,5 @@ export function useAdminDashboards() {
     toggleArchive,
 
     // Also expose generic API for flexibility
-    ...resource
   }
 }

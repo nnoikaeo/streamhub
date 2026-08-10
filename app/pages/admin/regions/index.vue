@@ -106,6 +106,7 @@ const handleMoveUp = async (region: Region) => {
   if (index <= 0) return
 
   const prev = sorted[index - 1]
+  if (!prev) return
   const currentOrder = region.sortOrder ?? index + 1
   const prevOrder = prev.sortOrder ?? index
 
@@ -119,6 +120,7 @@ const handleMoveDown = async (region: Region) => {
   if (index < 0 || index >= sorted.length - 1) return
 
   const next = sorted[index + 1]
+  if (!next) return
   const currentOrder = region.sortOrder ?? index + 1
   const nextOrder = next.sortOrder ?? index + 2
 

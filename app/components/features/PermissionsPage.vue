@@ -534,7 +534,9 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   const restricted = new Set<string>(perms.restrictions.revoke)
   const now = new Date()
   for (const [uid, date] of Object.entries(perms.restrictions.expiry)) {
-    if (new Date(date as string) < now) restricted.add(uid)
+    // Firestore hands these back as Timestamps or ISO strings depending on path
+    const expiresAt = date instanceof Date ? date : new Date(date as string)
+    if (expiresAt < now) restricted.add(uid)
   }
   for (const folder of inheritedFolders.value) {
     if (!folder.restrictions) continue
@@ -693,7 +695,7 @@ const saveFolderPermissions = async () => {
 
     const permissionMeta: PermissionMetadata = {
       setBy: user.value?.uid ?? '',
-      setByName: user.value?.name ?? '',
+      setByName: user.value?.displayName ?? '',
       setAt: new Date().toISOString(),
     }
 

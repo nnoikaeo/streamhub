@@ -28,6 +28,9 @@ export function useAdminUsers(options?: { skipCompanyFilter?: boolean }) {
 
   // Create backward-compatible aliases for existing page code
   return {
+    // Generic API first so the aliases below win on any overlapping key
+    ...resource,
+
     users: resource.items,
     loading: resource.loading,
     error: resource.error,
@@ -35,8 +38,5 @@ export function useAdminUsers(options?: { skipCompanyFilter?: boolean }) {
     createUser: resource.create,
     updateUser: resource.update,
     deleteUser: resource.delete,
-
-    // Also expose generic API for flexibility
-    ...resource
   }
 }

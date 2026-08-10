@@ -42,6 +42,18 @@ const inputValue = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
+/** Text inputs and textareas only ever carry a scalar, never the boolean the
+ *  toggle variant uses or the array the multi-select uses. */
+const textValue = computed({
+  get: () => (inputValue.value ?? '') as string | number,
+  set: (value: string | number) => { inputValue.value = value },
+})
+
+/** Multi-select values may be numeric, so widen past the string[] model type. */
+const selectedValues = computed<(string | number)[]>(() =>
+  Array.isArray(inputValue.value) ? inputValue.value : [],
+)
+
 const isFieldError = computed(() => !!props.error)
 const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
 </script>
@@ -81,7 +93,7 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
     <textarea
       v-else-if="type === 'textarea'"
       :id="fieldId"
-      v-model="inputValue"
+      v-model="textValue"
       :name="fieldId"
       :placeholder="placeholder"
       :rows="rows"
@@ -181,13 +193,13 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
       >
         <input
           :id="`${fieldId}-${opt.value}`"
-          :checked="Array.isArray(inputValue) && inputValue.includes(opt.value)"
+          :checked="selectedValues.includes(opt.value)"
           type="checkbox"
           :disabled="disabled"
           class="form-checkbox"
           @change="
             (e: any) => {
-              const arr = Array.isArray(inputValue) ? [...inputValue] : []
+              const arr: (string | number)[] = [...selectedValues]
               if (e.target.checked) {
                 arr.push(opt.value)
               } else {

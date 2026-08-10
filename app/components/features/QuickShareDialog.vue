@@ -38,7 +38,7 @@
         <div v-if="showUserSuggestions && filteredUsers.length > 0" class="user-suggestions">
           <button
             v-for="user in filteredUsers"
-            :key="user.id"
+            :key="user.uid"
             type="button"
             class="suggestion-item"
             @click="selectUser(user)"
@@ -53,7 +53,7 @@
       <div v-if="selectedUsers.length > 0" class="share-section">
         <label class="share-label">Shared With</label>
         <div class="selected-users-list">
-          <div v-for="user in selectedUsers" :key="user.id" class="shared-user-item">
+          <div v-for="user in selectedUsers" :key="user.uid" class="shared-user-item">
             <div class="user-info">
               <span class="user-name">{{ user.name }}</span>
               <span class="user-email">{{ user.email }}</span>
@@ -62,7 +62,7 @@
               type="button"
               class="remove-user-btn"
               :title="`Remove ${user.name}`"
-              @click="removeUser(user.id)"
+              @click="removeUser(user.uid)"
             >
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
@@ -207,11 +207,11 @@ const filteredUsers = computed(() => {
   const query = userSearch.value.toLowerCase().trim()
   if (!query) return []
 
-  const alreadySelected = new Set(selectedUsers.value.map((u) => u.id))
+  const alreadySelected = new Set(selectedUsers.value.map((u) => u.uid))
 
   return props.availableUsers.filter(
     (user) =>
-      !alreadySelected.has(user.id) &&
+      !alreadySelected.has(user.uid) &&
       (user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query)),
   )
 })
@@ -236,8 +236,9 @@ const selectUser = (user: User) => {
  * Add selected user (enter key)
  */
 const addSelectedUser = () => {
-  if (filteredUsers.value.length > 0) {
-    selectUser(filteredUsers.value[0])
+  const first = filteredUsers.value[0]
+  if (first) {
+    selectUser(first)
   }
 }
 
@@ -245,7 +246,7 @@ const addSelectedUser = () => {
  * Remove user from selected list
  */
 const removeUser = (userId: string) => {
-  selectedUsers.value = selectedUsers.value.filter((u) => u.id !== userId)
+  selectedUsers.value = selectedUsers.value.filter((u) => u.uid !== userId)
 }
 
 /**
@@ -256,7 +257,7 @@ const handleShare = () => {
 
   emit('share', {
     dashboardId: props.dashboardId,
-    userIds: selectedUsers.value.map((u) => u.id),
+    userIds: selectedUsers.value.map((u) => u.uid),
     expiryDate: hasExpiry.value ? expiryDate.value : undefined,
   })
 
