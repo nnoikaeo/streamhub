@@ -73,8 +73,8 @@ npm run dev
 
 # In another terminal
 npm test                                          # must be green
-npx eslint .                                      # 716 pre-existing problems — compare the count
-npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json   # 44 pre-existing; NOT -p tsconfig.json (checks nothing)
+npx eslint .                                      # 382 pre-existing (all no-explicit-any) — compare the count
+npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json   # must be 0; NOT -p tsconfig.json (checks nothing)
 ```
 
 ---

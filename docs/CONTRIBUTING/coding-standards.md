@@ -442,14 +442,16 @@ npm run build                                     # Test build
 
 ⚠️ Point `vue-tsc` at `.nuxt/tsconfig.app.json`, **not** the root `tsconfig.json`. The root config is `"files": []` plus project references, so `vue-tsc -p tsconfig.json` checks nothing and exits 0 with no output — a false pass.
 
-Only `npm test` and `npm run build` are expected to come back clean. Lint and typecheck both carry a backlog:
+`npm test`, `npm run build` and the typecheck are all expected to come back clean. Only lint still carries a backlog:
 
-| Check | Pre-existing baseline (2026-08-04) |
-|-------|------------------------------------|
-| `npx eslint .` | 716 problems — 510 errors / 206 warnings |
-| `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 44 errors |
+| Check | Baseline (2026-08-11, PR #353) |
+|-------|--------------------------------|
+| `npx eslint .` | 382 problems — every one `@typescript-eslint/no-explicit-any` |
+| `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 0 errors |
 
-Compare the count before and after your change (`git stash`, re-run, `git stash pop`), or scope the run to the files you touched — don't expect zero.
+Any typecheck error, and any lint violation of a rule **other than `no-explicit-any`**, was introduced by your change. For `no-explicit-any` itself, compare the count before and after (`git stash`, re-run, `git stash pop`) or scope the run to the files you touched.
+
+The remaining `any`s sit at 152 in `server/`, 151 in `app/`, 74 in `tests/`, 5 in `scripts/`. The biggest single shape is `catch (e: any)` (71), which needs a shared error-narrowing helper before it can move to `unknown`; then 43 `Record<string, any>` and 24 `any[]`.
 
 ---
 
