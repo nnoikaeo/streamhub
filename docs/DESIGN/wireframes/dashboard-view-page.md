@@ -108,7 +108,7 @@
 Regional Performance Dashboard 📈
 Created by: John Admin | Updated: 1 day ago
 
-[🔗 Share] [⚙️ Settings] [⋮ More]
+[◧ แสดงข้อมูล] [− 100% +] [⤢ เต็มจอ] [🔗 Share] [⋮ More]
 ```
 
 **Elements:**
@@ -116,6 +116,10 @@ Created by: John Admin | Updated: 1 day ago
 - Dashboard title with icon
 - Creator info and timestamp
 - Action buttons (role-based)
+
+**Fullscreen (`เต็มจอ` / `ย่อ`):** uses the **Fullscreen API** on `document.documentElement`, not a CSS overlay — the whole browser chrome goes away. The document root is the target (not the dashboard pane) because dialogs and toasts render outside this page's subtree and would be invisible otherwise. Exit with the `ย่อ` button or `Esc`; both stay in sync through the `fullscreenchange` listener.
+
+**Embed zoom (`− / % / +`):** shown only when an embed URL exists. Range 40–100% in 10% steps; clicking the percentage resets to 100%. Persisted in `localStorage` (`streamhub:embed-zoom`). See [common-issues.md](../../TROUBLESHOOTING/common-issues.md) for why the browser's own zoom does nothing here and why the iframe must be scaled **asymmetrically**.
 
 ### Looker Studio Embed
 
@@ -199,6 +203,8 @@ Created by: John Admin | Updated: 1 day ago
 | Action | USER | MODERATOR<br/>(owner) | ADMIN |
 |--------|------|----------------------|-------|
 | View | ✅ | ✅ | ✅ |
+| Fullscreen | ✅ | ✅ | ✅ |
+| Embed zoom | ✅ | ✅ | ✅ |
 | Share | ❌ | ✅ | ✅ |
 | Edit Info | ❌ | ✅ | ✅ |
 | Download | ✅ | ✅ | ✅ |
@@ -207,6 +213,8 @@ Created by: John Admin | Updated: 1 day ago
 
 **Action Details:**
 - **View:** Current state, read-only dashboard
+- **Fullscreen:** Native Fullscreen API on the document root — `Esc` or the `ย่อ` button exits
+- **Embed zoom:** Shrinks the Looker embed (40–100%) to fit more of the report on screen for screenshots; the browser's own zoom is a no-op here
 - **Share:** Opens Quick Share dialog (direct access layer only)
 - **Edit Info:** Edit dashboard name, description, folder
 - **Download:** Export dashboard as PDF or image
