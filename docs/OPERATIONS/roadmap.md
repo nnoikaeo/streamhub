@@ -104,7 +104,7 @@
 - [x] **Dashboard View Page restructure** — moved `view.vue` → `view/[id].vue` (dynamic route), fixed 404
 - [x] **Hydration mismatch fixes** — wrapped auth-dependent UI in `<ClientOnly>` (UserMenu, sidebar, QuickActions)
 - [x] **Dashboard Info sidebar** — toggle show/hide (admin only), hidden by default
-- [x] **Fullscreen mode** — expand embed to fullscreen, Esc to exit, default on open
+- [x] **Fullscreen mode** — expand embed to fullscreen, Esc to exit, default on open — *superseded by the native Fullscreen API in PR #351, see below*
 - [x] **Breadcrumb Thai** — "Dashboard" → "แดชบอร์ด"
 - [x] **Share button** — navigate to `/admin/permissions` (admin/moderator only)
 - [x] **⋮ Dropdown menu** — Thai labels (แก้ไขข้อมูล / ดาวน์โหลด / เก็บถาวร), z-index fix, hover fix
@@ -116,6 +116,11 @@
 - [x] **แก้ไขข้อมูล** — edit dialog (name/description/tags) via `handleEditInfo()` + `handleEditSave()` in `app/pages/dashboard/view/[id].vue`
 - [x] **ดาวน์โหลด** — `handleDownload()` uses browser `window.print()` (print-mode CSS)
 - [x] **เก็บถาวร** — archive confirm dialog + soft-delete (`isArchived` / `archivedAt` on Dashboard)
+
+#### Dashboard View — fullscreen & zoom ✅ COMPLETED (PR #351)
+
+- [x] **Native fullscreen** — the `เต็มจอ` button now calls the Fullscreen API (with `webkit*` fallbacks) on `document.documentElement` instead of only toggling a CSS overlay. Targets the root, not the pane, so dialogs and toasts stay visible. `fullscreenchange` keeps the label in sync; `Esc` and the `ย่อ` button both exit
+- [x] **Embed zoom control** — `− / % / +` in the header, 40–100% in 10% steps, persisted in `localStorage` (`streamhub:embed-zoom`). Needed because browser zoom is a no-op on this page: the Looker embed always rescales the report to fit the iframe width. Fix keeps the iframe width and makes it taller (`100%/z`) before scaling down — an **asymmetric** scale is what reveals extra rows
 
 ---
 
