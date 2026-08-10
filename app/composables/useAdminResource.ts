@@ -317,7 +317,7 @@ export function useAdminResource<T extends Record<string, any>>(
     } catch (e: any) {
       if (e?.response?.status === 403 || e?.statusCode === 403) {
         console.error(`🚫 Access denied fetching ${resourceName}:`, e.data?.message)
-        try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch {}
+        try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch { /* toast unavailable outside a component scope */ }
         items.value = []
         return
       }

@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
     const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }: any) => rest)
 
     return { success: true, data: sanitized, total: sanitized.length }
-  } catch (error: any) {
+  } catch {
     throw createError({
       statusCode: 500,
       message: 'Failed to read dashboards'

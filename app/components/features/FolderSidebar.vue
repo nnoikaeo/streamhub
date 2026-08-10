@@ -133,12 +133,12 @@ interface Props {
   /**
    * Allow search functionality
    */
-  allowSearch: boolean
+  allowSearch?: boolean
 
   /**
    * Allow create folder button
    */
-  allowCreate: boolean
+  allowCreate?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {

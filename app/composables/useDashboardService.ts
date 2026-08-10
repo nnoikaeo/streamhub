@@ -557,7 +557,7 @@ export class MockDashboardService implements IDashboardService {
   }
 
   async saveDashboardPermissions(
-    request: SavePermissionsRequest
+    _request: SavePermissionsRequest
   ): Promise<SavePermissionsResponse> {
     // Mock: just return success
     return {
@@ -723,7 +723,8 @@ export class MockDashboardService implements IDashboardService {
     }
 
     // Remove expiry
-    delete dashboard.restrictions.expiry[userId]
+    const { [userId]: _removedExpiry, ...remainingExpiry } = dashboard.restrictions.expiry
+    dashboard.restrictions.expiry = remainingExpiry
 
     return {
       success: true,

@@ -18,7 +18,6 @@ import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
-import { useAuthStore } from '~/stores/auth'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { users, fetchUsers } = useAdminUsers()

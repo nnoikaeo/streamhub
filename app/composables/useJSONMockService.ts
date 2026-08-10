@@ -164,7 +164,7 @@ export class JSONMockService implements IDashboardService {
     } catch (error: any) {
       if (error?.response?.status === 403 || error?.statusCode === 403) {
         console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
-        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงโฟลเดอร์นี้', 'error') } catch { }
+        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงโฟลเดอร์นี้', 'error') } catch { /* toast unavailable outside a component scope */ }
         return { folders: [], hierarchy: [] }
       }
       console.error('❌ [JSONMockService] getFolders error:', error)
@@ -305,7 +305,7 @@ export class JSONMockService implements IDashboardService {
     } catch (error: any) {
       if (error?.response?.status === 403 || error?.statusCode === 403) {
         console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
-        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงแดชบอร์ด', 'error') } catch { }
+        try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงแดชบอร์ด', 'error') } catch { /* toast unavailable outside a component scope */ }
         return { dashboards: [], total: 0, hasMore: false }
       }
       console.error('❌ [JSONMockService] getDashboards error:', error)

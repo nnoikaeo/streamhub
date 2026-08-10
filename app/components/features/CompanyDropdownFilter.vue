@@ -53,7 +53,7 @@ import type { Company, Region } from '~/types/admin'
 const props = withDefaults(defineProps<{
   companies: Company[]
   regions?: Region[]
-  modelValue: string | null
+  modelValue?: string | null
   showIcon?: boolean
   placeholder?: string
   inputId?: string

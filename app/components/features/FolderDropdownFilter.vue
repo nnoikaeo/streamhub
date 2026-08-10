@@ -28,8 +28,8 @@ import type { Folder } from '~/types/dashboard'
 
 withDefaults(defineProps<{
   folders: (Folder & { level?: number })[]
-  modelValue: string | null
-  dashboardCounts: Record<string, number>
+  modelValue?: string | null
+  dashboardCounts?: Record<string, number>
 }>(), {
   modelValue: null,
   dashboardCounts: () => ({}),

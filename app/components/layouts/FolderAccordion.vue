@@ -114,7 +114,7 @@ const onEnter = (el: Element) => {
   const element = el as HTMLElement
   element.style.height = '0'
   element.style.opacity = '0'
-  element.offsetHeight // Trigger reflow
+  void element.offsetHeight // Trigger reflow
   element.style.height = element.scrollHeight + 'px'
   element.style.opacity = '1'
 }
@@ -128,7 +128,7 @@ const onAfterEnter = (el: Element) => {
 const onLeave = (el: Element) => {
   const element = el as HTMLElement
   element.style.height = element.scrollHeight + 'px'
-  element.offsetHeight // Trigger reflow
+  void element.offsetHeight // Trigger reflow
   element.style.height = '0'
   element.style.opacity = '0'
 }

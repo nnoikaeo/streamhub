@@ -789,8 +789,7 @@ function removeRevoke(uid: string) {
 }
 
 function removeExpiry(uid: string) {
-  const newExpiry = { ...localRestrictions.value.expiry }
-  delete newExpiry[uid]
+  const { [uid]: _removed, ...newExpiry } = localRestrictions.value.expiry
   localRestrictions.value.expiry = newExpiry
   emitUpdate()
 }
