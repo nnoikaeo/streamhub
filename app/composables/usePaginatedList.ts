@@ -76,7 +76,7 @@ export const usePaginatedList = <T>({
   const sentinelElement = ref<HTMLElement | null>(null)
 
   const DEBUG = true
-  const log = (label: string, data?: any) => {
+  const log = (label: string, data?: unknown) => {
     if (DEBUG) {
       if (data !== undefined) {
         console.log(`🔍 [usePaginatedList] ${label}`, data)

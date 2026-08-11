@@ -325,28 +325,34 @@ export interface NotificationMessage {
 // HELPER FUNCTIONS (Type Guards)
 // ============================================================================
 
-export function isDashboard(obj: any): obj is Dashboard {
+/** Read a candidate as a record so its fields can be probed without `any`. */
+function asRecord(obj: unknown): Record<string, unknown> {
+  return typeof obj === 'object' && obj !== null ? (obj as Record<string, unknown>) : {}
+}
+
+export function isDashboard(obj: unknown): obj is Dashboard {
+  const candidate = asRecord(obj)
   return (
-    obj &&
-    typeof obj.id === 'string' &&
-    typeof obj.name === 'string' &&
-    typeof obj.folderId === 'string'
+    typeof candidate.id === 'string' &&
+    typeof candidate.name === 'string' &&
+    typeof candidate.folderId === 'string'
   )
 }
 
-export function isFolder(obj: any): obj is Folder {
+export function isFolder(obj: unknown): obj is Folder {
+  const candidate = asRecord(obj)
   return (
-    obj &&
-    typeof obj.id === 'string' &&
-    typeof obj.name === 'string'
+    typeof candidate.id === 'string' &&
+    typeof candidate.name === 'string'
   )
 }
 
-export function isUser(obj: any): obj is User {
+export function isUser(obj: unknown): obj is User {
+  const candidate = asRecord(obj)
   return (
-    obj &&
-    typeof obj.uid === 'string' &&
-    typeof obj.email === 'string' &&
-    ['user', 'moderator', 'admin'].includes(obj.role)
+    typeof candidate.uid === 'string' &&
+    typeof candidate.email === 'string' &&
+    typeof candidate.role === 'string' &&
+    ['user', 'moderator', 'admin'].includes(candidate.role)
   )
 }

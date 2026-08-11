@@ -70,7 +70,7 @@ export async function readJSON<T>(filename: string): Promise<T[]> {
 
     return parsed as T[]
   } catch (error) {
-    if ((error as any)?.code === 'ENOENT') {
+    if (getErrorCode(error) === 'ENOENT') {
       // In production, .data/ files are not deployed — return empty array gracefully.
       console.warn(`[jsonDatabase] File not found: ${filename} — returning empty array`)
       return [] as T[]

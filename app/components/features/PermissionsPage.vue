@@ -17,6 +17,7 @@ import PermissionEditor from '~/components/features/PermissionEditor.vue'
 import { useDashboardService } from '~/composables/useDashboardService'
 import { useAuth } from '~/composables/useAuth'
 import type { Dashboard, User, AccessControl, AccessRestrictions, Folder, PermissionMetadata } from '~/types/dashboard'
+import type { AdminGroup, Company } from '~/types/admin'
 
 interface Props {
   /** Dashboards available for selection */
@@ -26,10 +27,10 @@ interface Props {
   allUsers: User[]
 
   /** All groups for PermissionEditor */
-  allGroups: any[]
+  allGroups: AdminGroup[]
 
   /** All companies for PermissionEditor */
-  allCompanies: any[]
+  allCompanies: Company[]
 
   /** Whether to show restrictions tab (admin=true, moderator=false) */
   showRestrictions: boolean
@@ -356,12 +357,12 @@ const getInheritedUserCount = (folder: Folder): number => {
   const uids = new Set<string>()
   for (const uid of folder.access.direct.users) uids.add(uid)
   for (const gid of folder.access.direct.groups) {
-    const group = props.allGroups.find((g: any) => g.id === gid)
+    const group = props.allGroups.find((g) => g.id === gid)
     if (group) group.members.forEach((uid: string) => uids.add(uid))
   }
   for (const companyCode of folder.access.company) {
     const usersForCode = companyCode === 'ALL'
-      ? nonAdminUsers.value.filter(u => props.allCompanies.some((c: any) => c.code === u.company && c.isActive))
+      ? nonAdminUsers.value.filter(u => props.allCompanies.some((c) => c.code === u.company && c.isActive))
       : nonAdminUsers.value.filter(u => u.company === companyCode)
     usersForCode.forEach(u => uids.add(u.uid))
   }
@@ -397,7 +398,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
       })
     }
     for (const gid of perms.access.direct.groups) {
-      const group = props.allGroups.find((g: any) => g.id === gid)
+      const group = props.allGroups.find((g) => g.id === gid)
       if (group?.members.includes(uid)) {
         warnings.push({
           type: 'redundant-grant',
@@ -419,7 +420,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
         folder.access.company.includes(u.company) ||
         folder.access.company.includes('ALL') ||
         folder.access.direct.groups.some((gid: string) => {
-          const g = props.allGroups.find((g: any) => g.id === gid)
+          const g = props.allGroups.find((g) => g.id === gid)
           return g?.members.includes(uid)
         })
       if (hasInheritedAccess) {
@@ -443,7 +444,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
         perms.access.company.includes(u.company) ||
         perms.access.company.includes('ALL') ||
         perms.access.direct.groups.some((gid: string) => {
-          const g = props.allGroups.find((g: any) => g.id === gid)
+          const g = props.allGroups.find((g) => g.id === gid)
           return g?.members.includes(uid)
         })
       if (hasDirectAccess) {
@@ -487,14 +488,14 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   for (const uid of perms.access.direct.users) addUser(uid, 'สิทธิ์ตรง')
 
   for (const gid of perms.access.direct.groups) {
-    const group = props.allGroups.find((g: any) => g.id === gid)
+    const group = props.allGroups.find((g) => g.id === gid)
     if (!group) continue
     for (const uid of group.members) addUser(uid, `กลุ่ม ${group.name}`)
   }
 
   for (const companyCode of perms.access.company) {
     const usersForCode = companyCode === 'ALL'
-      ? nonAdminUsers.value.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
+      ? nonAdminUsers.value.filter(x => props.allCompanies.some((c) => c.code === x.company && c.isActive))
       : nonAdminUsers.value.filter(x => x.company === companyCode)
     const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
     for (const u of usersForCode) {
@@ -511,7 +512,7 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
       addUser(uid, `📁 ${folder.name}`)
     }
     for (const gid of folder.access.direct.groups) {
-      const group = props.allGroups.find((g: any) => g.id === gid)
+      const group = props.allGroups.find((g) => g.id === gid)
       if (!group) continue
       for (const uid of group.members) {
         if (userMap.get(uid)?.sources.includes(`กลุ่ม ${group.name}`)) continue
@@ -520,7 +521,7 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
     }
     for (const companyCode of folder.access.company) {
       const usersForCode = companyCode === 'ALL'
-        ? nonAdminUsers.value.filter(x => props.allCompanies.some((c: any) => c.code === x.company && c.isActive))
+        ? nonAdminUsers.value.filter(x => props.allCompanies.some((c) => c.code === x.company && c.isActive))
         : nonAdminUsers.value.filter(x => x.company === companyCode)
       const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
       for (const u of usersForCode) {

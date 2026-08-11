@@ -83,7 +83,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   const accessDenied = ref(false)
 
   const DEBUG = true
-  const log = (label: string, data?: any) => {
+  const log = (label: string, data?: unknown) => {
     if (DEBUG) {
       if (data !== undefined) {
         console.log(`🔍 [useDashboardPage] ${label}`, data)
