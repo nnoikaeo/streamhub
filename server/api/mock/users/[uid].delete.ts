@@ -26,9 +26,9 @@ export default defineEventHandler(async (event) => {
       deleted: true,
       message: `User "${uid}" deleted successfully`
     }
-  } catch (error: any) {
-    console.error('[API] Error deleting user:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error deleting user:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({

@@ -34,14 +34,14 @@ export default defineEventHandler(async (event) => {
         action: 'created'
       }
     }
-  } catch (error: any) {
-    console.error('[API] Error creating/updating folder:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error creating/updating folder:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to create/update folder'
+      message: getErrorMessage(error, 'Failed to create/update folder')
     })
   }
 })

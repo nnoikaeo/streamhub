@@ -489,8 +489,8 @@ const loadDashboard = async () => {
         body: { dashboardId: dashboardId.value, action: 'view', dashboardName: data.name },
       }).catch(() => { /* audit log failure is non-blocking */ })
     }).catch(() => { /* token failure is non-blocking */ })
-  } catch (err: any) {
-    if (err?.response?.status === 403 || err?.statusCode === 403) {
+  } catch (err: unknown) {
+    if (getErrorStatus(err) === 403) {
       // Access denied — show friendly message and log denied audit
       accessDenied.value = true
       const authStore = useAuthStore()
@@ -507,7 +507,7 @@ const loadDashboard = async () => {
         }).catch(() => {})
       }).catch(() => {})
     } else {
-      error.value = err instanceof Error ? err.message : 'Failed to load dashboard'
+      error.value = getErrorMessage(err, 'Failed to load dashboard')
       console.error('Error loading dashboard:', err)
     }
   } finally {

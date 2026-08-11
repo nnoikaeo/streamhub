@@ -43,7 +43,7 @@ const verifyInvitation = async () => {
       status.value = 'invalid'
       errorMessage.value = 'ไม่พบคำเชิญหรือคำเชิญไม่ถูกต้อง'
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to verify invitation:', err)
     status.value = 'error'
     errorMessage.value = 'ไม่สามารถตรวจสอบคำเชิญได้ กรุณาลองใหม่อีกครั้ง'
@@ -100,7 +100,7 @@ const handleAccept = async () => {
       status.value = 'error'
       errorMessage.value = response.message || response.error || 'ไม่สามารถยืนยันคำเชิญได้ กรุณาลองใหม่อีกครั้ง'
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Failed to accept invitation:', err)
     status.value = 'error'
     errorMessage.value = 'ไม่สามารถยืนยันคำเชิญได้ กรุณาลองใหม่อีกครั้ง'

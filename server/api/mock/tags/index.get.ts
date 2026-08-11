@@ -9,8 +9,8 @@ export default defineEventHandler(async () => {
       data: tags,
       total: tags.length
     }
-  } catch (error: any) {
-    console.error('[API] Error fetching tags:', error.message)
+  } catch (error: unknown) {
+    console.error('[API] Error fetching tags:', getErrorMessage(error))
     throw createError({
       statusCode: 500,
       message: 'Failed to read tags'

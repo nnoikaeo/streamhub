@@ -156,16 +156,14 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
 
       // Note: Do not auto-select folder - let user choose
       // Only select folder if specified in URL query params
-    } catch (err: any) {
+    } catch (err: unknown) {
       log('loadFolders error', err)
-      if (err?.response?.status === 403 || err?.statusCode === 403) {
+      if (getErrorStatus(err) === 403) {
         accessDenied.value = true
         dashboardStore.setError('Access denied: You do not have permission to view folders')
         try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงโฟลเดอร์: คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch { /* toast unavailable outside a component scope */ }
       } else {
-        dashboardStore.setError(
-          err instanceof Error ? err.message : 'Failed to load folders'
-        )
+        dashboardStore.setError(getErrorMessage(err, 'Failed to load folders'))
       }
       console.error('Error loading folders:', err)
     } finally {
@@ -218,16 +216,14 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
         folderPath.value = path || []
         log('loadDashboards got folder path', { pathLength: folderPath.value.length })
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       log('loadDashboards error', err)
-      if (err?.response?.status === 403 || err?.statusCode === 403) {
+      if (getErrorStatus(err) === 403) {
         accessDenied.value = true
         dashboardStore.setError('Access denied: You do not have permission to view dashboards')
         try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงแดชบอร์ด: คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch { /* toast unavailable outside a component scope */ }
       } else {
-        dashboardStore.setError(
-          err instanceof Error ? err.message : 'Failed to load dashboards'
-        )
+        dashboardStore.setError(getErrorMessage(err, 'Failed to load dashboards'))
       }
       console.error('Error loading dashboards:', err)
     } finally {

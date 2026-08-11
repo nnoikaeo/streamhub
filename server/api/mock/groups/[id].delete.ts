@@ -26,9 +26,9 @@ export default defineEventHandler(async (event) => {
       deleted: true,
       message: `Group "${id}" deleted successfully`
     }
-  } catch (error: any) {
-    console.error('[API] Error deleting group:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error deleting group:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({

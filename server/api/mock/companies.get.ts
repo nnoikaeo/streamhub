@@ -9,8 +9,8 @@ export default defineEventHandler(async () => {
       data: companies,
       total: companies.length
     }
-  } catch (error: any) {
-    console.error('[API] Error fetching companies:', error.message)
+  } catch (error: unknown) {
+    console.error('[API] Error fetching companies:', getErrorMessage(error))
     throw createError({
       statusCode: 500,
       message: 'Failed to read companies'

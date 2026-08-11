@@ -25,9 +25,9 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: folder
     }
-  } catch (error: any) {
-    console.error('[API] Error fetching folder:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error fetching folder:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({

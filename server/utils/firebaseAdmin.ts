@@ -58,9 +58,9 @@ function ensureInitialized(): boolean {
       console.error('[firebaseAdmin] CRITICAL: No credentials found — production requires Firebase Admin credentials')
     }
     return false
-  } catch (error: any) {
-    initError = error.message
-    console.error('❌ [firebaseAdmin] Initialization error:', error.message)
+  } catch (error: unknown) {
+    initError = getErrorMessage(error)
+    console.error('❌ [firebaseAdmin] Initialization error:', getErrorMessage(error))
     return false
   }
 }
@@ -78,8 +78,8 @@ export async function verifyIdToken(token: string): Promise<DecodedIdToken | nul
     const auth = getAuth(adminApp)
     const decodedToken = await auth.verifyIdToken(token)
     return decodedToken
-  } catch (error: any) {
-    console.warn('⚠️  [firebaseAdmin] Token verification failed:', error.message)
+  } catch (error: unknown) {
+    console.warn('⚠️  [firebaseAdmin] Token verification failed:', getErrorMessage(error))
     return null
   }
 }

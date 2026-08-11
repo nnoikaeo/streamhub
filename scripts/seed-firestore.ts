@@ -20,6 +20,8 @@ import { readFileSync, existsSync } from 'fs'
 import { resolve } from 'path'
 import { initializeApp, cert, getApps } from 'firebase-admin/app'
 import { getFirestore, Timestamp } from 'firebase-admin/firestore'
+// Explicit import: this script runs under tsx, outside Nuxt's auto-import graph.
+import { getErrorMessage } from '../shared/utils/errors'
 
 // ============================================================================
 // LOAD .env.local (script runs outside Nuxt, so we load it manually)
@@ -193,8 +195,8 @@ async function main() {
       }
 
       totalDocs += documents.length
-    } catch (error: any) {
-      console.error(`   ❌ Error seeding ${collectionName}: ${error.message}`)
+    } catch (error: unknown) {
+      console.error(`   ❌ Error seeding ${collectionName}: ${getErrorMessage(error)}`)
     }
   }
 

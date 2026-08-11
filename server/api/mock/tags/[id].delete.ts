@@ -26,9 +26,9 @@ export default defineEventHandler(async (event) => {
       deleted: true,
       message: `Tag "${id}" deleted successfully`
     }
-  } catch (error: any) {
-    console.error('[API] Error deleting tag:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error deleting tag:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({

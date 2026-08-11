@@ -48,9 +48,9 @@ export default defineEventHandler(async (event) => {
       deleted: true,
       message: `Dashboard "${id}" deleted successfully`
     }
-  } catch (error: any) {
-    console.error('[API] Error deleting dashboard:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error deleting dashboard:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({

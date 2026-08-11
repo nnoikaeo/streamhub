@@ -37,9 +37,9 @@ export default defineEventHandler(async (event) => {
       deleted: true,
       message: `Region "${code}" deleted successfully`
     }
-  } catch (error: any) {
-    console.error('[API] Error deleting region:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error deleting region:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({
