@@ -27,9 +27,9 @@ export default defineEventHandler(async (event) => {
       data: updated,
       action: 'updated'
     }
-  } catch (error: any) {
-    console.error('[API] Error updating tag:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error updating tag:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({

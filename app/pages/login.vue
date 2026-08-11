@@ -30,7 +30,7 @@ const handleGoogleSignIn = async () => {
       showErrorDialog.value = true
     }
     // result.success=false + no error = user closed popup, do nothing
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Unexpected sign-in error:', error)
     errorInfo.value = mapErrorMessage(error)
     showErrorDialog.value = true

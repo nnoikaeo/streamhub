@@ -80,8 +80,8 @@ export class JSONMockService implements IDashboardService {
 
     try {
       return await $fetch<T>(url as string, mergedOptions) as T
-    } catch (error: any) {
-      const status = error?.response?.status || error?.statusCode
+    } catch (error: unknown) {
+      const status = getErrorStatus(error)
       if (status === 401) {
         console.warn('🔒 [JSONMockService] Unauthorized (401) — redirecting to login')
         await navigateTo('/login')
@@ -161,9 +161,9 @@ export class JSONMockService implements IDashboardService {
 
       this.log('⚠️ getFolders: No data in response')
       return { folders: [], hierarchy: [] }
-    } catch (error: any) {
-      if (error?.response?.status === 403 || error?.statusCode === 403) {
-        console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
+    } catch (error: unknown) {
+      if (getErrorStatus(error) === 403) {
+        console.error('🚫 [JSONMockService] Access denied:', getErrorDataMessage(error))
         try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงโฟลเดอร์นี้', 'error') } catch { /* toast unavailable outside a component scope */ }
         return { folders: [], hierarchy: [] }
       }
@@ -302,9 +302,9 @@ export class JSONMockService implements IDashboardService {
 
       this.log('⚠️ getDashboards: No data in response')
       return { dashboards: [], total: 0, hasMore: false }
-    } catch (error: any) {
-      if (error?.response?.status === 403 || error?.statusCode === 403) {
-        console.error('🚫 [JSONMockService] Access denied:', error.data?.message)
+    } catch (error: unknown) {
+      if (getErrorStatus(error) === 403) {
+        console.error('🚫 [JSONMockService] Access denied:', getErrorDataMessage(error))
         try { useAppToast().showToast('คุณไม่มีสิทธิ์เข้าถึงแดชบอร์ด', 'error') } catch { /* toast unavailable outside a component scope */ }
         return { dashboards: [], total: 0, hasMore: false }
       }
@@ -329,9 +329,9 @@ export class JSONMockService implements IDashboardService {
       }
 
       return null
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Re-throw 403 so callers can show proper access-denied UI
-      if (error?.response?.status === 403 || error?.statusCode === 403 || error?.status === 403) {
+      if (getErrorStatus(error) === 403) {
         throw error
       }
       console.error('❌ [JSONMockService] getDashboard error:', error)
@@ -361,8 +361,8 @@ export class JSONMockService implements IDashboardService {
       }
 
       return null
-    } catch (error: any) {
-      if (error?.response?.status === 403 || error?.statusCode === 403) {
+    } catch (error: unknown) {
+      if (getErrorStatus(error) === 403) {
         console.error('🚫 [JSONMockService] Embed URL access denied')
       } else {
         console.error('❌ [JSONMockService] getDashboardEmbedUrl error:', error)

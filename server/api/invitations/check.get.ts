@@ -34,9 +34,9 @@ export default defineEventHandler(async (event) => {
       data: pending || null,
       found: !!pending
     }
-  } catch (error: any) {
-    console.error('[API] Error checking invitation:', error.message)
-    if (error.statusCode) throw error
+  } catch (error: unknown) {
+    console.error('[API] Error checking invitation:', getErrorMessage(error))
+    if (getErrorStatus(error)) throw error
     throw createError({
       statusCode: 500,
       message: 'Failed to check invitation'

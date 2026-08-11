@@ -38,9 +38,9 @@ export default defineEventHandler(async (event) => {
         embedUrl: (dashboard as any).lookerEmbedUrl || null,
       },
     }
-  } catch (error: any) {
-    console.error('[API] Error fetching embed URL:', error.message)
-    if (error.statusCode) throw error
+  } catch (error: unknown) {
+    console.error('[API] Error fetching embed URL:', getErrorMessage(error))
+    if (getErrorStatus(error)) throw error
     throw createError({
       statusCode: 500,
       message: 'Failed to fetch embed URL',

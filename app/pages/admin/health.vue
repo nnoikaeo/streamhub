@@ -71,8 +71,8 @@ async function fetchHealth() {
     const query = authStore.user?.uid ? `?uid=${authStore.user.uid}` : ''
 
     health.value = await $fetch<HealthData>(`/api/health${query}`, { headers })
-  } catch (err: any) {
-    fetchError.value = err?.data?.message || err?.message || 'Failed to load health status'
+  } catch (err: unknown) {
+    fetchError.value = getErrorDataMessage(err) || getErrorMessage(err, 'Failed to load health status')
   } finally {
     isLoading.value = false
   }

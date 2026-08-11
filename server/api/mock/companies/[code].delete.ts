@@ -26,9 +26,9 @@ export default defineEventHandler(async (event) => {
       deleted: true,
       message: `Company "${code}" deleted successfully`
     }
-  } catch (error: any) {
-    console.error('[API] Error deleting company:', error.message)
-    if (error.statusCode) {
+  } catch (error: unknown) {
+    console.error('[API] Error deleting company:', getErrorMessage(error))
+    if (getErrorStatus(error)) {
       throw error
     }
     throw createError({

@@ -64,8 +64,8 @@ export default defineEventHandler(async (event) => {
       data: filtered,
       total: filtered.length
     }
-  } catch (error: any) {
-    console.error('[API] Error fetching folders:', error.message)
+  } catch (error: unknown) {
+    console.error('[API] Error fetching folders:', getErrorMessage(error))
     throw createError({
       statusCode: 500,
       message: 'Failed to read folders'

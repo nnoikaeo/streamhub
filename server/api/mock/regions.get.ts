@@ -9,8 +9,8 @@ export default defineEventHandler(async () => {
       data: regions,
       total: regions.length
     }
-  } catch (error: any) {
-    console.error('[API] Error fetching regions:', error.message)
+  } catch (error: unknown) {
+    console.error('[API] Error fetching regions:', getErrorMessage(error))
     throw createError({
       statusCode: 500,
       message: 'Failed to read regions'

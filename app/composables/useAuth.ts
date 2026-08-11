@@ -116,15 +116,17 @@ export const useAuth = () => {
       console.log('✅ Permissions initialized for role:', mockUser.role)
 
       return { success: true }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const code = getErrorCode(error)
       // User closed the popup — treat as cancelled, not an error
-      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
         return { success: false }
       }
-      console.error('❌ Sign-in error:', error.code, error.message)
-      authStore.setAuthError(error.message)
+      const message = getErrorMessage(error, 'Sign-in failed')
+      console.error('❌ Sign-in error:', code, message)
+      authStore.setAuthError(message)
       authStore.setLoading(false)
-      return { success: false, error: error.message }
+      return { success: false, error: message }
     }
   }
 
@@ -136,7 +138,7 @@ export const useAuth = () => {
       permissionsStore.initializePermissions(null)
       await navigateTo('/login')
       console.log('✅ Logged out successfully')
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Logout error:', error)
     }
   }
@@ -195,11 +197,12 @@ export const useAuth = () => {
             // Initialize permissions
             permissionsStore.initializePermissions(userData)
             console.log('✅ Permissions initialized for role:', mockUser.role)
-          } catch (userError: any) {
+          } catch (userError: unknown) {
             // User not found in system
-            console.error('❌ [useAuth.initAuth] User profile not found:', userError.message)
+            const message = getErrorMessage(userError, 'User profile not found')
+            console.error('❌ [useAuth.initAuth] User profile not found:', message)
             authStore.setUser(null)
-            authStore.setAuthError(userError.message)
+            authStore.setAuthError(message)
             permissionsStore.initializePermissions(null)
           }
         } else {

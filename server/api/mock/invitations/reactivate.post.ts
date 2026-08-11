@@ -63,12 +63,12 @@ export default defineEventHandler(async (event) => {
       success: true,
       data: updatedUser
     }
-  } catch (error: any) {
-    console.error('[API] Error reactivating user:', error.message)
-    if (error.statusCode) throw error
+  } catch (error: unknown) {
+    console.error('[API] Error reactivating user:', getErrorMessage(error))
+    if (getErrorStatus(error)) throw error
     throw createError({
       statusCode: 500,
-      message: error.message || 'Failed to reactivate user'
+      message: getErrorMessage(error, 'Failed to reactivate user')
     })
   }
 })

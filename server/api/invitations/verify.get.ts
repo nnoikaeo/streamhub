@@ -57,9 +57,9 @@ export default defineEventHandler(async (event) => {
         expiresAt: invitation.expiresAt
       }
     }
-  } catch (error: any) {
-    console.error('[API] Error verifying invitation:', error.message)
-    if (error.statusCode) throw error
+  } catch (error: unknown) {
+    console.error('[API] Error verifying invitation:', getErrorMessage(error))
+    if (getErrorStatus(error)) throw error
     throw createError({
       statusCode: 500,
       message: 'Failed to verify invitation'

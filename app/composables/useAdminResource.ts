@@ -314,15 +314,15 @@ export function useAdminResource<T extends Record<string, any>>(
         items.value = response.data || []
         console.log(`✅ Loaded ${items.value.length} ${pluralName}`)
       }
-    } catch (e: any) {
-      if (e?.response?.status === 403 || e?.statusCode === 403) {
-        console.error(`🚫 Access denied fetching ${resourceName}:`, e.data?.message)
+    } catch (e: unknown) {
+      if (getErrorStatus(e) === 403) {
+        console.error(`🚫 Access denied fetching ${resourceName}:`, getErrorDataMessage(e))
         try { useAppToast().showToast('ไม่มีสิทธิ์เข้าถึงข้อมูลนี้', 'error') } catch { /* toast unavailable outside a component scope */ }
         items.value = []
         return
       }
-      error.value = e
-      console.error(`❌ Error fetching ${resourceName}:`, e.message)
+      error.value = toError(e)
+      console.error(`❌ Error fetching ${resourceName}:`, getErrorMessage(e))
       throw e
     } finally {
       loading.value = false
@@ -402,14 +402,14 @@ export function useAdminResource<T extends Record<string, any>>(
         await fetch() // Refresh list
         return response.data
       }
-    } catch (e: any) {
-      error.value = e
+    } catch (e: unknown) {
+      error.value = toError(e)
       // A ValidationError is expected user input (e.g. duplicate key), not a
       // system failure — log it quietly so it doesn't look like a crash.
       if (e instanceof ValidationError) {
-        console.warn(`⚠️ ${resourceName} create blocked: ${e.message}`)
+        console.warn(`⚠️ ${resourceName} create blocked: ${getErrorMessage(e)}`)
       } else {
-        console.error(`❌ Error creating ${resourceName}:`, e.message)
+        console.error(`❌ Error creating ${resourceName}:`, getErrorMessage(e))
       }
       throw e
     } finally {
@@ -453,9 +453,9 @@ export function useAdminResource<T extends Record<string, any>>(
         await fetch() // Refresh list
         return response.data
       }
-    } catch (e: any) {
-      error.value = e
-      console.error(`❌ Error updating ${resourceName}:`, e.message)
+    } catch (e: unknown) {
+      error.value = toError(e)
+      console.error(`❌ Error updating ${resourceName}:`, getErrorMessage(e))
       throw e
     } finally {
       loading.value = false
@@ -489,9 +489,9 @@ export function useAdminResource<T extends Record<string, any>>(
         await fetch() // Refresh list
         return true
       }
-    } catch (e: any) {
-      error.value = e
-      console.error(`❌ Error deleting ${resourceName}:`, e.message)
+    } catch (e: unknown) {
+      error.value = toError(e)
+      console.error(`❌ Error deleting ${resourceName}:`, getErrorMessage(e))
       throw e
     } finally {
       loading.value = false

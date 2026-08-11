@@ -9,8 +9,8 @@ export default defineEventHandler(async () => {
       data: groups,
       total: groups.length
     }
-  } catch (error: any) {
-    console.error('[API] Error fetching groups:', error.message)
+  } catch (error: unknown) {
+    console.error('[API] Error fetching groups:', getErrorMessage(error))
     throw createError({
       statusCode: 500,
       message: 'Failed to read groups'

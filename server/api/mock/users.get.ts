@@ -42,8 +42,8 @@ export default defineEventHandler(async (event) => {
 
     console.log(`  👥 Total users: ${filtered.length}`)
     return { success: true, data: filtered }
-  } catch (error: any) {
-    console.error('[API] Error fetching users:', error.message)
+  } catch (error: unknown) {
+    console.error('[API] Error fetching users:', getErrorMessage(error))
     throw createError({
       statusCode: 500,
       message: 'Failed to read users'
