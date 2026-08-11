@@ -17,7 +17,7 @@ export interface AuditEntry {
   company: string
   dashboardId: string
   dashboardName: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   userAgent?: string
   timestamp: string
 }
@@ -28,7 +28,7 @@ interface LegacyAuditEntry {
   performedBy: string
   performedByEmail: string
   target: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   timestamp: string
 }
 
@@ -198,7 +198,7 @@ export async function logAuditEvent(params: {
   company: string
   dashboardId: string
   dashboardName: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   userAgent?: string
 }): Promise<boolean> {
   const level = getLogLevel(params.action)

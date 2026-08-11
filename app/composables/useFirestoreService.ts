@@ -74,7 +74,7 @@ export class FirestoreService implements IDashboardService {
     this.db = ($firebase as any).db
   }
 
-  private log(label: string, data?: any) {
+  private log(label: string, data?: unknown) {
     if (this.DEBUG) {
       if (data !== undefined) {
         console.log(`🔥 [FirestoreService] ${label}`, data)
@@ -496,7 +496,7 @@ export class FirestoreService implements IDashboardService {
       for (const uid of restrictions.revoke) uids.delete(uid)
       const now = new Date()
       for (const [uid, date] of Object.entries(restrictions.expiry)) {
-        if (new Date(date as any) < now) uids.delete(uid)
+        if (new Date(date) < now) uids.delete(uid)
       }
 
       return allUsers.filter(u => uids.has(u.uid))

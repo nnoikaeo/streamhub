@@ -106,5 +106,5 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
 | `npm test` | Vitest suite |
-| `npx eslint .` | Lint check (no `lint` npm script exists). 311 pre-existing problems, **all `@typescript-eslint/no-explicit-any`**: compare the count before/after |
+| `npx eslint .` | Lint check (no `lint` npm script exists). 268 pre-existing problems, **all `@typescript-eslint/no-explicit-any`**: compare the count before/after |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |

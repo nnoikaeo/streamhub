@@ -483,12 +483,12 @@ const userMap = computed(() => {
 })
 
 onMounted(async () => {
-  const fetches: Promise<any>[] = [fetchTags(), fetchCompanies(), fetchRegions()]
+  const fetches: Promise<unknown>[] = [fetchTags(), fetchCompanies(), fetchRegions()]
   if (isPrivilegedUser.value) fetches.push(fetchUsers())
   const results = await Promise.allSettled(fetches)
-  const failed = results.filter(r => r.status === 'rejected')
+  const failed = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
   if (failed.length > 0) {
-    console.warn('[discover] Some data failed to load:', failed.map((r: any) => r.reason?.message))
+    console.warn('[discover] Some data failed to load:', failed.map(r => getErrorMessage(r.reason)))
   }
   // Restore tag filter from URL query params (e.g. ?tag=id1,id2)
   const tagParam = route.query.tag

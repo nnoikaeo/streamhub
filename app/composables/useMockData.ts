@@ -20,6 +20,7 @@ import type {
   User,
   Folder,
   Dashboard,
+  AccessControl,
 } from '~/types/dashboard'
 
 // Company type is defined in ~/types/admin (single source of truth)
@@ -152,11 +153,11 @@ export function getInheritingAncestorFolders(
  * Returns true if Layer 1 or Layer 2 matches.
  */
 function checkAccessRules(
-  access: { direct: { users: string[]; groups: string[] }; company: string[] },
+  access: AccessControl,
   user: User
 ): boolean {
   // Explicit org-wide public
-  if ((access as any).public === true) return true
+  if (access.public === true) return true
   // Layer 1: Direct access (OR logic)
   if (access.direct.users.includes(user.uid)) return true
   for (const group of user.groups) {
@@ -177,7 +178,7 @@ function checkRestrictions(
 ): boolean {
   if (restrictions.revoke.includes(userId)) return true
   const expiryDate = restrictions.expiry[userId]
-  if (expiryDate && new Date() > new Date(expiryDate as any)) return true
+  if (expiryDate && new Date() > new Date(expiryDate)) return true
   return false
 }
 

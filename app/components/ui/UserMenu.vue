@@ -109,8 +109,8 @@ const userEmail = computed(() => {
  * Get user role + company label
  */
 const userRoleCompany = computed(() => {
-  const role = (user.value as any)?.role
-  const company = (user.value as any)?.company
+  const role = user.value?.role
+  const company = user.value?.company
   if (!role && !company) return ''
   const parts = [role, company].filter(Boolean)
   return parts.join(' · ')
