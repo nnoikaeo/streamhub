@@ -1,4 +1,5 @@
 import { readJSON } from '../../utils/jsonDatabase'
+import type { Dashboard, Folder } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -15,36 +16,39 @@ export default defineEventHandler(async (event) => {
         return sendForbidden(event, accessResult.reason)
       }
 
-      const dashboards = await readJSON('dashboards.json')
-      const folders = await readJSON('folders.json')
+      const dashboards = await readJSON<Dashboard>('dashboards.json')
+      const folders = await readJSON<Folder>('folders.json')
 
-      let filtered = filterAccessibleDashboards(dashboards as any[], accessResult.user, folders as any[])
+      let filtered = filterAccessibleDashboards(dashboards, accessResult.user, folders)
 
       if (query.folderId) {
-        filtered = filtered.filter((d: any) => d.folderId === query.folderId)
+        filtered = filtered.filter((d) => d.folderId === query.folderId)
       }
 
       // Strip lookerEmbedUrl from listing response (security: hide embed URLs)
-      const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }: any) => rest)
+      const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }) => rest)
 
       return { success: true, data: sanitized, total: sanitized.length }
     }
 
     // Fallback: no uid (admin pages, backward compatible)
-    const dashboards = await readJSON('dashboards.json')
+    const dashboards = await readJSON<Dashboard>('dashboards.json')
 
-    let filtered: any[] = dashboards as any[]
+    let filtered = dashboards
 
     if (companyFilter) {
-      filtered = filtered.filter((d: any) => d.access?.company?.[companyFilter])
+      // access.company is a list of company codes, not a map — indexing it with
+      // a code always yielded undefined, so this filter returned nothing.
+      // companyAccess.ts:122 gets this right with .includes().
+      filtered = filtered.filter((d) => d.access?.company?.includes(companyFilter))
     }
 
     if (query.folderId) {
-      filtered = filtered.filter((d: any) => d.folderId === query.folderId)
+      filtered = filtered.filter((d) => d.folderId === query.folderId)
     }
 
     // Strip lookerEmbedUrl from listing response (security: hide embed URLs)
-    const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }: any) => rest)
+    const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }) => rest)
 
     return { success: true, data: sanitized, total: sanitized.length }
   } catch {

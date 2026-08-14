@@ -1,6 +1,6 @@
 import { readJSON, createItem, updateItem, findById } from '../../utils/jsonDatabase'
 import { logAuditEvent } from '../../utils/auditLog'
-import type { User } from '~/types/dashboard'
+import type { Dashboard, User } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -16,8 +16,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if it's create or update
-    const dashboards = await readJSON('dashboards.json')
-    const existingDashboard = dashboards.find((d: any) => d.id === body.id)
+    const dashboards = await readJSON<Dashboard>('dashboards.json')
+    const existingDashboard = dashboards.find((d) => d.id === body.id)
 
     let result: any
     let auditAction: 'create' | 'edit'

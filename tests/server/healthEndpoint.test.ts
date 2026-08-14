@@ -81,6 +81,11 @@ function expectHealth(result: Awaited<ReturnType<typeof healthHandler>>): Health
   return result
 }
 
+/** A stored user row as the JSON store holds it — the role guard reads `role`. */
+function storedUser(role: string, uid = 'uid-1') {
+  return { uid, role }
+}
+
 function makeDb(pingResult: 'ok' | 'error' = 'ok'): Firestore {
   return {
     collection: vi.fn().mockReturnValue({
@@ -149,7 +154,7 @@ describe('GET /api/health', () => {
     })
 
     it('returns 403 when user role is not admin', async () => {
-      vi.mocked(findById).mockResolvedValue({ uid: 'uid-1', role: 'user' })
+      vi.mocked(findById).mockResolvedValue(storedUser('user', 'uid-1'))
 
       await healthHandler(makeEvent('uid-1'))
 
@@ -157,7 +162,7 @@ describe('GET /api/health', () => {
     })
 
     it('proceeds past role guard when user is admin', async () => {
-      vi.mocked(findById).mockResolvedValue({ uid: 'uid-1', role: 'admin' })
+      vi.mocked(findById).mockResolvedValue(storedUser('admin', 'uid-1'))
       vi.mocked(getAdminDb).mockReturnValue(makeDb())
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
       vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
@@ -221,7 +226,7 @@ describe('GET /api/health', () => {
   describe('health checks — all passing', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
+      vi.mocked(findById).mockResolvedValue(storedUser('admin', 'admin'))
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
       vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
       vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
@@ -262,7 +267,7 @@ describe('GET /api/health', () => {
   describe('health checks — independent failure isolation', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
+      vi.mocked(findById).mockResolvedValue(storedUser('admin', 'admin'))
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
       vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
       vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
@@ -337,7 +342,7 @@ describe('GET /api/health', () => {
   describe('overall status', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
+      vi.mocked(findById).mockResolvedValue(storedUser('admin', 'admin'))
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
       vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
       vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
@@ -365,7 +370,7 @@ describe('GET /api/health', () => {
   describe('environment info', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
+      vi.mocked(findById).mockResolvedValue(storedUser('admin', 'admin'))
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
       vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
       vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
@@ -428,7 +433,7 @@ describe('GET /api/health', () => {
   describe('warnings', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
+      vi.mocked(findById).mockResolvedValue(storedUser('admin', 'admin'))
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
       vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
       vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)

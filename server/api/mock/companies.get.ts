@@ -1,9 +1,10 @@
 import { readJSON } from '../../utils/jsonDatabase'
+import type { Company } from '~/types/admin'
 
 export default defineEventHandler(async () => {
   try {
     console.log('[API] GET /api/mock/companies')
-    const companies = await readJSON('companies.json')
+    const companies = await readJSON<Company>('companies.json')
     return {
       success: true,
       data: companies,

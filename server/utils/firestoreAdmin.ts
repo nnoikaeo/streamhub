@@ -32,7 +32,7 @@ export function getAdminDb(): Firestore | null {
  * Read all documents from a Firestore collection.
  * Returns an empty array if the collection is empty or Admin SDK is unavailable.
  */
-export async function fsReadAll<T extends Record<string, any>>(
+export async function fsReadAll<T extends object>(
   db: Firestore,
   collection: string
 ): Promise<T[]> {
@@ -43,11 +43,11 @@ export async function fsReadAll<T extends Record<string, any>>(
 /**
  * Query documents from a Firestore collection by a single field value.
  */
-export async function fsQuery<T extends Record<string, any>>(
+export async function fsQuery<T extends object>(
   db: Firestore,
   collection: string,
   field: string,
-  value: any
+  value: unknown
 ): Promise<T[]> {
   const snap = await db.collection(collection).where(field, '==', value).get()
   return snap.docs.map(d => ({ ...d.data(), id: d.id }) as unknown as T)
@@ -60,7 +60,7 @@ export async function fsSet(
   db: Firestore,
   collection: string,
   id: string,
-  data: Record<string, any>
+  data: Record<string, unknown>
 ): Promise<void> {
   await db.collection(collection).doc(id).set(data)
 }
@@ -72,7 +72,7 @@ export async function fsUpdate(
   db: Firestore,
   collection: string,
   id: string,
-  data: Record<string, any>
+  data: Record<string, unknown>
 ): Promise<void> {
   await db.collection(collection).doc(id).update({ ...data, updatedAt: new Date().toISOString() })
 }

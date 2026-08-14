@@ -1,4 +1,5 @@
 import { readJSON, createItem, updateItem } from '../../utils/jsonDatabase'
+import type { Region } from '~/types/admin'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -16,8 +17,8 @@ export default defineEventHandler(async (event) => {
     const identifier = body.code || body.id
 
     // Check if it's create or update
-    const regions = await readJSON('regions.json')
-    const existingRegion = regions.find((r: any) => r.code === identifier || r.id === identifier)
+    const regions = await readJSON<Region>('regions.json')
+    const existingRegion = regions.find((r) => r.code === identifier || (r as { id?: string }).id === identifier)
 
     if (existingRegion) {
       // Update existing region

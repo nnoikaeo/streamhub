@@ -1,4 +1,5 @@
 import { readJSON, createItem, updateItem } from '../../utils/jsonDatabase'
+import type { Folder } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -14,8 +15,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if it's create or update
-    const folders = await readJSON('folders.json')
-    const existingFolder = folders.find((f: any) => f.id === body.id)
+    const folders = await readJSON<Folder>('folders.json')
+    const existingFolder = folders.find((f) => f.id === body.id)
 
     if (existingFolder) {
       // Update existing folder

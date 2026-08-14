@@ -1,4 +1,5 @@
 import { readJSON } from '../../utils/jsonDatabase'
+import type { User } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,15 +18,15 @@ export default defineEventHandler(async (event) => {
         return sendForbidden(event, accessResult.reason)
       }
 
-      const users = await readJSON('users.json')
-      let filtered: any[] = users as any[]
+      const users = await readJSON<User>('users.json')
+      let filtered = users
 
       if (accessResult.user.role !== 'admin') {
         // Non-admin: only own company
-        filtered = filtered.filter((u: any) => u.company === accessResult.user.company)
+        filtered = filtered.filter((u) => u.company === accessResult.user.company)
       } else if (companyFilter) {
         // Admin with company filter
-        filtered = filtered.filter((u: any) => u.company === companyFilter)
+        filtered = filtered.filter((u) => u.company === companyFilter)
       }
 
       console.log(`  👥 Returning: ${filtered.length} users`)
@@ -33,11 +34,11 @@ export default defineEventHandler(async (event) => {
     }
 
     // Fallback: no uid (admin pages, backward compatible)
-    const users = await readJSON('users.json')
-    let filtered: any[] = users as any[]
+    const users = await readJSON<User>('users.json')
+    let filtered = users
 
     if (companyFilter) {
-      filtered = filtered.filter((u: any) => u.company === companyFilter)
+      filtered = filtered.filter((u) => u.company === companyFilter)
     }
 
     console.log(`  👥 Total users: ${filtered.length}`)

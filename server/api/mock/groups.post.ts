@@ -1,4 +1,5 @@
 import { readJSON, createItem, updateItem } from '../../utils/jsonDatabase'
+import type { AdminGroup } from '~/types/admin'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -16,8 +17,8 @@ export default defineEventHandler(async (event) => {
     const identifier = body.code || body.id
 
     // Check if it's create or update
-    const groups = await readJSON('groups.json')
-    const existingGroup = groups.find((g: any) => g.code === identifier || g.id === identifier)
+    const groups = await readJSON<AdminGroup>('groups.json')
+    const existingGroup = groups.find((g) => (g as { code?: string }).code === identifier || g.id === identifier)
 
     if (existingGroup) {
       // Update existing group

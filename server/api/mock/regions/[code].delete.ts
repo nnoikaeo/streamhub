@@ -1,4 +1,5 @@
 import { readJSON, deleteItem } from '../../../utils/jsonDatabase'
+import type { Company } from '~/types/admin'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -13,8 +14,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // Referential integrity check: prevent deletion if companies reference this region
-    const companies = await readJSON('companies.json')
-    const referencingCompanies = companies.filter((c: any) => c.region === code)
+    const companies = await readJSON<Company>('companies.json')
+    const referencingCompanies = companies.filter((c) => c.region === code)
 
     if (referencingCompanies.length > 0) {
       throw createError({

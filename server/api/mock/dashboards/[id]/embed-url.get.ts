@@ -1,4 +1,5 @@
 import { findById, readJSON } from '../../../../utils/jsonDatabase'
+import type { Dashboard, Folder } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,7 +18,7 @@ export default defineEventHandler(async (event) => {
       return sendForbidden(event, accessResult.reason)
     }
 
-    const dashboard = await findById('dashboards.json', id)
+    const dashboard = await findById<Dashboard>('dashboards.json', id)
 
     if (!dashboard) {
       throw createError({
@@ -26,8 +27,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const folders = await readJSON('folders.json')
-    const access = checkDashboardAccess(dashboard, accessResult.user, folders as any[])
+    const folders = await readJSON<Folder>('folders.json')
+    const access = checkDashboardAccess(dashboard, accessResult.user, folders)
     if (!access.allowed) {
       return sendForbidden(event, access.reason)
     }
@@ -35,7 +36,7 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: {
-        embedUrl: (dashboard as any).lookerEmbedUrl || null,
+        embedUrl: dashboard.lookerEmbedUrl || null,
       },
     }
   } catch (error: unknown) {

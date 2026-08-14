@@ -1,9 +1,10 @@
 import { readJSON } from '../../utils/jsonDatabase'
+import type { AdminGroup } from '~/types/admin'
 
 export default defineEventHandler(async () => {
   try {
     console.log('[API] GET /api/mock/groups')
-    const groups = await readJSON('groups.json')
+    const groups = await readJSON<AdminGroup>('groups.json')
     return {
       success: true,
       data: groups,

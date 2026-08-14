@@ -1,9 +1,10 @@
 import { readJSON } from '../../utils/jsonDatabase'
+import type { Region } from '~/types/admin'
 
 export default defineEventHandler(async () => {
   try {
     console.log('[API] GET /api/mock/regions')
-    const regions = await readJSON('regions.json')
+    const regions = await readJSON<Region>('regions.json')
     return {
       success: true,
       data: regions,
