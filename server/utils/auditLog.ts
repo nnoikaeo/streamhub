@@ -1,26 +1,14 @@
 import { readJSON, writeJSON } from './jsonDatabase'
+import type { AuditEntry, AuditLevel } from '#shared/types/audit'
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-export type AuditAction = 'view' | 'edit' | 'archive' | 'create' | 'delete' | 'denied'
-export type AuditLevel = 'CRITICAL' | 'IMPORTANT' | 'NORMAL'
-
-export interface AuditEntry {
-  id: string
-  action: AuditAction
-  level: AuditLevel
-  userId: string
-  userName: string
-  userEmail: string
-  company: string
-  dashboardId: string
-  dashboardName: string
-  metadata?: Record<string, unknown>
-  userAgent?: string
-  timestamp: string
-}
+// Definitions live in shared/types/audit.ts so `/admin/audit` reads the same
+// shape this file writes. Re-exported because the audit route handlers import
+// AuditAction from here.
+export type { AuditAction, AuditLevel, AuditEntry, AuditSummary } from '#shared/types/audit'
 
 /** Legacy entry format (invitation events from previous phases) */
 interface LegacyAuditEntry {
@@ -127,24 +115,42 @@ export async function listAuditLogFiles(): Promise<string[]> {
  *  - New format (logAuditEvent): userName/userEmail/dashboardName/action(lowercase)
  *  - Legacy invitation format (logActivity): performedBy/performedByEmail/target
  */
-function normalizeAuditDoc(id: string, data: any): AuditEntry {
+/** First string among the candidates, mirroring the `??` chain this replaced. */
+function firstString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === 'string') return value
+  }
+  return ''
+}
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return typeof value === 'object' && value !== null
+    ? (value as Record<string, unknown>)
+    : undefined
+}
+
+function normalizeAuditDoc(id: string, data: Record<string, unknown>): AuditEntry {
   // Legacy invitation docs store the actor's uid in `performedBy` and a
   // human label (name, sometimes an email) in `performedByEmail`; there is
   // no separate actor-email field. Map the label to userName and leave
   // userEmail blank rather than surfacing the raw uid.
+  const metadata = asRecord(data.metadata)
+  const level = data.level
   return {
     id,
-    action: data.action ?? '',
-    level: data.level ?? 'NORMAL',
-    userId: data.userId ?? data.performedBy ?? '',
-    userName: data.userName ?? data.performedByEmail ?? '',
-    userEmail: data.userEmail ?? '',
-    company: data.company ?? data.metadata?.company ?? '',
-    dashboardId: data.dashboardId ?? '',
-    dashboardName: data.dashboardName ?? data.target ?? '',
-    metadata: data.metadata,
-    userAgent: data.userAgent,
-    timestamp: data.timestamp ?? new Date(0).toISOString(),
+    action: firstString(data.action),
+    // Anything outside the union is stored data we cannot honour, so it reads
+    // as NORMAL rather than being passed through as a lie.
+    level: level === 'CRITICAL' || level === 'IMPORTANT' ? level : ('NORMAL' satisfies AuditLevel),
+    userId: firstString(data.userId, data.performedBy),
+    userName: firstString(data.userName, data.performedByEmail),
+    userEmail: firstString(data.userEmail),
+    company: firstString(data.company, metadata?.company),
+    dashboardId: firstString(data.dashboardId),
+    dashboardName: firstString(data.dashboardName, data.target),
+    metadata,
+    userAgent: typeof data.userAgent === 'string' ? data.userAgent : undefined,
+    timestamp: typeof data.timestamp === 'string' ? data.timestamp : new Date(0).toISOString(),
   }
 }
 

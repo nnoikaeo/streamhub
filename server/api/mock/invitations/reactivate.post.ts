@@ -1,16 +1,6 @@
 import { readJSON, writeJSON } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
-
-interface UserRecord {
-  uid: string
-  email: string
-  name: string
-  role: string
-  company: string
-  groups: string[]
-  isActive: boolean
-  [key: string]: any
-}
+import type { StoredUser } from '~/types/invitation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -26,7 +16,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const users = await readJSON<UserRecord>('users.json')
+    const users = await readJSON<StoredUser>('users.json')
     const userIndex = users.findIndex(u => u.email === email && !u.isActive)
 
     if (userIndex === -1) {
@@ -38,7 +28,7 @@ export default defineEventHandler(async (event) => {
 
     const now = new Date().toISOString()
     const user = users[userIndex]!
-    const updatedUser: UserRecord = {
+    const updatedUser: StoredUser = {
       ...user,
       isActive: true,
       role: role || user.role,

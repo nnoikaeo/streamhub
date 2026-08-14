@@ -7,6 +7,7 @@ import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminGroups } from '~/composables/useAdminGroups'
 import { useAuthStore } from '~/stores/auth'
 import { useAuth } from '~/composables/useAuth'
+import type { InvitationCreateResponse } from '~/types/invitation'
 
 const props = defineProps<{
   modelValue: boolean
@@ -123,29 +124,18 @@ async function handleSubmit() {
     }
 
     const headers = await getAuthHeaders()
-    const res = await $fetch<{
-      success: boolean
-      action?: string
-      existingUser?: Record<string, unknown>
-      data?: { invitationCode: string }
-      message?: string
-    }>(apiBase, { method: 'POST', body: payload, headers })
+    const res = await $fetch<InvitationCreateResponse>(apiBase, { method: 'POST', body: payload, headers })
 
-    if (res.action === 'user_exists_inactive') {
-      existingInactiveUser.value = res.existingUser ?? null
+    if (!res.success && 'action' in res && res.action === 'user_exists_inactive') {
+      existingInactiveUser.value = res.existingUser
       showReactivateDialog.value = true
-    } else if (res.success && res.data?.invitationCode) {
+    } else if (res.success) {
       successCode.value = res.data.invitationCode
       emit('invited')
-    } else if (!res.success) {
-      const apiErr = (res as any).error as string | undefined
-      if (apiErr === 'User already active') {
-        error.value = 'ผู้ใช้ email นี้มีบัญชีในระบบอยู่แล้ว'
-      } else {
-        error.value = res.message ?? apiErr ?? 'เกิดข้อผิดพลาด'
-      }
+    } else if (res.error === 'User already active') {
+      error.value = 'ผู้ใช้ email นี้มีบัญชีในระบบอยู่แล้ว'
     } else {
-      error.value = res.message ?? 'เกิดข้อผิดพลาด'
+      error.value = 'เกิดข้อผิดพลาด'
     }
   } catch (e: unknown) {
     error.value = (e as { data?: { message?: string } })?.data?.message ?? 'เกิดข้อผิดพลาด'

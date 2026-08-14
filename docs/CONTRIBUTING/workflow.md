@@ -73,7 +73,7 @@ npm run dev
 
 # In another terminal
 npm test                                          # must be green (baseline 220)
-npx eslint .                                      # 85 pre-existing (all no-explicit-any) — compare the count
+npx eslint .                                      # 57 pre-existing (all no-explicit-any) — compare the count
 npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json   # must be 0; NOT -p tsconfig.json (checks nothing)
 npx vue-tsc --noEmit -p tests/tsconfig.json       # must be 0; no .nuxt project covers tests/
 ```

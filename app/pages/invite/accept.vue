@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import logoImage from '../../../assets/images/logo.png'
+import type { InvitationAcceptResponse, InvitationVerifyData, InvitationVerifyResponse } from '~/types/invitation'
 
 definePageMeta({
   layout: false,
@@ -13,7 +14,7 @@ const { apiBase: getApiBase } = useServiceMode()
 const apiBase = getApiBase('invitations')
 
 const authStore = useAuthStore()
-const invitation = ref<any>(null)
+const invitation = ref<InvitationVerifyData | null>(null)
 const errorMessage = ref('')
 const status = ref<'loading' | 'valid' | 'invalid' | 'expired' | 'cancelled' | 'already_accepted' | 'email_mismatch' | 'processing' | 'success' | 'error'>('loading')
 
@@ -26,7 +27,7 @@ const verifyInvitation = async () => {
   }
 
   try {
-    const response = await $fetch<any>(`${apiBase}/verify`, {
+    const response = await $fetch<InvitationVerifyResponse>(`${apiBase}/verify`, {
       query: { code }
     })
 
@@ -70,7 +71,7 @@ const handleAccept = async () => {
   status.value = 'processing'
 
   try {
-    const response = await $fetch<any>(`${apiBase}/accept`, {
+    const response = await $fetch<InvitationAcceptResponse>(`${apiBase}/accept`, {
       method: 'POST',
       body: {
         invitationCode: code,
@@ -88,8 +89,10 @@ const handleAccept = async () => {
         email: authStore.user!.email,
         displayName: authStore.user!.displayName,
         photoURL: authStore.user!.photoURL,
-        role: invitation.value.role,
-        company: invitation.value.company
+        // Read from the accept response rather than the earlier verify payload:
+        // it is authoritative, and useAuth's auto-accept path already does this.
+        role: response.data.user.role,
+        company: response.data.user.company
       })
       authStore.setAuthError(null)
       status.value = 'success'

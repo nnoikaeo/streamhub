@@ -2,14 +2,7 @@ import { getAdminDb } from '../../utils/firestoreAdmin'
 import { logActivity } from '../../utils/auditLog'
 import { sendInvitationEmail } from '../../utils/emailService'
 import { normalizeBulkItems } from '../../utils/bulkInvite'
-import type { Invitation } from '~/types/invitation'
-
-interface UserRecord {
-  uid: string
-  email: string
-  isActive: boolean
-  [key: string]: any
-}
+import type { Invitation, StoredUser } from '~/types/invitation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -47,7 +40,7 @@ export default defineEventHandler(async (event) => {
     ])
 
     const allInvitations = allInvSnap.docs.map(d => ({ ...d.data(), id: d.id }) as Invitation)
-    const allUsers = allUsersSnap.docs.map(d => ({ ...d.data(), id: d.id }) as unknown as UserRecord)
+    const allUsers = allUsersSnap.docs.map(d => ({ ...d.data(), id: d.id }) as unknown as StoredUser)
 
     const created: Invitation[] = []
     const skipped: { email: string; reason: string }[] = []

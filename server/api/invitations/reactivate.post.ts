@@ -1,16 +1,6 @@
 import { getAdminDb, fsQuery } from '../../utils/firestoreAdmin'
 import { logActivity } from '../../utils/auditLog'
-
-interface UserRecord {
-  uid: string
-  email: string
-  name: string
-  role: string
-  company: string
-  groups: string[]
-  isActive: boolean
-  [key: string]: any
-}
+import type { StoredUser } from '~/types/invitation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -31,7 +21,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 503, message: 'Firestore not available' })
     }
 
-    const users = await fsQuery<UserRecord>(db, 'users', 'email', email)
+    const users = await fsQuery<StoredUser>(db, 'users', 'email', email)
     const inactiveUser = users.find(u => !u.isActive)
 
     if (!inactiveUser) {
@@ -42,7 +32,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const now = new Date().toISOString()
-    const updates: Partial<UserRecord> = {
+    const updates: Partial<StoredUser> = {
       isActive: true,
       role: role || inactiveUser.role,
       company: company || inactiveUser.company,
@@ -52,7 +42,7 @@ export default defineEventHandler(async (event) => {
 
     await db.collection('users').doc(inactiveUser.uid).update(updates)
 
-    const updatedUser: UserRecord = { ...inactiveUser, ...updates }
+    const updatedUser: StoredUser = { ...inactiveUser, ...updates }
 
     // Audit log
     await logActivity({
