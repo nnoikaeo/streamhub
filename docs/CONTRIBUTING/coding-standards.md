@@ -534,19 +534,16 @@ npm run build                                     # Test build
 
 `npm test`, `npm run build` and both typechecks are all expected to come back clean. Only lint still carries a backlog:
 
-| Check | Baseline (2026-08-14, PR #359) |
+| Check | Baseline (2026-08-14, PR #361) |
 |-------|--------------------------------|
-| `npx eslint .` | 85 problems — every one `@typescript-eslint/no-explicit-any` |
+| `npx eslint .` | 57 problems — every one `@typescript-eslint/no-explicit-any` |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 0 errors |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 errors |
 | `npm test` | 220 passing |
 
 Any typecheck error, and any lint violation of a rule **other than `no-explicit-any`**, was introduced by your change. For `no-explicit-any` itself, compare the count before and after (`git stash`, re-run, `git stash pop`) or scope the run to the files you touched.
 
-The remaining 85 sit at 56 in `app/`, 28 in `server/`, 1 in `scripts/`; `tests/` is clean. Two groups are left, both needing types written rather than renamed:
-
-1. **Invitation and audit API responses** (~16) — `$fetch<any>` in `useAdminInvitations`, `invite/accept.vue`, `useAuth` and `audit.vue`. The response types do not exist yet; writing them means matching seven server handlers exactly, and a wrong shape fails silently at runtime rather than at the type level.
-2. **The permission path** (~50) — `companyAccess.ts` still exposes `filterAccessibleDashboards(dashboards: any[], user: any, folders: any[])` and `checkDashboardAccess(dashboard: any, user: any, …)`, plus `useDashboardService` and `useFirestoreService`. Highest regression risk; do it last and on its own.
+The remaining 57 sit at 37 in `app/`, 19 in `server/`, 1 in `scripts/`; `tests/` is clean. What is left is almost entirely **the permission path** — `server/utils/companyAccess.ts` (17) still exposes `filterAccessibleDashboards(dashboards: any[], user: any, folders: any[])` and `checkDashboardAccess(dashboard: any, user: any, …)`, with `useDashboardService` (14), `useFirestoreService` (5) and `useJSONMockService` (4) behind it. Highest regression risk of anything remaining; do it on its own, and read [Roles & Permissions](../GUIDES/roles-and-permissions.md) first.
 
 One deliberate skip: `app/stores/dashboard.ts:73,81` casts to read `.company` off a `Dashboard` and a `Folder`. Neither type declares the field, so the cast hides a real gap between the type model and what Firestore stores — closing it is a modelling decision, not a rename.
 

@@ -2,6 +2,7 @@ import { signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from
 import { getDoc, doc } from 'firebase/firestore'
 import { useAuthStore, type UserData } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
+import type { InvitationAcceptResponse, InvitationCheckResponse } from '~/types/invitation'
 
 /** The fields the auth flow reads off a stored user profile. */
 interface UserProfile {
@@ -69,12 +70,12 @@ export const useAuth = () => {
 
         try {
           const invApiBase = useFirestoreMode ? '/api/invitations' : '/api/mock/invitations'
-          const invResponse = await $fetch<any>(`${invApiBase}/check`, {
+          const invResponse = await $fetch<InvitationCheckResponse>(`${invApiBase}/check`, {
             query: { email: userCredential.user.email }
           })
 
           if (invResponse.found && invResponse.data?.status === 'pending') {
-            const acceptResponse = await $fetch<any>(`${invApiBase}/accept`, {
+            const acceptResponse = await $fetch<InvitationAcceptResponse>(`${invApiBase}/accept`, {
               method: 'POST',
               body: {
                 invitationCode: invResponse.data.invitationCode,

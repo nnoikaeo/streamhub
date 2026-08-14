@@ -1,18 +1,6 @@
 import { readJSON, updateItem, createItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
-import type { Invitation } from '~/types/invitation'
-
-interface UserRecord {
-  uid: string
-  email: string
-  name: string
-  role: string
-  company: string
-  groups: string[]
-  isActive: boolean
-  assignedFolders?: string[]
-  [key: string]: any
-}
+import type { Invitation, StoredUser } from '~/types/invitation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -61,7 +49,7 @@ export default defineEventHandler(async (event) => {
     })
 
     // Create new user in users.json
-    const newUser: UserRecord = {
+    const newUser: StoredUser = {
       uid,
       email,
       name: displayName,

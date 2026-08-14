@@ -1,14 +1,7 @@
 import { readJSON, createItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
 import { sendInvitationEmail } from '../../../utils/emailService'
-import type { Invitation } from '~/types/invitation'
-
-interface UserRecord {
-  uid: string
-  email: string
-  isActive: boolean
-  [key: string]: any
-}
+import type { Invitation, StoredUser } from '~/types/invitation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -23,7 +16,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Pre-check: Check users.json for existing user with this email
-    const users = await readJSON<UserRecord>('users.json')
+    const users = await readJSON<StoredUser>('users.json')
     const existingUser = users.find(u => u.email === body.email)
 
     if (existingUser) {

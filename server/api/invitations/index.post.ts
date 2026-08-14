@@ -1,14 +1,7 @@
 import { getAdminDb, fsQuery } from '../../utils/firestoreAdmin'
 import { logActivity } from '../../utils/auditLog'
 import { sendInvitationEmail } from '../../utils/emailService'
-import type { Invitation } from '~/types/invitation'
-
-interface UserRecord {
-  uid: string
-  email: string
-  isActive: boolean
-  [key: string]: any
-}
+import type { Invitation, StoredUser } from '~/types/invitation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -28,7 +21,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Pre-check: Check users collection for existing user with this email
-    const existingUsers = await fsQuery<UserRecord>(db, 'users', 'email', body.email)
+    const existingUsers = await fsQuery<StoredUser>(db, 'users', 'email', body.email)
     const existingUser = existingUsers[0]
 
     if (existingUser) {

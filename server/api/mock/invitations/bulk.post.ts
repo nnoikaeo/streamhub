@@ -2,14 +2,7 @@ import { readJSON, createItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
 import { sendInvitationEmail } from '../../../utils/emailService'
 import { normalizeBulkItems } from '../../../utils/bulkInvite'
-import type { Invitation } from '~/types/invitation'
-
-interface UserRecord {
-  uid: string
-  email: string
-  isActive: boolean
-  [key: string]: any
-}
+import type { Invitation, StoredUser } from '~/types/invitation'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -35,7 +28,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const invitations = await readJSON<Invitation>('invitations.json')
-    const users = await readJSON<UserRecord>('users.json')
+    const users = await readJSON<StoredUser>('users.json')
 
     const created: Invitation[] = []
     const skipped: { email: string; reason: string }[] = []

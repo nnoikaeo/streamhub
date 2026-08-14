@@ -20,6 +20,7 @@ import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.v
 import { useAuth } from '~/composables/useAuth'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
+import type { AuditListResponse, AuditSummary, AuditSummaryResponse } from '#shared/types/audit'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 const { companies, fetchCompanies } = useAdminCompanies()
@@ -34,33 +35,15 @@ definePageMeta({
 // TYPES
 // ============================================================================
 
-interface AuditEntry {
-  id: string
-  action: string
-  level: string
-  userId: string
-  userName: string
-  userEmail: string
-  company: string
-  dashboardId: string
-  dashboardName: string
-  userAgent?: string
-  timestamp: string
-}
-
-interface Summary {
-  today: number
-  thisWeek: number
-  thisMonth: number
-  uniqueUsers: number
-}
+// AuditEntry / AuditSummary live in shared/types/audit.ts — the same
+// definitions server/utils/auditLog.ts writes against.
 
 // ============================================================================
 // STATE
 // ============================================================================
 
 const logs = ref<AuditEntry[]>([])
-const summary = ref<Summary>({ today: 0, thisWeek: 0, thisMonth: 0, uniqueUsers: 0 })
+const summary = ref<AuditSummary>({ today: 0, thisWeek: 0, thisMonth: 0, uniqueUsers: 0 })
 const isLoading = ref(false)
 const totalItems = ref(0)
 const currentPage = ref(1)
@@ -117,19 +100,27 @@ const actionIcon = (action: string): string => {
 // API HELPERS
 // ============================================================================
 
-async function fetchWithAuth(url: string, options: any = {}) {
+interface FetchOptions {
+  headers?: Record<string, string>
+  query?: Record<string, unknown>
+}
+
+/** Adds the bearer token and the caller's uid, which the audit route requires. */
+async function fetchWithAuth<T>(url: string, options: FetchOptions = {}): Promise<T> {
   const { getIdToken } = useAuth()
   const token = await getIdToken()
   const headers: Record<string, string> = { ...options.headers }
   if (token) headers.Authorization = `Bearer ${token}`
 
   const authStore = useAuthStore()
-  const query = { ...options.query }
+  const query: Record<string, unknown> = { ...options.query }
   if (authStore.user?.uid) {
     query.uid = authStore.user.uid
   }
 
-  return await $fetch(url, { ...options, headers, query })
+  // $fetch resolves to Nitro's TypedInternalResponse, which TS cannot prove
+  // equals T while T is still generic. The caller names the shape.
+  return await $fetch<T>(url, { ...options, headers, query }) as T
 }
 
 // ============================================================================
@@ -138,9 +129,9 @@ async function fetchWithAuth(url: string, options: any = {}) {
 
 const loadSummary = async () => {
   try {
-    const data = await fetchWithAuth('/api/audit', {
+    const data = await fetchWithAuth<AuditSummaryResponse>('/api/audit', {
       query: { summary: 'true' },
-    }) as any
+    })
     summary.value = {
       today: data.today,
       thisWeek: data.thisWeek,
@@ -165,7 +156,7 @@ const loadLogs = async () => {
     if (filterDateTo.value) query.dateTo = filterDateTo.value
     if (filterSearch.value) query.search = filterSearch.value
 
-    const data = await fetchWithAuth('/api/audit', { query }) as any
+    const data = await fetchWithAuth<AuditListResponse>('/api/audit', { query })
 
     logs.value = data.items
     totalItems.value = data.total
