@@ -307,7 +307,7 @@
  * After (Strategy 4): ~50 lines of pure presentation
  */
 
-import type { Folder, Dashboard, ViewMode, DisplayGroup  } from '~/types/dashboard'
+import type { Folder, Dashboard, ViewMode, DisplayGroup, User  } from '~/types/dashboard'
 import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
@@ -475,7 +475,7 @@ const isPrivilegedUser = computed(() => {
 })
 
 const userMap = computed(() => {
-  const map: Record<string, any> = {}
+  const map: Record<string, User> = {}
   for (const u of users.value) {
     map[u.uid] = u
   }

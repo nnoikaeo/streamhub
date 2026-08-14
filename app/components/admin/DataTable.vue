@@ -14,7 +14,7 @@ export interface Column {
   isGroupsColumn?: boolean
 }
 
-export interface Action<T extends Record<string, any> = Record<string, any>> {
+export interface Action<T extends object = Record<string, unknown>> {
   label: string
   icon?: string
   onClick: (item: T) => void

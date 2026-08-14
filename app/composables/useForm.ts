@@ -11,16 +11,16 @@ interface FormConfig<T> {
   validate?: (values: T) => Record<keyof T, string | undefined>
 }
 
-export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
+export function useForm<T extends object>(config: FormConfig<T>) {
   const formData = reactive({ ...config.initialValues }) as T
-  const errors = ref<Record<keyof T, string | undefined>>({} as any)
+  const errors = ref({} as Record<keyof T, string | undefined>)
   const loading = ref(false)
-  const touched = ref<Record<keyof T, boolean>>({} as any)
+  const touched = ref({} as Record<keyof T, boolean>)
 
   /**
    * Update form field value
    */
-  const setFieldValue = (field: keyof T, value: any) => {
+  const setFieldValue = <K extends keyof T>(field: K, value: T[K]) => {
     formData[field] = value
     // Clear error on field change
     if (errors.value[field]) {
@@ -62,8 +62,8 @@ export function useForm<T extends Record<string, any>>(config: FormConfig<T>) {
    */
   const resetForm = () => {
     Object.assign(formData, { ...config.initialValues })
-    errors.value = {} as any
-    touched.value = {} as any
+    errors.value = {} as Record<keyof T, string | undefined>
+    touched.value = {} as Record<keyof T, boolean>
   }
 
   /**

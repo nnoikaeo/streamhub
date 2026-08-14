@@ -70,7 +70,7 @@ const COLLECTIONS: Record<string, { file: string; idField: string }> = {
 // ============================================================================
 
 /** Convert ISO date strings in a document to Firestore Timestamps */
-function convertDatesToTimestamps(obj: Record<string, any>): Record<string, any> {
+function convertDatesToTimestamps(obj: Record<string, unknown>): Record<string, unknown> {
   const result = { ...obj }
   const dateFields = [
     'createdAt', 'updatedAt', 'lastLogin', 'expiresAt',
@@ -83,7 +83,7 @@ function convertDatesToTimestamps(obj: Record<string, any>): Record<string, any>
       result[key] = Timestamp.fromDate(new Date(value))
     } else if (key === 'expiry' && value && typeof value === 'object') {
       // Convert expiry map values to Timestamps
-      const expiryMap: Record<string, any> = {}
+      const expiryMap: Record<string, unknown> = {}
       for (const [uid, dateStr] of Object.entries(value)) {
         if (typeof dateStr === 'string') {
           expiryMap[uid] = Timestamp.fromDate(new Date(dateStr))

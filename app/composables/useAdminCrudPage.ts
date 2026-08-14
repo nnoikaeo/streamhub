@@ -44,7 +44,7 @@ interface CrudPageConfig<T, K extends string | number = string> {
   resourceLabel?: string
 }
 
-export function useAdminCrudPage<T extends Record<string, any>, K extends string | number = string>(config: CrudPageConfig<T, K>) {
+export function useAdminCrudPage<T extends object, K extends string | number = string>(config: CrudPageConfig<T, K>) {
   const { idKey, displayKey, createFn, updateFn, deleteFn, canDelete, onSaved, onDeleted, resourceLabel = 'รายการ' } = config
   const { showToast } = useAppToast()
 
@@ -85,7 +85,9 @@ export function useAdminCrudPage<T extends Record<string, any>, K extends string
     if (!itemToToggle.value) return
     const display = getDisplayVal(itemToToggle.value)
     try {
-      const newStatus = !(itemToToggle.value as any).isActive
+      // Not every resource carries the flag — dashboards use isArchived — so it
+      // is read through a narrow shape rather than promised by the constraint.
+      const newStatus = !(itemToToggle.value as { isActive?: boolean }).isActive
       await updateFn(getId(itemToToggle.value), { isActive: newStatus } as unknown as Partial<T>)
       showToggleDialog.value = false
       itemToToggle.value = null

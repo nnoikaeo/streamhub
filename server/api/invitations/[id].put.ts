@@ -29,26 +29,33 @@ export default defineEventHandler(async (event) => {
     console.log('[API] Existing invitation:', { id: existing.id, email: existing.email, status: existing.status })
 
     const { resend: isResendFlag, performedBy, performedByEmail, ...bodyUpdates } = body
-    const updates: Record<string, any> = { ...bodyUpdates }
+    const updates: Record<string, unknown> = { ...bodyUpdates }
     let emailSent = false
     const isResend = isResendFlag === true
 
     // Handle resend: reset expiry + new invitation code + send email
     if (body.status === 'pending' && (existing.status !== 'pending' || isResend)) {
-      updates.invitationCode = crypto.randomUUID()
-      updates.expiresAt = updates.expiresAt || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+      // Hoisted out of the untyped `updates` bag: both values are read back
+      // below and handed to sendInvitationEmail, which wants strings.
+      const invitationCode = crypto.randomUUID()
+      const expiresAt = typeof bodyUpdates.expiresAt === 'string' && bodyUpdates.expiresAt
+        ? bodyUpdates.expiresAt
+        : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+
+      updates.invitationCode = invitationCode
+      updates.expiresAt = expiresAt
       updates.updatedAt = new Date().toISOString()
 
-      console.log('[API] 📨 Resend detected — new invitationCode:', updates.invitationCode)
+      console.log('[API] 📨 Resend detected — new invitationCode:', invitationCode)
 
       emailSent = await sendInvitationEmail({
         to: existing.email,
         inviterName: existing.invitedByName,
         role: existing.role,
         company: existing.company,
-        invitationCode: updates.invitationCode,
+        invitationCode,
         message: existing.message,
-        expiresAt: updates.expiresAt
+        expiresAt
       })
 
       console.log('[API] 📨 Email result:', emailSent ? '✅ Sent' : '❌ Failed/Skipped')
