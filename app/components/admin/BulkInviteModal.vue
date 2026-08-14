@@ -64,7 +64,7 @@ const results = ref<{
 } | null>(null)
 
 // Dropdown data (sourced from composable that handles Firestore/JSON mode automatically)
-const groups = computed(() => (allGroups.value ?? []).filter((g: any) => g.isActive !== false))
+const groups = computed(() => (allGroups.value ?? []).filter(g => g.isActive !== false))
 
 const canAdd = computed(() => {
   const e = form.value.email.trim()

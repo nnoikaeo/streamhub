@@ -11,7 +11,7 @@ export function useAdminInvitations() {
     displayKey: 'email',
     idPrefix: 'inv_',
     defaults: {
-      status: 'pending' as any,
+      status: 'pending',
       assignedFolders: [],
       assignedGroups: []
     }

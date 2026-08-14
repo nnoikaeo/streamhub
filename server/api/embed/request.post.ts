@@ -4,6 +4,7 @@ import { checkDashboardAccess, validateCompanyAccess } from '../../utils/company
 import { createToken } from '../../utils/embedTokenStore'
 import { sendForbidden, sendUnauthorized } from '../../utils/apiResponse'
 import { isFirestoreMode, getAdminDb, fsReadAll } from '../../utils/firestoreAdmin'
+import type { User, Dashboard, Folder } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -19,9 +20,9 @@ export default defineEventHandler(async (event) => {
     return sendUnauthorized(event, 'Authentication required')
   }
 
-  let user: any
-  let dashboard: any
-  let folders: any[]
+  let user: User | null
+  let dashboard: Dashboard | null
+  let folders: Folder[]
 
   if (isFirestoreMode()) {
     // --- Firestore path ---
@@ -32,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
     // Fetch user
     const userDoc = await db.collection('users').doc(uid).get()
-    user = userDoc.exists ? { ...userDoc.data(), uid: userDoc.id } : null
+    user = userDoc.exists ? ({ ...userDoc.data(), uid: userDoc.id } as User) : null
     if (!user) {
       return sendForbidden(event, 'User not found')
     }
@@ -42,10 +43,10 @@ export default defineEventHandler(async (event) => {
 
     // Fetch dashboard
     const dashDoc = await db.collection('dashboards').doc(dashboardId).get()
-    dashboard = dashDoc.exists ? { ...dashDoc.data(), id: dashDoc.id } : null
+    dashboard = dashDoc.exists ? ({ ...dashDoc.data(), id: dashDoc.id } as Dashboard) : null
 
     // Fetch folders for permission inheritance
-    folders = await fsReadAll(db, 'folders')
+    folders = await fsReadAll<Folder>(db, 'folders')
   } else {
     // --- JSON path ---
     const accessResult = await validateCompanyAccess(event)
@@ -53,8 +54,8 @@ export default defineEventHandler(async (event) => {
       return sendForbidden(event, accessResult.reason)
     }
     user = accessResult.user
-    dashboard = await findById('dashboards.json', dashboardId)
-    folders = await readJSON('folders.json')
+    dashboard = await findById<Dashboard>('dashboards.json', dashboardId)
+    folders = await readJSON<Folder>('folders.json')
   }
 
   if (!dashboard) {

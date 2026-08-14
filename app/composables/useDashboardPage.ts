@@ -139,7 +139,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       }
 
       const uid = user.value.uid
-      const company = (user.value as any).company || 'default'
+      const company = user.value.company || 'default'
 
       // Check cache
       if (dashboardStore.isFoldersCacheValid(uid, company)) {
@@ -189,7 +189,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       }
 
       const uid = user.value.uid
-      const company = (user.value as any).company || 'default'
+      const company = user.value.company || 'default'
       const folderId = selectedFolderId.value || 'root' // Use 'root' as cache key when no folder selected
 
       // Check cache
@@ -403,7 +403,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
       }
 
       const uid = user.value.uid
-      const company = (user.value as any).company || 'default'
+      const company = user.value.company || 'default'
       log('initialize: User authenticated', { uid, company })
 
       // Check if folder is specified in query params

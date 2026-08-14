@@ -1,4 +1,5 @@
 import { findById } from '../../../utils/jsonDatabase'
+import type { User } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -13,7 +14,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const user = await findById('users.json', uid)
+    const user = await findById<User>('users.json', uid)
 
     if (!user) {
       throw createError({
@@ -25,9 +26,9 @@ export default defineEventHandler(async (event) => {
     // Use verified auth context (from middleware) first, fallback to query param
     const requesterUid = event.context.auth?.uid || (query.requester as string)
     if (requesterUid) {
-      const requester = await findById('users.json', requesterUid)
-      if (requester && (requester as any).role !== 'admin') {
-        if ((requester as any).company !== (user as any).company) {
+      const requester = await findById<User>('users.json', requesterUid)
+      if (requester && requester.role !== 'admin') {
+        if (requester.company !== user.company) {
           return sendForbidden(event, 'Cannot access user from different company')
         }
       }

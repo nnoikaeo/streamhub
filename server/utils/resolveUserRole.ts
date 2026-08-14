@@ -16,7 +16,9 @@ export async function resolveUser(uid: string): Promise<User | null> {
       if (!db) return null
       const doc = await db.collection('users').doc(uid).get()
       if (!doc.exists) return null
-      return { id: doc.id, ...(doc.data() as any) } as User
+      // Firestore documents are untyped at read time; Partial<User> at least
+      // constrains the fields this spread can contribute.
+      return { id: doc.id, ...(doc.data() as Partial<User>) } as User
     } catch {
       return null
     }

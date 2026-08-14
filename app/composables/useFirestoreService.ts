@@ -71,7 +71,7 @@ export class FirestoreService implements IDashboardService {
 
   constructor() {
     const { $firebase } = useNuxtApp()
-    this.db = ($firebase as any).db
+    this.db = $firebase.db
   }
 
   private log(label: string, data?: unknown) {

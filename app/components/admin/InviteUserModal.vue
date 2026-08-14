@@ -54,8 +54,8 @@ const showReactivateDialog = ref(false)
 const existingInactiveUser = ref<Record<string, unknown> | null>(null)
 
 // Data for selects (sourced from composables that handle Firestore/JSON mode automatically)
-const folders = computed(() => (allFolders.value ?? []).filter((f: any) => f.isActive !== false))
-const groups = computed(() => (allGroups.value ?? []).filter((g: any) => g.isActive !== false))
+const folders = computed(() => (allFolders.value ?? []).filter(f => f.isActive !== false))
+const groups = computed(() => (allGroups.value ?? []).filter(g => g.isActive !== false))
 
 const copied = ref(false)
 
@@ -161,10 +161,11 @@ async function handleReactivate() {
 
   try {
     const headers = await getAuthHeaders()
+    const existingEmail = existingInactiveUser.value?.email
     await $fetch(`${apiBase}/reactivate`, {
       method: 'POST',
       body: {
-        email: (existingInactiveUser.value as any).email ?? form.value.email.trim(),
+        email: typeof existingEmail === 'string' ? existingEmail : form.value.email.trim(),
         role: form.value.role,
         company: form.value.company,
         groups: form.value.assignedGroups.length ? form.value.assignedGroups : undefined,
