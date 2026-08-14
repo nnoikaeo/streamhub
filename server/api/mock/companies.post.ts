@@ -1,4 +1,5 @@
 import { readJSON, createItem, updateItem } from '../../utils/jsonDatabase'
+import type { Company } from '~/types/admin'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -16,8 +17,8 @@ export default defineEventHandler(async (event) => {
     const identifier = body.code || body.id
 
     // Check if it's create or update
-    const companies = await readJSON('companies.json')
-    const existingCompany = companies.find((c: any) => c.code === identifier || c.id === identifier)
+    const companies = await readJSON<Company>('companies.json')
+    const existingCompany = companies.find((c) => c.code === identifier || (c as { id?: string }).id === identifier)
 
     if (existingCompany) {
       // Update existing company

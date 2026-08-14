@@ -1,9 +1,10 @@
 import { readJSON } from '../../../utils/jsonDatabase'
+import type { Tag } from '~/types/tag'
 
 export default defineEventHandler(async () => {
   try {
     console.log('[API] GET /api/mock/tags')
-    const tags = await readJSON('tags.json')
+    const tags = await readJSON<Tag>('tags.json')
     return {
       success: true,
       data: tags,

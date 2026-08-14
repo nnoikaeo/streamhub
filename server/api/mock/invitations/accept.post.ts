@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
 
     // Security Check 3 — Server-side Expiry
     if (new Date(invitation.expiresAt) <= new Date()) {
-      await updateItem('invitations.json', invitation.id, { status: 'expired' as any })
+      await updateItem<Invitation>('invitations.json', invitation.id, { status: 'expired' })
       return { success: false, error: 'Expired', message: 'This invitation has expired' }
     }
 

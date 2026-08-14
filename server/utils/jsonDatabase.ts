@@ -24,8 +24,24 @@ const DATA_DIR = resolve(process.cwd(), '.data')
 const TTL = process.env.NODE_ENV === 'production' ? 300_000 : 30_000
 
 interface CacheEntry {
-  data: any[]
+  data: unknown[]
   expiresAt: number
+}
+
+/**
+ * What every record in the JSON store has in common: one of the three id fields
+ * the lookups check, plus the timestamps createItem/updateItem maintain.
+ *
+ * The timestamps are `unknown` rather than `string` because the domain types
+ * (User, Dashboard, …) declare them as Date — the store holds ISO strings and
+ * the client hydrates them — and both shapes have to satisfy this constraint.
+ */
+export interface JsonRecord {
+  id?: string
+  uid?: string
+  code?: string
+  createdAt?: unknown
+  updatedAt?: unknown
 }
 
 const readCache = new Map<string, CacheEntry>()
@@ -119,7 +135,7 @@ export async function writeJSON<T>(filename: string, data: T[]): Promise<void> {
  * @param id - ID to search for (checks 'id' or 'uid' field)
  * @returns Item if found, null otherwise
  */
-export async function findById<T extends Record<string, any>>(
+export async function findById<T extends JsonRecord>(
   filename: string,
   id: string
 ): Promise<T | null> {
@@ -144,7 +160,7 @@ export async function findById<T extends Record<string, any>>(
  * @param filter - Function to filter items
  * @returns Array of matching items
  */
-export async function findMany<T extends Record<string, any>>(
+export async function findMany<T extends JsonRecord>(
   filename: string,
   filter: (item: T) => boolean
 ): Promise<T[]> {
@@ -164,7 +180,7 @@ export async function findMany<T extends Record<string, any>>(
  * @returns The created item
  * @throws Error if item already exists or write fails
  */
-export async function createItem<T extends Record<string, any>>(
+export async function createItem<T extends JsonRecord>(
   filename: string,
   item: T
 ): Promise<T> {
@@ -210,7 +226,7 @@ export async function createItem<T extends Record<string, any>>(
  * @returns Updated item, or null if not found
  * @throws Error if update fails
  */
-export async function updateItem<T extends Record<string, any>>(
+export async function updateItem<T extends JsonRecord>(
   filename: string,
   id: string,
   updates: Partial<T>
@@ -260,10 +276,10 @@ export async function deleteItem(
   id: string
 ): Promise<boolean> {
   try {
-    const items = await readJSON(filename)
+    const items = await readJSON<JsonRecord>(filename)
 
     const originalLength = items.length
-    const filtered = items.filter((item: any) => {
+    const filtered = items.filter((item) => {
       return item.id !== id && item.uid !== id && item.code !== id
     })
 

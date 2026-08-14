@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import { getQuery } from 'h3'
 import { findById } from './jsonDatabase'
+import type { User } from '~/types/dashboard'
 
 interface CompanyAccessResult {
   allowed: boolean
@@ -29,7 +30,7 @@ export async function validateCompanyAccess(
   }
 
   // 2. ค้นหา user จาก users.json
-  const user = await findById('users.json', uid)
+  const user = await findById<User>('users.json', uid)
   if (!user) {
     return { allowed: false, user: null, reason: 'User not found' }
   }

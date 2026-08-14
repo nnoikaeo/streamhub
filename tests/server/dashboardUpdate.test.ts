@@ -68,6 +68,8 @@ const auditUser = {
     updatedAt: '2026-01-01T00:00:00.000Z',
 }
 
+const archivedDashboard = { ...existingDashboard, isArchived: true }
+
 describe('PUT /api/mock/dashboards/:id', () => {
     beforeEach(() => {
         vi.clearAllMocks()
@@ -126,9 +128,9 @@ describe('PUT /api/mock/dashboards/:id', () => {
         await handler(event)
 
         const updateCall = vi.mocked(updateItem).mock.calls[0]!
-        const updates = updateCall[2]
+        const updates = updateCall[2] as Record<string, unknown>
         // updatedAt should be a valid ISO date string
-        expect(new Date(updates.updatedAt).toISOString()).toBe(updates.updatedAt)
+        expect(new Date(String(updates.updatedAt)).toISOString()).toBe(updates.updatedAt)
     })
 
     it('should return 404 for non-existent dashboard', async () => {
@@ -166,7 +168,9 @@ describe('PUT /api/mock/dashboards/:id', () => {
         await handler(event)
 
         const updateCall = vi.mocked(updateItem).mock.calls[0]!
-        const updates = updateCall[2]
+        // The point of this test is which keys survive the whitelist, so the
+        // payload is read as a plain record rather than the resource's own type.
+        const updates = updateCall[2] as Record<string, unknown>
         // Whitelisted field should be present
         expect(updates.name).toBe('Valid')
         expect(updates.owner).toBe('hacker') // owner is allowed
@@ -205,7 +209,7 @@ describe('PUT /api/mock/dashboards/:id', () => {
             .mockResolvedValueOnce(existingDashboard)
             .mockResolvedValueOnce(auditUser)
 
-        vi.mocked(updateItem).mockResolvedValue({ ...existingDashboard, isArchived: true })
+        vi.mocked(updateItem).mockResolvedValue(archivedDashboard)
 
         await handler(event)
 

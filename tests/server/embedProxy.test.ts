@@ -50,6 +50,11 @@ interface MockEventOverrides {
   [key: string]: unknown
 }
 
+/** A stored dashboard row as the JSON store holds it. */
+function storedDashboard(lookerEmbedUrl: string) {
+  return { id: 'dash_001', lookerEmbedUrl }
+}
+
 function createMockEvent(overrides: MockEventOverrides = {}): H3Event {
   return {
     context: { auth: { uid: 'user_admin' }, ...overrides.context },
@@ -70,7 +75,7 @@ describe('POST /api/embed/request', () => {
     const event = createMockEvent()
     vi.mocked(readBody).mockResolvedValue({ dashboardId: 'dash_001' })
     vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: { uid: 'user_admin', role: 'admin' }, reason: 'Admin access' })
-    vi.mocked(findById).mockResolvedValue({ id: 'dash_001', lookerEmbedUrl: 'https://lookerstudio.google.com/embed/abc' })
+    vi.mocked(findById).mockResolvedValue(storedDashboard('https://lookerstudio.google.com/embed/abc'))
     vi.mocked(checkDashboardAccess).mockReturnValue({ allowed: true, reason: 'Admin access' })
     vi.mocked(createToken).mockReturnValue('test-uuid-token')
 
@@ -125,7 +130,7 @@ describe('POST /api/embed/request', () => {
     const event = createMockEvent()
     vi.mocked(readBody).mockResolvedValue({ dashboardId: 'dash_001' })
     vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: { uid: 'user1', role: 'user' }, reason: 'ok' })
-    vi.mocked(findById).mockResolvedValue({ id: 'dash_001', lookerEmbedUrl: 'https://example.com' })
+    vi.mocked(findById).mockResolvedValue(storedDashboard('https://example.com'))
     vi.mocked(checkDashboardAccess).mockReturnValue({ allowed: false, reason: 'No matching access rule' })
 
     const result = await requestHandler(event)
