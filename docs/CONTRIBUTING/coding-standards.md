@@ -265,6 +265,22 @@ const dashboards = await readJSON('dashboards.json')
 const filtered = (dashboards as any[]).filter((d: any) => …)
 ```
 
+**API responses: write the type against the handler, never `$fetch<any>`.** Read what the route actually returns — both routes, since `useServiceMode().apiBase()` picks between `server/api/**` and `server/api/mock/**` at runtime and the two are expected to match. Guessing here fails silently: the call site compiles, and the field is `undefined` in production.
+
+Failure branches in this codebase are **returned values**, not thrown errors — handlers throw only for unexpected faults, and rethrow anything already carrying a `statusCode`. So responses model as discriminated unions on `success`, which makes the call sites narrow instead of reaching for optional chaining:
+
+```typescript
+export type InvitationAcceptResponse =
+  | { success: false, error: string, message?: string }
+  | { success: true, data: { invitation: Invitation, user: StoredUser } }
+```
+
+Response types for the invitation API live in `app/types/invitation.ts`; audit lives in `shared/types/audit.ts` because the server writes the same shape the page reads.
+
+**Do not narrow a type past what the stored data honours.** `AuditEntry.action` stays `string` even though `logAuditEvent` only writes six values, because the same collection holds legacy invitation events written by `logActivity`. Two definitions of `AuditEntry` disagreed on exactly this, and the looser one was correct. When you widen for a reason like this, write the reason next to it.
+
+**One name per shape.** A stored-user shape was declared six times as a local `UserRecord` with `[key: string]: any`. If two files describe the same payload, that is one type in a shared location — and if the shape genuinely differs from an existing type, say why in the name: `StoredUser` is not `User` because `User` declares its timestamps as `Date` while both stores hold ISO strings.
+
 **Test doubles.** Build the real shape when it is cheap — firebase-admin's `App` is just `{ name, options }`. When the real type is a large SDK surface the code only probes for existence (`Auth`, `Firestore`, `H3Event`), keep the stub partial but assert it through `unknown`, never `any`, and comment what the code under test actually reads. Do not build a `Partial<T>` and cast it back to `T`.
 
 Hoisting a fixture into a named `const` or factory also sidesteps TypeScript's excess-property check, which only fires on object literals passed directly:

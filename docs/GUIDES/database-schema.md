@@ -181,6 +181,8 @@ Group (1) ──── access given to ────► (many) Dashboards
 }
 ```
 
+> ⚠️ **Timestamps are ISO strings on the wire.** `User` in `app/types/dashboard.ts` declares `createdAt`/`updatedAt` as `Date` — the hydrated client shape — while Firestore returns `Timestamp` and the JSON store holds ISO strings. Anything describing a row as it is written or returned uses `StoredUser` (`app/types/invitation.ts`), not `User`. `jsonDatabase`'s `JsonRecord` constraint types them as `unknown` for the same reason, so both shapes satisfy it.
+
 **Example Regular User:**
 ```json
 {
