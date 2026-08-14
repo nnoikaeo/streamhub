@@ -196,6 +196,8 @@ streamhub/
 │       └── jsonDatabase.ts          # .data/*.json CRUD (exports the JsonRecord constraint)
 │
 ├── 📁 shared/                       # Code auto-imported by BOTH app/ and server/
+│   ├── 📁 types/
+│   │   └── audit.ts                 # AuditEntry + /api/audit response shapes
 │   └── 📁 utils/
 │       └── errors.ts                # getErrorStatus / getErrorMessage / getErrorCode / toError
 │
@@ -252,8 +254,9 @@ Nuxt 4 auto-imports `shared/utils/*` and `shared/types/*` into **both** `app/` a
 | File | Purpose |
 |------|---------|
 | `utils/errors.ts` | Narrowing helpers for caught values — `getErrorStatus`, `getErrorMessage`, `getErrorDataMessage`, `getErrorCode`, `toError` |
+| `types/audit.ts` | `AuditAction`, `AuditLevel`, `AuditEntry`, `AuditSummary` and the two `/api/audit` response shapes |
 
-⚠️ Anything added here must also be registered as a global in `tests/setup.ts`. Plain Vitest does not run Nuxt's auto-import, so server-handler tests fail with `... is not defined` otherwise.
+⚠️ Anything added under `shared/utils/` — that is, anything with a **runtime value** — must also be registered as a global in `tests/setup.ts`. Plain Vitest does not run Nuxt's auto-import, so server-handler tests fail with `... is not defined` otherwise. Type-only files under `shared/types/` need no such registration; import them explicitly from `#shared/types/…` inside SFCs, where type auto-import does not always resolve.
 
 ### `/tests` - Vitest Suite
 
