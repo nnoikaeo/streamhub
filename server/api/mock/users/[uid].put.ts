@@ -1,5 +1,6 @@
 import { findById, updateItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
+import type { User } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const existing = await findById('users.json', uid)
+    const existing = await findById<User>('users.json', uid)
     if (!existing) {
       throw createError({
         statusCode: 404,
@@ -36,12 +37,12 @@ export default defineEventHandler(async (event) => {
     const updated = await updateItem('users.json', uid, updates)
 
     // Audit log for status toggle
-    if (body.isActive !== undefined && body.isActive !== (existing as any).isActive) {
+    if (body.isActive !== undefined && body.isActive !== existing.isActive) {
       await logActivity({
         action: body.isActive ? 'ACTIVATE_USER' : 'DEACTIVATE_USER',
         performedBy: body.performedBy || 'admin',
         performedByEmail: body.performedByEmail || 'admin',
-        target: (existing as any).email || uid,
+        target: existing.email || uid,
         metadata: { uid, isActive: body.isActive }
       })
     }

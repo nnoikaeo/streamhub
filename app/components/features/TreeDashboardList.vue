@@ -126,7 +126,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Dashboard, DisplayGroup } from '~/types/dashboard'
+import type { Dashboard, DisplayGroup, User } from '~/types/dashboard'
 import type { Tag } from '~/types/tag'
 import type { ListColumn } from './DashboardList.vue'
 import DashboardListItem from './DashboardListItem.vue'
@@ -136,7 +136,7 @@ const props = withDefaults(defineProps<{
   tags?: Tag[]
   loading?: boolean
   emptyMessage?: string
-  userMap?: Record<string, any>
+  userMap?: Record<string, User>
   collapsedGroups?: Set<string>
   maxPerGroup?: number
   visibleColumns?: ListColumn[]

@@ -43,7 +43,8 @@ export default defineEventHandler(async (event: H3Event) => {
       if (db) {
         const userDoc = await db.collection('users').doc(auth.uid).get()
         if (userDoc.exists) {
-          userRole = (userDoc.data() as any)?.role ?? null
+          const role = (userDoc.data() as Partial<User> | undefined)?.role
+          userRole = typeof role === 'string' ? role : null
         }
       }
     } catch {

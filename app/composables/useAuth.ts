@@ -15,7 +15,7 @@ export const useAuth = () => {
    */
   const fetchUserProfile = async (uid: string, idToken: string | null): Promise<Record<string, any> | null> => {
     if (useFirestoreMode) {
-      const snap = await getDoc(doc(($firebase as any).db, 'users', uid))
+      const snap = await getDoc(doc($firebase.db, 'users', uid))
       if (!snap.exists()) return null
       return { uid: snap.id, ...snap.data() }
     }

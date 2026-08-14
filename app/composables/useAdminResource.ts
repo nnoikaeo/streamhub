@@ -271,7 +271,7 @@ export function useAdminResource<T extends Record<string, any>>(
    */
   const fetchFromFirestore = async () => {
     const { $firebase } = useNuxtApp()
-    const db = ($firebase as any).db
+    const db = $firebase.db
     const snapshot = await getDocs(collection(db, resourceName))
     const docs = snapshot.docs.map(d => {
       const data = convertTimestamps(d.data())
@@ -334,7 +334,7 @@ export function useAdminResource<T extends Record<string, any>>(
    */
   const getFirestoreDb = () => {
     const { $firebase } = useNuxtApp()
-    return ($firebase as any).db
+    return $firebase.db
   }
 
   /**
