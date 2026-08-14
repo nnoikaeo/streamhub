@@ -1,7 +1,7 @@
 ---
 title: Common Issues
-version: 1.0
-updated: 2024-01-21
+version: 1.1
+updated: 2026-08-14
 ---
 
 # Common Issues & Solutions
@@ -348,6 +348,26 @@ npm run audit:orphans                                       # ตรวจ dangl
 > ⚠️ ถ้าจะแก้โค้ดส่วนนี้: **ห้าม scale แบบสมมาตร** (ย่อทั้งกว้างและสูงด้วย `100%/z`) เพราะจะได้ผลเหมือน browser zoom คือไม่มีอะไรเปลี่ยน
 
 **อยากได้พื้นที่แนวตั้งเพิ่ม:** กดปุ่ม "เต็มจอ" (Fullscreen API) — ออกด้วยปุ่ม "ย่อ" หรือ `Esc`
+
+---
+
+## Issue: `?company=` filter คืนลิสต์ว่างเสมอ (แก้แล้ว PR #359)
+
+**อาการ:** เรียก `GET /api/mock/dashboards?company=STTH` แบบไม่ส่ง `uid` (เส้นทาง fallback ที่หน้า admin ใช้) แล้วได้ `data: []` ทุกบริษัท ทั้งที่มีแดชบอร์ดที่ให้สิทธิ์บริษัทนั้นอยู่จริง
+
+**สาเหตุ:** handler เขียนว่า
+
+```ts
+filtered = filtered.filter((d) => d.access?.company?.[companyFilter])
+```
+
+`access.company` เป็น **array ของ company code** (`["STTH"]`) ไม่ใช่ map — index array ด้วยสตริงได้ `undefined` เสมอ ตัวกรองจึงตัดทุกแถวทิ้ง `server/utils/companyAccess.ts:122` ใช้ `.includes()` ถูกมาตลอด
+
+**ทำไมไม่มีใครเห็น:** ข้อมูลในไฟล์นี้ถูก cast เป็น `any[]` ตัวตรวจสอบจึงเงียบสนิท bug โผล่ทันทีที่ใส่ type ให้ `readJSON<Dashboard>()` — ดู [Coding Standards § Avoiding `any`](../CONTRIBUTING/coding-standards.md#avoiding-any)
+
+**แก้แล้ว:** เปลี่ยนเป็น `.includes(companyFilter)` ครอบด้วย `tests/server/dashboardsList.test.ts` (ยืนยันแล้วว่า test พังกับโค้ดเก่า)
+
+> บทเรียน: `as any[]` บนผลลัพธ์ของ `readJSON` / `findById` ไม่ได้แค่ปิด type — มันปิดบั๊กด้วย ส่ง type argument ทุกครั้ง
 
 ---
 

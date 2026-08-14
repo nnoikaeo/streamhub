@@ -188,22 +188,96 @@ deleteUser()
 
 ## Error Handling
 
+A caught value is `unknown` — it may be an `Error`, an H3 error from `createError()`, an ofetch `FetchError`, a Firebase error, or a bare string. Never widen the binding to `any` to read fields off it; use the helpers in `shared/utils/errors.ts`, which are auto-imported into both `app/` and `server/`.
+
 ```typescript
 // ✅ GOOD
 try {
   const result = await signInWithGoogle()
   return { success: true, result }
+} catch (error: unknown) {
+  const code = getErrorCode(error)                       // Firebase 'auth/…' codes
+  const message = getErrorMessage(error, 'Sign-in failed')
+  console.error('Sign-in error:', code, message)
+  return { success: false, error: message }
+}
+
+// ❌ BAD — `any` turns every field read into an unchecked guess
+try {
+  const result = await signInWithGoogle()
 } catch (error: any) {
-  console.error('Sign-in error:', error.message)
   return { success: false, error: error.message }
 }
 
-// ❌ BAD
+// ❌ BAD — swallows the cause
 try {
   const result = await signInWithGoogle()
 } catch (error) {
   console.log('error')
 }
+```
+
+| Helper | Returns |
+|--------|---------|
+| `getErrorStatus(e)` | HTTP status — h3 `statusCode`, then ofetch `response.status`, then `status` |
+| `getErrorMessage(e, fallback?)` | Always a string: `Error.message` → `statusMessage` → `data.message` → `String(e)` → fallback |
+| `getErrorDataMessage(e)` | `error.data.message` only, or `undefined` |
+| `getErrorCode(e)` | Provider code, e.g. Firebase Auth's `auth/popup-closed-by-user` |
+| `toError(e)` | A real `Error`, for state typed `Error \| null` |
+
+In a Nitro handler the usual shape is rethrow-or-wrap:
+
+```typescript
+} catch (error: unknown) {
+  console.error('[API] Error updating invitation:', getErrorMessage(error))
+  if (getErrorStatus(error)) throw error
+  throw createError({ statusCode: 500, message: 'Failed to update invitation' })
+}
+```
+
+---
+
+## Avoiding `any`
+
+`@typescript-eslint/no-explicit-any` is the only rule with a remaining backlog, so every new `any` makes it worse. Fixes that do **not** count: `as any`, `@ts-ignore`, or widening a signature until the error goes away. If the real type is genuinely unclear, leave the site alone and say so rather than laundering it.
+
+**Generic constraints — `object`, not `Record<string, unknown>`.** Interfaces have no implicit index signature, so `Record<string, unknown>` rejects `User`, `Dashboard`, `AdminGroup` and every other named type. `T extends object` accepts them and is enough whenever the body only uses `keyof T`, `Partial<T>` and `T[]`.
+
+```typescript
+// ✅ GOOD — accepts interfaces
+export function useAdminResource<T extends object>(config: AdminResourceConfig<T>)
+
+// ❌ BAD — useAdminResource<AdminGroup> stops compiling
+export function useAdminResource<T extends Record<string, unknown>>(…)
+```
+
+**An all-optional constraint is a *weak type*.** TypeScript rejects an argument that has no property in common with it, so `T extends { isActive?: boolean }` refuses `Dashboard` (which uses `isArchived`). Read such flags through a narrow local shape instead.
+
+**Pass the type argument to the data-layer generics.** `findById`, `findMany`, `createItem`, `updateItem` and `readJSON` fall back to their constraint when called bare, which leaves every field read unchecked downstream and invites an `as any[]` cast. This is how a real bug hid for months — see [Common Issues](../TROUBLESHOOTING/common-issues.md).
+
+```typescript
+// ✅ GOOD
+const dashboards = await readJSON<Dashboard>('dashboards.json')
+const user = await findById<User>('users.json', uid)
+
+// ❌ BAD — result is JsonRecord, so the handler casts it away
+const dashboards = await readJSON('dashboards.json')
+const filtered = (dashboards as any[]).filter((d: any) => …)
+```
+
+**Test doubles.** Build the real shape when it is cheap — firebase-admin's `App` is just `{ name, options }`. When the real type is a large SDK surface the code only probes for existence (`Auth`, `Firestore`, `H3Event`), keep the stub partial but assert it through `unknown`, never `any`, and comment what the code under test actually reads. Do not build a `Partial<T>` and cast it back to `T`.
+
+Hoisting a fixture into a named `const` or factory also sidesteps TypeScript's excess-property check, which only fires on object literals passed directly:
+
+```typescript
+// ✅ GOOD — extra fields allowed, no cast
+function storedUser(role: string, uid = 'uid-1') {
+  return { uid, role }
+}
+vi.mocked(findById).mockResolvedValue(storedUser('admin'))
+
+// ❌ BAD — excess-property error, "fixed" with `as any`
+vi.mocked(findById).mockResolvedValue({ uid: 'uid-1', role: 'admin' } as any)
 ```
 
 ---
@@ -381,18 +455,33 @@ function fetchData(callback) {
 
 ---
 
-## Testing (Future)
+## Testing
+
+Vitest, run with `npm test` (`npm run test:watch` while working). Suites live under `tests/`, mirroring the directory they cover.
+
+Server handlers are imported directly and called with a partial `H3Event`; the Nitro globals they rely on are shimmed in `tests/setup.ts` via `vi.stubGlobal`, so `getRouterParam`, `readBody` and friends keep h3's real declared signatures and stay typechecked.
 
 ```typescript
-// When implemented
-describe('useAuth', () => {
-  it('should sign in user', async () => {
-    const { signInWithGoogle } = useAuth()
-    const result = await signInWithGoogle()
-    expect(result.success).toBe(true)
+describe('normalizeBulkItems', () => {
+  it('lowercases and trims emails', () => {
+    const [item] = normalizeBulkItems({ items: [{ email: '  B@X.COM ', role: 'user', company: 'STTH' }] })
+    expect(item!.email).toBe('b@x.com')
   })
 })
 ```
+
+When a handler's return type is a union — an auth-failure envelope or the real payload — narrow it in the test rather than reading straight through. Reading `result.checks` off the error branch throws instead of failing usefully, and a `toBeUndefined()` assertion passes for the wrong reason:
+
+```typescript
+function expectHealth(result: Awaited<ReturnType<typeof healthHandler>>): HealthResponse {
+  if (!('checks' in result)) {
+    throw new Error(`expected a health payload, got ${JSON.stringify(result)}`)
+  }
+  return result
+}
+```
+
+⚠️ Run `npx vue-tsc --noEmit -p tests/tsconfig.json` as well. No generated `.nuxt/tsconfig.*` project covers `tests/`, so without it your fixtures are lint-checked and never typechecked.
 
 ---
 
@@ -434,7 +523,8 @@ describe('useAuth', () => {
 # Run before committing
 npm test                                          # Vitest suite
 npx eslint .                                      # Check linting
-npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json   # Check TypeScript
+npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json   # Check TypeScript (app)
+npx vue-tsc --noEmit -p tests/tsconfig.json       # Check TypeScript (tests)
 npm run build                                     # Test build
 ```
 
@@ -442,16 +532,23 @@ npm run build                                     # Test build
 
 ⚠️ Point `vue-tsc` at `.nuxt/tsconfig.app.json`, **not** the root `tsconfig.json`. The root config is `"files": []` plus project references, so `vue-tsc -p tsconfig.json` checks nothing and exits 0 with no output — a false pass.
 
-`npm test`, `npm run build` and the typecheck are all expected to come back clean. Only lint still carries a backlog:
+`npm test`, `npm run build` and both typechecks are all expected to come back clean. Only lint still carries a backlog:
 
-| Check | Baseline (2026-08-11, PR #353) |
+| Check | Baseline (2026-08-14, PR #359) |
 |-------|--------------------------------|
-| `npx eslint .` | 382 problems — every one `@typescript-eslint/no-explicit-any` |
+| `npx eslint .` | 85 problems — every one `@typescript-eslint/no-explicit-any` |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 0 errors |
+| `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 errors |
+| `npm test` | 220 passing |
 
 Any typecheck error, and any lint violation of a rule **other than `no-explicit-any`**, was introduced by your change. For `no-explicit-any` itself, compare the count before and after (`git stash`, re-run, `git stash pop`) or scope the run to the files you touched.
 
-The remaining `any`s sit at 152 in `server/`, 151 in `app/`, 74 in `tests/`, 5 in `scripts/`. The biggest single shape is `catch (e: any)` (71), which needs a shared error-narrowing helper before it can move to `unknown`; then 43 `Record<string, any>` and 24 `any[]`.
+The remaining 85 sit at 56 in `app/`, 28 in `server/`, 1 in `scripts/`; `tests/` is clean. Two groups are left, both needing types written rather than renamed:
+
+1. **Invitation and audit API responses** (~16) — `$fetch<any>` in `useAdminInvitations`, `invite/accept.vue`, `useAuth` and `audit.vue`. The response types do not exist yet; writing them means matching seven server handlers exactly, and a wrong shape fails silently at runtime rather than at the type level.
+2. **The permission path** (~50) — `companyAccess.ts` still exposes `filterAccessibleDashboards(dashboards: any[], user: any, folders: any[])` and `checkDashboardAccess(dashboard: any, user: any, …)`, plus `useDashboardService` and `useFirestoreService`. Highest regression risk; do it last and on its own.
+
+One deliberate skip: `app/stores/dashboard.ts:73,81` casts to read `.company` off a `Dashboard` and a `Folder`. Neither type declares the field, so the cast hides a real gap between the type model and what Firestore stores — closing it is a modelling decision, not a rename.
 
 ---
 
