@@ -12,7 +12,7 @@ interface Row {
   name: string
 }
 
-function makeCrud(overrides: Record<string, any> = {}) {
+function makeCrud(overrides: Record<string, unknown> = {}) {
   const deleteFn = vi.fn().mockResolvedValue(true)
   const crud = useAdminCrudPage<Row>({
     idKey: 'id',

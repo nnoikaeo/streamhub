@@ -9,8 +9,16 @@
 
 import { describe, it, expect } from 'vitest'
 import { checkDashboardAccess } from '../../server/utils/companyAccess'
+import type { AccessControl } from '~/types/dashboard'
 
-const user = (over: Record<string, any> = {}) => ({
+interface TestUser {
+  uid: string
+  role: string
+  company: string
+  groups: string[]
+}
+
+const user = (over: Partial<TestUser> = {}) => ({
   uid: 'u1',
   role: 'user',
   company: 'ORAY',
@@ -18,7 +26,7 @@ const user = (over: Record<string, any> = {}) => ({
   ...over,
 })
 
-const dash = (access: any) => ({
+const dash = (access: AccessControl) => ({
   id: 'd1',
   folderId: 'f1',
   access,

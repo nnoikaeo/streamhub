@@ -1,0 +1,22 @@
+{
+  // The generated .nuxt/tsconfig.* projects cover app/, server/, shared/ and the
+  // Nuxt config, but nothing covers tests/ — Nuxt only looks for tests/nuxt/**.
+  // Without this project the fixtures below are lint-checked and never
+  // typechecked, so a fixture that does not match the type it stands in for
+  // fails silently at runtime instead of at build time.
+  //
+  // Extends the app project because the tests reach into both layers: they
+  // import app composables (which need the DOM lib and Nuxt's auto-imports) and
+  // server handlers (whose Nitro globals are shimmed in setup.ts, declared in
+  // types/nitro-globals.d.ts).
+  //
+  // Run with: npx vue-tsc --noEmit -p tests/tsconfig.json
+  "extends": "../.nuxt/tsconfig.app.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "**/*.ts",
+    "../.nuxt/**/*.d.ts"
+  ]
+}

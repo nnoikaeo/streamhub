@@ -7,7 +7,8 @@ import type { User } from '~/types/dashboard'
 
 type CheckStatus = 'ok' | 'error'
 
-interface HealthResponse {
+/** Exported so tests can narrow the handler's union return without redeclaring it. */
+export interface HealthResponse {
   status: 'ok' | 'degraded'
   environment: {
     mode: 'development' | 'production'

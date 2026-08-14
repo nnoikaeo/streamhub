@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { H3Event } from 'h3'
 
 import { findById, updateItem } from '../../server/utils/jsonDatabase'
 import { logAuditEvent } from '../../server/utils/auditLog'
@@ -15,21 +16,29 @@ vi.mock('../../server/utils/auditLog', () => ({
     logAuditEvent: vi.fn(() => Promise.resolve()),
 }))
 
-    // Mock h3 utilities
-    ; (globalThis as any).readBody = vi.fn()
-    ; (globalThis as any).getHeader = vi.fn(() => '')
+// Mock h3 utilities
+vi.stubGlobal('readBody', vi.fn())
+vi.stubGlobal('getHeader', vi.fn(() => ''))
 
-// Helper: create a fake H3Event
-function createMockEvent(id: string, body: any, auth?: any) {
-    vi.mocked((globalThis as any).getRouterParam).mockReturnValue(id)
-    vi.mocked((globalThis as any).readBody).mockResolvedValue(body)
+interface AuthContext {
+    uid: string
+    email?: string
+}
+
+// Helper: create a fake H3Event. The handler only reads `context.auth`, so the
+// stub is deliberately partial and asserted through `unknown` rather than `any`.
+function createMockEvent(id: string | undefined, body: unknown, auth?: AuthContext): H3Event {
+    vi.mocked(getRouterParam).mockReturnValue(id)
+    vi.mocked(readBody).mockResolvedValue(body)
     return {
         context: { auth: auth || { uid: 'user_admin', email: 'admin@test.com' } },
         node: { req: {}, res: {} },
-    } as any
+    } as unknown as H3Event
 }
 
-// Sample existing dashboard
+// Sample existing dashboard. Dates are ISO strings because the JSON store keeps
+// them that way — `Dashboard` declares them as Date, so the fixture describes the
+// stored shape rather than pretending to be a hydrated Dashboard.
 const existingDashboard = {
     id: 'dash_001',
     name: 'Original Name',
@@ -46,6 +55,19 @@ const existingDashboard = {
     updatedBy: 'user_admin',
 }
 
+// The user the handler looks up to denormalise the audit entry.
+const auditUser = {
+    uid: 'user_admin',
+    name: 'Admin',
+    email: 'admin@test.com',
+    company: 'STTH',
+    role: 'admin',
+    groups: [],
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+}
+
 describe('PUT /api/mock/dashboards/:id', () => {
     beforeEach(() => {
         vi.clearAllMocks()
@@ -56,11 +78,11 @@ describe('PUT /api/mock/dashboards/:id', () => {
         const event = createMockEvent('dash_001', body)
 
         vi.mocked(findById)
-            .mockResolvedValueOnce(existingDashboard as any) // dashboard lookup
-            .mockResolvedValueOnce({ uid: 'user_admin', name: 'Admin', email: 'admin@test.com', company: 'STTH' } as any) // user lookup for audit
+            .mockResolvedValueOnce(existingDashboard) // dashboard lookup
+            .mockResolvedValueOnce(auditUser) // user lookup for audit
 
         const updatedData = { ...existingDashboard, ...body, updatedAt: expect.any(String) }
-        vi.mocked(updateItem).mockResolvedValue(updatedData as any)
+        vi.mocked(updateItem).mockResolvedValue(updatedData)
 
         const result = await handler(event)
 
@@ -77,11 +99,11 @@ describe('PUT /api/mock/dashboards/:id', () => {
         const event = createMockEvent('dash_001', body)
 
         vi.mocked(findById)
-            .mockResolvedValueOnce(existingDashboard as any)
-            .mockResolvedValueOnce({ uid: 'user_admin', name: 'Admin', email: 'admin@test.com', company: 'STTH' } as any)
+            .mockResolvedValueOnce(existingDashboard)
+            .mockResolvedValueOnce(auditUser)
 
         const updatedData = { ...existingDashboard, tags: ['tag_sales', 'tag_finance'], updatedAt: expect.any(String) }
-        vi.mocked(updateItem).mockResolvedValue(updatedData as any)
+        vi.mocked(updateItem).mockResolvedValue(updatedData)
 
         const result = await handler(event)
 
@@ -96,15 +118,15 @@ describe('PUT /api/mock/dashboards/:id', () => {
         const event = createMockEvent('dash_001', body)
 
         vi.mocked(findById)
-            .mockResolvedValueOnce(existingDashboard as any)
+            .mockResolvedValueOnce(existingDashboard)
             .mockResolvedValueOnce(null) // no user found for audit
 
-        vi.mocked(updateItem).mockResolvedValue({ ...existingDashboard, ...body } as any)
+        vi.mocked(updateItem).mockResolvedValue({ ...existingDashboard, ...body })
 
         await handler(event)
 
-        const updateCall = vi.mocked(updateItem).mock.calls[0]
-        const updates = updateCall[2] as any
+        const updateCall = vi.mocked(updateItem).mock.calls[0]!
+        const updates = updateCall[2]
         // updatedAt should be a valid ISO date string
         expect(new Date(updates.updatedAt).toISOString()).toBe(updates.updatedAt)
     })
@@ -123,13 +145,7 @@ describe('PUT /api/mock/dashboards/:id', () => {
     })
 
     it('should return 400 when id is missing', async () => {
-        vi.mocked((globalThis as any).getRouterParam).mockReturnValue(undefined)
-        vi.mocked((globalThis as any).readBody).mockResolvedValue({ name: 'Test' })
-
-        const event = {
-            context: { auth: { uid: 'user_admin' } },
-            node: { req: {}, res: {} },
-        } as any
+        const event = createMockEvent(undefined, { name: 'Test' }, { uid: 'user_admin' })
 
         await expect(handler(event)).rejects.toMatchObject({
             statusCode: 400,
@@ -142,15 +158,15 @@ describe('PUT /api/mock/dashboards/:id', () => {
         const event = createMockEvent('dash_001', body)
 
         vi.mocked(findById)
-            .mockResolvedValueOnce(existingDashboard as any)
+            .mockResolvedValueOnce(existingDashboard)
             .mockResolvedValueOnce(null)
 
-        vi.mocked(updateItem).mockResolvedValue(existingDashboard as any)
+        vi.mocked(updateItem).mockResolvedValue(existingDashboard)
 
         await handler(event)
 
-        const updateCall = vi.mocked(updateItem).mock.calls[0]
-        const updates = updateCall[2] as any
+        const updateCall = vi.mocked(updateItem).mock.calls[0]!
+        const updates = updateCall[2]
         // Whitelisted field should be present
         expect(updates.name).toBe('Valid')
         expect(updates.owner).toBe('hacker') // owner is allowed
@@ -164,10 +180,10 @@ describe('PUT /api/mock/dashboards/:id', () => {
         const event = createMockEvent('dash_001', body)
 
         vi.mocked(findById)
-            .mockResolvedValueOnce(existingDashboard as any)
-            .mockResolvedValueOnce({ uid: 'user_admin', name: 'Admin', email: 'admin@test.com', company: 'STTH' } as any)
+            .mockResolvedValueOnce(existingDashboard)
+            .mockResolvedValueOnce(auditUser)
 
-        vi.mocked(updateItem).mockResolvedValue({ ...existingDashboard, ...body } as any)
+        vi.mocked(updateItem).mockResolvedValue({ ...existingDashboard, ...body })
 
         await handler(event)
 
@@ -186,10 +202,10 @@ describe('PUT /api/mock/dashboards/:id', () => {
         const event = createMockEvent('dash_001', body)
 
         vi.mocked(findById)
-            .mockResolvedValueOnce(existingDashboard as any)
-            .mockResolvedValueOnce({ uid: 'user_admin', name: 'Admin', email: 'admin@test.com', company: 'STTH' } as any)
+            .mockResolvedValueOnce(existingDashboard)
+            .mockResolvedValueOnce(auditUser)
 
-        vi.mocked(updateItem).mockResolvedValue({ ...existingDashboard, isArchived: true } as any)
+        vi.mocked(updateItem).mockResolvedValue({ ...existingDashboard, isArchived: true })
 
         await handler(event)
 
