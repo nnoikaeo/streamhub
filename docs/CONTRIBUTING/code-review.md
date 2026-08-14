@@ -12,9 +12,11 @@ How we review pull requests **and** keep documentation up-to-date.
 
 ### Before Submitting PR
 
-- [ ] Tests pass: `npm test` + build succeeds: `npm run build`
-- [ ] Lint adds no new problems: `npx eslint .` (382 pre-existing, all `no-explicit-any`; compare the count, or lint only your changed files). A violation of any **other** rule is new — fix it
+- [ ] Tests pass: `npm test` (baseline 220) + build succeeds: `npm run build`
+- [ ] Lint adds no new problems: `npx eslint .` (85 pre-existing, all `no-explicit-any`; compare the count, or lint only your changed files). A violation of any **other** rule is new — fix it
 - [ ] Typecheck is clean: `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` (baseline is 0 — any error is yours)
+- [ ] Tests typecheck too: `npx vue-tsc --noEmit -p tests/tsconfig.json` (baseline 0 — no `.nuxt/tsconfig.*` project covers `tests/`)
+- [ ] No new `any`: caught values use the `shared/utils/errors.ts` helpers, data-layer generics get their type argument, and nothing is "fixed" with `as any` / `@ts-ignore` — see [Coding Standards § Avoiding `any`](coding-standards.md#avoiding-any)
 - [ ] No console errors/warnings
 - [ ] Commit messages are clear
 - [ ] PR description explains changes

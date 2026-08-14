@@ -21,6 +21,14 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 - Never run `node scripts/generate-spa-index.mjs` directly without env vars (produces blank Firebase config → login broken)
 - See: [docs/OPERATIONS/deployment.md](docs/OPERATIONS/deployment.md)
 
+### Error Handling & `any`
+- Caught values are `unknown`. Use the helpers in `shared/utils/errors.ts` (`getErrorStatus`, `getErrorMessage`, `getErrorDataMessage`, `getErrorCode`, `toError`) — auto-imported into **both** `app/` and `server/`. Never `catch (e: any)`
+- Anything new in `shared/utils/` must also be registered as a global in `tests/setup.ts` — plain Vitest does not run Nuxt auto-import
+- Generic constraints: `T extends object`, **not** `Record<string, unknown>` (interfaces have no index signature, so it rejects `User`, `Dashboard`, …)
+- Always pass the type argument to `readJSON<T>` / `findById<T>` / `updateItem<T>`. Leaving it bare falls back to the constraint and invites an `as any[]` cast — that is how the `?company=` filter bug survived (PR #359)
+- Never "fix" an `any` with `as any` or `@ts-ignore`. If the real type is unclear, skip the site and say why
+- See: [docs/CONTRIBUTING/coding-standards.md](docs/CONTRIBUTING/coding-standards.md) § Error Handling, § Avoiding `any`
+
 ### Firestore / Nitro Plugins
 - Never `throw` inside Nitro plugins (`server/plugins/`) — Firebase CLI runs them during deploy analysis without env vars
 - Guard Firestore access with `if (!db) return` pattern before any query
@@ -105,7 +113,7 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite |
+| `npm test` | Vitest suite. **Baseline is 220 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). 85 pre-existing problems, **all `@typescript-eslint/no-explicit-any`**: compare the count before/after |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |

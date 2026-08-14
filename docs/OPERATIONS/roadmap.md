@@ -213,7 +213,14 @@
 
 - [x] **eslint 716 → 382** (PR #353) — autofix, dead-code removal, and every remaining rule cleared except `no-explicit-any`. Two rules turned off with rationale in `eslint.config.mjs`: `vue/multi-word-component-names` for the `ui/` primitives, `vue/require-default-prop` for type-first props
 - [x] **vue-tsc 44 → 0** (PR #353) — surfaced two live bugs: `QuickShareDialog` read `user.id` on a type that only has `uid` (share from Discover emitted `userIds: [undefined]`), and `PermissionsPage` wrote `setByName: user.value?.name`, recording provenance blank
-- [ ] **`no-explicit-any` — 382 left** — 152 `server/`, 151 `app/`, 74 `tests/`, 5 `scripts/`. Suggested tranches: (1) error-narrowing helper + the 71 `catch (e: any)`, (2) `server/`, (3) `app/`, (4) `tests/`. Touches auth and permission paths, so one reviewed PR per tranche
+- [x] **`no-explicit-any` 382 → 85** — six reviewed PRs. #354–#358 are on `main`; **#359 is merged to `develop` and not yet back-merged**:
+  - **#354** — added `shared/utils/errors.ts` (auto-imported into both `app/` and `server/`) and moved all 71 `catch (e: any)` to `unknown`. 382 → 311
+  - **#355** — validators, type guards, debug logs, `PermissionsPage` props, and casts that were covering nothing. 311 → 268
+  - **#356** — reused types that already existed elsewhere; `($firebase as any).db` turned out to be four leftover casts. 268 → 245
+  - **#357** — all of `tests/`, but only after adding `tests/tsconfig.json`: no generated `.nuxt/tsconfig.*` project covers `tests/`, so the directory had never been typechecked. It immediately caught 34 errors, including `healthEndpoint.test.ts` reading `result.checks` off an unnarrowed union. 245 → 171
+  - **#358** — generic constraints to `T extends object`. Surfaced a Timestamp-vs-Date mismatch in `useFirestoreService` and a value round-tripped through an untyped bag in `invitations/[id].put.ts`. 171 → 137
+  - **#359** — `jsonDatabase` gains a `JsonRecord` constraint; every `readJSON`/`findById` call passes its row type. **Found a live bug:** `GET /api/mock/dashboards?company=X` indexed `access.company` (a list) as if it were a map, so the filter returned nothing for every company. 137 → 85
+- [ ] **`no-explicit-any` — 85 left** — 56 `app/`, 28 `server/`, 1 `scripts/`; `tests/` is clean. Two groups remain, both needing types written rather than renamed: (1) invitation + audit API response types (~16, must match seven server handlers exactly), (2) the permission path (~50) — `companyAccess.ts` still exposes `filterAccessibleDashboards(dashboards: any[], user: any, folders: any[])`, plus `useDashboardService` and `useFirestoreService`. Highest regression risk; do it last and on its own
 
 ---
 

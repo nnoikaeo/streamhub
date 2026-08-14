@@ -1,7 +1,7 @@
 ---
 title: Folder Structure
-version: 2.0
-updated: 2026-03-23
+version: 2.1
+updated: 2026-08-14
 ---
 
 # Folder Structure
@@ -187,6 +187,26 @@ streamhub/
 │           ├── regions/
 │           ├── tags/
 │           └── users/
+│   └── 📁 utils/                    # Server-only helpers (auto-imported by Nitro)
+│       ├── apiResponse.ts           # sendUnauthorized / sendForbidden envelopes
+│       ├── auditLog.ts              # Audit entry write + normalise
+│       ├── companyAccess.ts         # Company-scoped permission checks
+│       ├── firebaseAdmin.ts         # Admin SDK init + token verification
+│       ├── firestoreAdmin.ts        # Firestore Admin read/write helpers
+│       └── jsonDatabase.ts          # .data/*.json CRUD (exports the JsonRecord constraint)
+│
+├── 📁 shared/                       # Code auto-imported by BOTH app/ and server/
+│   └── 📁 utils/
+│       └── errors.ts                # getErrorStatus / getErrorMessage / getErrorCode / toError
+│
+├── 📁 tests/                        # Vitest suite (see tests/tsconfig.json)
+│   ├── 📁 composables/
+│   ├── 📁 config/
+│   ├── 📁 scripts/
+│   ├── 📁 server/
+│   ├── 📁 utils/
+│   ├── setup.ts                     # Nitro + shared/utils globals for handler tests
+│   └── tsconfig.json                # The only project that typechecks tests/
 │
 ├── 📁 docs/                         # 📖 Documentation
 │   ├── README.md                    # Documentation index
@@ -204,7 +224,7 @@ streamhub/
 │
 ├── 📄 nuxt.config.ts                # Nuxt configuration
 ├── 📄 tailwind.config.ts            # Tailwind + design tokens
-├── 📄 tsconfig.json                 # TypeScript config
+├── 📄 tsconfig.json                 # Root config — "files": [], references only
 └── 📄 package.json                  # Dependencies + scripts
 ```
 
@@ -224,6 +244,28 @@ streamhub/
 | `plugins/` | Initialize plugins (Firebase, etc.) |
 | `stores/` | Pinia state management |
 | `utils/` | Helper functions, constants |
+
+### `/shared` - Shared Between Layers
+
+Nuxt 4 auto-imports `shared/utils/*` and `shared/types/*` into **both** `app/` and `server/`, so anything used by both layers belongs here rather than being duplicated or reached across with a relative import.
+
+| File | Purpose |
+|------|---------|
+| `utils/errors.ts` | Narrowing helpers for caught values — `getErrorStatus`, `getErrorMessage`, `getErrorDataMessage`, `getErrorCode`, `toError` |
+
+⚠️ Anything added here must also be registered as a global in `tests/setup.ts`. Plain Vitest does not run Nuxt's auto-import, so server-handler tests fail with `... is not defined` otherwise.
+
+### `/tests` - Vitest Suite
+
+| Folder | Covers |
+|--------|--------|
+| `composables/` | `app/composables/**` |
+| `config/` | Nuxt/runtime config expectations |
+| `scripts/` | `scripts/**` |
+| `server/` | Nitro handlers and `server/utils/**` |
+| `utils/` | `app/utils/**` and `shared/utils/**` |
+
+⚠️ `tests/` is **not** covered by any generated `.nuxt/tsconfig.*` project — Nuxt only looks at `tests/nuxt/**`. `tests/tsconfig.json` exists so the directory is typechecked at all; run it with `npx vue-tsc --noEmit -p tests/tsconfig.json`.
 
 ### `/assets` - Static Assets
 
