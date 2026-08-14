@@ -26,3 +26,6 @@ logs
 
 # Firebase
 .firebase
+
+# Scratch prompts / working notes — throwaway, never committed
+prompt-*.md
