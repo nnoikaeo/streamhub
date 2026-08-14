@@ -28,7 +28,7 @@ describe('normalizeBulkItems — per-row (items[]) payload', () => {
 
   it('lowercases and trims emails', () => {
     const [item] = normalizeBulkItems({ items: [{ email: '  B@X.COM ', role: 'user', company: 'STTH' }] })
-    expect(item.email).toBe('b@x.com')
+    expect(item!.email).toBe('b@x.com')
   })
 
   it('drops rows without an email', () => {
@@ -36,14 +36,14 @@ describe('normalizeBulkItems — per-row (items[]) payload', () => {
       items: [{ email: '', role: 'user', company: 'STTH' }, { email: 'ok@x.com', role: 'user', company: 'STTH' }],
     })
     expect(result).toHaveLength(1)
-    expect(result[0].email).toBe('ok@x.com')
+    expect(result[0]!.email).toBe('ok@x.com')
   })
 
   it('defaults message/assignedFolders/assignedGroups when omitted', () => {
     const [item] = normalizeBulkItems({ items: [{ email: 'a@x.com', role: 'user', company: 'STTH' }] })
-    expect(item.message).toBe('')
-    expect(item.assignedFolders).toEqual([])
-    expect(item.assignedGroups).toEqual([])
+    expect(item!.message).toBe('')
+    expect(item!.assignedFolders).toEqual([])
+    expect(item!.assignedGroups).toEqual([])
   })
 
   it('does NOT inherit shared flat groups for a row that omits them (BUG-004 leak)', () => {
@@ -59,7 +59,7 @@ describe('normalizeBulkItems — per-row (items[]) payload', () => {
     })
 
     expect(result[1]).toMatchObject({ email: 'b@x.com', role: 'user', company: 'STCM' })
-    expect(result[1].assignedGroups).toEqual([])
+    expect(result[1]!.assignedGroups).toEqual([])
   })
 })
 
@@ -74,7 +74,7 @@ describe('normalizeBulkItems — flat (legacy emails[]) payload', () => {
 
     expect(result).toHaveLength(2)
     expect(result.every(r => r.role === 'moderator' && r.company === 'STCS')).toBe(true)
-    expect(result[0].assignedGroups).toEqual(['g1'])
+    expect(result[0]!.assignedGroups).toEqual(['g1'])
   })
 
   it('prefers items[] over emails[] when both are present', () => {

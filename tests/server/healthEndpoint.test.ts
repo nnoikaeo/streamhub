@@ -6,6 +6,11 @@ import { findById } from '../../server/utils/jsonDatabase'
 import { sendUnauthorized, sendForbidden } from '../../server/utils/apiResponse'
 import { getAuth } from 'firebase-admin/auth'
 import { getApps } from 'firebase-admin/app'
+import type { H3Event } from 'h3'
+import type { Auth } from 'firebase-admin/auth'
+import type { App } from 'firebase-admin/app'
+import type { Firestore } from 'firebase-admin/firestore'
+import type { HealthResponse } from '../../server/api/health.get'
 
 /**
  * Unit tests for server/api/health.get.ts
@@ -35,8 +40,8 @@ vi.mock('../../server/utils/jsonDatabase', () => ({
 }))
 
 vi.mock('../../server/utils/apiResponse', () => ({
-  sendUnauthorized: vi.fn((event: any, msg: string) => ({ error: 'Unauthorized', message: msg })),
-  sendForbidden: vi.fn((event: any, msg: string) => ({ error: 'Forbidden', message: msg })),
+  sendUnauthorized: vi.fn((_event: unknown, msg: string) => ({ error: 'Unauthorized', message: msg })),
+  sendForbidden: vi.fn((_event: unknown, msg: string) => ({ error: 'Forbidden', message: msg })),
 }))
 
 // firebase-admin/auth and firebase-admin/app are dynamic imports inside the handler
@@ -53,15 +58,30 @@ const { default: healthHandler } = await import('../../server/api/health.get')
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function makeEvent(uid?: string) {
+// The handler only reads `context.auth`, so the stub is deliberately partial and
+// asserted through `unknown` rather than `any`.
+function makeEvent(uid?: string): H3Event {
   return {
     context: {
       auth: uid ? { uid } : undefined,
     },
-  } as any
+  } as unknown as H3Event
 }
 
-function makeDb(pingResult: 'ok' | 'error' = 'ok') {
+/**
+ * The handler returns either an auth-failure envelope or the health payload.
+ * Tests that read a health field have already arranged a permitted call, so
+ * anything else is a broken test setup and should say so instead of reading
+ * `undefined` off the error envelope and quietly passing.
+ */
+function expectHealth(result: Awaited<ReturnType<typeof healthHandler>>): HealthResponse {
+  if (!('checks' in result)) {
+    throw new Error(`expected a health payload, got ${JSON.stringify(result)}`)
+  }
+  return result
+}
+
+function makeDb(pingResult: 'ok' | 'error' = 'ok'): Firestore {
   return {
     collection: vi.fn().mockReturnValue({
       limit: vi.fn().mockReturnValue({
@@ -73,7 +93,7 @@ function makeDb(pingResult: 'ok' | 'error' = 'ok') {
         get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ role: 'admin' }) }),
       }),
     }),
-  } as any
+  } as unknown as Firestore
 }
 
 // ── Setup / Teardown ─────────────────────────────────────────────────────────
@@ -129,7 +149,7 @@ describe('GET /api/health', () => {
     })
 
     it('returns 403 when user role is not admin', async () => {
-      vi.mocked(findById).mockResolvedValue({ uid: 'uid-1', role: 'user' } as any)
+      vi.mocked(findById).mockResolvedValue({ uid: 'uid-1', role: 'user' })
 
       await healthHandler(makeEvent('uid-1'))
 
@@ -137,11 +157,11 @@ describe('GET /api/health', () => {
     })
 
     it('proceeds past role guard when user is admin', async () => {
-      vi.mocked(findById).mockResolvedValue({ uid: 'uid-1', role: 'admin' } as any)
+      vi.mocked(findById).mockResolvedValue({ uid: 'uid-1', role: 'admin' })
       vi.mocked(getAdminDb).mockReturnValue(makeDb())
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
-      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]' }] as any)
-      vi.mocked(getAuth).mockReturnValue({} as any)
+      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
+      vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
 
       const result = await healthHandler(makeEvent('uid-1'))
 
@@ -162,7 +182,7 @@ describe('GET /api/health', () => {
           }),
           limit: vi.fn().mockReturnValue({ get: vi.fn().mockResolvedValue({}) }),
         }),
-      } as any
+      } as unknown as Firestore
       vi.mocked(getAdminDb).mockReturnValue(db)
 
       await healthHandler(makeEvent('uid-1'))
@@ -178,7 +198,7 @@ describe('GET /api/health', () => {
           }),
           limit: vi.fn().mockReturnValue({ get: vi.fn().mockResolvedValue({}) }),
         }),
-      } as any
+      } as unknown as Firestore
       vi.mocked(getAdminDb).mockReturnValue(db)
 
       await healthHandler(makeEvent('uid-1'))
@@ -201,39 +221,39 @@ describe('GET /api/health', () => {
   describe('health checks — all passing', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' } as any)
+      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
-      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]' }] as any)
-      vi.mocked(getAuth).mockReturnValue({} as any)
+      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
+      vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
       vi.mocked(getAdminDb).mockReturnValue(makeDb('ok'))
     })
 
     it('returns status ok when all checks pass', async () => {
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.status).toBe('ok')
     })
 
     it('returns firestoreConnection ok when Firestore ping succeeds', async () => {
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.firestoreConnection).toBe('ok')
     })
 
     it('returns firebaseAuth ok when Admin SDK is available', async () => {
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.firebaseAuth).toBe('ok')
     })
 
     it('returns emailService ok when NUXT_RESEND_API_KEY is set and not a placeholder', async () => {
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.emailService).toBe('ok')
     })
 
     it('includes timestamp as ISO string', async () => {
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/)
     })
@@ -242,16 +262,16 @@ describe('GET /api/health', () => {
   describe('health checks — independent failure isolation', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' } as any)
+      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
-      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]' }] as any)
-      vi.mocked(getAuth).mockReturnValue({} as any)
+      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
+      vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
     })
 
     it('firestoreConnection is error when getAdminDb returns null', async () => {
       vi.mocked(getAdminDb).mockReturnValue(null)
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.firestoreConnection).toBe('error')
     })
@@ -259,7 +279,7 @@ describe('GET /api/health', () => {
     it('firestoreConnection is error when Firestore ping throws', async () => {
       vi.mocked(getAdminDb).mockReturnValue(makeDb('error'))
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.firestoreConnection).toBe('error')
     })
@@ -268,7 +288,7 @@ describe('GET /api/health', () => {
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(false)
       vi.mocked(getAdminDb).mockReturnValue(makeDb('ok'))
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.firebaseAuth).toBe('error')
     })
@@ -277,7 +297,7 @@ describe('GET /api/health', () => {
       vi.mocked(getApps).mockReturnValue([])
       vi.mocked(getAdminDb).mockReturnValue(makeDb('ok'))
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.firebaseAuth).toBe('error')
     })
@@ -286,7 +306,7 @@ describe('GET /api/health', () => {
       delete process.env.NUXT_RESEND_API_KEY
       vi.mocked(getAdminDb).mockReturnValue(makeDb('ok'))
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.emailService).toBe('error')
     })
@@ -295,7 +315,7 @@ describe('GET /api/health', () => {
       process.env.NUXT_RESEND_API_KEY = 're_placeholder_key'
       vi.mocked(getAdminDb).mockReturnValue(makeDb('ok'))
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.emailService).toBe('error')
     })
@@ -304,7 +324,7 @@ describe('GET /api/health', () => {
       // Firestore fails, but Auth and Email checks should still complete
       vi.mocked(getAdminDb).mockReturnValue(makeDb('error'))
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.checks.firestoreConnection).toBe('error')
       expect(result.checks.firebaseAuth).toBe('ok')
@@ -317,16 +337,16 @@ describe('GET /api/health', () => {
   describe('overall status', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' } as any)
+      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
-      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]' }] as any)
-      vi.mocked(getAuth).mockReturnValue({} as any)
+      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
+      vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
     })
 
     it('status is degraded when any check is error', async () => {
       vi.mocked(getAdminDb).mockReturnValue(makeDb('error')) // firestoreConnection fails
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.status).toBe('degraded')
     })
@@ -334,7 +354,7 @@ describe('GET /api/health', () => {
     it('status is ok when all checks pass', async () => {
       vi.mocked(getAdminDb).mockReturnValue(makeDb('ok'))
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.status).toBe('ok')
     })
@@ -345,17 +365,17 @@ describe('GET /api/health', () => {
   describe('environment info', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' } as any)
+      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
-      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]' }] as any)
-      vi.mocked(getAuth).mockReturnValue({} as any)
+      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
+      vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
       vi.mocked(getAdminDb).mockReturnValue(makeDb('ok'))
     })
 
     it('masks localhost appUrl as [localhost]', async () => {
       process.env.NUXT_APP_URL = 'http://localhost:3000'
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.environment.appUrl).toBe('[localhost]')
     })
@@ -363,7 +383,7 @@ describe('GET /api/health', () => {
     it('passes through non-localhost appUrl as-is', async () => {
       process.env.NUXT_APP_URL = 'https://app.example.com'
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.environment.appUrl).toBe('https://app.example.com')
     })
@@ -378,10 +398,10 @@ describe('GET /api/health', () => {
           }),
           limit: vi.fn().mockReturnValue({ get: vi.fn().mockResolvedValue({}) }),
         }),
-      } as any
+      } as unknown as Firestore
       vi.mocked(getAdminDb).mockReturnValue(db)
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.environment.useFirestore).toBe(true)
     })
@@ -389,7 +409,7 @@ describe('GET /api/health', () => {
     it('reports resendConfigured false when key is absent', async () => {
       delete process.env.NUXT_RESEND_API_KEY
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.environment.resendConfigured).toBe(false)
     })
@@ -397,7 +417,7 @@ describe('GET /api/health', () => {
     it('reports resendConfigured true when key is a real value', async () => {
       process.env.NUXT_RESEND_API_KEY = 're_live_abc123'
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.environment.resendConfigured).toBe(true)
     })
@@ -408,17 +428,17 @@ describe('GET /api/health', () => {
   describe('warnings', () => {
     beforeEach(() => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
-      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' } as any)
+      vi.mocked(findById).mockResolvedValue({ uid: 'admin', role: 'admin' })
       vi.mocked(isFirebaseAdminAvailable).mockReturnValue(true)
-      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]' }] as any)
-      vi.mocked(getAuth).mockReturnValue({} as any)
+      vi.mocked(getApps).mockReturnValue([{ name: '[DEFAULT]', options: {} } satisfies App])
+      vi.mocked(getAuth).mockReturnValue({} as unknown as Auth)
       vi.mocked(getAdminDb).mockReturnValue(makeDb('ok'))
     })
 
     it('adds APP_URL is localhost warning when NUXT_APP_URL contains localhost', async () => {
       process.env.NUXT_APP_URL = 'http://localhost:3000'
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.warnings).toContain('APP_URL is localhost')
     })
@@ -426,7 +446,7 @@ describe('GET /api/health', () => {
     it('adds NUXT_APP_URL not set warning when env var is missing', async () => {
       delete process.env.NUXT_APP_URL
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.warnings).toContain('NUXT_APP_URL is not set')
     })
@@ -434,7 +454,7 @@ describe('GET /api/health', () => {
     it('adds JSON mock mode warning when useFirestore is false', async () => {
       vi.mocked(isFirestoreMode).mockReturnValue(false)
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.warnings).toContain('Running in JSON mock mode — not suitable for production')
     })
@@ -448,11 +468,11 @@ describe('GET /api/health', () => {
           }),
           limit: vi.fn().mockReturnValue({ get: vi.fn().mockResolvedValue({}) }),
         }),
-      } as any
+      } as unknown as Firestore
       vi.mocked(getAdminDb).mockReturnValue(db)
       process.env.NUXT_APP_URL = 'https://app.example.com'
 
-      const result = await healthHandler(makeEvent('admin'))
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
 
       expect(result.warnings).toHaveLength(0)
     })

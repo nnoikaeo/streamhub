@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { H3Event } from 'h3'
 
 import { readBody, sendRedirect } from 'h3'
 import { createToken, consumeToken } from '../../server/utils/embedTokenStore'
@@ -42,13 +43,19 @@ vi.mock('h3', () => ({
   setResponseStatus: vi.fn(),
 }))
 
-// Helper: create a fake H3Event
-function createMockEvent(overrides: any = {}) {
+// Helper: create a fake H3Event. The handlers only read `context`, so the stub
+// is deliberately partial and asserted through `unknown` rather than `any`.
+interface MockEventOverrides {
+  context?: Record<string, unknown>
+  [key: string]: unknown
+}
+
+function createMockEvent(overrides: MockEventOverrides = {}): H3Event {
   return {
     context: { auth: { uid: 'user_admin' }, ...overrides.context },
     node: { req: {}, res: {} },
     ...overrides,
-  } as any
+  } as unknown as H3Event
 }
 
 // ========================================
@@ -147,7 +154,7 @@ describe('GET /api/embed/[token]', () => {
 
   it('should 302 redirect to embed URL for valid token', async () => {
     const event = createMockEvent()
-    vi.mocked((globalThis as any).getRouterParam).mockReturnValue('valid-token')
+    vi.mocked(getRouterParam).mockReturnValue('valid-token')
     vi.mocked(consumeToken).mockReturnValue('https://lookerstudio.google.com/embed/abc')
 
     await tokenHandler(event)
@@ -157,7 +164,7 @@ describe('GET /api/embed/[token]', () => {
 
   it('should throw 403 for invalid/expired token', async () => {
     const event = createMockEvent()
-    vi.mocked((globalThis as any).getRouterParam).mockReturnValue('expired-token')
+    vi.mocked(getRouterParam).mockReturnValue('expired-token')
     vi.mocked(consumeToken).mockReturnValue(null)
 
     await expect(tokenHandler(event)).rejects.toThrow('Invalid or expired token')
@@ -165,7 +172,7 @@ describe('GET /api/embed/[token]', () => {
 
   it('should throw 400 if token param is missing', async () => {
     const event = createMockEvent()
-    vi.mocked((globalThis as any).getRouterParam).mockReturnValue(undefined)
+    vi.mocked(getRouterParam).mockReturnValue(undefined)
 
     await expect(tokenHandler(event)).rejects.toThrow('Token is required')
   })

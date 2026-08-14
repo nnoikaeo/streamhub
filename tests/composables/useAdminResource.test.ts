@@ -7,8 +7,8 @@ import { useAdminResource, ValidationError } from '../../app/composables/useAdmi
 //     inside create()/update() up to the assertUnique guard. The guard runs
 //     BEFORE any Firestore/mock call, so no auth/$fetch stubs are needed for
 //     the clash cases exercised here. ---
-const stateStore = new Map<string, any>()
-vi.stubGlobal('useState', (key: string, init?: () => any) => {
+const stateStore = new Map<string, Ref<unknown>>()
+vi.stubGlobal('useState', (key: string, init?: () => unknown) => {
   if (!stateStore.has(key)) stateStore.set(key, ref(init ? init() : undefined))
   return stateStore.get(key)
 })

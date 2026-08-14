@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { App } from 'firebase-admin/app'
+import type { Firestore } from 'firebase-admin/firestore'
 
 import { getApps } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
@@ -45,8 +47,8 @@ describe('getAdminDb', () => {
   })
 
   it('returns a Firestore instance when Firebase Admin is initialized', () => {
-    const fakeApp = { name: '[DEFAULT]' } as any
-    const fakeDb = { collection: vi.fn() } as any
+    const fakeApp: App = { name: '[DEFAULT]', options: {} }
+    const fakeDb = { collection: vi.fn() } as unknown as Firestore
 
     vi.mocked(getApps).mockReturnValue([fakeApp])
     vi.mocked(ensureAdminInitialized).mockReturnValue(true)
