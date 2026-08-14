@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const updates: Record<string, any> = {}
+    const updates: Record<string, unknown> = {}
     const allowedFields = ['name', 'role', 'company', 'groups', 'isActive', 'assignedFolders']
 
     for (const field of allowedFields) {

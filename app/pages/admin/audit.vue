@@ -155,7 +155,7 @@ const loadSummary = async () => {
 const loadLogs = async () => {
   try {
     isLoading.value = true
-    const query: Record<string, any> = {
+    const query: Record<string, unknown> = {
       page: currentPage.value,
       limit: pageSize.value,
     }
@@ -210,7 +210,7 @@ const changePageSize = (size: number) => {
 
 const exportCSV = async () => {
   try {
-    const query: Record<string, any> = {}
+    const query: Record<string, unknown> = {}
     if (filterAction.value) query.action = filterAction.value
     if (filterCompany.value) query.company = filterCompany.value
     if (filterDateFrom.value) query.dateFrom = filterDateFrom.value

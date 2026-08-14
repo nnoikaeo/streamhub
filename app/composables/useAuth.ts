@@ -3,6 +3,14 @@ import { getDoc, doc } from 'firebase/firestore'
 import { useAuthStore, type UserData } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
 
+/** The fields the auth flow reads off a stored user profile. */
+interface UserProfile {
+  uid?: string
+  role?: string
+  company?: string
+  isActive?: boolean
+}
+
 export const useAuth = () => {
   const { $firebase } = useNuxtApp()
   const authStore = useAuthStore()
@@ -11,9 +19,9 @@ export const useAuth = () => {
 
   /**
    * Fetch user profile from Firestore (production) or mock API (dev).
-   * Returns the raw user data object, or null if not found.
+   * Returns the stored user profile, or null if not found.
    */
-  const fetchUserProfile = async (uid: string, idToken: string | null): Promise<Record<string, any> | null> => {
+  const fetchUserProfile = async (uid: string, idToken: string | null): Promise<UserProfile | null> => {
     if (useFirestoreMode) {
       const snap = await getDoc(doc($firebase.db, 'users', uid))
       if (!snap.exists()) return null

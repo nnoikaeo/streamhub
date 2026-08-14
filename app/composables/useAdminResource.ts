@@ -165,7 +165,7 @@ interface AdminResourceReturn<T> {
  * @param config - Configuration object for the resource
  * @returns Admin resource management functions and state
  */
-export function useAdminResource<T extends Record<string, any>>(
+export function useAdminResource<T extends object>(
   config: AdminResourceConfig<T>
 ): AdminResourceReturn<T> {
   // Extract configuration with defaults
@@ -231,7 +231,11 @@ export function useAdminResource<T extends Record<string, any>>(
    */
   const generateId = (data: Partial<T>): string | number | undefined => {
     const existingId = data[idKey as keyof typeof data]
-    if (existingId) return existingId
+    // Ids are strings or numbers everywhere; keep the original truthiness check
+    // so a blank id still falls through to generation.
+    if (existingId && (typeof existingId === 'string' || typeof existingId === 'number')) {
+      return existingId
+    }
 
     if (idPrefix) {
       return `${idPrefix}${Date.now()}`
@@ -253,14 +257,14 @@ export function useAdminResource<T extends Record<string, any>>(
   /**
    * Convert Firestore Timestamps to ISO strings in a document
    */
-  const convertTimestamps = (data: Record<string, any>): Record<string, any> => {
-    const result = { ...data }
+  const convertTimestamps = (data: Record<string, unknown>): Record<string, unknown> => {
+    const result: Record<string, unknown> = { ...data }
     for (const key of Object.keys(result)) {
       const value = result[key]
       if (value instanceof Timestamp) {
         result[key] = value.toDate().toISOString()
       } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-        result[key] = convertTimestamps(value)
+        result[key] = convertTimestamps(value as Record<string, unknown>)
       }
     }
     return result

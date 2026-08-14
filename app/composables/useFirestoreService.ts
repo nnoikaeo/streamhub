@@ -48,17 +48,18 @@ import type { IDashboardService } from '~/composables/useDashboardService'
 // ============================================================================
 
 /** Convert Firestore Timestamps to JS Dates in a document */
-function convertTimestamps<T extends Record<string, any>>(data: T): T {
-  const result = { ...data }
+function convertTimestamps<T extends object>(data: T): T {
+  const result = { ...data } as Record<string, unknown>
   for (const key of Object.keys(result)) {
     const value = result[key]
     if (value instanceof Timestamp) {
-      ;(result as any)[key] = value.toDate()
+      result[key] = value.toDate()
     } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-      ;(result as any)[key] = convertTimestamps(value as Record<string, any>)
+      result[key] = convertTimestamps(value)
     }
   }
-  return result
+  // The walk only rewrites values in place, so the key set is unchanged.
+  return result as T
 }
 
 // ============================================================================
@@ -523,18 +524,23 @@ export class FirestoreService implements IDashboardService {
       selectedUserIds.forEach(uid => directUsers.add(uid))
       access.direct.users = Array.from(directUsers)
 
-      const updateData: Record<string, any> = {
+      const updateData: Record<string, unknown> = {
         access,
         updatedAt: Timestamp.now(),
       }
 
-      // Set expiry if provided
+      // Set expiry if provided.
+      // Firestore stores expiries as Timestamps, while AccessRestrictions.expiry
+      // describes the read-back shape (convertTimestamps turns them into Dates),
+      // so the write map is built separately instead of being forced into the
+      // declared type.
       if (expiryDate) {
         const restrictions = dashboard.restrictions ?? { revoke: [], expiry: {} }
+        const expiry: Record<string, unknown> = { ...restrictions.expiry }
         for (const uid of selectedUserIds) {
-          ;(restrictions.expiry as Record<string, any>)[uid] = Timestamp.fromDate(expiryDate)
+          expiry[uid] = Timestamp.fromDate(expiryDate)
         }
-        updateData.restrictions = restrictions
+        updateData.restrictions = { ...restrictions, expiry }
       }
 
       await updateDoc(doc(this.db, 'dashboards', dashboardId), updateData)
@@ -624,7 +630,7 @@ export class FirestoreService implements IDashboardService {
     const id = `dash_${Date.now()}`
     const now = new Date()
 
-    const dashboard: Record<string, any> = {
+    const dashboard: Record<string, unknown> = {
       name,
       folderId,
       type: 'looker',
