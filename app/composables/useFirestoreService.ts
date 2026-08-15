@@ -379,7 +379,7 @@ export class FirestoreService implements IDashboardService {
     }
   }
 
-  async getDashboardPermissions(dashboardId: string): Promise<{ access: any; restrictions: any }> {
+  async getDashboardPermissions(dashboardId: string): Promise<{ access: AccessControl; restrictions: AccessRestrictions }> {
     try {
       const dashboard = await this.getDashboard(dashboardId)
       if (!dashboard) {
@@ -497,7 +497,8 @@ export class FirestoreService implements IDashboardService {
       for (const uid of restrictions.revoke) uids.delete(uid)
       const now = new Date()
       for (const [uid, date] of Object.entries(restrictions.expiry)) {
-        if (new Date(date) < now) uids.delete(uid)
+        // Timestamp or ISO string on the wire — see isExpired
+        if (isExpired(date, now)) uids.delete(uid)
       }
 
       return allUsers.filter(u => uids.has(u.uid))
@@ -718,10 +719,9 @@ export class FirestoreService implements IDashboardService {
 
     // Layer 3: check restrictions first
     if (restrictions?.revoke?.includes(user.uid)) return false
-    const expiryDate = restrictions?.expiry?.[user.uid]
-    if (expiryDate) {
-      if (new Date() > new Date(expiryDate as any)) return false
-    }
+    // expiry is declared as Date but Firestore stores it as a Timestamp —
+    // isExpired reads either shape (a bare `new Date(timestamp)` never fires)
+    if (isExpired(restrictions?.expiry?.[user.uid])) return false
 
     // Moderator managing the dashboard's folder (or an ancestor) → allow [DESIGN-001]
     if (user.role === 'moderator' && this.moderatorManagesFolder(dashboard.folderId, user.uid, folders)) {
@@ -748,7 +748,7 @@ export class FirestoreService implements IDashboardService {
   private moderatorManagesFolder(folderId: string | null | undefined, uid: string, folders: Folder[]): boolean {
     let currentId: string | null = folderId || null
     while (currentId) {
-      const folder: any = folders.find((f: any) => f.id === currentId)
+      const folder: Folder | undefined = folders.find(f => f.id === currentId)
       if (!folder) break
       if (folder.assignedModerators?.includes(uid)) return true
       currentId = folder.parentId || null
