@@ -420,6 +420,36 @@ if (new Date() > new Date(expiryDate as any)) return false
 
 ---
 
+## Issue: ข้อความ error ค้างหลังแก้ค่าให้ถูกแล้ว (แก้แล้ว PR #367)
+
+**อาการ:** `/admin/dashboards` → กด บันทึก โดยไม่เลือกโฟลเดอร์ → ขึ้น "โฟลเดอร์ is required" (ถูกต้อง) → เลือกโฟลเดอร์ → ข้อความแดงยังค้างอยู่ จนกว่าจะกด บันทึก อีกรอบ เกิดกับทุกฟอร์ม admin ไม่ใช่เฉพาะหน้านี้
+
+**สาเหตุ:** `useForm` มีโค้ดล้าง error อยู่จริง แต่ผูกไว้กับ `setFieldValue`
+
+```ts
+const setFieldValue = <K extends keyof T>(field: K, value: T[K]) => {
+  formData[field] = value
+  if (errors.value[field]) errors.value[field] = undefined   // ทางนี้
+}
+```
+
+ทั้ง 7 ฟอร์มผูก `v-model="formData.folderId"` ซึ่ง compile เป็น `formData.folderId = $event` — assignment ตรงเข้า reactive proxy ทางนั้นจึงไม่เคยถูกเรียก ทั้งรีโปมี `CompanyForm.vue` ไฟล์เดียวที่เรียก `setFieldValue` และเรียกกับ `regionRole` / `sortOrder` ซึ่งไม่มี validator — โค้ดล้าง error จึงตายมาตั้งแต่วันแรก
+
+**ทำไมไม่มีใครเห็น:** ไม่มี type error ไม่มี lint error ไม่มี log — ทั้งสองฝั่งถูกต้องในตัวมันเอง แค่ไม่ได้ต่อกัน และกด บันทึก ซ้ำอีกครั้งอาการก็หาย (`validateForm` เขียนทับ `errors.value` ทั้งก้อน) จึงดูเหมือนแค่จังหวะ UI
+
+**แก้แล้ว:** `watch(formData, …, { deep: true })` ใน `useForm` แล้ว re-validate — แก้จุดเดียวครอบทั้ง 7 ฟอร์ม แทนการรื้อ `v-model` ~40 จุด
+
+- แตะเฉพาะ field ที่มี error อยู่แล้ว → ไม่มีทางขึ้น error ให้ field ที่ผู้ใช้ยังไม่ submit/blur
+- ยัง invalid → refresh ข้อความเป็น rule ที่ fail จริง ไม่ค้างข้อความเก่า
+- error ที่ `validateForm` เพิ่งตั้ง ลบไม่ได้ — `formData` ไม่เปลี่ยน watcher จึงไม่ fire และต่อให้ fire `validate` ก็คืน error ตัวเดิม
+- ไม่ diff key ที่เปลี่ยน เพราะ deep watch บน reactive object คืน proxy ตัวเดียวกันทั้ง new/old ต้องเก็บ snapshot เอง และ snapshot ตื้นก็ยังจับ `formData.tags.push()` ไม่ได้
+
+ครอบด้วย `tests/composables/useForm.test.ts` 14 เคส (5 เคสแดงก่อนแก้)
+
+> บทเรียน: helper ที่ "มีอยู่แล้ว" ไม่ได้แปลว่าถูกเรียก — `setFieldValue` ถูก export ครบ ดู reachable ทุกประการ แต่ `v-model` เลี่ยงมันได้ทั้งหมด ก่อนเชื่อว่า logic ทำงาน ให้ grep หา call site จริงก่อน
+
+---
+
 ## Debugging Tips
 
 ### Enable Debug Logs
