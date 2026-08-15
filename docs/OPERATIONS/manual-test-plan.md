@@ -431,6 +431,7 @@
 | 5.1.8 | Fixing one field keeps the others' errors | ต่อจาก 5.1.7 ก่อนกรอกชื่อ | แดงใต้ ชื่อแดชบอร์ด ยังอยู่ | High | ✅ |
 | 5.1.9 | Message follows the failing rule | 1. `/admin/companies` → เพิ่มบริษัท 2. กด บันทึก ทั้งที่ว่าง 3. พิมพ์ `A` 4. พิมพ์ต่อเป็น `AB` | `is required` → `must be at least 2 characters` → แดงหาย | Medium | ✅ |
 | 5.1.10 | No error before submit or blur | 1. เปิดฟอร์มเปล่า 2. พิมพ์ `A` ค้าง cursor ไว้ในช่อง | ไม่มีแดงขึ้น จนกว่าจะ blur หรือกด บันทึก | Medium | ✅ |
+| 5.1.11 | Edit mode opens clean | 1. `/admin/companies` → กดแก้ไขบริษัทที่มีอยู่ | ฟอร์มเปิดมาไม่มีข้อความแดง | Medium | ✅ |
 
 ### 5.2 Navigation & Middleware
 
