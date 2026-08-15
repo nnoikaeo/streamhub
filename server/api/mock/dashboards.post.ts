@@ -19,12 +19,12 @@ export default defineEventHandler(async (event) => {
     const dashboards = await readJSON<Dashboard>('dashboards.json')
     const existingDashboard = dashboards.find((d) => d.id === body.id)
 
-    let result: any
+    let result: { success: true, data: Dashboard | null, action: 'updated' | 'created' }
     let auditAction: 'create' | 'edit'
 
     if (existingDashboard) {
       // Update existing dashboard
-      const updated = await updateItem('dashboards.json', body.id, body)
+      const updated = await updateItem<Dashboard>('dashboards.json', body.id, body)
       result = { success: true, data: updated, action: 'updated' }
       auditAction = 'edit'
     } else {

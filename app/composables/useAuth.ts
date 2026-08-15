@@ -1,4 +1,5 @@
 import { signOut, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
+import type { User as FirebaseUser } from 'firebase/auth'
 import { getDoc, doc } from 'firebase/firestore'
 import { useAuthStore, type UserData } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
@@ -153,7 +154,7 @@ export const useAuth = () => {
   }
 
   const initAuth = () => {
-    return new Promise<any>((resolve) => {
+    return new Promise<FirebaseUser | null>((resolve) => {
       console.log('📡 Initializing auth listener...')
 
       // Firebase is client-only — resolve immediately on server

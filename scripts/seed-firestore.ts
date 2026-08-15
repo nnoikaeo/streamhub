@@ -100,7 +100,8 @@ function convertDatesToTimestamps(obj: Record<string, unknown>): Record<string, 
   return result
 }
 
-function loadJsonFile(filename: string): any[] {
+/** Rows come straight off disk — the seeder only reads the configured id field. */
+function loadJsonFile(filename: string): Record<string, unknown>[] {
   const filePath = resolve(DATA_DIR, filename)
   const content = readFileSync(filePath, 'utf-8')
   return JSON.parse(content)

@@ -105,10 +105,19 @@ interface AdminResourceConfig<T> {
 }
 
 /**
+ * An extension method: takes the live item list, then its own arguments.
+ *
+ * The rest parameter is `never[]` rather than `unknown[]` so that a concrete
+ * definition — `(folders, parentId: string | null) => Folder[]` — still
+ * satisfies it; parameters are checked contravariantly.
+ */
+type ResourceExtension<T> = (items: Ref<T[]>, ...args: never[]) => unknown
+
+/**
  * Extension methods that can be added to specific resources
  */
 interface ResourceExtensions<T> {
-  [methodName: string]: (items: Ref<T[]>, ...args: any[]) => any
+  [methodName: string]: ResourceExtension<T>
 }
 
 /**
@@ -289,7 +298,9 @@ export function useAdminResource<T extends object>(
     const userRole = authStore.user?.role
     const userCompany = authStore.user?.company
     if (!skipCompanyFilter && userRole && userRole !== 'admin' && userCompany) {
-      items.value = docs.filter(item => (item as any).company === userCompany)
+      // `in` narrows T to a shape carrying the key — resources without a
+      // company field simply never match, which is the intended behaviour
+      items.value = docs.filter(item => 'company' in item && item.company === userCompany)
     } else {
       items.value = docs
     }
@@ -521,9 +532,9 @@ export function useAdminResource<T extends object>(
   const extensionMethods = Object.entries(extensions).reduce(
     (acc, [name, fn]) => ({
       ...acc,
-      [name]: (...args: any[]) => fn(items, ...args)
+      [name]: (...args: never[]) => fn(items, ...args)
     }),
-    {} as Record<string, any>
+    {} as Record<string, (...args: never[]) => unknown>
   )
 
   return { ...baseReturn, ...extensionMethods }

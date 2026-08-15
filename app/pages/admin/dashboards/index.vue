@@ -46,6 +46,7 @@ const {
   handleDelete: handleDeleteDashboard,
   handleSave: handleSaveDashboard,
   confirmDelete: confirmDeleteDashboard,
+  formRef: dashboardFormRef,
 } = useAdminCrudPage<Dashboard>({
   idKey: 'id',
   displayKey: 'name',
@@ -217,10 +218,11 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           v-model="showDashboardModal"
           :title="selectedDashboard ? 'แก้ไขแดชบอร์ด' : 'เพิ่มแดชบอร์ดใหม่'"
           :loading="loading"
-          @save="handleSaveDashboard"
+          @save="dashboardFormRef?.submit()"
           @cancel="showDashboardModal = false"
         >
           <DashboardForm
+            ref="dashboardFormRef"
             :dashboard="selectedDashboard"
             :show-tag-selector="true"
             :can-create-tag="true"
