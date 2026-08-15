@@ -210,16 +210,26 @@
 > is not part of any user-facing flow and is a candidate for removal. All cases marked ⊘ N/A.
 > (Note: dashboards are leaf nodes with no children, so there is no delete-orphan risk of the
 > BUG-008/BUG-009 kind here.) Decision 2026-07-26.
+>
+> **Revisited 2026-08-15 — the skip cost us a real defect (BUG-013).** Typing
+> `FormModal`'s `save` payload surfaced that this page wired the modal's save button
+> straight to `handleSave`, so create/update received the modal's raw `FormData`
+> scrape instead of the form's values — and `FormField` names its inputs
+> `field-${Math.random()}`, so the write carried random keys, never `name`/`folderId`/
+> `lookerEmbedUrl`, and skipped validation entirely. Reproduced live on prod (doc
+> `dash_1786790982303` held only defaults), fixed in PR #365, and 3.4.3 / 3.4.4 / 3.4.7
+> are now verified. An orphan route still writes to the same collection everyone reads:
+> "not in the menu" is not the same as "cannot corrupt data".
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
 | 3.4.1 | Search by name | 1. Type dashboard name in search | Matching dashboards shown | High | ⊘ N/A (orphan) |
 | 3.4.2 | Filter by archive status | 1. Toggle archive filter | Archived/active dashboards filtered | High | ⊘ N/A (orphan) |
-| 3.4.3 | Create dashboard | 1. Click "เพิ่มแดชบอร์ด" 2. Fill name, folder, owner 3. Submit | Dashboard created, toast shown | High | ⊘ N/A (orphan) |
-| 3.4.4 | Edit dashboard | 1. Click Edit 2. Change fields 3. Save | Dashboard updated in table | High | ⊘ N/A (orphan) |
+| 3.4.3 | Create dashboard | 1. Click "เพิ่มแดชบอร์ด" 2. Fill name, folder, owner 3. Submit | Dashboard created, toast shown | High | ✅ (2026-08-15, BUG-013) |
+| 3.4.4 | Edit dashboard | 1. Click Edit 2. Change fields 3. Save | Dashboard updated in table | High | ✅ (2026-08-15) |
 | 3.4.5 | Delete dashboard | 1. Click Delete 2. Confirm | Dashboard removed | High | ⊘ N/A (orphan) |
 | 3.4.6 | Toggle archive status | 1. Click archive toggle on row | Dashboard archived/unarchived | High | ⊘ N/A (orphan) |
-| 3.4.7 | Form validation | 1. Submit form with missing required fields | Validation errors shown | Medium | ⊘ N/A (orphan) |
+| 3.4.7 | Form validation | 1. Submit form with missing required fields | Validation errors shown | Medium | ✅ (2026-08-15, BUG-013) |
 | 3.4.8 | Dashboard with Looker URL | 1. Create dashboard with Looker URL 2. View it | Dashboard renders embed | Medium | ⊘ N/A (orphan) |
 
 ---

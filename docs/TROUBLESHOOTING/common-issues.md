@@ -371,6 +371,55 @@ filtered = filtered.filter((d) => d.access?.company?.[companyFilter])
 
 ---
 
+## Issue: วันหมดอายุสิทธิ์ (`restrictions.expiry`) ไม่เคยทำงานบน Firestore (แก้แล้ว PR #364)
+
+**อาการ:** quick-share แดชบอร์ดพร้อมตั้งวันหมดอายุให้ผู้ใช้ พอเลยวันนั้นไปแล้วผู้ใช้ยังเปิดแดชบอร์ดได้ตามปกติ ไม่มี error ไม่มี log
+
+**สาเหตุ:** ค่าเดียวกันนี้มี 3 ร่าง แล้วโค้ดอ่านได้ร่างเดียว
+
+| ที่ | ร่างของ `expiry[uid]` |
+|---|---|
+| `AccessRestrictions` (type) | `Date` |
+| JSON store (`.data/*.json`) | ISO string |
+| Firestore | `Timestamp` — `quickShareDashboard` เขียนด้วย `Timestamp.fromDate()` |
+
+`useFirestoreService.checkAccess` อ่านกลับมาว่า
+
+```ts
+if (new Date() > new Date(expiryDate as any)) return false
+```
+
+`new Date(timestampObject)` ได้ `Invalid Date` ซึ่งเทียบกับอะไรก็ได้ `false` → ไม่เข้าเงื่อนไข → **ถือว่ายังไม่หมดอายุ → ปล่อยผ่าน** `resolveEffectiveUsers` ก็เทียบแบบเดียวกัน
+
+**ทำไมไม่มีใครเห็น:** `as any` ตรงนั้นปิดปาก compiler ที่กำลังจะบอกว่า type กับ runtime ไม่ตรงกัน
+
+**แก้แล้ว:** เพิ่ม `shared/utils/dates.ts` — `toDate()` / `isExpired()` อ่านได้ทั้ง `Date`, ISO string, epoch number, Firestore `Timestamp` และ Timestamp ที่ผ่าน JSON มาแล้ว (`{seconds}`) ใช้ที่ `useFirestoreService` และ `server/utils/companyAccess.ts` ครอบด้วย `tests/utils/dates.test.ts`
+
+> ค่าที่อ่านไม่ออกถือว่า **ยังไม่หมดอายุ** โดยตั้งใจ — ข้อมูลเสียต้องไม่ล็อกผู้ใช้ออกจากแดชบอร์ดที่เขาได้สิทธิ์มาแล้ว
+
+---
+
+## Issue: สร้าง/แก้แดชบอร์ดที่ `/admin/dashboards` ได้แถวว่าง ข้าม validation (แก้แล้ว PR #365)
+
+**อาการ:** กด "เพิ่มแดชบอร์ดใหม่" กรอกแค่ชื่อ ไม่เลือกโฟลเดอร์ กดบันทึก → ขึ้น toast "เพิ่มแดชบอร์ดเรียบร้อยแล้ว" แต่ในตารางได้แถวที่ชื่อ/โฟลเดอร์/เจ้าของเป็น `-` ทั้งหมด
+
+**สาเหตุ:** หน้านี้ต่อ `@save` ของ `FormModal` เข้า `handleSaveDashboard` โดยตรง `FormModal` จึงส่ง payload ของตัวเอง คือ `Object.fromEntries(new FormData(form))` ไม่ใช่ค่าจากฟอร์ม และ `FormField` ตั้ง `name` ของ input เป็น `field-${Math.random().toString(36)}` payload จึงเป็น key สุ่มที่ไม่ตรงกับ field ไหนเลย เอกสารที่เขียนลง Firestore เหลือแต่ `defaults`:
+
+```json
+{ "type": "looker", "isArchived": false, "access": {…}, "restrictions": {…},
+  "id": "dash_1786790982303" }
+```
+
+อีก 8 หน้า admin ต่อสายแบบ `@save="xFormRef?.submit()"` + `@submit="handleSave"` หน้านี้มีแค่ครึ่งหลัง `submit()` ที่ `DashboardForm` expose ไว้จึงไม่เคยถูกเรียก validation เลยไม่ทำงาน
+
+**ทำไมไม่มีใครเห็น:** `FormModal` ประกาศ `save: [data?: any]` — `any` ทำให้ handler ที่รับ `Partial<Dashboard>` ต่อกับ payload คนละชนิดได้โดย compiler ไม่ทัก และหน้านี้เป็น orphan (ไม่มีในเมนู ต้องพิมพ์ URL เอง) คนจริงๆ สร้างแดชบอร์ดจาก `/admin/explorer` ซึ่งต่อสายถูกอยู่แล้ว
+
+**แก้แล้ว:** ต่อสายให้เหมือนอีก 8 หน้า + `save` เปลี่ยนเป็น `Record<string, FormDataEntryValue>`
+
+> บทเรียน: `any` บน payload ของ emit ปิดบั๊กที่ระดับ "ต่อสายผิดเส้น" ซึ่ง test suite ไม่มีทางจับ เพราะโค้ดทั้งสองฝั่งถูกต้องในตัวมันเอง
+
+---
+
 ## Debugging Tips
 
 ### Enable Debug Logs

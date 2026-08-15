@@ -254,6 +254,7 @@ Nuxt 4 auto-imports `shared/utils/*` and `shared/types/*` into **both** `app/` a
 | File | Purpose |
 |------|---------|
 | `utils/errors.ts` | Narrowing helpers for caught values — `getErrorStatus`, `getErrorMessage`, `getErrorDataMessage`, `getErrorCode`, `toError` |
+| `utils/dates.ts` | `toDate`, `isExpired` — read a stored date in any of its three shapes (`Date`, ISO string, Firestore `Timestamp`). Used by every `restrictions.expiry` check |
 | `types/audit.ts` | `AuditAction`, `AuditLevel`, `AuditEntry`, `AuditSummary` and the two `/api/audit` response shapes |
 
 ⚠️ Anything added under `shared/utils/` — that is, anything with a **runtime value** — must also be registered as a global in `tests/setup.ts`. Plain Vitest does not run Nuxt's auto-import, so server-handler tests fail with `... is not defined` otherwise. Type-only files under `shared/types/` need no such registration; import them explicitly from `#shared/types/…` inside SFCs, where type auto-import does not always resolve.

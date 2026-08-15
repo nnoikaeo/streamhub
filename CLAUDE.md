@@ -23,10 +23,12 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 
 ### Error Handling & `any`
 - Caught values are `unknown`. Use the helpers in `shared/utils/errors.ts` (`getErrorStatus`, `getErrorMessage`, `getErrorDataMessage`, `getErrorCode`, `toError`) — auto-imported into **both** `app/` and `server/`. Never `catch (e: any)`
+- Stored dates are not `Date`. `restrictions.expiry` is a Firestore `Timestamp` in prod and an ISO string in the JSON store, while the type says `Date`. Read it with `toDate` / `isExpired` from `shared/utils/dates.ts` — `new Date(timestamp)` gives `Invalid Date`, compares `false`, and grants access that should have expired (PR #364)
 - Anything new in `shared/utils/` must also be registered as a global in `tests/setup.ts` — plain Vitest does not run Nuxt auto-import
 - Generic constraints: `T extends object`, **not** `Record<string, unknown>` (interfaces have no index signature, so it rejects `User`, `Dashboard`, …)
 - Always pass the type argument to `readJSON<T>` / `findById<T>` / `updateItem<T>`. Leaving it bare falls back to the constraint and invites an `as any[]` cast — that is how the `?company=` filter bug survived (PR #359)
-- Never "fix" an `any` with `as any` or `@ts-ignore`. If the real type is unclear, skip the site and say why
+- Never "fix" an `any` with `as any` or `@ts-ignore`. If the real type is unclear, skip the site and say why. Sometimes the right fix is deleting the code: two of the last three sites guarded logic that could never run (PR #366)
+- The backlog is closed — `npx eslint .` is **0**. Any `any` you add is a regression the lint run catches
 - See: [docs/CONTRIBUTING/coding-standards.md](docs/CONTRIBUTING/coding-standards.md) § Error Handling, § Avoiding `any`
 
 ### Firestore / Nitro Plugins

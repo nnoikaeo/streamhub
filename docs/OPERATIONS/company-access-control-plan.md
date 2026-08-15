@@ -4,6 +4,14 @@
 > **Purpose:** Step-by-step prompts สำหรับให้ Sonnet/Haiku ดำเนินการ
 > **Strategy:** แต่ละ Step = 1 feature branch → PR → merge to develop
 > **Backend:** Mock JSON API (ยังไม่ใช้ Firestore)
+> **Status (2026-08-15):** ทำเสร็จและ ship แล้ว — เอกสารนี้เก็บไว้เป็น **บันทึกประวัติ** เท่านั้น
+>
+> ⚠️ **อย่าคัดลอกโค้ดในเอกสารนี้ไปใช้** snippet ข้างล่างเป็นของเวอร์ชันแรกที่ยังใช้ `any` ทั้ง
+> `user: any | null`, `checkDashboardAccess(dashboard: any, user: any)` และ
+> `filterAccessibleDashboards(dashboards: any[], …)` ปัจจุบันใช้ `AccessDashboard` /
+> `AccessFolder` / `AccessUser` กับ `CompanyAccessResult` แบบ discriminated union แล้ว
+> (PR #364) และ `new Date(expiryDate)` ที่บรรทัด 123 คือบั๊กที่ทำให้วันหมดอายุไม่เคยทำงาน
+> บน Firestore — ตอนนี้ใช้ `isExpired()` ยึด [`server/utils/companyAccess.ts`](../../server/utils/companyAccess.ts) เป็นแหล่งอ้างอิงจริง
 
 ---
 

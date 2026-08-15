@@ -384,6 +384,8 @@ interface AccessRestrictions {
 }
 ```
 
+`checkDashboardAccess` in `server/utils/companyAccess.ts` is the only server-side entry point to access control. It takes named shapes — `AccessDashboard`, `AccessFolder`, `AccessUser` — rather than `Dashboard` / `Folder` / `User`, because handlers pass raw store records whose timestamps are ISO strings or Firestore `Timestamp`s, not the `Date` those types declare. Keep the three checks below in sync; `tests/server/companyAccess.test.ts` covers 14 cases of this one.
+
 **Access evaluation (identical in all 3 checks — `useFirestoreService.checkAccess`, `useMockData`, `server/utils/companyAccess.ts`):**
 
 ```
@@ -396,6 +398,8 @@ user.company in company[]            → ALLOW
 moderator manages the folder (or an ancestor via assignedModerators) → ALLOW
 otherwise                            → DENY   (default private)
 ```
+
+> ⚠️ **`expiry` is not a plain `Date` on the wire.** Firestore stores it as a `Timestamp`, the JSON store as an ISO string, and the type declares `Date`. Compare it through `isExpired` (`shared/utils/dates.ts`), never `new Date(value)` — on a `Timestamp` that yields `Invalid Date`, compares `false`, and grants access to someone whose window has closed. This shipped as a live defect until PR #364.
 
 > ⚠️ **An empty `company: []` no longer means "all companies".** Before DESIGN-001 it did; now a dashboard with no public flag, no grants, and no company is **private** (admin + inheriting folders + managing moderators only). To make something org-wide public, set `access.public = true` (🌐 toggle in the permission editor).
 
