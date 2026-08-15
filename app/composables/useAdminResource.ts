@@ -85,11 +85,6 @@ interface AdminResourceConfig<T> {
   skipCompanyFilter?: boolean
 
   /**
-   * Custom extension methods for resource-specific utilities
-   */
-  extensions?: ResourceExtensions<T>
-
-  /**
    * Plural name for console logs (defaults to resourceName + 's')
    */
   pluralName?: string
@@ -102,22 +97,6 @@ interface AdminResourceConfig<T> {
    * secondary keys that are not the doc id (e.g. tag `slug`).
    */
   uniqueFields?: UniqueFieldRule<T>[]
-}
-
-/**
- * An extension method: takes the live item list, then its own arguments.
- *
- * The rest parameter is `never[]` rather than `unknown[]` so that a concrete
- * definition — `(folders, parentId: string | null) => Folder[]` — still
- * satisfies it; parameters are checked contravariantly.
- */
-type ResourceExtension<T> = (items: Ref<T[]>, ...args: never[]) => unknown
-
-/**
- * Extension methods that can be added to specific resources
- */
-interface ResourceExtensions<T> {
-  [methodName: string]: ResourceExtension<T>
 }
 
 /**
@@ -161,9 +140,6 @@ interface AdminResourceReturn<T> {
   create: (data: Partial<T>) => Promise<T | undefined>
   update: (id: string | number, updates: Partial<T>) => Promise<T | undefined>
   delete: (id: string | number) => Promise<boolean | undefined>
-
-  // Extension methods (if provided)
-  [extensionMethod: string]: any
 }
 
 /**
@@ -184,7 +160,6 @@ export function useAdminResource<T extends object>(
     displayKey = idKey,
     idPrefix,
     defaults = {},
-    extensions = {},
     pluralName = resourceName.endsWith('s') ? resourceName : `${resourceName}s`,
     skipCompanyFilter = false,
     uniqueFields = []
@@ -514,9 +489,9 @@ export function useAdminResource<T extends object>(
   }
 
   /**
-   * Build return object with extensions
+   * Build return object
    */
-  const baseReturn: AdminResourceReturn<T> = {
+  return {
     items: readonly(items) as unknown as Readonly<Ref<T[]>>,
     loading: readonly(loading),
     error: readonly(error),
@@ -525,17 +500,4 @@ export function useAdminResource<T extends object>(
     update,
     delete: delete_
   }
-
-  /**
-   * Apply extension methods
-   */
-  const extensionMethods = Object.entries(extensions).reduce(
-    (acc, [name, fn]) => ({
-      ...acc,
-      [name]: (...args: never[]) => fn(items, ...args)
-    }),
-    {} as Record<string, (...args: never[]) => unknown>
-  )
-
-  return { ...baseReturn, ...extensionMethods }
 }

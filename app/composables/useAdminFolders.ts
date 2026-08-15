@@ -101,34 +101,28 @@ export function useAdminFolders() {
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date()
-    },
-    extensions: {
-      /**
-       * Get child folders of a parent
-       */
-      getChildFolders: (folders, parentId: string | null) => {
-        return folders.value.filter((f: Folder) => f.parentId === parentId)
-      },
-
-      /**
-       * Get folder path from root to specific folder
-       */
-      getFolderPath: (folders, folderId: string): Folder[] => {
-        const path: Folder[] = []
-        let currentId: string | null | undefined = folderId
-
-        while (currentId) {
-          const folder = folders.value.find((f: Folder) => f.id === currentId)
-          if (!folder) break
-
-          path.unshift(folder)
-          currentId = folder.parentId
-        }
-
-        return path
-      }
     }
   })
+
+  /** Get child folders of a parent */
+  const getChildFolders = (parentId: string | null): Folder[] =>
+    resource.items.value.filter(f => f.parentId === parentId)
+
+  /** Get folder path from root to a specific folder */
+  const getFolderPath = (folderId: string): Folder[] => {
+    const path: Folder[] = []
+    let currentId: string | null | undefined = folderId
+
+    while (currentId) {
+      const folder = resource.items.value.find(f => f.id === currentId)
+      if (!folder) break
+
+      path.unshift(folder)
+      currentId = folder.parentId
+    }
+
+    return path
+  }
 
   // Create backward-compatible aliases for existing page code
   return {
@@ -137,8 +131,8 @@ export function useAdminFolders() {
     createFolder: resource.create,
     updateFolder: resource.update,
     deleteFolder: resource.delete,
-    getChildFolders: resource.getChildFolders,
-    getFolderPath: resource.getFolderPath,
+    getChildFolders,
+    getFolderPath,
     buildFolderTree,
 
     // Also expose generic API for flexibility (includes loading, error, items, fetch, etc.)

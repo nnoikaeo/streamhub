@@ -239,7 +239,7 @@ In a Nitro handler the usual shape is rethrow-or-wrap:
 
 ## Avoiding `any`
 
-`@typescript-eslint/no-explicit-any` is the only rule with a remaining backlog, so every new `any` makes it worse. Fixes that do **not** count: `as any`, `@ts-ignore`, or widening a signature until the error goes away. If the real type is genuinely unclear, leave the site alone and say so rather than laundering it.
+`@typescript-eslint/no-explicit-any` is at 0 across the repo — the backlog is closed, so every new `any` is a regression the lint run will catch. Fixes that do **not** count: `as any`, `@ts-ignore`, or widening a signature until the error goes away. If the real type is genuinely unclear, leave the site alone and say so rather than laundering it.
 
 **Generic constraints — `object`, not `Record<string, unknown>`.** Interfaces have no implicit index signature, so `Record<string, unknown>` rejects `User`, `Dashboard`, `AdminGroup` and every other named type. `T extends object` accepts them and is enough whenever the body only uses `keyof T`, `Partial<T>` and `T[]`.
 
@@ -566,19 +566,19 @@ npm run build                                     # Test build
 
 | Check | Baseline (2026-08-14, PR #361) |
 |-------|--------------------------------|
-| `npx eslint .` | 3 problems — every one `@typescript-eslint/no-explicit-any` |
+| `npx eslint .` | 0 problems |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 0 errors |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 errors |
 | `npm test` | 229 passing |
 
-Any typecheck error, and any lint violation of a rule **other than `no-explicit-any`**, was introduced by your change. For `no-explicit-any` itself, compare the count before and after (`git stash`, re-run, `git stash pop`) or scope the run to the files you touched.
+Every one of these is at 0, so any error or violation was introduced by your change. There is no backlog left to compare against.
 
-The remaining 3 are all in `app/`, and each needs a decision rather than a rename:
+The last two sites were both closed by deleting code rather than typing it, which is worth remembering as an option:
 
-- **`app/stores/dashboard.ts:73,81`** — `(d as any).company` covers a real gap between the type model and what Firestore holds: neither `Dashboard` nor `Folder` declares a top-level `company`. Removing it means deciding whether the field joins the type or the read moves elsewhere.
-- **`useAdminResource`'s `[extensionMethod: string]: any`** — typing it means making the composable generic over its extensions map and returning a mapped type. All eight call sites pass `<T>` explicitly, and TypeScript does not mix explicit and inferred type arguments, so a second parameter would silently fall back to its default and drop the extension methods from the return type.
+- **`app/stores/dashboard.ts`** carried `getDashboardsByCompany` / `getFoldersByCompany`, filtering on `(d as any).company`. Neither type declares that field, no document in Firestore holds it (0 of 40 dashboards, 0 of 28 folders), and nothing called either getter — so both always returned `[]`. Company scoping is `access.company`, a **list** read with `.includes()`. The cast was hiding a getter that could never work.
+- **`useAdminResource`'s `[extensionMethod: string]: any`** existed to carry three extension methods. An index signature types every unknown property as `any`, so a typo compiled. The three helpers now live in `useAdminFolders` / `useAdminDashboards` directly, where they read `resource.items.value` and are ordinary typed functions; the composables' public API is unchanged.
 
-One deliberate skip: `app/stores/dashboard.ts:73,81` casts to read `.company` off a `Dashboard` and a `Folder`. Neither type declares the field, so the cast hides a real gap between the type model and what Firestore stores — closing it is a modelling decision, not a rename.
+Before designing a generic to preserve a mechanism, check what the mechanism is actually worth: this one served three call sites and cost type safety on every property of every admin resource.
 
 ---
 
