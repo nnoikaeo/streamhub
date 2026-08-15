@@ -281,6 +281,20 @@ Response types for the invitation API live in `app/types/invitation.ts`; audit l
 
 **One name per shape.** A stored-user shape was declared six times as a local `UserRecord` with `[key: string]: any`. If two files describe the same payload, that is one type in a shared location — and if the shape genuinely differs from an existing type, say why in the name: `StoredUser` is not `User` because `User` declares its timestamps as `Date` while both stores hold ISO strings.
 
+**Name the fields a rule reads, and stay generic over the row.** `checkDashboardAccess` cannot take `Dashboard`: handlers hand it raw store records whose timestamps are ISO strings or Firestore `Timestamp`s, not the `Date` the type declares, and the tests pass four-field fixtures. It takes `AccessDashboard` / `AccessFolder` / `AccessUser` instead — the fields the permission rules actually read, assembled from `AccessControl`, `AccessRestrictions` and `Pick<User, …>` rather than redeclared. Give such a shape at least one required field, or it becomes a weak type. Where the function returns rows it was given, make it generic (`<T extends AccessFolder>(…): T[]`) so callers keep every field they passed in.
+
+**A result object with a `null` half is a discriminated union.** `{ allowed: boolean, user: any | null }` forced `any`, because every caller checks `allowed` first and then reads `.user`. Split it and the narrowing is free:
+
+```typescript
+export type CompanyAccessResult =
+  | { allowed: true, user: User, reason: string }
+  | { allowed: false, user: User | null, reason: string }
+```
+
+**Stored dates arrive in three shapes.** `AccessRestrictions.expiry` declares `Date`, the JSON store holds ISO strings, and Firestore holds `Timestamp`. `new Date(timestamp)` yields `Invalid Date`, which compares `false` against everything — the expiry silently never fires, and `as any` is what let that ship. Read stored dates through `toDate` / `isExpired` in `shared/utils/dates.ts`.
+
+**`any` on a delegating wrapper hides signature drift.** The lazy wrappers in `useDashboardService` typed their backing service as `any`, so three of them had quietly stopped matching `IDashboardService` — a dropped `currentUserId`, a two-argument call into a one-parameter method, and a `getAuditLog(options?: any)` that discarded `limit`. Type the field as the real class (`private firestoreService: FirestoreService | null = null`, imported `import type` so the runtime import stays lazy) and the compiler checks every handoff.
+
 **Test doubles.** Build the real shape when it is cheap — firebase-admin's `App` is just `{ name, options }`. When the real type is a large SDK surface the code only probes for existence (`Auth`, `Firestore`, `H3Event`), keep the stub partial but assert it through `unknown`, never `any`, and comment what the code under test actually reads. Do not build a `Partial<T>` and cast it back to `T`.
 
 Hoisting a fixture into a named `const` or factory also sidesteps TypeScript's excess-property check, which only fires on object literals passed directly:
@@ -552,14 +566,16 @@ npm run build                                     # Test build
 
 | Check | Baseline (2026-08-14, PR #361) |
 |-------|--------------------------------|
-| `npx eslint .` | 57 problems — every one `@typescript-eslint/no-explicit-any` |
+| `npx eslint .` | 17 problems — every one `@typescript-eslint/no-explicit-any` |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 0 errors |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 errors |
-| `npm test` | 220 passing |
+| `npm test` | 229 passing |
 
 Any typecheck error, and any lint violation of a rule **other than `no-explicit-any`**, was introduced by your change. For `no-explicit-any` itself, compare the count before and after (`git stash`, re-run, `git stash pop`) or scope the run to the files you touched.
 
-The remaining 57 sit at 37 in `app/`, 19 in `server/`, 1 in `scripts/`; `tests/` is clean. What is left is almost entirely **the permission path** — `server/utils/companyAccess.ts` (17) still exposes `filterAccessibleDashboards(dashboards: any[], user: any, folders: any[])` and `checkDashboardAccess(dashboard: any, user: any, …)`, with `useDashboardService` (14), `useFirestoreService` (5) and `useJSONMockService` (4) behind it. Highest regression risk of anything remaining; do it on its own, and read [Roles & Permissions](../GUIDES/roles-and-permissions.md) first.
+The remaining 17 sit at 15 in `app/`, 1 in `server/`, 1 in `scripts/`; `tests/` is clean. The permission path is done. What is left is unrelated leftovers: `useAdminResource` (6), `FormModal` (2), and single sites in `FormField`, `useAuth`, `useDashboardPage`, `errorMessages`, `dashboard` store (2), `seed-firestore`, `dashboards.post`, `bulkInvite`.
+
+`app/stores/dashboard.ts` is the one place to leave alone without asking: `(d as any).company` covers a real gap between the type model and what Firestore holds — neither `Dashboard` nor `Folder` declares a top-level `company` — so removing it is a data-model decision, not a rename.
 
 One deliberate skip: `app/stores/dashboard.ts:73,81` casts to read `.company` off a `Dashboard` and a `Folder`. Neither type declares the field, so the cast hides a real gap between the type model and what Firestore stores — closing it is a modelling decision, not a rename.
 

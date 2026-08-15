@@ -5,6 +5,7 @@ import { readBody, sendRedirect } from 'h3'
 import { createToken, consumeToken } from '../../server/utils/embedTokenStore'
 import { findById } from '../../server/utils/jsonDatabase'
 import { validateCompanyAccess, checkDashboardAccess } from '../../server/utils/companyAccess'
+import type { User } from '~/types/dashboard'
 
 // Import handlers (defineEventHandler is mocked to return the function directly)
 import requestHandler from '../../server/api/embed/request.post'
@@ -55,6 +56,25 @@ function storedDashboard(lookerEmbedUrl: string) {
   return { id: 'dash_001', lookerEmbedUrl }
 }
 
+/**
+ * A full user row — validateCompanyAccess resolves to `User`, so the mocked
+ * return value has to be one. Only uid and role affect these assertions.
+ */
+function storedUser(over: Partial<User> = {}): User {
+  return {
+    uid: 'user_admin',
+    email: 'admin@example.com',
+    name: 'Admin',
+    role: 'admin',
+    company: 'ORAY',
+    groups: [],
+    isActive: true,
+    createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+    ...over,
+  }
+}
+
 function createMockEvent(overrides: MockEventOverrides = {}): H3Event {
   return {
     context: { auth: { uid: 'user_admin' }, ...overrides.context },
@@ -74,7 +94,7 @@ describe('POST /api/embed/request', () => {
   it('should return token and proxyUrl for valid request', async () => {
     const event = createMockEvent()
     vi.mocked(readBody).mockResolvedValue({ dashboardId: 'dash_001' })
-    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: { uid: 'user_admin', role: 'admin' }, reason: 'Admin access' })
+    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: storedUser(), reason: 'Admin access' })
     vi.mocked(findById).mockResolvedValue(storedDashboard('https://lookerstudio.google.com/embed/abc'))
     vi.mocked(checkDashboardAccess).mockReturnValue({ allowed: true, reason: 'Admin access' })
     vi.mocked(createToken).mockReturnValue('test-uuid-token')
@@ -120,7 +140,7 @@ describe('POST /api/embed/request', () => {
   it('should throw 404 if dashboard not found', async () => {
     const event = createMockEvent()
     vi.mocked(readBody).mockResolvedValue({ dashboardId: 'nonexistent' })
-    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: { uid: 'user_admin', role: 'admin' }, reason: 'ok' })
+    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: storedUser(), reason: 'ok' })
     vi.mocked(findById).mockResolvedValue(null)
 
     await expect(requestHandler(event)).rejects.toThrow('Dashboard "nonexistent" not found')
@@ -129,7 +149,7 @@ describe('POST /api/embed/request', () => {
   it('should return 403 if dashboard access denied', async () => {
     const event = createMockEvent()
     vi.mocked(readBody).mockResolvedValue({ dashboardId: 'dash_001' })
-    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: { uid: 'user1', role: 'user' }, reason: 'ok' })
+    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: storedUser({ uid: 'user1', role: 'user' }), reason: 'ok' })
     vi.mocked(findById).mockResolvedValue(storedDashboard('https://example.com'))
     vi.mocked(checkDashboardAccess).mockReturnValue({ allowed: false, reason: 'No matching access rule' })
 
@@ -141,7 +161,7 @@ describe('POST /api/embed/request', () => {
   it('should throw 404 if dashboard has no embed URL', async () => {
     const event = createMockEvent()
     vi.mocked(readBody).mockResolvedValue({ dashboardId: 'dash_001' })
-    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: { uid: 'user_admin', role: 'admin' }, reason: 'ok' })
+    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: storedUser(), reason: 'ok' })
     vi.mocked(findById).mockResolvedValue({ id: 'dash_001' }) // no lookerEmbedUrl
     vi.mocked(checkDashboardAccess).mockReturnValue({ allowed: true, reason: 'ok' })
 

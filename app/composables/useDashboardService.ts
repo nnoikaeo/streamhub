@@ -41,9 +41,31 @@ import {
   getAccessibleDashboards,
 } from './useMockData'
 
+// Type-only: the implementations stay lazily imported at runtime, but the
+// delegating wrappers below need their signatures to typecheck the handoff.
+import type { FirestoreService } from './useFirestoreService'
+import type { JSONMockService } from './useJSONMockService'
+
 // ============================================================================
 // SERVICE INTERFACE
 // ============================================================================
+
+/** Listing options accepted by `getDashboards` across every implementation. */
+export interface DashboardQueryOptions {
+  folderId?: string
+  limit?: number
+  offset?: number
+  search?: string
+  includeArchived?: boolean
+}
+
+/** Why a user can see a dashboard — layer 1 is a direct grant, layer 2 a company one. */
+export interface AccessReason {
+  hasAccess: boolean
+  layer?: 1 | 2
+  grantedBy?: 'user' | 'role' | 'group' | 'company'
+  grantName?: string
+}
 
 export interface IDashboardService {
   // ========== USER OPERATIONS ==========
@@ -89,13 +111,7 @@ export interface IDashboardService {
   getDashboards(
     userId: string,
     companyId: string,
-    options?: {
-      folderId?: string
-      limit?: number
-      offset?: number
-      search?: string
-      includeArchived?: boolean
-    }
+    options?: DashboardQueryOptions
   ): Promise<GetDashboardsResponse>
 
   /**
@@ -138,12 +154,7 @@ export interface IDashboardService {
   getAccessReason(
     dashboardId: string,
     userId: string
-  ): Promise<{
-    hasAccess: boolean
-    layer?: 1 | 2
-    grantedBy?: 'user' | 'role' | 'group'
-    grantName?: string
-  }>
+  ): Promise<AccessReason>
 
   // ========== PERMISSION MANAGEMENT (ADMIN) ==========
 
@@ -159,8 +170,8 @@ export interface IDashboardService {
    * Get current permissions for dashboard
    */
   getDashboardPermissions(dashboardId: string): Promise<{
-    access: any
-    restrictions: any
+    access: AccessControl
+    restrictions: AccessRestrictions
   }>
 
   /**
@@ -281,13 +292,13 @@ export class MockDashboardService implements IDashboardService {
       const authStore = useAuthStore()
       const query = authStore.user?.uid ? { uid: authStore.user.uid } : {}
       const [usersResp, foldersResp, dashboardsResp] = await Promise.all([
-        $fetch('/api/mock/users', { query }),
-        $fetch('/api/mock/folders', { query }),
-        $fetch('/api/mock/dashboards', { query }),
+        $fetch<{ data?: User[] }>('/api/mock/users', { query }),
+        $fetch<{ data?: Folder[] }>('/api/mock/folders', { query }),
+        $fetch<{ data?: Dashboard[] }>('/api/mock/dashboards', { query }),
       ])
-      this.users = (usersResp as any).data || []
-      this.folders = (foldersResp as any).data || []
-      this.dashboards = (dashboardsResp as any).data || []
+      this.users = usersResp.data || []
+      this.folders = foldersResp.data || []
+      this.dashboards = dashboardsResp.data || []
     } catch (error) {
       console.error('Error loading data:', error)
     }
@@ -381,7 +392,7 @@ export class MockDashboardService implements IDashboardService {
   async getDashboards(
     userId: string,
     companyId: string,
-    options?: any
+    options?: DashboardQueryOptions
   ): Promise<GetDashboardsResponse> {
     const user = await this.getUser(userId)
     if (!user) {
@@ -515,7 +526,7 @@ export class MockDashboardService implements IDashboardService {
   async getAccessReason(
     dashboardId: string,
     userId: string
-  ): Promise<any> {
+  ): Promise<AccessReason> {
     const dashboard = await this.getDashboard(dashboardId)
     const user = await this.getUser(userId)
 
@@ -567,9 +578,20 @@ export class MockDashboardService implements IDashboardService {
     }
   }
 
-  async getDashboardPermissions(dashboardId: string): Promise<any> {
+  async getDashboardPermissions(dashboardId: string): Promise<{
+    access: AccessControl
+    restrictions: AccessRestrictions
+  }> {
     const dashboard = await this.getDashboard(dashboardId)
-    if (!dashboard) return null
+    // Default-private permissions rather than null — the other two
+    // implementations do the same, and PermissionsPage reads perms.access
+    // without a null check
+    if (!dashboard) {
+      return {
+        access: { direct: { users: [], groups: [] }, company: [] },
+        restrictions: { revoke: [], expiry: {} },
+      }
+    }
 
     return {
       access: dashboard.access,
@@ -805,7 +827,7 @@ export const useDashboardService = (): IDashboardService => {
       // ===== Firestore (production) =====
       console.log('🔥 [useDashboardService] Using Firestore Service')
       dashboardServiceInstance = new (class implements IDashboardService {
-        private firestoreService: any = null
+        private firestoreService: FirestoreService | null = null
 
         async initFirestoreService() {
           if (!this.firestoreService) {
@@ -846,7 +868,7 @@ export const useDashboardService = (): IDashboardService => {
           return service.getFolderPath(folderId)
         }
 
-        async getDashboards(userId: string, companyId: string, options?: any) {
+        async getDashboards(userId: string, companyId: string, options?: DashboardQueryOptions) {
           const service = await this.initFirestoreService()
           return service.getDashboards(userId, companyId, options)
         }
@@ -866,9 +888,9 @@ export const useDashboardService = (): IDashboardService => {
           return service.getDashboardsByFolder(folderId, userId)
         }
 
-        async getDashboardCard(dashboardId: string) {
+        async getDashboardCard(dashboardId: string, currentUserId: string) {
           const service = await this.initFirestoreService()
-          return service.getDashboardCard(dashboardId)
+          return service.getDashboardCard(dashboardId, currentUserId)
         }
 
         async createDashboard(name: string, folderId: string, userId: string, description?: string) {
@@ -901,9 +923,9 @@ export const useDashboardService = (): IDashboardService => {
           return service.quickShareDashboard(dashboardId, userIds, expiryDate)
         }
 
-        async getAuditLog(options?: any) {
+        async getAuditLog(dashboardId: string, limit?: number) {
           const service = await this.initFirestoreService()
-          return service.getAuditLog(options)
+          return service.getAuditLog(dashboardId, limit)
         }
 
         async canAccessDashboard(dashboardId: string, userId: string) {
@@ -966,7 +988,7 @@ export const useDashboardService = (): IDashboardService => {
       console.log('🔷 [useDashboardService] Using JSON Mock Service')
       // Use dynamic import approach for lazy loading
       dashboardServiceInstance = new (class implements IDashboardService {
-        private jsonService: any = null
+        private jsonService: JSONMockService | null = null
 
         async initJsonService() {
           if (!this.jsonService) {
@@ -1007,7 +1029,7 @@ export const useDashboardService = (): IDashboardService => {
           return service.getFolderPath(folderId)
         }
 
-        async getDashboards(userId: string, companyId: string, options?: any) {
+        async getDashboards(userId: string, companyId: string, options?: DashboardQueryOptions) {
           const service = await this.initJsonService()
           return service.getDashboards(userId, companyId, options)
         }
@@ -1027,9 +1049,9 @@ export const useDashboardService = (): IDashboardService => {
           return service.getDashboardsByFolder(folderId, userId)
         }
 
-        async getDashboardCard(dashboardId: string) {
+        async getDashboardCard(dashboardId: string, currentUserId: string) {
           const service = await this.initJsonService()
-          return service.getDashboardCard(dashboardId)
+          return service.getDashboardCard(dashboardId, currentUserId)
         }
 
         async createDashboard(name: string, folderId: string, userId: string, description?: string) {
@@ -1054,10 +1076,7 @@ export const useDashboardService = (): IDashboardService => {
 
         async saveDashboardPermissions(request: SavePermissionsRequest) {
           const service = await this.initJsonService()
-          return service.saveDashboardPermissions(request.dashboardId, {
-            access: request.access,
-            restrictions: request.restrictions,
-          })
+          return service.saveDashboardPermissions(request)
         }
 
         async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: Date) {
@@ -1065,9 +1084,9 @@ export const useDashboardService = (): IDashboardService => {
           return service.quickShareDashboard(dashboardId, userIds, expiryDate)
         }
 
-        async getAuditLog(options?: any) {
+        async getAuditLog(dashboardId: string, limit?: number) {
           const service = await this.initJsonService()
-          return service.getAuditLog(options)
+          return service.getAuditLog(dashboardId, limit)
         }
 
         async canAccessDashboard(dashboardId: string, userId: string) {

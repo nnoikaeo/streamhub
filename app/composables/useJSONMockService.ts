@@ -24,6 +24,18 @@ import type {
 } from '~/types/dashboard'
 import type { IDashboardService } from '~/composables/useDashboardService'
 
+/**
+ * The $fetch options this service passes through `fetchWithAuth`, which fills in
+ * `headers` and `query` itself. Narrower than NitroFetchOptions on purpose —
+ * these are the only fields any call site sets.
+ */
+interface FetchWithAuthOptions {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  body?: object
+  query?: Record<string, unknown>
+  headers?: Record<string, string>
+}
+
 export class JSONMockService implements IDashboardService {
   private baseURL = '/api/mock'
   private DEBUG = false
@@ -58,7 +70,7 @@ export class JSONMockService implements IDashboardService {
   /**
    * Wrapper around $fetch that injects auth headers and handles 401 responses.
    */
-  private async fetchWithAuth<T>(url: string, options: any = {}): Promise<T> {
+  private async fetchWithAuth<T>(url: string, options: FetchWithAuthOptions = {}): Promise<T> {
     const authHeaders = await this.getAuthHeaders()
 
     // DEV fallback: send uid in query param for server auth middleware
@@ -271,7 +283,7 @@ export class JSONMockService implements IDashboardService {
     try {
       this.log('getDashboards called', { userId, companyId, options })
 
-      const query: any = {
+      const query: Record<string, string | boolean> = {
         uid: userId,
         company: companyId,
       }
@@ -478,8 +490,8 @@ export class JSONMockService implements IDashboardService {
    * Get current permissions for a dashboard
    */
   async getDashboardPermissions(dashboardId: string): Promise<{
-    access: any
-    restrictions: any
+    access: AccessControl
+    restrictions: AccessRestrictions
   }> {
     try {
       this.log('getDashboardPermissions:', dashboardId)
@@ -541,7 +553,7 @@ export class JSONMockService implements IDashboardService {
   /**
    * Get audit log (not implemented in mock)
    */
-  async getAuditLog(_options?: unknown): Promise<AuditLogEntry[]> {
+  async getAuditLog(_dashboardId: string, _limit?: number): Promise<AuditLogEntry[]> {
     try {
       this.log('getAuditLog called')
       return []

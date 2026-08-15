@@ -9,20 +9,21 @@
 
 import { describe, it, expect } from 'vitest'
 import { checkDashboardAccess } from '../../server/utils/companyAccess'
-import type { AccessControl } from '~/types/dashboard'
+import type { AccessControl, User } from '~/types/dashboard'
 
 interface TestUser {
   uid: string
-  role: string
+  // The union, not `string` — checkDashboardAccess reads role as User['role']
+  role: User['role']
   company: string
   groups: string[]
 }
 
-const user = (over: Partial<TestUser> = {}) => ({
+const user = (over: Partial<TestUser> = {}): TestUser => ({
   uid: 'u1',
   role: 'user',
   company: 'ORAY',
-  groups: [] as string[],
+  groups: [],
   ...over,
 })
 
