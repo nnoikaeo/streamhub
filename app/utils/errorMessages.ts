@@ -9,8 +9,8 @@ export interface ErrorInfo {
   showRequestAccess: boolean
 }
 
-export const mapErrorMessage = (error: any): ErrorInfo => {
-  const errorMessage = error?.message || ''
+export const mapErrorMessage = (error: unknown): ErrorInfo => {
+  const errorMessage = getErrorMessage(error, '')
 
   // User not found in system
   if (errorMessage.includes('not found in system')) {
@@ -47,7 +47,7 @@ export const mapErrorMessage = (error: any): ErrorInfo => {
     }
   }
 
-  if (error.code === 'auth/popup-closed-by-user' || errorMessage.includes('cross-origin') || errorMessage.includes('window.close')) {
+  if (getErrorCode(error) === 'auth/popup-closed-by-user' || errorMessage.includes('cross-origin') || errorMessage.includes('window.close')) {
     return {
       title: 'การลงชื่อเข้าถูกขัดจังหวะ',
       message: 'เบราว์เซอร์บล็อกหน้าต่าง Google Sign-In โปรดลองอีกครั้ง',

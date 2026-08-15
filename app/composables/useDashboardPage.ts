@@ -4,7 +4,7 @@ import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
 import { useDashboardStore } from '~/stores/dashboard'
 import { usePermissionsStore } from '~/stores/permissions'
-import type { Dashboard, Folder } from '~/types/dashboard'
+import type { Dashboard, Folder, User } from '~/types/dashboard'
 
 export interface UseDashboardPageOptions {
   initialFolderId?: string | null
@@ -76,7 +76,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   // ========== Local State ==========
   const selectedDashboard = ref<Dashboard | null>(null)
   const shareDialogOpen = ref(false)
-  const availableUsers = ref<any[]>([])
+  const availableUsers = ref<User[]>([])
   const folderPath = ref<Folder[]>([])
   const infiniteScrollSentinel = ref<HTMLElement | null>(null)
   const isInitializing = ref(true)

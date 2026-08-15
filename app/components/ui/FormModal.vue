@@ -54,7 +54,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  save: [data?: any]
+  // Whatever the native form holds — every consumer submits through its own
+  // form ref and ignores this payload
+  save: [data?: Record<string, FormDataEntryValue>]
   cancel: []
 }>()
 
@@ -69,7 +71,7 @@ const handleSubmit = async (e: Event) => {
   e.preventDefault()
   if (props.loading || props.submitDisabled) return
 
-  let formData: any
+  let formData: Record<string, FormDataEntryValue> | undefined
   if (formRef.value) {
     const fd = new FormData(formRef.value)
     formData = Object.fromEntries(fd)

@@ -33,6 +33,18 @@ interface BulkInviteBody {
 const cleanEmail = (email: unknown): string =>
   typeof email === 'string' ? email.trim().toLowerCase() : ''
 
+/** Read one row of `items[]` as a record so its fields can be probed. */
+const asRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {}
+
+/** Keep a value only when it is a string — anything else falls back. */
+const asString = (value: unknown): string | undefined =>
+  typeof value === 'string' ? value : undefined
+
+/** Keep a value only when it is an array of strings. */
+const asStringArray = (value: unknown): string[] | undefined =>
+  Array.isArray(value) && value.every(v => typeof v === 'string') ? value : undefined
+
 export function normalizeBulkItems(body: BulkInviteBody): NormalizedInviteItem[] {
   const { items, emails, role, company, message, assignedFolders, assignedGroups } = body
 
@@ -43,14 +55,17 @@ export function normalizeBulkItems(body: BulkInviteBody): NormalizedInviteItem[]
   // always sends them per row.
   if (Array.isArray(items) && items.length) {
     return items
-      .map((it: any) => ({
-        email: cleanEmail(it?.email),
-        role: it?.role ?? role ?? '',
-        company: it?.company ?? company ?? '',
-        message: it?.message ?? '',
-        assignedFolders: it?.assignedFolders ?? [],
-        assignedGroups: it?.assignedGroups ?? [],
-      }))
+      .map((raw: unknown) => {
+        const it = asRecord(raw)
+        return {
+          email: cleanEmail(it.email),
+          role: asString(it.role) ?? role ?? '',
+          company: asString(it.company) ?? company ?? '',
+          message: asString(it.message) ?? '',
+          assignedFolders: asStringArray(it.assignedFolders) ?? [],
+          assignedGroups: asStringArray(it.assignedGroups) ?? [],
+        }
+      })
       .filter((it) => it.email)
   }
 

@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: any]
+  'update:modelValue': [value: Props['modelValue']]
   blur: []
   focus: []
 }>()
@@ -198,12 +198,15 @@ const fieldId = `field-${Math.random().toString(36).substr(2, 9)}`
           :disabled="disabled"
           class="form-checkbox"
           @change="
-            (e: any) => {
-              const arr: (string | number)[] = [...selectedValues]
-              if (e.target.checked) {
-                arr.push(opt.value)
+            (e: Event) => {
+              // modelValue carries a string[] for multi-select, so option values
+              // join it as strings even when the option list declares numbers
+              const value = String(opt.value)
+              const arr: string[] = selectedValues.map(String)
+              if ((e.target as HTMLInputElement).checked) {
+                arr.push(value)
               } else {
-                arr.splice(arr.indexOf(opt.value), 1)
+                arr.splice(arr.indexOf(value), 1)
               }
               emit('update:modelValue', arr)
             }
