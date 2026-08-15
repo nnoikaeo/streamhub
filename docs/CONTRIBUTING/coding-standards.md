@@ -564,12 +564,12 @@ npm run build                                     # Test build
 
 `npm test`, `npm run build` and both typechecks are all expected to come back clean. Only lint still carries a backlog:
 
-| Check | Baseline (2026-08-14, PR #361) |
+| Check | Baseline (2026-08-15, PR #367) |
 |-------|--------------------------------|
 | `npx eslint .` | 0 problems |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 0 errors |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 errors |
-| `npm test` | 229 passing |
+| `npm test` | 243 passing |
 
 Every one of these is at 0, so any error or violation was introduced by your change. There is no backlog left to compare against.
 
