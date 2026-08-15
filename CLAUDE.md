@@ -114,6 +114,6 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
 | `npm test` | Vitest suite. **Baseline is 229 passing** |
-| `npx eslint .` | Lint check (no `lint` npm script exists). 17 pre-existing problems, **all `@typescript-eslint/no-explicit-any`**: compare the count before/after |
+| `npx eslint .` | Lint check (no `lint` npm script exists). 3 pre-existing problems, **all `@typescript-eslint/no-explicit-any`**: compare the count before/after |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |

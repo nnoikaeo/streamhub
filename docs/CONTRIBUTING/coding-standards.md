@@ -566,16 +566,17 @@ npm run build                                     # Test build
 
 | Check | Baseline (2026-08-14, PR #361) |
 |-------|--------------------------------|
-| `npx eslint .` | 17 problems — every one `@typescript-eslint/no-explicit-any` |
+| `npx eslint .` | 3 problems — every one `@typescript-eslint/no-explicit-any` |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 0 errors |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 errors |
 | `npm test` | 229 passing |
 
 Any typecheck error, and any lint violation of a rule **other than `no-explicit-any`**, was introduced by your change. For `no-explicit-any` itself, compare the count before and after (`git stash`, re-run, `git stash pop`) or scope the run to the files you touched.
 
-The remaining 17 sit at 15 in `app/`, 1 in `server/`, 1 in `scripts/`; `tests/` is clean. The permission path is done. What is left is unrelated leftovers: `useAdminResource` (6), `FormModal` (2), and single sites in `FormField`, `useAuth`, `useDashboardPage`, `errorMessages`, `dashboard` store (2), `seed-firestore`, `dashboards.post`, `bulkInvite`.
+The remaining 3 are all in `app/`, and each needs a decision rather than a rename:
 
-`app/stores/dashboard.ts` is the one place to leave alone without asking: `(d as any).company` covers a real gap between the type model and what Firestore holds — neither `Dashboard` nor `Folder` declares a top-level `company` — so removing it is a data-model decision, not a rename.
+- **`app/stores/dashboard.ts:73,81`** — `(d as any).company` covers a real gap between the type model and what Firestore holds: neither `Dashboard` nor `Folder` declares a top-level `company`. Removing it means deciding whether the field joins the type or the read moves elsewhere.
+- **`useAdminResource`'s `[extensionMethod: string]: any`** — typing it means making the composable generic over its extensions map and returning a mapped type. All eight call sites pass `<T>` explicitly, and TypeScript does not mix explicit and inferred type arguments, so a second parameter would silently fall back to its default and drop the extension methods from the return type.
 
 One deliberate skip: `app/stores/dashboard.ts:73,81` casts to read `.company` off a `Dashboard` and a `Folder`. Neither type declares the field, so the cast hides a real gap between the type model and what Firestore stores — closing it is a modelling decision, not a rename.
 
