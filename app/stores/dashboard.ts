@@ -65,21 +65,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
    */
   const isLoadingDashboards = computed(() => isLoading.value && dashboards.value.length === 0)
 
-  /**
-   * Get dashboards filtered by company (company-scoped access)
-   * @param companyCode Company code to filter by (e.g., 'STTH')
-   */
-  const getDashboardsByCompany = (companyCode: string) => {
-    return dashboards.value.filter((d) => (d as any).company === companyCode)
-  }
-
-  /**
-   * Get folders filtered by company (company-scoped access)
-   * @param companyCode Company code to filter by (e.g., 'STTH')
-   */
-  const getFoldersByCompany = (companyCode: string) => {
-    return folders.value.filter((f) => (f as any).company === companyCode)
-  }
+  // Company-scoped filtering does not live here. Neither `Dashboard` nor
+  // `Folder` carries a top-level `company`; scoping is expressed as
+  // `access.company`, a LIST of company codes read with `.includes()` — see
+  // `server/utils/companyAccess.ts`.
 
   // ========== Mutations - Reducers ==========
 
@@ -375,10 +364,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     isDashboardsCacheValid,
     isFoldersCacheValid,
     clearCache,
-
-    // Company-scoped filtering (NEW for multi-company support)
-    getDashboardsByCompany,
-    getFoldersByCompany,
 
     // Reset
     reset,

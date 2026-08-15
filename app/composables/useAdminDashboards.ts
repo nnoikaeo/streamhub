@@ -31,16 +31,12 @@ export function useAdminDashboards() {
         revoke: [],
         expiry: {}
       }
-    },
-    extensions: {
-      /**
-       * Get dashboards in a specific folder
-       */
-      getDashboardsByFolder: (dashboards, folderId: string) => {
-        return dashboards.value.filter((d: Dashboard) => d.folderId === folderId)
-      }
     }
   })
+
+  /** Get dashboards in a specific folder */
+  const getDashboardsByFolder = (folderId: string): Dashboard[] =>
+    resource.items.value.filter(d => d.folderId === folderId)
 
   /**
    * Toggle archive status
@@ -63,7 +59,7 @@ export function useAdminDashboards() {
     createDashboard: resource.create,
     updateDashboard: resource.update,
     deleteDashboard: resource.delete,
-    getDashboardsByFolder: resource.getDashboardsByFolder,
+    getDashboardsByFolder,
     toggleArchive,
 
     // Also expose generic API for flexibility
