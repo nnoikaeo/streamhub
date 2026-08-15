@@ -424,9 +424,13 @@
 | 5.1.1 | Create → Toast success | 1. Create any resource | Toast: "สร้างสำเร็จ" | High | 🔍 |
 | 5.1.2 | Update → Toast success | 1. Edit any resource | Toast: "อัปเดตสำเร็จ" | High | 🔍 |
 | 5.1.3 | Delete → Confirm dialog | 1. Click Delete on any resource | ConfirmDialog opens before delete | High | 🔍 |
-| 5.1.4 | Form validation — Zod errors | 1. Submit form with invalid data | Field-level error messages shown | High | 🔍 |
+| 5.1.4 | Form validation — errors on submit | 1. Submit form with invalid data | Field-level error messages shown | High | ✅ |
 | 5.1.5 | Modal close without saving | 1. Open modal 2. Fill data 3. Click Cancel | No changes persisted | Medium | 🔍 |
 | 5.1.6 | Loading state during API call | 1. Submit form (slow network) | Spinner shown, button disabled | Medium | ☐ |
+| 5.1.7 | Error clears when the field is fixed | 1. `/admin/dashboards` → เพิ่มแดชบอร์ดใหม่ 2. กด บันทึก ทั้งที่ว่าง 3. เลือกโฟลเดอร์ | แดงใต้โฟลเดอร์หายทันที ไม่ต้องกด บันทึก ซ้ำ | High | ✅ |
+| 5.1.8 | Fixing one field keeps the others' errors | ต่อจาก 5.1.7 ก่อนกรอกชื่อ | แดงใต้ ชื่อแดชบอร์ด ยังอยู่ | High | ✅ |
+| 5.1.9 | Message follows the failing rule | 1. `/admin/companies` → เพิ่มบริษัท 2. กด บันทึก ทั้งที่ว่าง 3. พิมพ์ `A` 4. พิมพ์ต่อเป็น `AB` | `is required` → `must be at least 2 characters` → แดงหาย | Medium | ✅ |
+| 5.1.10 | No error before submit or blur | 1. เปิดฟอร์มเปล่า 2. พิมพ์ `A` ค้าง cursor ไว้ในช่อง | ไม่มีแดงขึ้น จนกว่าจะ blur หรือกด บันทึก | Medium | ✅ |
 
 ### 5.2 Navigation & Middleware
 
@@ -508,6 +512,7 @@
 | BUG-012 | Groups ใช้ `id` ที่ผู้ใช้พิมพ์เป็น doc id แต่ **ตกหล่นจาก fix BUG-010** — สร้าง group ด้วย id ซ้ำ = ทับ group เดิมเงียบ ๆ (data-loss แบบเดียวกัน) | TC 3.7.7 | High | 🔧 Fixed (wire `useAdminGroups` uniqueFields `id`→"รหัสกลุ่มซ้ำ"; PR #321) |
 | BUG-013 | กด "+ Add tag" ใน modal แก้ไขแดชบอร์ด = **เซฟและปิด modal ทันที** ติดแท็กไม่ได้เลย — ปุ่มใน `TagSelector`/`TagBadge` ไม่ได้ใส่ `type` ปุ่มที่ไม่มี type คือ `type="submit"` และมันอยู่ใน `<form>` ของ `FormModal` คลิกจึง submit → `emit('save')` → parent เซฟ+ปิด (ปุ่ม `✕` ลบแท็กก็พังแบบเดียวกัน — `@click.stop` หยุดแค่ propagation ไม่ได้หยุด submit) | TC 3.13.8 | High | 🔧 Fixed (`type="button"` 3 ปุ่ม; PR #336) |
 | BUG-014 | Quick Share จาก Discover ส่ง `userIds: [undefined]` — `QuickShareDialog` อ่าน `user.id` ทั้งไฟล์ แต่ type `User` มีแค่ `uid`; ปุ่มลบผู้ใช้ที่เลือกก็ไม่เคยตรงกับแถวไหน (filter ด้วย `undefined`) | TC 2.2 (share flow) | High | 🔧 Fixed (เปลี่ยนเป็น `uid` ทุกจุด; PR #353) — **ยังไม่ได้ retest ด้วยมือ** |
+| BUG-016 | ข้อความ error ค้างหลังแก้ค่าให้ถูกแล้ว ทุกฟอร์ม admin — `useForm` ล้าง error ไว้ใน `setFieldValue` แต่ทุกฟอร์มผูก `v-model="formData.x"` ซึ่งเขียน reactive object ตรงๆ ทางนั้นจึงไม่เคยถูกเรียก (CompanyForm เป็นไฟล์เดียวในรีโปที่เรียก และเรียกกับ field ที่ไม่มี validator) | TC 5.1.7 | Medium | 🔧 Fixed (`watch(formData)` + re-validate ใน `useForm`; PR #367; UI-verified 2026-08-15 TC 5.1.7–5.1.10) |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
 **BUG-001 รายละเอียด:**
