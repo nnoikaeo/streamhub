@@ -16,6 +16,7 @@ How we review pull requests **and** keep documentation up-to-date.
 - [ ] Lint is clean: `npx eslint .` (baseline 0). Every violation is yours — fix it
 - [ ] Typecheck is clean: `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` (baseline is 0 — any error is yours)
 - [ ] Tests typecheck too: `npx vue-tsc --noEmit -p tests/tsconfig.json` (baseline 0 — no `.nuxt/tsconfig.*` project covers `tests/`)
+- [ ] Scripts typecheck too: `npx vue-tsc --noEmit -p scripts/tsconfig.json` (baseline 0 — `.ts` only; the `.mjs` scripts are deliberately out)
 - [ ] No new `any`: caught values use the `shared/utils/errors.ts` helpers, data-layer generics get their type argument, and nothing is "fixed" with `as any` / `@ts-ignore` — see [Coding Standards § Avoiding `any`](coding-standards.md#avoiding-any)
 - [ ] No console errors/warnings
 - [ ] Commit messages are clear

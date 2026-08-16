@@ -553,22 +553,34 @@ function expectHealth(result: Awaited<ReturnType<typeof healthHandler>>): Health
 # Run before committing
 npm test                                          # Vitest suite
 npx eslint .                                      # Check linting
-npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json   # Check TypeScript (app)
-npx vue-tsc --noEmit -p tests/tsconfig.json       # Check TypeScript (tests)
-npm run build                                     # Test build
+npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json    # Check TypeScript (app)
+npx vue-tsc --noEmit -p .nuxt/tsconfig.server.json # Check TypeScript (server)
+npx vue-tsc --noEmit -p tests/tsconfig.json        # Check TypeScript (tests)
+npx vue-tsc --noEmit -p scripts/tsconfig.json      # Check TypeScript (scripts)
+npm run build                                      # Test build
 ```
 
 ⚠️ There is no `lint` or `type-check` npm script — use the `npx` forms above.
 
 ⚠️ Point `vue-tsc` at `.nuxt/tsconfig.app.json`, **not** the root `tsconfig.json`. The root config is `"files": []` plus project references, so `vue-tsc -p tsconfig.json` checks nothing and exits 0 with no output — a false pass.
 
-`npm test`, `npm run build` and both typechecks are all expected to come back clean. Only lint still carries a backlog:
+### Which project covers which directory
 
-| Check | Baseline (2026-08-15, PR #367) |
+Nuxt generates four: `tsconfig.app.json` (`app/`), `tsconfig.server.json` (`server/`), `tsconfig.shared.json` (`shared/`, also pulled in by the first two) and `tsconfig.node.json` (`nuxt.config.*` and `modules/`, 0 errors, nothing to run day to day). **None of them covers a directory that is not one of those.** `tests/` got its own project in PR #357 and `scripts/` in PR #370 — both were invisible until someone pointed a compiler at them, and both had real errors waiting.
+
+The rule that follows: **a new top-level directory of `.ts` is unchecked until you give it a tsconfig.** Adding one is cheap; assuming a generated project picked it up is how a `TS2345` sits in `seed-firestore.ts` for months.
+
+`scripts/tsconfig.json` includes `.ts` only. Turning on `allowJs` + `checkJs` for the five `.mjs` scripts reports 70 errors, and all 70 are inference noise (untyped Node parameters, `unknown` REST responses) rather than defects — converting a script to `.ts` is the worthwhile version of that work.
+
+`npm test`, `npm run build` and all four typechecks are expected to come back clean:
+
+| Check | Baseline (2026-08-16, PR #370) |
 |-------|--------------------------------|
 | `npx eslint .` | 0 problems |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | 0 errors |
+| `npx vue-tsc --noEmit -p .nuxt/tsconfig.server.json` | 0 errors |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 errors |
+| `npx vue-tsc --noEmit -p scripts/tsconfig.json` | 0 errors |
 | `npm test` | 243 passing |
 
 Every one of these is at 0, so any error or violation was introduced by your change. There is no backlog left to compare against.
