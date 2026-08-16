@@ -295,7 +295,7 @@ app/pages/
 |----------|-----------|
 | **Admin CRUD (11)** | useAdminBreadcrumbs, useAdminCompanies, useAdminCrudPage, useAdminDashboards, useAdminFolders, useAdminGroups, useAdminInvitations, useAdminRegions, useAdminResource, useAdminTags, useAdminUsers |
 | **Moderator (2)** | useModeratorFolders, useModeratorDashboards |
-| **Core (12)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useLookerApi, useMockData, usePaginatedList, useRecentDashboards, useRoleNavigation, useSidebarVisibility |
+| **Core (13)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useLookerApi, usePaginatedList, useRecentDashboards, useRoleNavigation, useSidebarVisibility |
 
 ### Mock API Endpoints
 

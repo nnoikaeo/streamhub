@@ -110,7 +110,7 @@ const companyGroupedOptions = computed(() => {
 
 // Active groups → multi-select options.
 // Value is group ID (matches User.groups[] and dashboard.access.direct.groups[]
-// in stored data; see useMockData.checkDirectAccess). Label is the human name.
+// in stored data; see useFirestoreService.checkAccess). Label is the human name.
 const groupOptions = computed(() =>
   groups.value
     .filter(g => g.isActive)
