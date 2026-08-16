@@ -397,6 +397,21 @@ if (new Date() > new Date(expiryDate as any)) return false
 
 > ค่าที่อ่านไม่ออกถือว่า **ยังไม่หมดอายุ** โดยตั้งใจ — ข้อมูลเสียต้องไม่ล็อกผู้ใช้ออกจากแดชบอร์ดที่เขาได้สิทธิ์มาแล้ว
 
+**ยืนยันบน prod แล้ว 2026-08-16** (TC 3.10.6–3.10.10) — แดชบอร์ดทดสอบที่สร้างแล้วลบทิ้ง + user ที่ไม่มีสิทธิ์ทางอื่น, ค่าเป็น Firestore `Timestamp` ของจริง (ตรวจร่างด้วย `firebase-admin` read-only: `object<Timestamp> +toDate()`, `new Date(value)` แบบเดิมยังได้ `Invalid Date`) ผลครบทั้ง 4 จุดที่อ่าน `expiry`:
+
+| จุด | ผล |
+|---|---|
+| `useFirestoreService.checkAccess` | เปิดแดชบอร์ดไม่ได้ ("คุณไม่มีสิทธิ์เข้าถึงรายงานนี้") |
+| Discover (`getDashboards` + `checkAccess`) | แดชบอร์ดหายจากลิสต์ |
+| `PermissionsPage.effectiveAccess` | "ผลลัพธ์รวม: 0 คน" ทั้งที่ direct grant ยังอยู่ |
+| `server/utils/companyAccess.isRestricted` (`/api/embed/request`) | HTTP **403** `Access revoked or expired` |
+
+แก้วันหมดอายุเป็นอนาคตแล้วยิงซ้ำ → **404** `No embed URL configured` = ผ่านด่านสิทธิ์ พิสูจน์ว่าไม่ใช่ปฏิเสธทุกกรณี
+
+> ⚠️ **ตั้งวันหมดอายุผ่าน UI ไม่ได้** — `quickShareDashboard` เป็นทางเขียนเดียวที่มี แต่ไม่มีใครเรียก (`handleShare` ใน `useDashboardPage` เป็น stub) ตอนนี้ต้องแก้ที่ Firebase console เท่านั้น ดู BUG-017 ใน `docs/OPERATIONS/manual-test-plan.md`
+
+**จุดอ่านที่ยังไม่ได้ย้ายมาใช้ `isExpired`:** `PermissionsPage.vue` (`effectiveAccess`) ยังเทียบเองด้วย `date instanceof Date ? date : new Date(date as string)` ผ่านได้ในการทดสอบข้างบนเพราะ `getDashboardPermissions` → `getDashboard` → `convertTimestamps` แปลง `Timestamp` เป็น `Date` ให้ก่อน ถ้าค่าเดินมาทางที่ไม่ผ่าน `convertTimestamps` (เช่น `{seconds}` ที่ผ่าน JSON) จะกลับไปเป็น `Invalid Date` แบบเดิม
+
 ---
 
 ## Issue: สร้าง/แก้แดชบอร์ดที่ `/admin/dashboards` ได้แถวว่าง ข้าม validation (แก้แล้ว PR #365)
