@@ -122,6 +122,73 @@ describe('checkDashboardAccess — moderator folder management (DESIGN-001)', ()
   })
 })
 
+describe('checkDashboardAccess — access expiry (PR #364)', () => {
+  const past = new Date(Date.now() - 86_400_000)
+  const future = new Date(Date.now() + 86_400_000)
+
+  /**
+   * A Firestore Timestamp as it reaches the server: the admin SDK hands back a
+   * Timestamp object, not a Date, and nothing converts it on this path. Only
+   * `toDate()` is read, so the double stubs that much of the SDK type.
+   */
+  const timestamp = (date: Date) =>
+    ({ seconds: Math.floor(date.getTime() / 1000), nanoseconds: 0, toDate: () => date }) as unknown as Date
+
+  const granted = (expiry: Record<string, Date>) => ({
+    id: 'd1',
+    folderId: 'f1',
+    access: { direct: { users: ['u1'], groups: [] }, company: [] },
+    restrictions: { revoke: [], expiry },
+  })
+
+  it('a Timestamp expiry in the past denies a granted user', () => {
+    const d = granted({ u1: timestamp(past) })
+    const result = checkDashboardAccess(d, user({ uid: 'u1' }))
+    expect(result.allowed).toBe(false)
+    expect(result.reason).toBe('Access revoked or expired')
+  })
+
+  it('a Timestamp expiry in the future still allows', () => {
+    const d = granted({ u1: timestamp(future) })
+    expect(checkDashboardAccess(d, user({ uid: 'u1' })).allowed).toBe(true)
+  })
+
+  it('an ISO-string expiry (JSON store) behaves the same as a Timestamp', () => {
+    const iso = (date: Date) => date.toISOString() as unknown as Date
+    expect(checkDashboardAccess(granted({ u1: iso(past) }), user({ uid: 'u1' })).allowed).toBe(false)
+    expect(checkDashboardAccess(granted({ u1: iso(future) }), user({ uid: 'u1' })).allowed).toBe(true)
+  })
+
+  it('an expiry on another user does not touch this one', () => {
+    const d = granted({ u2: timestamp(past) })
+    expect(checkDashboardAccess(d, user({ uid: 'u1' })).allowed).toBe(true)
+  })
+
+  it('an expiry inherited from an ancestor folder denies too', () => {
+    const d = {
+      id: 'd1',
+      folderId: 'f1',
+      access: { direct: { users: ['u1'], groups: [] }, company: [] },
+      restrictions: { revoke: [], expiry: {} },
+    }
+    const folders = [
+      {
+        id: 'f1',
+        name: 'Finance',
+        inheritPermissions: true,
+        access: { direct: { users: [], groups: [] }, company: [] },
+        restrictions: { revoke: [], expiry: { u1: timestamp(past) } },
+      },
+    ]
+    expect(checkDashboardAccess(d, user({ uid: 'u1' }), folders).reason).toBe('Restricted by folder: Finance')
+  })
+
+  it('an unreadable expiry does NOT deny — bad data must not lock a user out', () => {
+    const d = granted({ u1: 'not a date' as unknown as Date })
+    expect(checkDashboardAccess(d, user({ uid: 'u1' })).allowed).toBe(true)
+  })
+})
+
 describe('checkDashboardAccess — folder inheritance', () => {
   it('private dashboard reachable via inheriting folder company grant', () => {
     const d = dash({ direct: { users: [], groups: [] }, company: [] })
