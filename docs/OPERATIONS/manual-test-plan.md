@@ -327,6 +327,17 @@
 | 3.10.3 | Add group to dashboard | 1. Select **restricted** dashboard 2. Add group 3. Save | All group members gain access | High | ✅ |
 | 3.10.4 | Set role restriction (Layer 3) | 1. Select dashboard 2. Set restriction 3. Save | Access overridden by restriction | Medium | ✅ |
 | 3.10.5 | Verify permission applies | 1. Grant user access to **restricted** dashboard 2. Login as that user 3. View dashboard | Dashboard accessible | High | ✅ |
+| 3.10.6 | Expiry ที่ผ่านมาแล้วบล็อกการเปิดแดชบอร์ด | 1. ให้ direct grant กับ user 2. ตั้ง `restrictions.expiry.<uid>` เป็น **Timestamp ของเมื่อวาน** (console) 3. login เป็น user นั้น เปิด `/dashboard/view/<id>` | "คุณไม่มีสิทธิ์เข้าถึงรายงานนี้" — grant ยังอยู่ แต่ expiry ชนะ | High | ✅ |
+| 3.10.7 | Expiry ที่ผ่านมาแล้วซ่อนแดชบอร์ดจาก Discover | ต่อจาก 3.10.6 → เปิด `/dashboard/discover` | แดชบอร์ดไม่อยู่ในลิสต์ | High | ✅ |
+| 3.10.8 | Expiry ที่ผ่านมาแล้วตัด user ออกจาก "ผู้มีสิทธิ์เข้าถึง" | ต่อจาก 3.10.6 → กลับเป็น admin เปิด `/admin/permissions?dashboard=<id>` | ผลลัพธ์รวม = **0 คน** ทั้งที่ "สิทธิ์ที่ให้แล้ว" ยังแสดง user นั้น; แท็บข้อจำกัดแสดงวันหมดอายุ | High | ✅ |
+| 3.10.9 | ฝั่ง server ปฏิเสธด้วย (Cloud Function) | ต่อจาก 3.10.6 → `POST /api/embed/request` ด้วย ID token ของ user นั้น | **403** `Access revoked or expired` | High | ✅ |
+| 3.10.10 | Expiry ในอนาคตยังเข้าได้ (control) | แก้ Timestamp เป็น **พรุ่งนี้** → ยิง `/api/embed/request` ซ้ำ + รีเฟรชหน้าสิทธิ์ | เปลี่ยนเป็น **404** `No embed URL configured` (= ผ่านด่านสิทธิ์แล้ว) และหน้าสิทธิ์กลับเป็น 1 คน | High | ✅ |
+
+> 🧪 **TC 3.10.6–3.10.10 — ทดสอบ end-to-end บน Firestore prod จริง 2026-08-16** (ยืนยัน fix PR #364)
+> ทำบนแดชบอร์ด `EXPIRY-TEST` ที่สร้างขึ้นเฉพาะการทดสอบแล้วลบทิ้ง (โฟลเดอร์ "แดชบอร์ดหลัก" ซึ่งไม่ให้สิทธิ์สืบทอดกับใคร) กับ user `survey.streamwash@gmail.com` (role `user`, company OAYT — ไม่มีสิทธิ์ทางอื่นเลย ตัวแปรเดียวที่เหลือคือ expiry)
+> ค่าที่ทดสอบเป็น **Firestore `Timestamp` ของจริง** ไม่ใช่ ISO string — ยืนยันร่างด้วย `firebase-admin` แบบ read-only ก่อนทุกครั้ง (`shape: object<Timestamp> +toDate()`, และ `new Date(value)` แบบเดิมยังคงได้ `Invalid Date` = ถ้าเป็นโค้ดก่อน #364 จะปล่อยผ่านทั้ง 4 จุด)
+> ครอบจุดอ่าน expiry ครบทั้ง 4 จุด: `useFirestoreService.checkAccess`, `resolveEffectiveUsers`/Discover, `PermissionsPage.effectiveAccess`, `server/utils/companyAccess.isRestricted`
+> ⚠️ ตั้งค่า expiry ผ่าน UI **ไม่ได้** ต้องแก้ที่ Firebase console — ดู BUG-017
 
 > ⚠️ **หมายเหตุการทดสอบ 3.10.x (อัปเดตหลัง DESIGN-001 fix — Looker model):** ตอนนี้ default = **private**. dashboard ที่ไม่มี grant + ไม่เปิด public = ไม่มีใครเห็น (นอกจาก admin). ทดสอบ add/remove user บน dashboard ใดก็ได้ที่ **ไม่เปิด public** — เพิ่ม user → เห็น, ลบ → หายจริง. ปุ่ม 🌐 สาธารณะ = เปิดให้ทุกคนในระบบเห็น
 
@@ -514,6 +525,7 @@
 | BUG-013 | กด "+ Add tag" ใน modal แก้ไขแดชบอร์ด = **เซฟและปิด modal ทันที** ติดแท็กไม่ได้เลย — ปุ่มใน `TagSelector`/`TagBadge` ไม่ได้ใส่ `type` ปุ่มที่ไม่มี type คือ `type="submit"` และมันอยู่ใน `<form>` ของ `FormModal` คลิกจึง submit → `emit('save')` → parent เซฟ+ปิด (ปุ่ม `✕` ลบแท็กก็พังแบบเดียวกัน — `@click.stop` หยุดแค่ propagation ไม่ได้หยุด submit) | TC 3.13.8 | High | 🔧 Fixed (`type="button"` 3 ปุ่ม; PR #336) |
 | BUG-014 | Quick Share จาก Discover ส่ง `userIds: [undefined]` — `QuickShareDialog` อ่าน `user.id` ทั้งไฟล์ แต่ type `User` มีแค่ `uid`; ปุ่มลบผู้ใช้ที่เลือกก็ไม่เคยตรงกับแถวไหน (filter ด้วย `undefined`) | TC 2.2 (share flow) | High | 🔧 Fixed (เปลี่ยนเป็น `uid` ทุกจุด; PR #353) — **ยังไม่ได้ retest ด้วยมือ** |
 | BUG-016 | ข้อความ error ค้างหลังแก้ค่าให้ถูกแล้ว ทุกฟอร์ม admin — `useForm` ล้าง error ไว้ใน `setFieldValue` แต่ทุกฟอร์มผูก `v-model="formData.x"` ซึ่งเขียน reactive object ตรงๆ ทางนั้นจึงไม่เคยถูกเรียก (CompanyForm เป็นไฟล์เดียวในรีโปที่เรียก และเรียกกับ field ที่ไม่มี validator) | TC 5.1.7 | Medium | 🔧 Fixed (`watch(formData)` + re-validate ใน `useForm`; PR #367; UI-verified 2026-08-15 TC 5.1.7–5.1.10) |
+| BUG-017 | ปุ่ม "แชร์" ใน `QuickShareDialog` (Discover) **ไม่เขียนอะไรเลย** — `handleShare` ใน `useDashboardPage` เป็น stub (`// API call would go here`) ไม่เคยเรียก `quickShareDashboard` แต่ dialog ปิดตัวเองหลัง emit ผู้ใช้จึงเห็นเหมือนสำเร็จ; ผลข้างเคียง = ตั้งวันหมดอายุสิทธิ์ผ่าน UI ไม่ได้เลย ต้องแก้ที่ Firebase console | TC 3.10.6 (เตรียมข้อมูล) | High | 🔍 ยืนยันในโค้ด 2026-08-16 — ยังไม่แก้ |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
 **BUG-001 รายละเอียด:**
