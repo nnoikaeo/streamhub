@@ -608,7 +608,7 @@
 | Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
 | Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
-| Admin Permissions | 5 | High | ✅ (5/5) |
+| Admin Permissions | 10 | High | ✅ (10/10 — incl. 3.10.6–3.10.10 expiry e2e verified on prod 2026-08-16) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 7 | High | ✅ (6/7 ✅ / 1 🐛 BUG-008 fixed) |
@@ -617,7 +617,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **164** | — | 134 ✅ / 9 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **169** | — | 139 ✅ / 9 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 
