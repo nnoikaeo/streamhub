@@ -4,7 +4,6 @@ import type {
   InvitationAcceptResponse,
   InvitationBulkResponse,
   InvitationCheckResponse,
-  InvitationListResponse,
   InvitationReactivateResponse,
   InvitationUpdateResponse,
   InvitationVerifyResponse,
@@ -38,24 +37,6 @@ export function useAdminInvitations() {
     } catch {
       return {}
     }
-  }
-
-  const fetchByCompany = async (company: string) => {
-    const headers = await getAuthHeaders()
-    const response = await $fetch<InvitationListResponse>(apiBase, {
-      query: { company },
-      headers
-    })
-    return response.data || []
-  }
-
-  const fetchByStatus = async (status: string) => {
-    const headers = await getAuthHeaders()
-    const response = await $fetch<InvitationListResponse>(apiBase, {
-      query: { status },
-      headers
-    })
-    return response.data || []
   }
 
   const cancelInvitation = async (id: string, performedBy?: string, performedByEmail?: string) => {
@@ -146,8 +127,6 @@ export function useAdminInvitations() {
     invitations,
     fetchInvitations,
     ...resource,
-    fetchByCompany,
-    fetchByStatus,
     cancelInvitation,
     resendInvitation,
     bulkInvite,
