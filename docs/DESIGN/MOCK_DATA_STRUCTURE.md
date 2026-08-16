@@ -1,8 +1,18 @@
 # Mock Data Structure Documentation
 
+> **⚠️ Historical — do not treat as current.** `app/composables/useMockData.ts`, which
+> this document describes, was deleted in PR #372: its last consumer was
+> `MockDashboardService`, a branch of `useServiceMode` that could never be selected
+> (PR #371). Development mock data now lives in `.data/*.json`, is served by
+> `/api/mock/*` and reached through `useJSONMockService`; production reads Firestore.
+> Kept for the permission-model rationale, which still explains why the shapes look
+> the way they do — but the file layout, line counts and sample data below are stale.
+> Current sources: [database-schema.md](../GUIDES/database-schema.md),
+> [roles-and-permissions.md](../GUIDES/roles-and-permissions.md), `app/types/dashboard.ts`.
+
 > **Purpose:** Complete reference for mock data design, including TypeScript interfaces, sample data, and usage patterns  
 > **Created:** 2024-02-03  
-> **Status:** Ready for integration  
+> **Status:** Historical — superseded by the JSON store (`.data/*.json`) + `/api/mock/*`  
 
 ---
 

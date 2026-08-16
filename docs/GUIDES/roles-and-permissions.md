@@ -384,9 +384,11 @@ interface AccessRestrictions {
 }
 ```
 
-`checkDashboardAccess` in `server/utils/companyAccess.ts` is the only server-side entry point to access control. It takes named shapes — `AccessDashboard`, `AccessFolder`, `AccessUser` — rather than `Dashboard` / `Folder` / `User`, because handlers pass raw store records whose timestamps are ISO strings or Firestore `Timestamp`s, not the `Date` those types declare. Keep the three checks below in sync; `tests/server/companyAccess.test.ts` covers 14 cases of this one.
+`checkDashboardAccess` in `server/utils/companyAccess.ts` is the only server-side entry point to access control. It takes named shapes — `AccessDashboard`, `AccessFolder`, `AccessUser` — rather than `Dashboard` / `Folder` / `User`, because handlers pass raw store records whose timestamps are ISO strings or Firestore `Timestamp`s, not the `Date` those types declare. Keep the two checks below in sync; `tests/server/companyAccess.test.ts` covers 14 cases of this one.
 
-**Access evaluation (identical in all 3 checks — `useFirestoreService.checkAccess`, `useMockData`, `server/utils/companyAccess.ts`):**
+**Access evaluation (identical in both checks — `useFirestoreService.checkAccess` and `server/utils/companyAccess.ts`):**
+
+> Third check retired in PR #372. `useMockData.ts` held one, reached only through `MockDashboardService`, which no branch of `useServiceMode` could select (PR #371). It still carried the pre-DESIGN-001 rule — `access.company.length === 0` meaning "everyone" — so it would have re-opened every private dashboard had anything ever called it. The JSON mock path has no check of its own: it goes through `/api/mock/*`, which uses `companyAccess.ts` like the rest of the server.
 
 ```
 restrictions revoke/expiry matches   → DENY (overrides everything below)

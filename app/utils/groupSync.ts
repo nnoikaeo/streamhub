@@ -4,7 +4,7 @@
  * Group membership is stored on BOTH sides — `user.groups[]` (edited via the
  * user form) and `group.members[]` (edited via the group form) — because each
  * form needs its own list to render. Access control reads `user.groups[]`
- * (see useFirestoreService/useMockData/companyAccess checkAccess), so that
+ * (see useFirestoreService.checkAccess and server/utils/companyAccess.ts), so that
  * field must always be correct; `group.members[]` is a denormalized view used
  * for member counts and pickers (PermissionsPage, PermissionEditor, GroupViewModal).
  *

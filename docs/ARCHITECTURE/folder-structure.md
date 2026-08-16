@@ -36,7 +36,6 @@ streamhub/
 │   │   ├── useForm.ts               # Generic form state + validation
 │   │   ├── useJSONMockService.ts    # JSON-based mock data service
 │   │   ├── useLookerApi.ts          # Looker Studio API client (status, reports, sync)
-│   │   ├── useMockData.ts           # Static mock data (users, folders, dashboards)
 │   │   ├── useModeratorDashboards.ts # Moderator dashboard management
 │   │   ├── useModeratorFolders.ts   # Moderator folder management
 │   │   ├── usePaginatedList.ts      # Pagination logic
