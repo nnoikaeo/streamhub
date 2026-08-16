@@ -111,6 +111,7 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | `bash scripts/deploy-hosting.sh` | Build + deploy Hosting only (safe, loads .env.local) |
 | `firebase deploy --only firestore:rules --project streamhub-1c27a` | Deploy Firestore security rules |
 | `npm run audit:orphans` | Read-only Firestore data-hygiene check (dangling folderId / group / region / company / member refs) |
+| `node scripts/inspect-expiry.mjs [dashboardId] [--all]` | Read-only ตรวจ **ร่างจริง** ของ `dashboards.restrictions.expiry` — Firebase console แสดง Timestamp กับ ISO string เกือบเหมือนกัน สคริปต์นี้แยกให้ (`object<Timestamp>` vs `string`) พร้อมบอกว่า `new Date(value)` แบบก่อน PR #364 อ่านออกไหม; ใส่ dashboard id เพื่อดู `access`/`restrictions` + folder chain |
 | `npm run cloudbuild:status` | Read-only Cloud Build history for the functions deploy — tells queue expiry (`EXPIRED`, queued ~600s, ran 0s → Google-side, just rerun) apart from a real build failure. Pass a build id for details |
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
