@@ -69,9 +69,12 @@ const COLLECTIONS: Record<string, { file: string; idField: string }> = {
 // HELPERS
 // ============================================================================
 
+// Takes `object`, not `Record<string, unknown>`: the recursive call below hands
+// it a value narrowed by `typeof value === 'object'`, and `object` carries no
+// index signature, so the tighter parameter type rejected it.
 /** Convert ISO date strings in a document to Firestore Timestamps */
-function convertDatesToTimestamps(obj: Record<string, unknown>): Record<string, unknown> {
-  const result = { ...obj }
+function convertDatesToTimestamps(obj: object): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...obj }
   const dateFields = [
     'createdAt', 'updatedAt', 'lastLogin', 'expiresAt',
     'acceptedAt', 'archivedAt', 'timestamp',

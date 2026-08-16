@@ -225,6 +225,7 @@
   - **#365** — everything outside the permission path. **Found a live bug:** `/admin/dashboards` wired the modal's save button straight to `handleSave`, so create/update received FormModal's native FormData scrape — and `FormField` names its inputs `field-${Math.random()}`, so the payload carried random keys, never `name`/`folderId`/`lookerEmbedUrl`, and skipped validation. Also surfaced the multi-select emitting `(string | number)[]` into a `string[]` prop. 17 → 3
   - **#366** — the last two decision-sites, both closed by deleting code: the store's company getters filtered on a field no document has and nothing called (always `[]`), and `useAdminResource`'s extension index signature typed every property `any` to serve three helpers, which moved into `useAdminFolders`/`useAdminDashboards`. 3 → **0**
 - [x] **`no-explicit-any` — 0 left.** Backlog closed. eslint baseline is now 0, so any violation is a regression
+- [x] **`scripts/` brought under a compiler** (PR #370) — the same gap `tests/` had before #357: none of the four generated `.nuxt/tsconfig.*` projects covers `scripts/`, so `seed-firestore.ts` had never been typechecked and carried a real `TS2345` (`convertDatesToTimestamps` took `Record<string, unknown>` but its own recursive call passes a value narrowed to `object`, which has no index signature). Covers `.ts` only — `allowJs` + `checkJs` over the five `.mjs` scripts reports 70 errors, every one of them inference noise rather than a defect
 
 ---
 

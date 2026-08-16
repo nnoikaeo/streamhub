@@ -1,0 +1,38 @@
+{
+  // Nothing else typechecks scripts/. The generated .nuxt/tsconfig.* projects
+  // cover app/, server/, shared/ and the Nuxt config only — tsconfig.node.json
+  // takes nuxt.config and modules/, not this directory — and tests/tsconfig.json
+  // covers tests/. Without this project the seeder and any future .ts script are
+  // lint-checked and never typechecked, which is how a real TS2345 sat in
+  // seed-firestore.ts unnoticed.
+  //
+  // Standalone rather than extending a .nuxt project: these scripts run under
+  // tsx in plain Node, with no Nuxt auto-imports, no DOM and no Nitro globals.
+  // tsconfig.node.json is the closest fit but declares `types: []`, so `fs`,
+  // `process` and `import.meta.dirname` would all be missing.
+  //
+  // Run with: npx vue-tsc --noEmit -p scripts/tsconfig.json
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES2022"
+    ],
+    "types": [
+      "node"
+    ],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  // .ts only. The .mjs scripts are plain Node with no annotations; checking them
+  // would report missing types for every parameter rather than real defects.
+  "include": [
+    "**/*.ts"
+  ]
+}
