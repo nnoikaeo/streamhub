@@ -534,14 +534,21 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
   // Remove restricted users
   const restricted = new Set<string>(perms.restrictions.revoke)
   const now = new Date()
+  // expiry reaches this page as a Date (convertTimestamps) but is a raw
+  // Firestore Timestamp or an ISO string on other paths — isExpired reads
+  // every shape, a bare `new Date(timestamp)` yields Invalid Date [PR #364]
   for (const [uid, date] of Object.entries(perms.restrictions.expiry)) {
-    // Firestore hands these back as Timestamps or ISO strings depending on path
-    const expiresAt = date instanceof Date ? date : new Date(date as string)
-    if (expiresAt < now) restricted.add(uid)
+    if (isExpired(date, now)) restricted.add(uid)
   }
   for (const folder of inheritedFolders.value) {
     if (!folder.restrictions) continue
     for (const uid of folder.restrictions.revoke) restricted.add(uid)
+    // The server denies on an inherited folder expiry as well
+    // (companyAccess.isRestricted runs over every ancestor), so this list has
+    // to drop those users too or it claims access the user does not have
+    for (const [uid, date] of Object.entries(folder.restrictions.expiry ?? {})) {
+      if (isExpired(date, now)) restricted.add(uid)
+    }
   }
   for (const uid of restricted) userMap.delete(uid)
 
