@@ -117,6 +117,8 @@
 | 2.2.15 | Quick Share ที่ rules ปฏิเสธต้องไม่เงียบ | 1. Login เป็น moderator ที่ **ไม่ได้ดูแล** โฟลเดอร์ของแดชบอร์ดนั้น 2. แชร์ | toast **error** (`permission-denied` มาถึงเป็น `success: false` ไม่ใช่ throw) — ห้ามปิด dialog เงียบเหมือนสำเร็จ | High | 🔍 |
 | 2.2.16 | Quick Share ส่ง uid จริง (retest BUG-014) | ต่อจาก 2.2.13 → ตรวจค่าที่เขียน | `access.direct.users` มี uid จริง ไม่ใช่ `[undefined]`/ค่าว่าง | High | 🔍 |
 
+> 🚧 **TC 2.2.13–2.2.16 ยังรันด้วยมือไม่ได้ (2026-08-17):** โค้ดหลัง dialog ต่อครบถึง Firestore แล้ว (PR #376) แต่ **ไม่มีทางเปิด dialog ในตอนนี้** — [DashboardCard.vue:115](../../app/components/features/DashboardCard.vue#L115) emit แค่ `view` ไม่มีปุ่มแชร์ ส่วน [DashboardGrid.vue:21](../../app/components/features/DashboardGrid.vue#L21) ผูก `@share` กับ event ที่ไม่มีใครยิง และ [DashboardList.vue:76](../../app/components/features/DashboardList.vue#L76) ประกาศ emit ไว้เฉย ๆ; หน้า view ก็ถอด Quick Share ออกไปแล้ว (`a52674c`, คอมเมนต์ที่ [view/[id].vue:260](../../app/pages/dashboard/view/[id].vue#L260)) รอตัดสินใจว่าจะ **เพิ่มปุ่มกลับ** หรือ **ลบ Quick Share ทั้งชุด**
+
 ---
 
 ### 2.3 Dashboard View (`/dashboard/view/[id]`)
@@ -529,7 +531,9 @@
 | BUG-013 | กด "+ Add tag" ใน modal แก้ไขแดชบอร์ด = **เซฟและปิด modal ทันที** ติดแท็กไม่ได้เลย — ปุ่มใน `TagSelector`/`TagBadge` ไม่ได้ใส่ `type` ปุ่มที่ไม่มี type คือ `type="submit"` และมันอยู่ใน `<form>` ของ `FormModal` คลิกจึง submit → `emit('save')` → parent เซฟ+ปิด (ปุ่ม `✕` ลบแท็กก็พังแบบเดียวกัน — `@click.stop` หยุดแค่ propagation ไม่ได้หยุด submit) | TC 3.13.8 | High | 🔧 Fixed (`type="button"` 3 ปุ่ม; PR #336) |
 | BUG-014 | Quick Share จาก Discover ส่ง `userIds: [undefined]` — `QuickShareDialog` อ่าน `user.id` ทั้งไฟล์ แต่ type `User` มีแค่ `uid`; ปุ่มลบผู้ใช้ที่เลือกก็ไม่เคยตรงกับแถวไหน (filter ด้วย `undefined`) | TC 2.2.16 | High | 🔧 Fixed (เปลี่ยนเป็น `uid` ทุกจุด; PR #353) — retest ปลดล็อกแล้วหลัง BUG-017 (ปลายทางเขียนจริง) เหลือ **UI pass ตาม TC 2.2.16** |
 | BUG-016 | ข้อความ error ค้างหลังแก้ค่าให้ถูกแล้ว ทุกฟอร์ม admin — `useForm` ล้าง error ไว้ใน `setFieldValue` แต่ทุกฟอร์มผูก `v-model="formData.x"` ซึ่งเขียน reactive object ตรงๆ ทางนั้นจึงไม่เคยถูกเรียก (CompanyForm เป็นไฟล์เดียวในรีโปที่เรียก และเรียกกับ field ที่ไม่มี validator) | TC 5.1.7 | Medium | 🔧 Fixed (`watch(formData)` + re-validate ใน `useForm`; PR #367; UI-verified 2026-08-15 TC 5.1.7–5.1.10) |
-| BUG-017 | ปุ่ม "แชร์" ใน `QuickShareDialog` (Discover) **ไม่เขียนอะไรเลย** — `handleShare` ใน `useDashboardPage` เป็น stub (`// API call would go here`) ไม่เคยเรียก `quickShareDashboard` แต่ dialog ปิดตัวเองหลัง emit ผู้ใช้จึงเห็นเหมือนสำเร็จ; ผลข้างเคียง = ตั้งวันหมดอายุสิทธิ์ผ่าน UI ไม่ได้เลย ต้องแก้ที่ Firebase console | TC 2.2.13–2.2.16 / 3.10.6 (เตรียมข้อมูล) | High | 🔧 Fixed (พังจริง 3 ชั้น: `handleShare` stub, `availableUsers` ไม่เคยถูกเติม, `expiryDate` เป็น string แต่ service รับ `Date`) — ดูรายละเอียดใต้ตาราง; **รอ UI pass TC 2.2.13–2.2.16** |
+| BUG-017 | ปุ่ม "แชร์" ใน `QuickShareDialog` (Discover) **ไม่เขียนอะไรเลย** — `handleShare` ใน `useDashboardPage` เป็น stub (`// API call would go here`) ไม่เคยเรียก `quickShareDashboard` แต่ dialog ปิดตัวเองหลัง emit ผู้ใช้จึงเห็นเหมือนสำเร็จ; ผลข้างเคียง = ตั้งวันหมดอายุสิทธิ์ผ่าน UI ไม่ได้เลย ต้องแก้ที่ Firebase console | TC 2.2.13–2.2.16 / 3.10.6 (เตรียมข้อมูล) | High | 🔧 Fixed (พังจริง 3 ชั้น: `handleShare` stub, `availableUsers` ไม่เคยถูกเติม, `expiryDate` เป็น string แต่ service รับ `Date`) — ดูรายละเอียดใต้ตาราง; ⚠️ **dialog ยังไม่มีทางเปิดใน UI** (การ์ดไม่มีปุ่มแชร์) จึงยังรัน TC 2.2.13–2.2.16 ด้วยมือไม่ได้ |
+| BUG-018 | หน้า `/admin/permissions` (+ `/manage/permissions`) เขียน `restrictions.expiry` เป็น **ISO string ที่เที่ยงคืน UTC** = 07:00 น. ตามเวลาไทย ⇒ ตั้ง "หมดอายุ 18 ส.ค." สิทธิ์ตัดเช้าวันที่ 18 เร็วไป 17 ชม.; และ shape ต่างจากที่ Quick Share เขียน (`Timestamp`) ทั้งที่เป็นฟิลด์เดียวกัน | TC 3.10.6 (พบตอนทดสอบ BUG-017 2026-08-17) | Medium | 🔍 ยืนยันบน prod Firestore — **ยังไม่แก้** (จดไว้ตามการตัดสินใจ) |
+| BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้; ExplorerPage ทำถูกด้วย `routePrefix.replace('/explorer','/permissions')` ชี้ `/manage/permissions` (middleware แค่ `auth`) | TC 2.3.1 | Medium | 🔍 ยืนยันในโค้ด 2026-08-17 — **ยังไม่แก้** (จดไว้ตามการตัดสินใจ) |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
 **BUG-001 รายละเอียด:**
@@ -592,6 +596,20 @@
 - **Fix:** เพิ่ม `canDeleteFolder` ใน admin explorer เช็ค subfolder + dashboard ก่อน ถ้าไม่ว่าง return error string บล็อกการลบ — เลือก option 1 (block) ให้ตรง spec แทน cascade เปลี่ยน native `alert()` ใน `useExplorer` เป็น `ConfirmDialog` แบบ OK-only (เพิ่ม prop `hideCancel`)
 - **manage explorer ด้วย:** `/manage/explorer` (moderator) มี orphan-risk เดียวกัน — `canDeleteFolder` เดิมเช็คแค่สิทธิ์ เพิ่ม content check (subfolder + dashboard ว่าง) ต่อจากเช็คสิทธิ์แล้วในรอบนี้
 
+**BUG-018 รายละเอียด:**
+- **อาการ:** ตั้งวันหมดอายุที่หน้าจัดการสิทธิ์ (แท็บ "ข้อจำกัด" → หมดอายุ) เลือก 18/8/2569 กดบันทึก → ค่าที่เขียนจริงคือ `"2026-08-18T00:00:00.000Z"` = **07:00 น. วันที่ 18 ตามเวลาไทย** สิทธิ์ตัดกลางเช้าแทนที่จะเป็นสิ้นวัน
+- **Root cause 2 จุด:**
+  1. [PermissionEditor.vue:780](../../app/components/features/PermissionEditor.vue#L780) `localRestrictions.value.expiry[uid] = new Date(popupExpiryDate.value)` — `new Date('2026-08-18')` คือเที่ยงคืน **UTC** (บั๊กชั้น 3 ตัวเดียวกับ BUG-017 คนละไฟล์)
+  2. [PermissionEditor.vue:501](../../app/components/features/PermissionEditor.vue#L501) `JSON.parse(JSON.stringify(obj))` แปลง `Date` เป็น ISO string ก่อน emit ออกไป แล้ว [saveDashboardPermissions](../../app/composables/useFirestoreService.ts#L370) เขียนลง Firestore ตรง ๆ ⇒ ได้ `shape: string` ไม่ใช่ `Timestamp` (Quick Share เขียนเป็น `Timestamp` — ฟิลด์เดียวกันแต่คนละ shape)
+- **ผลกระทบ:** ฝั่งอ่านไม่พังเพราะ `toDate`/`isExpired` รับทั้ง string และ Timestamp (PR #364) แต่เวลาที่ตัดสิทธิ์เร็วไป 17 ชั่วโมง
+- **แนวทางแก้ (ยังไม่ทำ):** ใช้ `endOfDayLocal` จาก `shared/utils/dates.ts` + แปลงเป็น `Timestamp.fromDate` ตอนเขียน ให้ตรงกับพาธ Quick Share
+- **ยืนยันบน prod:** `node scripts/inspect-expiry.mjs dash_1786983449961` ระหว่างทดสอบ BUG-017 (ลบค่าทดสอบออกแล้ว)
+
+**BUG-019 รายละเอียด:**
+- **อาการ:** moderator เปิดแดชบอร์ดแล้วกดปุ่ม Share ในหน้า view → เด้งไป `/admin/permissions` ซึ่ง middleware เป็น `['auth','admin']` เข้าไม่ได้
+- **Root cause:** [view/[id].vue:541](../../app/pages/dashboard/view/[id].vue#L541) hardcode `/admin/permissions` ทั้งที่ปุ่มโชว์ให้ทั้ง admin และ moderator ([:57](../../app/pages/dashboard/view/[id].vue#L57))
+- **แนวทางแก้ (ยังไม่ทำ):** เลือก path ตาม role แบบเดียวกับ [ExplorerPage.vue:101](../../app/components/features/ExplorerPage.vue#L101) (`routePrefix.replace('/explorer','/permissions')` → `/manage/permissions` สำหรับ moderator)
+
 **BUG-017 รายละเอียด:**
 - **อาการ:** admin/moderator กด 🔗 ที่การ์ดใน Discover → dialog เปิด → กด Share → dialog ปิดเหมือนสำเร็จ ไม่มี toast ไม่มี error และไม่มีอะไรถูกเขียนลง Firestore
 - **Root cause (3 ชั้น):**
@@ -603,6 +621,7 @@
   - `availableUsers` เติมจาก `useAdminUsers({ skipCompanyFilter: true })` (แพตเทิร์นเดียวกับ `/admin/permissions`) โหลด **ตอนเปิด dialog** ไม่ใช่ตอน mount
   - เพิ่ม `endOfDayLocal` ใน [shared/utils/dates.ts](../../shared/utils/dates.ts) — `"2026-08-17"` → 23:59:59.999 **ตามเวลาผู้ใช้** เพราะ `new Date('2026-08-17')` = เที่ยงคืน UTC = 07:00 น. ไทย จะตัดสิทธิ์เร็วไป 17 ชั่วโมง
 - **เส้นทางล้มเหลว:** `FirestoreService.quickShareDashboard` catch เองแล้วคืน `{ success: false }` ⇒ moderator ที่โดน rules ปฏิเสธ (`firestore.rules` `isManagedFolder`) **ไม่ throw** ต้องเช็ค `result.success` ด้วย ไม่ใช่ try/catch อย่างเดียว — คุมทั้งสองทางในเทสต์ [tests/utils/quickShare.test.ts](../../tests/utils/quickShare.test.ts)
+- **ที่พบเพิ่มตอนจะทดสอบด้วยมือ (2026-08-17):** `QuickShareDialog` **ไม่มีทางเปิดใน UI ปัจจุบัน** — `DashboardCard` emit แค่ `view`, `git log -S "emit('share')"` บนไฟล์นั้นไม่มีประวัติเลย ⇒ ปุ่ม 🔗 บนการ์ดไม่เคยมีจริง และหน้า view ถอด Quick Share ไปเป็น "navigate ไปหน้าจัดการสิทธิ์" ตั้งแต่ `a52674c` ⇒ fix ของ BUG-017 ถูกต้องแต่ยังไม่มี entry point รอตัดสินใจ (เพิ่มปุ่มกลับ vs ลบ Quick Share ทั้งชุด)
 - **ไม่ได้ทำ:** ไม่ซ่อน/disable ปุ่มแชร์สำหรับ moderator ที่ไม่ได้ดูแลโฟลเดอร์นั้น (`canShareDashboard` ยังเป็น true ทุก moderator) — rules คือด่านจริง และข้อมูล folder ฝั่ง client อาจโหลดไม่ครบจน block ผิดคน จึงใช้ toast error เป็นทางรายงาน
 
 ---
