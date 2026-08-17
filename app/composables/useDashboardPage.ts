@@ -4,7 +4,10 @@ import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
 import { useDashboardStore } from '~/stores/dashboard'
 import { usePermissionsStore } from '~/stores/permissions'
-import type { Dashboard, Folder, User } from '~/types/dashboard'
+import { useAdminUsers } from '~/composables/useAdminUsers'
+import { runQuickShare } from '~/utils/quickShare'
+import type { QuickSharePayload } from '~/utils/quickShare'
+import type { Dashboard, Folder } from '~/types/dashboard'
 
 export interface UseDashboardPageOptions {
   initialFolderId?: string | null
@@ -65,6 +68,9 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   const dashboardService = useDashboardService()
   const dashboardStore = useDashboardStore()
   const permissionsStore = usePermissionsStore()
+  // Share targets are picked across companies (a moderator may share with a
+  // user outside their own), same as the admin permissions picker. [DESIGN-001]
+  const { users: allUsers, fetchUsers } = useAdminUsers({ skipCompanyFilter: true })
 
   // Extract options
   const {
@@ -76,7 +82,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   // ========== Local State ==========
   const selectedDashboard = ref<Dashboard | null>(null)
   const shareDialogOpen = ref(false)
-  const availableUsers = ref<User[]>([])
   const folderPath = ref<Folder[]>([])
   const infiniteScrollSentinel = ref<HTMLElement | null>(null)
   const isInitializing = ref(true)
@@ -104,6 +109,9 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   const currentFolder = computed(() => dashboardStore.currentFolder)
   const isLoading = computed(() => dashboardStore.isLoading)
   const error = computed(() => dashboardStore.error)
+
+  /** Share-dialog picker list — filled on dialog open, see handleShareDashboard */
+  const availableUsers = computed(() => allUsers.value)
 
   const breadcrumbItems = computed(() => {
     return [
@@ -264,7 +272,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   /**
    * Handle dashboard share
    */
-  const handleShareDashboard = (dashboard: Dashboard) => {
+  const handleShareDashboard = async (dashboard: Dashboard) => {
     log('handleShareDashboard', { dashboardId: dashboard.id })
 
     // Check permission
@@ -275,6 +283,18 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
 
     selectedDashboard.value = dashboard
     shareDialogOpen.value = true
+
+    // Only the share dialog needs the user list, so it is loaded on open rather
+    // than on page mount — Discover otherwise pays a full users read on every
+    // visit for a dialog most visits never open.
+    if (availableUsers.value.length === 0) {
+      try {
+        await fetchUsers()
+      } catch (err: unknown) {
+        log('handleShareDashboard: failed to load users', err)
+        try { useAppToast().showToast('โหลดรายชื่อผู้ใช้ไม่สำเร็จ กรุณาลองใหม่', 'error') } catch { /* toast unavailable outside a component scope */ }
+      }
+    }
   }
 
   /**
@@ -288,22 +308,21 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   /**
    * Handle share confirmation
    */
-  const handleShare = async (payload: {
-    dashboardId: string
-    userIds: string[]
-    expiryDate?: string
-  }) => {
+  const handleShare = async (payload: QuickSharePayload) => {
     log('handleShare', { dashboardId: payload.dashboardId, userCount: payload.userIds.length })
-    try {
-      console.log('Share dashboard:', payload)
-      // API call would go here
+
+    const shared = await runQuickShare(payload, {
+      share: (dashboardId, userIds, expiryDate) =>
+        dashboardService.quickShareDashboard(dashboardId, userIds, expiryDate),
+      notify: (message, type) => {
+        try { useAppToast().showToast(message, type) } catch { /* toast unavailable outside a component scope */ }
+      },
+    })
+
+    if (shared) {
       dashboardStore.clearError()
-    } catch (err) {
-      log('handleShare error', err)
-      dashboardStore.setError(
-        err instanceof Error ? err.message : 'Failed to share dashboard'
-      )
-      console.error('Error sharing dashboard:', err)
+    } else {
+      dashboardStore.setError('Failed to share dashboard')
     }
   }
 

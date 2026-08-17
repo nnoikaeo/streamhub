@@ -67,6 +67,42 @@ export function toDate(value: unknown): Date | null {
 }
 
 /**
+ * Read a date-only string (`YYYY-MM-DD`, what `<input type="date">` produces)
+ * as the END of that day in the viewer's own timezone — 23:59:59.999 local.
+ *
+ * `new Date('2026-08-17')` parses as midnight **UTC**, which is 07:00 in
+ * Bangkok: a grant the user set to expire "on the 17th" would cut out on the
+ * morning of the 17th, 17 hours early. A date-only picker implies the chosen
+ * day is the last full day of access, so the end of that local day is the
+ * instant to store.
+ *
+ * @returns the `Date`, or `null` when the value is absent, malformed, or names
+ *   a day that does not exist (`2026-02-31`) — never an `Invalid Date`, and
+ *   never a silently rolled-over month.
+ */
+export function endOfDayLocal(value: string | null | undefined): Date | null {
+  if (!value) return null
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim())
+  if (!match) return null
+
+  const [, year, month, day] = match
+  if (!year || !month || !day) return null
+
+  const y = Number(year)
+  const m = Number(month)
+  const d = Number(day)
+  const date = new Date(y, m - 1, d, 23, 59, 59, 999)
+
+  // Reject a day the calendar rolled over (new Date(2026, 1, 31) → 3 March)
+  if (date.getFullYear() !== y || date.getMonth() !== m - 1 || date.getDate() !== d) {
+    return null
+  }
+
+  return date
+}
+
+/**
  * Whether a stored expiry has passed.
  *
  * Unset and unparseable values are NOT expired — an unreadable expiry must not
