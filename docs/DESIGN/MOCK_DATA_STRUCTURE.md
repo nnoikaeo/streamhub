@@ -469,19 +469,6 @@ const reason = await dashboardService.getAccessReason(
 
 ---
 
-### Example 3: Quick Share Dashboard
-
-```typescript
-const result = await dashboardService.quickShareDashboard(
-  'dash_finance_summary',
-  ['user_teerak_user'], // User IDs to share with
-  new Date('2024-03-15') // Optional expiry date
-)
-// Adds user to direct access with 30-day temporary access
-```
-
----
-
 ### Example 4: Get Access Explanation for UI Display
 
 ```typescript
@@ -610,7 +597,6 @@ const dashboards = await dashboardService.getDashboards(userId, companyId)
 - [ ] Use service: `const service = useDashboardService()`
 - [ ] Set current user for mock: `service.setCurrentUser('user_somchai_mod')`
 - [ ] Test permission checking: `await service.canAccessDashboard(...)`
-- [ ] Test quick share: `await service.quickShareDashboard(...)`
 - [ ] Test folder navigation: `await service.getFolders(...)`
 - [ ] Test dashboard loading: `await service.getDashboards(...)`
 - [ ] Prepare Firebase migration (for later)

@@ -45,7 +45,6 @@ StreamHub Application
 │   ├── DashboardViewHeader
 │   ├── FolderSidebar
 │   ├── DashboardGrid
-│   ├── QuickShareDialog
 │   ├── TagBadge              (NEW - display tag on dashboard cards)
 │   ├── TagFilter             (NEW - tag chip filter on View All page)
 │   ├── TagSelector           (NEW - add/remove tags on dashboard edit)
@@ -219,8 +218,11 @@ Page-specific components for dashboard functionality.
 
 ---
 
-### QuickShareDialog
-**File:** `app/components/features/QuickShareDialog.vue`
+### QuickShareDialog — ลบแล้ว (2026-08-18)
+
+Quick Share ถูกถอดออกทั้งชุด การให้สิทธิ์ทุกกรณีผ่านหน้าจัดการสิทธิ์ (`/admin/permissions`, `/manage/permissions`) ที่เข้าจาก Explorer ปุ่ม 🔑 เท่านั้น หัวข้อนี้เก็บไว้เป็นประวัติ เนื้อหาด้านล่างอธิบายของที่ไม่มีแล้ว
+
+**File:** ~~`app/components/features/QuickShareDialog.vue`~~ (ลบแล้ว)
 
 **Purpose:** Modal dialog for moderators to share dashboards
 
@@ -449,7 +451,6 @@ app/components/
    ├── DashboardGrid.vue
    ├── FolderSidebar.vue
    ├── FolderTree.vue
-   ├── QuickShareDialog.vue
    ├── PermissionEditor.vue
    ├── AuditLog.vue
    ├── TagBadge.vue               # (NEW) Tag display chip

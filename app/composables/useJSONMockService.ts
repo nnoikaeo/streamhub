@@ -534,23 +534,6 @@ export class JSONMockService implements IDashboardService {
   }
 
   /**
-   * Quick share dashboard (not implemented in mock, just logs)
-   */
-  async quickShareDashboard(
-    dashboardId: string,
-    userIds: string[],
-    expiryDate?: Date
-  ): Promise<SavePermissionsResponse> {
-    try {
-      this.log('quickShareDashboard:', { dashboardId, userIds, expiryDate })
-      return { success: true, message: 'Quick share successful', updatedAt: new Date() }
-    } catch (error) {
-      console.error('❌ [JSONMockService] quickShareDashboard error:', error)
-      return { success: false, message: 'Quick share failed', updatedAt: new Date() }
-    }
-  }
-
-  /**
    * Get audit log (not implemented in mock)
    */
   async getAuditLog(_dashboardId: string, _limit?: number): Promise<AuditLogEntry[]> {

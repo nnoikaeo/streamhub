@@ -314,7 +314,7 @@ match /users/{userId} {
 
 **Note:** No `company` field — folders are not tied to a single company. Access is controlled via the `access` model.
 
-**Note on `restrictions.expiry`:** the same value reaches the app in three shapes — `Timestamp` from Firestore (`quickShareDashboard` writes `Timestamp.fromDate()`), an ISO string from the JSON store, and `Date` in the TypeScript declaration. Never compare it with a bare `new Date(value)`: on a `Timestamp` that yields `Invalid Date`, which compares `false` against everything and silently grants access. Read it through `toDate` / `isExpired` in `shared/utils/dates.ts`. See [Common Issues](../TROUBLESHOOTING/common-issues.md).
+**Note on `restrictions.expiry`:** the same value reaches the app in three shapes — `Timestamp` from Firestore (values written before Quick Share was removed), an ISO string from the JSON store, and `Date` in the TypeScript declaration. Never compare it with a bare `new Date(value)`: on a `Timestamp` that yields `Invalid Date`, which compares `false` against everything and silently grants access. Read it through `toDate` / `isExpired` in `shared/utils/dates.ts`. See [Common Issues](../TROUBLESHOOTING/common-issues.md).
 
 ---
 

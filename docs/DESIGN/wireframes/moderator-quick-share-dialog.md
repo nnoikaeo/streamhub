@@ -1,5 +1,7 @@
 # Moderator Quick Share Dialog
 
+> ⛔ **ยกเลิกแล้ว (2026-08-18)** — Quick Share ถูกลบออกจากแอปทั้งชุด การให้สิทธิ์ทุกกรณีผ่านหน้าจัดการสิทธิ์ (เข้าจาก Explorer ปุ่ม 🔑) เอกสารนี้เก็บไว้เป็นประวัติการออกแบบ ดู BUG-017 ใน [manual-test-plan.md](../../OPERATIONS/manual-test-plan.md)
+
 > **Purpose:** Quick sharing dialog for moderators to grant temporary direct access to dashboards
 > **Users:** Moderators (own dashboards only)
 > **Interaction:** Modal dialog from Dashboard Discover Page

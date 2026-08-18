@@ -18,15 +18,6 @@
       </button>
 
       <button
-        v-if="canShare"
-        class="action-button"
-        @click="$emit('share-dashboard')"
-      >
-        <span class="action-button__icon">🔗</span>
-        <span class="action-button__text">แชร์</span>
-      </button>
-
-      <button
         v-if="canInvite"
         class="action-button"
         @click="$emit('invite-user')"
@@ -41,14 +32,12 @@
 <script setup lang="ts">
 defineProps<{
   canCreate?: boolean
-  canShare?: boolean
   canInvite?: boolean
 }>()
 
 defineEmits<{
   'view-dashboards': []
   'create-dashboard': []
-  'share-dashboard': []
   'invite-user': []
 }>()
 </script>

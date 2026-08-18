@@ -193,19 +193,6 @@ export interface IDashboardService {
     allGroups: { id: string; members: string[] }[]
   ): Promise<User[]>
 
-  // ========== QUICK SHARE (MODERATOR) ==========
-
-  /**
-   * Quick share dashboard with user(s)
-   * Adds direct user access with optional expiry
-   * Only dashboard owner or admin can do this
-   */
-  quickShareDashboard(
-    dashboardId: string,
-    selectedUserIds: string[],
-    expiryDate?: Date
-  ): Promise<SavePermissionsResponse>
-
   /**
    * Get direct access users for dashboard
    */
@@ -375,11 +362,6 @@ export const useDashboardService = (): IDashboardService => {
           return service.saveDashboardPermissions(request)
         }
 
-        async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: Date) {
-          const service = await this.initFirestoreService()
-          return service.quickShareDashboard(dashboardId, userIds, expiryDate)
-        }
-
         async getAuditLog(dashboardId: string, limit?: number) {
           const service = await this.initFirestoreService()
           return service.getAuditLog(dashboardId, limit)
@@ -534,11 +516,6 @@ export const useDashboardService = (): IDashboardService => {
         async saveDashboardPermissions(request: SavePermissionsRequest) {
           const service = await this.initJsonService()
           return service.saveDashboardPermissions(request)
-        }
-
-        async quickShareDashboard(dashboardId: string, userIds: string[], expiryDate?: Date) {
-          const service = await this.initJsonService()
-          return service.quickShareDashboard(dashboardId, userIds, expiryDate)
         }
 
         async getAuditLog(dashboardId: string, limit?: number) {

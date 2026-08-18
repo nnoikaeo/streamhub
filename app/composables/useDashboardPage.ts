@@ -4,9 +4,6 @@ import { useAuth } from '~/composables/useAuth'
 import { useDashboardService } from '~/composables/useDashboardService'
 import { useDashboardStore } from '~/stores/dashboard'
 import { usePermissionsStore } from '~/stores/permissions'
-import { useAdminUsers } from '~/composables/useAdminUsers'
-import { runQuickShare } from '~/utils/quickShare'
-import type { QuickSharePayload } from '~/utils/quickShare'
 import type { Dashboard, Folder } from '~/types/dashboard'
 
 export interface UseDashboardPageOptions {
@@ -44,13 +41,11 @@ export interface UseDashboardPageOptions {
  *
  *   // Permissions
  *   canCreateFolder,
- *   canShareDashboard,
  *
  *   // Methods
  *   selectFolder,
  *   loadDashboards,
  *   handleViewDashboard,
- *   handleShareDashboard,
  * } = useDashboardPage()
  * ```
  *
@@ -68,9 +63,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   const dashboardService = useDashboardService()
   const dashboardStore = useDashboardStore()
   const permissionsStore = usePermissionsStore()
-  // Share targets are picked across companies (a moderator may share with a
-  // user outside their own), same as the admin permissions picker. [DESIGN-001]
-  const { users: allUsers, fetchUsers } = useAdminUsers({ skipCompanyFilter: true })
 
   // Extract options
   const {
@@ -80,8 +72,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   } = options
 
   // ========== Local State ==========
-  const selectedDashboard = ref<Dashboard | null>(null)
-  const shareDialogOpen = ref(false)
   const folderPath = ref<Folder[]>([])
   const infiniteScrollSentinel = ref<HTMLElement | null>(null)
   const isInitializing = ref(true)
@@ -110,9 +100,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   const isLoading = computed(() => dashboardStore.isLoading)
   const error = computed(() => dashboardStore.error)
 
-  /** Share-dialog picker list — filled on dialog open, see handleShareDashboard */
-  const availableUsers = computed(() => allUsers.value)
-
   const breadcrumbItems = computed(() => {
     return [
       { label: 'รายการแดชบอร์ด', to: '/dashboard/discover' },
@@ -125,7 +112,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
 
   // ========== Permissions ==========
   const canCreateFolder = computed(() => permissionsStore.can('canCreateFolder'))
-  const canShareDashboard = computed(() => permissionsStore.can('canShareDashboard'))
   const canDeleteDashboard = computed(() => permissionsStore.can('canDeleteDashboard'))
   const canEditDashboard = computed(() => permissionsStore.can('canEditDashboard'))
 
@@ -270,60 +256,11 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   }
 
   /**
-   * Handle dashboard share
-   */
-  const handleShareDashboard = async (dashboard: Dashboard) => {
-    log('handleShareDashboard', { dashboardId: dashboard.id })
-
-    // Check permission
-    if (!canShareDashboard.value) {
-      dashboardStore.setError('You do not have permission to share dashboards')
-      return
-    }
-
-    selectedDashboard.value = dashboard
-    shareDialogOpen.value = true
-
-    // Only the share dialog needs the user list, so it is loaded on open rather
-    // than on page mount — Discover otherwise pays a full users read on every
-    // visit for a dialog most visits never open.
-    if (availableUsers.value.length === 0) {
-      try {
-        await fetchUsers()
-      } catch (err: unknown) {
-        log('handleShareDashboard: failed to load users', err)
-        try { useAppToast().showToast('โหลดรายชื่อผู้ใช้ไม่สำเร็จ กรุณาลองใหม่', 'error') } catch { /* toast unavailable outside a component scope */ }
-      }
-    }
-  }
-
-  /**
    * Handle dashboard menu actions
    */
   const handleMenuDashboard = (dashboard: Dashboard, event: MouseEvent) => {
     log('handleMenuDashboard', { dashboardId: dashboard.id })
     console.log('Menu action event:', event, 'Dashboard:', dashboard.id)
-  }
-
-  /**
-   * Handle share confirmation
-   */
-  const handleShare = async (payload: QuickSharePayload) => {
-    log('handleShare', { dashboardId: payload.dashboardId, userCount: payload.userIds.length })
-
-    const shared = await runQuickShare(payload, {
-      share: (dashboardId, userIds, expiryDate) =>
-        dashboardService.quickShareDashboard(dashboardId, userIds, expiryDate),
-      notify: (message, type) => {
-        try { useAppToast().showToast(message, type) } catch { /* toast unavailable outside a component scope */ }
-      },
-    })
-
-    if (shared) {
-      dashboardStore.clearError()
-    } else {
-      dashboardStore.setError('Failed to share dashboard')
-    }
   }
 
   /**
@@ -476,20 +413,16 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
     folders,
     currentFolder,
     selectedFolderId,
-    selectedDashboard,
     folderPath,
     breadcrumbItems,
     isLoading,
     error,
     accessDenied,
-    shareDialogOpen,
-    availableUsers,
     infiniteScrollSentinel,
     isInitializing,
 
     // Permissions
     canCreateFolder,
-    canShareDashboard,
     canDeleteDashboard,
     canEditDashboard,
 
@@ -502,9 +435,7 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
     loadDashboards,
     selectFolder,
     handleViewDashboard,
-    handleShareDashboard,
     handleMenuDashboard,
-    handleShare,
     handleCreateFolder,
     setupInfiniteScroll,
     initialize,

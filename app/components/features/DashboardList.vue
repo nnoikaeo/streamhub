@@ -73,7 +73,6 @@ const showCompany = computed(() => props.visibleColumns.includes('company'))
 
 defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
-  'share-dashboard': [dashboard: Dashboard]
   'menu-dashboard': [dashboard: Dashboard, event: MouseEvent]
 }>()
 </script>

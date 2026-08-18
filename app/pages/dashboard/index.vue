@@ -42,11 +42,9 @@
         <ClientOnly>
           <DashboardQuickActions
             :can-create="isModerator || isAdmin"
-            :can-share="isModerator || isAdmin"
             :can-invite="false"
             @view-dashboards="navigateTo('/dashboard/discover')"
             @create-dashboard="navigateTo('/dashboard/create')"
-            @share-dashboard="handleShare"
           />
         </ClientOnly>
       </div>
@@ -192,11 +190,6 @@ const handleSelectFolder = (folder: Folder) => {
 const handleCreateFolder = () => {
   // TODO: Implement create folder
   alert('Create folder functionality coming soon!')
-}
-
-const handleShare = () => {
-  // TODO: Implement share functionality
-  alert('Share functionality coming soon!')
 }
 
 // Fetch all data on mount
