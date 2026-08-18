@@ -6,10 +6,9 @@
  *
  * - `AccessRestrictions.expiry` declares `Date`
  * - the JSON store holds ISO strings (`.data/*.json`)
- * - Firestore holds `Timestamp` for values written before Quick Share was
- *   removed, and the SDK reads them back as a `Timestamp` object (or as
- *   `{ seconds, nanoseconds }` once it has been through JSON); the permissions
- *   page writes ISO strings instead — see BUG-018
+ * - Firestore holds `Timestamp` — every save normalises through
+ *   `toExpiryTimestamps` [BUG-018] — and the SDK reads it back as a `Timestamp`
+ *   object (or as `{ seconds, nanoseconds }` once it has been through JSON)
  *
  * `new Date(timestamp)` on the last shape yields `Invalid Date`, which then
  * compares `false` against everything — an expiry that silently never fires.
@@ -77,9 +76,7 @@ export function toDate(value: unknown): Date | null {
  * day is the last full day of access, so the end of that local day is the
  * instant to store.
  *
- * No caller yet: Quick Share, which used to call it, was removed. It is kept
- * (with its tests) because it is the intended fix for BUG-018 — the permissions
- * page still writes midnight UTC.
+ * Used by the permissions editor when an admin picks an expiry date [BUG-018].
  *
  * @returns the `Date`, or `null` when the value is absent, malformed, or names
  *   a day that does not exist (`2026-02-31`) — never an `Invalid Date`, and
