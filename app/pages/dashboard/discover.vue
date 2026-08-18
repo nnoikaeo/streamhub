@@ -223,7 +223,6 @@
                 :folder-map="folderNameMap"
                 :empty-message="flatEmptyMessage"
                 @view-dashboard="handleViewDashboard"
-                @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
               />
 
@@ -238,7 +237,6 @@
                 :max-per-group="maxPerFolder"
                 empty-message="ไม่พบแดชบอร์ด"
                 @view-dashboard="handleViewDashboard"
-                @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
                 @toggle-group="toggleFolder"
                 @view-group="handleViewFolder"
@@ -252,7 +250,6 @@
                 :view-mode="viewMode"
                 :empty-message="flatEmptyMessage"
                 @view-dashboard="handleViewDashboard"
-                @share-dashboard="handleShareDashboard"
                 @menu-dashboard="handleMenuDashboard"
               />
             </div>
@@ -265,15 +262,6 @@
             <div class="loading-spinner" />
             <span>กำลังโหลดเพิ่ม...</span>
           </div>
-
-          <!-- Quick Share Dialog -->
-          <QuickShareDialog
-            v-if="shareDialogOpen && selectedDashboard"
-            v-model="shareDialogOpen"
-            :dashboard-id="selectedDashboard.id"
-            :available-users="availableUsers"
-            @share="handleShare"
-          />
         </div>
     </PageLayout>
     <div v-else class="loading-wrapper">
@@ -316,7 +304,6 @@ import DashboardList, { type ListColumn } from '~/components/features/DashboardL
 import TreeDashboardList from '~/components/features/TreeDashboardList.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
-import QuickShareDialog from '~/components/features/QuickShareDialog.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
 import GroupBySwitcher, { type GroupByMode } from '~/components/features/GroupBySwitcher.vue'
 import { computed, ref, watch, onMounted } from 'vue'
@@ -347,13 +334,10 @@ const {
   dashboards,
   folders,
   selectedFolderId,
-  selectedDashboard,
   breadcrumbItems,
   isLoading,
   isInitializing,
   error,
-  shareDialogOpen,
-  availableUsers,
 
   // Permissions from store
   canCreateFolder,
@@ -361,9 +345,7 @@ const {
   // Methods
   selectFolder,
   handleViewDashboard,
-  handleShareDashboard,
   handleMenuDashboard,
-  handleShare,
   handleCreateFolder,
 } = useDashboardPage({
   enableInfiniteScroll: true,
@@ -891,7 +873,6 @@ const dashboardCountText = computed(() => {
 
 // Permission checks are now automatic in composable:
 // - If canCreateFolder = false, create button will be disabled (prop binding)
-// - If canShareDashboard = false, share dialog won't open
 // - If canViewDashboards = false, view action is blocked at composable level
 
 // ========== Benefits of Strategy 4 ==========

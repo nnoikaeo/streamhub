@@ -25,22 +25,6 @@
       <slot name="actions" />
 
       <button
-        v-if="showShare"
-        type="button"
-        class="action-button share-button"
-        title="Quick share this dashboard"
-        @click="emit('share')"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="18" cy="5" r="3" />
-          <circle cx="6" cy="12" r="3" />
-          <circle cx="18" cy="19" r="3" />
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-        </svg>
-        Share
-      </button>
-      <button
         type="button"
         class="action-button menu-button"
         :class="{ 'menu-open': menuOpen }"
@@ -78,12 +62,10 @@ defineProps<{
   dashboard: Dashboard
   folderName: string
   menuOpen: boolean
-  showShare: boolean
 }>()
 
 const emit = defineEmits<{
   'go-back': []
-  'share': []
   'toggle-menu': []
   'edit': []
   'download': []

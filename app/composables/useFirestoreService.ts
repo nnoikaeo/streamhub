@@ -508,50 +508,6 @@ export class FirestoreService implements IDashboardService {
     }
   }
 
-  // ========== QUICK SHARE ==========
-
-  async quickShareDashboard(
-    dashboardId: string,
-    selectedUserIds: string[],
-    expiryDate?: Date,
-  ): Promise<SavePermissionsResponse> {
-    try {
-      this.log('quickShareDashboard:', { dashboardId, selectedUserIds })
-      const dashboard = await this.getDashboard(dashboardId)
-      if (!dashboard) return { success: false, message: 'Dashboard not found', updatedAt: new Date() }
-
-      const access = dashboard.access ?? { direct: { users: [], groups: [] }, company: [] }
-      const directUsers = new Set(access.direct.users)
-      selectedUserIds.forEach(uid => directUsers.add(uid))
-      access.direct.users = Array.from(directUsers)
-
-      const updateData: Record<string, unknown> = {
-        access,
-        updatedAt: Timestamp.now(),
-      }
-
-      // Set expiry if provided.
-      // Firestore stores expiries as Timestamps, while AccessRestrictions.expiry
-      // describes the read-back shape (convertTimestamps turns them into Dates),
-      // so the write map is built separately instead of being forced into the
-      // declared type.
-      if (expiryDate) {
-        const restrictions = dashboard.restrictions ?? { revoke: [], expiry: {} }
-        const expiry: Record<string, unknown> = { ...restrictions.expiry }
-        for (const uid of selectedUserIds) {
-          expiry[uid] = Timestamp.fromDate(expiryDate)
-        }
-        updateData.restrictions = { ...restrictions, expiry }
-      }
-
-      await updateDoc(doc(this.db, 'dashboards', dashboardId), updateData)
-      return { success: true, message: 'Quick share successful', updatedAt: new Date() }
-    } catch (error) {
-      console.error('❌ [FirestoreService] quickShareDashboard error:', error)
-      return { success: false, message: 'Quick share failed', updatedAt: new Date() }
-    }
-  }
-
   async getDirectAccessUsers(dashboardId: string): Promise<User[]> {
     try {
       const dashboard = await this.getDashboard(dashboardId)

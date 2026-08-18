@@ -381,7 +381,7 @@ filtered = filtered.filter((d) => d.access?.company?.[companyFilter])
 |---|---|
 | `AccessRestrictions` (type) | `Date` |
 | JSON store (`.data/*.json`) | ISO string |
-| Firestore | `Timestamp` — `quickShareDashboard` เขียนด้วย `Timestamp.fromDate()` |
+| Firestore | `Timestamp` (ค่าที่เขียนไว้ก่อนหน้า) หรือ ISO string ที่หน้าจัดการสิทธิ์เขียน — ดู BUG-018 |
 
 `useFirestoreService.checkAccess` อ่านกลับมาว่า
 
@@ -408,7 +408,7 @@ if (new Date() > new Date(expiryDate as any)) return false
 
 แก้วันหมดอายุเป็นอนาคตแล้วยิงซ้ำ → **404** `No embed URL configured` = ผ่านด่านสิทธิ์ พิสูจน์ว่าไม่ใช่ปฏิเสธทุกกรณี
 
-> ⚠️ **ตั้งวันหมดอายุผ่าน UI ไม่ได้** — `quickShareDashboard` เป็นทางเขียนเดียวที่มี แต่ไม่มีใครเรียก (`handleShare` ใน `useDashboardPage` เป็น stub) ตอนนี้ต้องแก้ที่ Firebase console เท่านั้น ดู BUG-017 ใน `docs/OPERATIONS/manual-test-plan.md`
+> ℹ️ **ตั้งวันหมดอายุผ่าน UI** ได้ที่หน้าจัดการสิทธิ์ → แท็บ "ข้อจำกัด" → หมดอายุ (Quick Share ถูกลบทั้งชุดแล้ว 2026-08-18) ค่าที่หน้านั้นเขียนยังเป็น ISO string ที่เที่ยงคืน UTC = 07:00 น. ตามเวลาไทย เร็วกว่าที่ผู้ใช้คาด 17 ชม. ดู BUG-018 ใน `docs/OPERATIONS/manual-test-plan.md`
 
 **จุดอ่านที่ยังไม่ได้ย้ายมาใช้ `isExpired`:** `PermissionsPage.vue` (`effectiveAccess`) ยังเทียบเองด้วย `date instanceof Date ? date : new Date(date as string)` ผ่านได้ในการทดสอบข้างบนเพราะ `getDashboardPermissions` → `getDashboard` → `convertTimestamps` แปลง `Timestamp` เป็น `Date` ให้ก่อน ถ้าค่าเดินมาทางที่ไม่ผ่าน `convertTimestamps` (เช่น `{seconds}` ที่ผ่าน JSON) จะกลับไปเป็น `Invalid Date` แบบเดิม
 

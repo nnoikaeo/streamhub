@@ -18,7 +18,6 @@
         :dashboard="dashboard"
         :compact="viewMode === 'compact'"
         @view="$emit('view-dashboard', dashboard)"
-        @share="$emit('share-dashboard', dashboard)"
         @menu="$emit('menu-dashboard', dashboard, $event)"
       />
     </div>
@@ -50,7 +49,6 @@ import DashboardCard from './DashboardCard.vue'
  *
  * Events:
  * - view-dashboard: User clicked on dashboard card
- * - share-dashboard: User clicked share on card
  * - menu-dashboard: User clicked menu on card
  *
  * Usage:
@@ -58,7 +56,6 @@ import DashboardCard from './DashboardCard.vue'
  *   :dashboards="visibleDashboards"
  *   :loading="isLoading"
  *   @view-dashboard="handleViewDashboard"
- *   @share-dashboard="handleShareDashboard"
  * />
  */
 
@@ -80,7 +77,6 @@ const gridClass = computed(() => ({
 
 defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
-  'share-dashboard': [dashboard: Dashboard]
   'menu-dashboard': [dashboard: Dashboard, event: MouseEvent]
 }>()
 </script>

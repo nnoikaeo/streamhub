@@ -54,9 +54,7 @@
           :dashboard="dashboard"
           :folder-name="currentFolder?.name || 'Untitled'"
           :menu-open="menuOpen"
-          :show-share="currentUserRole === 'admin' || currentUserRole === 'moderator'"
           @go-back="handleGoBack"
-          @share="handleShareNavigate"
           @toggle-menu="menuOpen = !menuOpen"
           @edit="handleEditInfo"
           @download="handleDownload"
@@ -256,8 +254,6 @@
         </TwoPaneLayout>
       </div>
     </div>
-
-    <!-- Quick Share Dialog removed — Share now navigates to permissions page -->
 
     <!-- Edit Info Dialog -->
     <DashboardEditDialog
@@ -534,12 +530,6 @@ const handleGoBack = async () => {
 
 const handleViewRelated = async (relatedId: string) => {
   await router.push(`/dashboard/view/${relatedId}`)
-}
-
-const handleShareNavigate = async () => {
-  if (dashboard.value) {
-    await router.push(`/admin/permissions?dashboard=${dashboard.value.id}`)
-  }
 }
 
 const handleEditInfo = async () => {

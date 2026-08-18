@@ -1,5 +1,7 @@
 # Dashboard View Page
 
+> ℹ️ **อัปเดต 2026-08-18** — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อมกับ Quick Share การให้สิทธิ์ทำที่หน้าจัดการสิทธิ์ผ่าน Explorer ปุ่ม 🔑
+
 > **Purpose:** Display individual dashboard with Looker Studio embed and related dashboards
 > **Users:** All roles with dashboard access (USER, MODERATOR, ADMIN)
 > **Current Implementation:** `app/pages/dashboard/view.vue` using AppLayout + TwoPaneLayout

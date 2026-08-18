@@ -30,7 +30,6 @@
             :loading="false"
             :view-mode="viewMode"
             @view-dashboard="(d) => $emit('view-dashboard', d)"
-            @share-dashboard="(d) => $emit('share-dashboard', d)"
             @menu-dashboard="(d, e) => $emit('menu-dashboard', d, e)"
           />
           <button
@@ -82,7 +81,6 @@ withDefaults(defineProps<{
 
 defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
-  'share-dashboard': [dashboard: Dashboard]
   'menu-dashboard': [dashboard: Dashboard, event: MouseEvent]
   'toggle-group': [groupId: string]
   'view-group': [groupId: string]

@@ -60,7 +60,6 @@
             :folder-map="folderMap"
             empty-message="ไม่พบแดชบอร์ดในโฟลเดอร์นี้"
             @view-dashboard="(d) => $emit('view-dashboard', d)"
-            @share-dashboard="(d) => $emit('share-dashboard', d)"
             @menu-dashboard="(d, e) => $emit('menu-dashboard', d, e)"
           />
           <button
@@ -126,7 +125,6 @@ const getModeratorLabel = (folder: Folder): string => {
 
 defineEmits<{
   'view-dashboard': [dashboard: Dashboard]
-  'share-dashboard': [dashboard: Dashboard]
   'menu-dashboard': [dashboard: Dashboard, event: MouseEvent]
   'toggle-folder': [folderId: string]
   'view-folder': [folderId: string]

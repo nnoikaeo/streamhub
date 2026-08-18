@@ -1,5 +1,7 @@
 # Dashboard Discover Page
 
+> ℹ️ **อัปเดต 2026-08-18** — ส่วนที่พูดถึงปุ่ม Share / `QuickShareDialog` ในหน้านี้ไม่ตรงกับของจริงแล้ว Quick Share ถูกลบทั้งชุด การ์ดในหน้า Discover ไม่มีปุ่มแชร์
+
 > **Purpose:** Main page for browsing and discovering available dashboards by folder structure
 > **Users:** All roles (USER, MODERATOR, ADMIN)
 > **Current Implementation:** `app/pages/dashboard/discover.vue` using Strategy 4 (Pinia stores + composables)
