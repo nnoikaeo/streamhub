@@ -26,6 +26,8 @@ import {
   type Firestore,
 } from 'firebase/firestore'
 
+import { toExpiryTimestamps } from '~/utils/expiryWrite'
+
 import type {
   User,
   Dashboard,
@@ -367,9 +369,14 @@ export class FirestoreService implements IDashboardService {
     try {
       this.log('saveDashboardPermissions:', request.dashboardId)
       const ref = doc(this.db, 'dashboards', request.dashboardId)
+      // expiry goes out as Timestamp whatever shape the page held it in — the
+      // declared type says Date, so the payload is built untyped [BUG-018]
       await updateDoc(ref, {
         access: request.access,
-        restrictions: request.restrictions,
+        restrictions: {
+          ...request.restrictions,
+          expiry: toExpiryTimestamps(request.restrictions.expiry, d => Timestamp.fromDate(d)),
+        },
         updatedAt: Timestamp.now(),
       })
       return { success: true, message: 'Permissions saved', updatedAt: new Date() }
@@ -430,9 +437,14 @@ export class FirestoreService implements IDashboardService {
     try {
       this.log('saveFolderPermissions:', request.folderId)
       const ref = doc(this.db, 'folders', request.folderId)
+      // Same normalisation as the dashboard path — folder expiries are read by
+      // the same helpers and must not be a second shape [BUG-018]
       await updateDoc(ref, {
         access: request.access,
-        restrictions: request.restrictions,
+        restrictions: {
+          ...request.restrictions,
+          expiry: toExpiryTimestamps(request.restrictions.expiry, d => Timestamp.fromDate(d)),
+        },
         inheritPermissions: request.inheritPermissions,
         permissionMeta: request.permissionMeta || null,
         updatedAt: Timestamp.now(),

@@ -527,8 +527,10 @@ function getCompanyUserCount(code: string): number {
   return nonAdminUsers.value.filter((u) => u.company === code).length
 }
 
-function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString('th-TH')
+function formatDate(date: unknown): string {
+  // The value arrives as a Date, an ISO string (JSON-cloned state) or a
+  // Timestamp — toDate reads all three, `new Date(timestamp)` does not
+  return toDate(date)?.toLocaleDateString('th-TH') ?? '—'
 }
 
 // ── Local state (deep cloned from props) ──
@@ -777,8 +779,14 @@ function confirmRevoke() {
 function confirmExpiry() {
   const uid = pendingRestrictionUid.value
   if (uid && popupExpiryDate.value) {
-    localRestrictions.value.expiry[uid] = new Date(popupExpiryDate.value)
-    emitUpdate()
+    // End of the chosen day in the admin's own timezone, not midnight UTC:
+    // `new Date('2026-08-18')` is 07:00 in Bangkok, so a grant set to expire
+    // "on the 18th" used to cut out that morning, 17 hours early [BUG-018]
+    const expiresAt = endOfDayLocal(popupExpiryDate.value)
+    if (expiresAt) {
+      localRestrictions.value.expiry[uid] = expiresAt
+      emitUpdate()
+    }
   }
   showRestrictionPopup.value = false
 }

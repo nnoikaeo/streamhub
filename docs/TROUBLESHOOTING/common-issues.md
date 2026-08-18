@@ -381,7 +381,7 @@ filtered = filtered.filter((d) => d.access?.company?.[companyFilter])
 |---|---|
 | `AccessRestrictions` (type) | `Date` |
 | JSON store (`.data/*.json`) | ISO string |
-| Firestore | `Timestamp` (ค่าที่เขียนไว้ก่อนหน้า) หรือ ISO string ที่หน้าจัดการสิทธิ์เขียน — ดู BUG-018 |
+| Firestore | `Timestamp` — ทุกทางเขียนผ่าน `toExpiryTimestamps` (BUG-018); ค่าเก่าที่เขียนไว้ก่อนแก้ยังเป็น ISO string ได้ |
 
 `useFirestoreService.checkAccess` อ่านกลับมาว่า
 
@@ -408,9 +408,9 @@ if (new Date() > new Date(expiryDate as any)) return false
 
 แก้วันหมดอายุเป็นอนาคตแล้วยิงซ้ำ → **404** `No embed URL configured` = ผ่านด่านสิทธิ์ พิสูจน์ว่าไม่ใช่ปฏิเสธทุกกรณี
 
-> ℹ️ **ตั้งวันหมดอายุผ่าน UI** ได้ที่หน้าจัดการสิทธิ์ → แท็บ "ข้อจำกัด" → หมดอายุ (Quick Share ถูกลบทั้งชุดแล้ว 2026-08-18) ค่าที่หน้านั้นเขียนยังเป็น ISO string ที่เที่ยงคืน UTC = 07:00 น. ตามเวลาไทย เร็วกว่าที่ผู้ใช้คาด 17 ชม. ดู BUG-018 ใน `docs/OPERATIONS/manual-test-plan.md`
+> ℹ️ **ตั้งวันหมดอายุผ่าน UI** ได้ที่หน้าจัดการสิทธิ์ → แท็บ "ข้อจำกัด" → หมดอายุ (Quick Share ถูกลบทั้งชุดแล้ว 2026-08-18) ค่าที่เขียนเป็น `Timestamp` ของ **23:59:59.999 ตามเวลาผู้ตั้ง** = วันที่เลือกคือวันสุดท้ายที่เข้าถึงได้ (BUG-018)
 
-**จุดอ่านที่ยังไม่ได้ย้ายมาใช้ `isExpired`:** `PermissionsPage.vue` (`effectiveAccess`) ยังเทียบเองด้วย `date instanceof Date ? date : new Date(date as string)` ผ่านได้ในการทดสอบข้างบนเพราะ `getDashboardPermissions` → `getDashboard` → `convertTimestamps` แปลง `Timestamp` เป็น `Date` ให้ก่อน ถ้าค่าเดินมาทางที่ไม่ผ่าน `convertTimestamps` (เช่น `{seconds}` ที่ผ่าน JSON) จะกลับไปเป็น `Invalid Date` แบบเดิม
+**จุดอ่านทั้งหมดใช้ `isExpired` แล้ว** — `checkAccess`, `resolveEffectiveUsers`, `PermissionsPage.effectiveAccess` ([PermissionsPage.vue:540](../../app/components/features/PermissionsPage.vue#L540), ย้ายใน PR #374) และ `server/utils/companyAccess.isRestricted`
 
 ---
 

@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 18 August 2569
-> **Total Test Cases:** 169
+> **Total Test Cases:** 171
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -332,6 +332,8 @@
 | 3.10.8 | Expiry ที่ผ่านมาแล้วตัด user ออกจาก "ผู้มีสิทธิ์เข้าถึง" | ต่อจาก 3.10.6 → กลับเป็น admin เปิด `/admin/permissions?dashboard=<id>` | ผลลัพธ์รวม = **0 คน** ทั้งที่ "สิทธิ์ที่ให้แล้ว" ยังแสดง user นั้น; แท็บข้อจำกัดแสดงวันหมดอายุ | High | ✅ |
 | 3.10.9 | ฝั่ง server ปฏิเสธด้วย (Cloud Function) | ต่อจาก 3.10.6 → `POST /api/embed/request` ด้วย ID token ของ user นั้น | **403** `Access revoked or expired` | High | ✅ |
 | 3.10.10 | Expiry ในอนาคตยังเข้าได้ (control) | แก้ Timestamp เป็น **พรุ่งนี้** → ยิง `/api/embed/request` ซ้ำ + รีเฟรชหน้าสิทธิ์ | เปลี่ยนเป็น **404** `No embed URL configured` (= ผ่านด่านสิทธิ์แล้ว) และหน้าสิทธิ์กลับเป็น 1 คน | High | ✅ |
+| 3.10.11 | ตั้งวันหมดอายุผ่าน UI ได้ค่าถูกต้อง (BUG-018) | 1. เปิดหน้าจัดการสิทธิ์ของแดชบอร์ดทดสอบ 2. แท็บ "ข้อจำกัด" → หมดอายุ → เลือกผู้ใช้ + วันพรุ่งนี้ 3. บันทึก 4. `node scripts/inspect-expiry.mjs <id>` | `shape: object<Timestamp>` และ `resolves` = **23:59:59.999 ตามเวลาผู้ตั้ง** ของวันที่เลือก (ไม่ใช่เที่ยงคืน UTC) | Medium | 🔍 |
+| 3.10.12 | วันหมดอายุของโฟลเดอร์เขียน shape เดียวกัน | ทำแบบ 3.10.11 แต่ที่โฟลเดอร์ (`?folder=<id>`) | `folders/<id>.restrictions.expiry` เป็น `Timestamp` เช่นกัน | Low | 🔍 |
 
 > 🧪 **TC 3.10.6–3.10.10 — ทดสอบ end-to-end บน Firestore prod จริง 2026-08-16** (ยืนยัน fix PR #364)
 > ทำบนแดชบอร์ด `EXPIRY-TEST` ที่สร้างขึ้นเฉพาะการทดสอบแล้วลบทิ้ง (โฟลเดอร์ "แดชบอร์ดหลัก" ซึ่งไม่ให้สิทธิ์สืบทอดกับใคร) กับ user `survey.streamwash@gmail.com` (role `user`, company OAYT — ไม่มีสิทธิ์ทางอื่นเลย ตัวแปรเดียวที่เหลือคือ expiry)
@@ -526,7 +528,7 @@
 | BUG-014 | Quick Share จาก Discover ส่ง `userIds: [undefined]` — `QuickShareDialog` อ่าน `user.id` ทั้งไฟล์ แต่ type `User` มีแค่ `uid`; ปุ่มลบผู้ใช้ที่เลือกก็ไม่เคยตรงกับแถวไหน (filter ด้วย `undefined`) | TC 2.2 (share flow) | High | ⊘ ปิดด้วยการลบ — แก้เป็น `uid` แล้ว (PR #353) แต่ไม่เคย retest ด้วยมือได้เพราะ dialog เปิดไม่ได้ ตอนนี้ Quick Share ถูกลบทั้งชุด โค้ดที่มีบั๊กไม่เหลือแล้ว |
 | BUG-016 | ข้อความ error ค้างหลังแก้ค่าให้ถูกแล้ว ทุกฟอร์ม admin — `useForm` ล้าง error ไว้ใน `setFieldValue` แต่ทุกฟอร์มผูก `v-model="formData.x"` ซึ่งเขียน reactive object ตรงๆ ทางนั้นจึงไม่เคยถูกเรียก (CompanyForm เป็นไฟล์เดียวในรีโปที่เรียก และเรียกกับ field ที่ไม่มี validator) | TC 5.1.7 | Medium | 🔧 Fixed (`watch(formData)` + re-validate ใน `useForm`; PR #367; UI-verified 2026-08-15 TC 5.1.7–5.1.10) |
 | BUG-017 | ปุ่ม "แชร์" ใน `QuickShareDialog` (Discover) **ไม่เขียนอะไรเลย** — `handleShare` ใน `useDashboardPage` เป็น stub ไม่เคยเรียก `quickShareDashboard` แต่ dialog ปิดตัวเองหลัง emit ผู้ใช้จึงเห็นเหมือนสำเร็จ | TC 2.2 (share flow) | High | ⊘ ปิดด้วยการลบ — ต่อสายให้ทำงานแล้ว (PR #376) จากนั้นพบว่า **dialog ไม่มีทางเปิดในทุก UI** จึงตัดสินใจลบ Quick Share ทั้งชุด ดูรายละเอียดใต้ตาราง |
-| BUG-018 | หน้า `/admin/permissions` (+ `/manage/permissions`) เขียน `restrictions.expiry` เป็น **ISO string ที่เที่ยงคืน UTC** = 07:00 น. ตามเวลาไทย ⇒ ตั้ง "หมดอายุ 18 ส.ค." สิทธิ์ตัดเช้าวันที่ 18 เร็วไป 17 ชม.; และ shape ต่างจากที่ Quick Share เขียน (`Timestamp`) ทั้งที่เป็นฟิลด์เดียวกัน | TC 3.10.6 (พบตอนทดสอบ BUG-017 2026-08-17) | Medium | 🔍 ยืนยันบน prod Firestore — **ยังไม่แก้** (จดไว้ตามการตัดสินใจ) |
+| BUG-018 | หน้า `/admin/permissions` (+ `/manage/permissions`) เขียน `restrictions.expiry` เป็น **ISO string ที่เที่ยงคืน UTC** = 07:00 น. ตามเวลาไทย ⇒ ตั้ง "หมดอายุ 18 ส.ค." สิทธิ์ตัดเช้าวันที่ 18 เร็วไป 17 ชม.; และ shape ต่างจากที่ Quick Share เขียน (`Timestamp`) ทั้งที่เป็นฟิลด์เดียวกัน | TC 3.10.11–3.10.12 | Medium | 🔧 Fixed (`endOfDayLocal` ตอนเลือกวัน + `toExpiryTimestamps` ตอนเขียนทั้ง dashboard และ folder) — **รอ UI pass TC 3.10.11–3.10.12** |
 | BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้ | TC 2.3.1 | Medium | ⊘ ปิดด้วยการลบ — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อม Quick Share (2026-08-18) เหลือทางเดียวคือ Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
@@ -596,8 +598,11 @@
   1. [PermissionEditor.vue:780](../../app/components/features/PermissionEditor.vue#L780) `localRestrictions.value.expiry[uid] = new Date(popupExpiryDate.value)` — `new Date('2026-08-18')` คือเที่ยงคืน **UTC** (บั๊กชั้น 3 ตัวเดียวกับ BUG-017 คนละไฟล์)
   2. [PermissionEditor.vue:501](../../app/components/features/PermissionEditor.vue#L501) `JSON.parse(JSON.stringify(obj))` แปลง `Date` เป็น ISO string ก่อน emit ออกไป แล้ว [saveDashboardPermissions](../../app/composables/useFirestoreService.ts#L370) เขียนลง Firestore ตรง ๆ ⇒ ได้ `shape: string` ไม่ใช่ `Timestamp` (Quick Share เขียนเป็น `Timestamp` — ฟิลด์เดียวกันแต่คนละ shape)
 - **ผลกระทบ:** ฝั่งอ่านไม่พังเพราะ `toDate`/`isExpired` รับทั้ง string และ Timestamp (PR #364) แต่เวลาที่ตัดสิทธิ์เร็วไป 17 ชั่วโมง
-- **แนวทางแก้ (ยังไม่ทำ):** ใช้ `endOfDayLocal` จาก `shared/utils/dates.ts` + แปลงเป็น `Timestamp.fromDate` ตอนเขียน ให้ตรงกับพาธ Quick Share
-- **ยืนยันบน prod:** `node scripts/inspect-expiry.mjs dash_1786983449961` ระหว่างทดสอบ BUG-017 (ลบค่าทดสอบออกแล้ว)
+- **Fix (2026-08-18):**
+  1. [PermissionEditor.confirmExpiry](../../app/components/features/PermissionEditor.vue#L780) ใช้ `endOfDayLocal` — วันที่เลือกกลายเป็นวันสุดท้ายที่เข้าถึงได้ (23:59:59.999 ตามเวลาผู้ตั้ง)
+  2. [toExpiryTimestamps](../../app/utils/expiryWrite.ts) แปลงทุกค่าเป็น `Timestamp` ตอนเขียน ไม่ว่าหน้าจะถืออะไรอยู่ (Date / ISO string จาก JSON clone / `{seconds}`) ต่อทั้ง `saveDashboardPermissions` และ `saveFolderPermissions` — ค่าที่อ่านไม่ออกถูก **ตัดทิ้งพร้อม warning** ไม่เขียนลงไป เพราะค่าที่อ่านไม่ออกจะถูกฝั่งอ่านตีความว่า "ยังไม่หมดอายุ" = ให้สิทธิ์ตลอดไป
+  3. `formatDate` ในตัวแก้ไขอ่านผ่าน `toDate` แทน `new Date()` — เดิมจะโชว์ `Invalid Date` ถ้าค่าเป็น Timestamp
+- **ยืนยันบน prod ก่อนแก้:** `node scripts/inspect-expiry.mjs dash_1786983449961` ระหว่างทดสอบ BUG-017 ได้ `"2026-08-18T00:00:00.000Z"` (string, เที่ยงคืน UTC) — ค่าทดสอบถูกลบแล้ว
 
 **BUG-019 รายละเอียด:**
 - **อาการ:** moderator เปิดแดชบอร์ดแล้วกดปุ่ม Share ในหน้า view → เด้งไป `/admin/permissions` ซึ่ง middleware เป็น `['auth','admin']` เข้าไม่ได้
@@ -611,7 +616,7 @@
 - **แล้วพบว่าเปิด dialog ไม่ได้เลย:** `DashboardCard` emit แค่ `view` และ `git log -S "emit(\'share\')"` บนไฟล์นั้นไม่มีประวัติ ⇒ ปุ่ม 🔗 บนการ์ดไม่เคยมีจริง ส่วนหน้า view ถอด Quick Share ไปเป็น navigate ตั้งแต่ `a52674c` ⇒ อาการที่รายงานเกิดขึ้นจริงไม่ได้ในโค้ดเวอร์ชันนี้
 - **การตัดสินใจ:** ลบ Quick Share ทั้งชุด ให้เหลือทางเดียวคือหน้าจัดการสิทธิ์ (เข้าจาก Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว) — ตัดสินใจจากหน้าตัวอย่างเทียบสองทาง
 - **สิ่งที่ถูกลบ:** `QuickShareDialog.vue`, `app/utils/quickShare.ts` + เทสต์, `handleShare`/`handleShareDashboard`/`shareDialogOpen`/`availableUsers` ใน `useDashboardPage`, สาย `@share-dashboard` ที่ตายแล้วใน Grid/List/Grouped, `quickShareDashboard` ทั้ง interface + Firestore + JSON mock + wrapper 2 ตัว, ปุ่ม 🔗 stub ที่หน้าแรก (`alert('coming soon')`) และปุ่ม Share ในหน้า view (ปิด BUG-019 ไปด้วย)
-- **สิ่งที่เก็บไว้:** `endOfDayLocal` ใน [shared/utils/dates.ts](../../shared/utils/dates.ts) พร้อมเทสต์ — ยังไม่มีคนเรียก แต่เป็นตัวที่จะใช้แก้ BUG-018 (หน้าจัดการสิทธิ์ยังเขียนเที่ยงคืน UTC); flag `canShareDashboard` ใน permissions store ยังอยู่ในเมทริกซ์ role แต่ไม่มี UI ไหนอ่านแล้ว
+- **สิ่งที่เก็บไว้:** `endOfDayLocal` ใน [shared/utils/dates.ts](../../shared/utils/dates.ts) พร้อมเทสต์ — ตอนนั้นยังไม่มีคนเรียก และถูกใช้จริงตอนแก้ BUG-018 ในวันถัดมา; flag `canShareDashboard` ใน permissions store ยังอยู่ในเมทริกซ์ role แต่ไม่มี UI ไหนอ่านแล้ว
 
 ---
 
@@ -633,7 +638,7 @@
 | Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
 | Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
-| Admin Permissions | 10 | High | ✅ (10/10 — incl. 3.10.6–3.10.10 expiry e2e verified on prod 2026-08-16) |
+| Admin Permissions | 12 | High | 🔍 partial (10 ✅ incl. 3.10.6–3.10.10 expiry e2e on prod 2026-08-16; 3.10.11–3.10.12 BUG-018 fix รอ UI pass) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 7 | High | ✅ (6/7 ✅ / 1 🐛 BUG-008 fixed) |
@@ -642,7 +647,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **169** | — | 139 ✅ / 9 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **171** | — | 139 ✅ / 11 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 
