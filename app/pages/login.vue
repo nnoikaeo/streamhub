@@ -4,6 +4,7 @@ import { mapErrorMessage } from '~/utils/errorMessages'
 import ErrorDialog from '~/components/ErrorDialog.vue'
 
 const router = useRouter()
+const route = useRoute()
 const { signInWithGoogle } = useAuth()
 const loading = ref(false)
 const showErrorDialog = ref(false)
@@ -24,7 +25,8 @@ const handleGoogleSignIn = async () => {
   try {
     const result = await signInWithGoogle()
     if (result.success) {
-      await router.push('/dashboard')
+      // `returnTo` comes from the URL, so it is sanitised before use
+      await router.push(safeReturnTo(route.query.returnTo))
     } else if (result.error) {
       errorInfo.value = mapErrorMessage(new Error(result.error))
       showErrorDialog.value = true

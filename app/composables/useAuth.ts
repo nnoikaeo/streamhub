@@ -190,6 +190,15 @@ export const useAuth = () => {
             if (!mockUser) {
               throw new Error(`User with UID "${user.uid}" not found in system. Please contact administrator to create an account.`)
             }
+
+            // An admin can deactivate an account while its session is live. The
+            // sign-in path already refuses those accounts, but this path runs on
+            // every reload, so without the same check a deactivated user keeps
+            // browsing until they log out on their own (TC 6.1.2).
+            if (mockUser.isActive === false) {
+              await $firebase.auth.signOut()
+              throw new Error('บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ')
+            }
             console.log(`🔍 [useAuth.initAuth] Got user with role: ${mockUser.role}`)
 
             const userData: UserData = {

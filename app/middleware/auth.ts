@@ -34,8 +34,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return
       }
 
-      // Redirect to login for all other pages (including index)
-      return navigateTo('/login')
+      // Redirect to login for all other pages (including index), carrying the
+      // attempted route so login can send the user back (TC 6.1.1)
+      return navigateTo(
+        shouldRemember(to.fullPath)
+          ? { path: '/login', query: { returnTo: to.fullPath } }
+          : '/login'
+      )
     }
 
     // Check if user has auth error

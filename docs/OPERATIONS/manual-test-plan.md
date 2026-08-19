@@ -492,25 +492,25 @@
 
 | # | Scenario | Expected Behavior | Status |
 |---|----------|-------------------|--------|
-| 6.1.1 | Token expired during action | Redirect to `/login`, preserve returnTo URL | ☐ |
-| 6.1.2 | User account deactivated mid-session | Error on next page load, force logout | ☐ |
-| 6.1.3 | Permission revoked mid-session | Middleware redirects from protected routes | ☐ |
+| 6.1.1 | Token expired during action | Redirect ไป `/login?returnTo=<หน้าเดิม>` แล้ว login สำเร็จต้องพากลับหน้าเดิม (พร้อม query เช่น `?dashboard=`) | 🔍 (BUG-024 แก้แล้ว รอกดจริง) |
+| 6.1.2 | User account deactivated mid-session | รีเฟรช/เปิดหน้าใหม่ → sign out อัตโนมัติ + ข้อความ "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ" ที่หน้า `/` | 🔍 (BUG-023 แก้แล้ว รอกดจริง) |
+| 6.1.3 | Permission revoked mid-session | หลัง**รีเฟรช** `initAuth` อ่าน role ใหม่ → middleware เด้งออกจากหน้าที่ไม่มีสิทธิ์ · ระหว่าง SPA ที่ยังไม่รีเฟรช store ยังเป็นค่าเดิมตามการออกแบบ (role อ่านตอน auth init เท่านั้น) | ☐ |
 
 ### 6.2 Data Errors
 
 | # | Scenario | Expected Behavior | Status |
 |---|----------|-------------------|--------|
-| 6.2.1 | Folder deleted while dashboard still references it | Graceful display (show orphan or error) | ☐ |
-| 6.2.2 | User deleted while showing in admin table | Show UID or "User not found" | ☐ |
-| 6.2.3 | Folder has children — delete attempt | Error: "ไม่สามารถลบโฟลเดอร์ที่มีข้อมูล" | ☐ |
+| 6.2.1 | Folder deleted while dashboard still references it | ปัจจุบัน chip โฟลเดอร์แสดง**ว่างเปล่า** ([DashboardListItem.vue:76](../../app/components/features/DashboardListItem.vue#L76) `?? ''`) ไม่ error ไม่บอกว่ากำพร้า — สร้างสภาพนี้ผ่าน UI ไม่ได้แล้ว (guard BUG-008/009) ต้องแก้ Firestore ตรง ๆ; ตรวจด้วย `npm run audit:orphans` | ☐ |
+| 6.2.2 | User deleted while showing in admin table | หน้าจัดการสิทธิ์ fallback เป็น uid ดิบ ([PermissionsPage.vue:513](../../app/components/features/PermissionsPage.vue#L513)) และ PermissionEditor แสดง "Unknown" ([PermissionEditor.vue:520](../../app/components/features/PermissionEditor.vue#L520)) — ไม่ crash | 🔍 |
+| 6.2.3 | Folder has children — delete attempt | Error toast "ไม่สามารถลบโฟลเดอร์ที่มีเนื้อหาได้ กรุณาลบแดชบอร์ดและโฟลเดอร์ย่อยทั้งหมดก่อน" + โฟลเดอร์ไม่ถูกลบ | ✅ (ครอบด้วย TC 3.3.5 `/admin/folders` และ TC 3.13.6 Explorer ที่กดจริงแล้วทั้งคู่ — BUG-008/009) |
 
 ### 6.3 Network Errors
 
 | # | Scenario | Expected Behavior | Status |
 |---|----------|-------------------|--------|
-| 6.3.1 | Slow API response | Loading spinner shown | ☐ |
-| 6.3.2 | API 500 error | Error toast: "เกิดข้อผิดพลาด กรุณาลองใหม่" | ☐ |
-| 6.3.3 | API 404 (resource not found) | Error: "ไม่พบข้อมูล" | ☐ |
+| 6.3.1 | Slow API response | Spinner ของหน้าแสดงระหว่างรอ (throttle ที่ DevTools → Network) | ☐ |
+| 6.3.2 | API 500 error | Error toast ตามทรัพยากร เช่น "เกิดข้อผิดพลาดในการบันทึกแท็ก" / "เกิดข้อผิดพลาดในการลบแท็ก" ([useAdminCrudPage.ts:123](../../app/composables/useAdminCrudPage.ts#L123)) — ไม่มีข้อความรวม "เกิดข้อผิดพลาด กรุณาลองใหม่" ในระบบ | ☐ |
+| 6.3.3 | API 404 (resource not found) | หน้า `/dashboard/view/<id ที่ไม่มี>` ขึ้นกล่อง error ข้อความ `Dashboard not found` (อังกฤษ ไม่ใช่ "ไม่พบข้อมูล") | ☐ |
 
 ---
 
@@ -561,6 +561,8 @@
 | BUG-021 | บันทึกสิทธิ์สำเร็จแล้ว **ไม่มีข้อความยืนยันเลย** — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (คือทางเข้าปกติทั้งหมด) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` เป็นโค้ดที่ไม่มีทางแสดง ผู้ใช้ไม่รู้ว่าบันทึกติดหรือไม่ | TC 3.10.17 | Medium | 🔧 Fixed (`showToast` ก่อน navigate — toast เป็น `useState` singleton จึงข้าม route ได้; ทางที่ล้มเหลวก็ toast ด้วย) — **ยืนยันบน prod 2026-08-19** ✅ |
 | BUG-022 | สวิตช์ **เข้าถึงสาธารณะ** ไม่ได้เดินผ่านการตรวจของ BUG-020 — มันเขียน `access.public` ตรง ๆ ที่ [PermissionsPage.vue:103](../../app/components/features/PermissionsPage.vue#L103) ไม่ใช่ `requestRemoval` ใน PermissionEditor ⇒ ปิดสาธารณะทั้งที่มีคนถูกระงับ/หมดอายุ = ทิ้งข้อจำกัดกำพร้าเงียบ ๆ (พบตอน regression pass 2026-08-19: ปิดสาธารณะ + ลบกลุ่ม แล้ว `revoke` ของ Janine ค้าง) | TC 3.10.22–3.10.23 | Medium | 🔧 Fixed (ย้ายการตรวจไปที่ตอน **กดบันทึก** ด้วย `strandedRestrictions`; ถอด guard รายปุ่มใน `PermissionEditor` ออก) — **ยืนยันบน prod 2026-08-19** ครบ 4 เส้นทาง: ถาม / ยกเลิกไม่เขียน / ยืนยันเขียนทั้งคู่ / ข้อจำกัดที่ยังมีผลไม่ถูกแตะ ✅ |
 | BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้ | TC 2.3.1 | Medium | ⊘ ปิดด้วยการลบ — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อม Quick Share (2026-08-18) เหลือทางเดียวคือ Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว |
+| BUG-023 | **ปิดบัญชีผู้ใช้กลางคัน แล้วเขายังใช้งานต่อได้** — `isActive === false` ถูกเช็คเฉพาะใน `signInWithGoogle` ส่วน `initAuth` (ที่รันทุกครั้งที่รีเฟรช) เช็คแค่ว่า "พบ user ไหม" และ `firestore.rules` ก็ไม่ดู `isActive` ⇒ คนที่ถูกปิดบัญชียังเปิดหน้า อ่านรายการแดชบอร์ด/โครงสร้างโฟลเดอร์ได้จนกว่าจะ sign out เอง (ตัวเนื้อหาแดชบอร์ดถูกกันไว้ที่ server แล้ว — `embed/request.post.ts` เช็ค `isActive`) | TC 6.1.2 | High | 🔧 Fixed (เช็ค `isActive` ใน `initAuth` → `signOut()` + ข้อความ "บัญชีของคุณถูกปิดใช้งาน") |
+| BUG-024 | หมด session กลางทางแล้วกลับเข้ามาไม่ถึงที่เดิม — middleware `navigateTo('/login')` ไม่แนบปลายทาง ⇒ login ใหม่ไปโผล่ `/dashboard` เสมอ คนที่กำลังแก้สิทธิ์ที่ `/admin/permissions?dashboard=<id>` ต้องเดินกลับเอง | TC 6.1.1 | Medium | 🔧 Fixed (`?returnTo=` + `safeReturnTo` sanitiser กัน open redirect; 13 เทสต์) |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
 **BUG-001 รายละเอียด:**
@@ -705,8 +707,8 @@
 | Moderator Permissions | 5 | High | ✅ (5/5) |
 | Cross-Cutting (CRUD) | 11 | High | ✅ partial (10/11 ✅ — เหลือ 5.1.6 loading-state ที่ต้อง throttle เอง) |
 | Navigation & Middleware | 5 | Critical | ✅ partial (3/5 — 5.2.1–5.2.3 ปิดด้วย pre-launch A; sidebar+mobile ยัง ☐) |
-| Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **199** | — | 175 ✅ / 1 🔍 / 12 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
+| Error Scenarios | 9 | Medium | 🔍 partial (1 ✅ / 3 🔍 / 5 ☐ — 6.1.1+6.1.2 แก้แล้วรอกดจริง) |
+| **TOTAL** | **199** | — | 176 ✅ / 4 🔍 / 8 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
