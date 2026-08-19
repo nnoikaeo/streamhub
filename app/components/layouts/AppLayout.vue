@@ -1,8 +1,11 @@
 <template>
-  <div class="app-layout">
+  <div class="app-layout" :class="{ 'sidebar-open': isSidebarOpen }">
     <!-- Header (Fixed) -->
     <header class="app-header">
-      <AppHeader />
+      <AppHeader
+        :show-menu-button="showSidebar"
+        @toggle-sidebar="isSidebarOpen = !isSidebarOpen"
+      />
     </header>
 
     <!-- Main Container -->
@@ -11,6 +14,14 @@
       <aside v-if="showSidebar" class="app-sidebar">
         <slot name="sidebar" />
       </aside>
+
+      <!-- Dim + tap-to-close, mobile only (the CSS keeps it out of the way
+           above 768px, where the sidebar is always in the flow) -->
+      <div
+        v-if="showSidebar && isSidebarOpen"
+        class="sidebar-overlay"
+        @click="isSidebarOpen = false"
+      />
 
       <!-- Main Content Area (Scrollable) -->
       <main class="main-content">
@@ -45,6 +56,7 @@
  */
 
 // Import header/footer components (will be created later)
+import { ref, watch } from 'vue'
 import AppHeader from '~/components/ui/AppHeader.vue'
 import AppFooter from '~/components/ui/AppFooter.vue'
 
@@ -66,6 +78,18 @@ defineProps({
     type: Number,
     default: 15,
   },
+})
+
+/**
+ * Drawer state, mobile only — above 768px the sidebar sits in the flow and
+ * this stays irrelevant. Tapping a link inside the drawer navigates, so the
+ * drawer closes on every route change or it would cover the page it opened.
+ */
+const isSidebarOpen = ref(false)
+const route = useRoute()
+
+watch(() => route.fullPath, () => {
+  isSidebarOpen.value = false
 })
 </script>
 
@@ -202,13 +226,20 @@ defineProps({
     left: 0;
   }
   
-  /* Dim background when sidebar open */
-  .app-layout.sidebar-open::before {
-    content: '';
-    position: absolute;
+  /* Dim background behind the open drawer */
+  .sidebar-overlay {
+    position: fixed;
     inset: 0;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 10;
+  }
+}
+
+/* The overlay only exists as a mobile affordance — never let it cover a
+   desktop layout, where the sidebar is always visible anyway. */
+@media (min-width: 769px) {
+  .sidebar-overlay {
+    display: none;
   }
 }
 

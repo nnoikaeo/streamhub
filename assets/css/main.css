@@ -185,7 +185,7 @@ button:disabled {
 }
 
 /* Default button styles - can be overridden by component classes */
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not(.result-action-btn):not(.folder-filter-clear):not([class*="mode-toggle__"]):not([class*="pe-tabs__"]):not([class*="dashboard-search__"]):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not(.result-action-btn):not(.folder-filter-clear):not([class*="mode-toggle__"]):not([class*="pe-tabs__"]):not([class*="dashboard-search__"]):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider) {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
@@ -194,116 +194,13 @@ button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):
   font-weight: 500;
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not([class*="mode-toggle__"]):not([class*="pe-tabs__"]):not([class*="dashboard-search__"]):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):hover:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not([class*="mode-toggle__"]):not([class*="pe-tabs__"]):not([class*="dashboard-search__"]):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):hover:not(:disabled) {
   background-color: var(--color-primary-dark);
   box-shadow: var(--shadow-md);
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):active:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):active:not(:disabled) {
   transform: translateY(1px);
-}
-
-/* ============================================================================
-   CREATE FOLDER BUTTON - ULTRA HIGH SPECIFICITY FOR SVG ELEMENTS
-   ============================================================================ */
-
-/* Level 1: Button itself */
-.sidebar-header .create-folder-btn,
-button.create-folder-btn {
-  background-color: var(--color-primary) !important;
-  color: var(--color-text-inverse) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: var(--spacing-sm) !important;
-  min-width: 32px !important;
-  min-height: 32px !important;
-  border: none !important;
-}
-
-/* Level 2: SVG element */
-.sidebar-header .create-folder-btn svg,
-button.create-folder-btn svg {
-  stroke: var(--color-text-inverse) !important;
-  fill: none !important;
-  color: var(--color-text-inverse) !important;
-  width: 20px !important;
-  height: 20px !important;
-}
-
-/* Level 3: All SVG children (line, path, circle, etc.) */
-.sidebar-header .create-folder-btn svg *,
-button.create-folder-btn svg * {
-  stroke: inherit !important;
-  fill: inherit !important;
-  color: inherit !important;
-}
-
-/* Level 4: Specific line elements inside SVG */
-.sidebar-header .create-folder-btn svg line,
-button.create-folder-btn svg line {
-  stroke: var(--color-text-inverse) !important;
-}
-
-/* Level 5: Path elements inside SVG */
-.sidebar-header .create-folder-btn svg path,
-button.create-folder-btn svg path {
-  stroke: var(--color-text-inverse) !important;
-}
-
-/* ============================================================================
-   ULTRA HIGH SPECIFICITY - VUE SCOPED ATTRIBUTES
-   Target Vue scoped attributes directly
-   ============================================================================ */
-
-/* Create Folder Button with Vue scoped attribute */
-[data-v-19d67b45].create-folder-btn,
-.sidebar-header [data-v-19d67b45].create-folder-btn,
-button[data-v-19d67b45].create-folder-btn {
-  background-color: var(--color-primary) !important;
-  color: var(--color-text-inverse) !important;
-}
-
-/* SVG with Vue scoped attribute */
-[data-v-19d67b45].create-folder-btn svg,
-[data-v-19d67b45].create-folder-btn svg[data-v-19d67b45],
-.sidebar-header [data-v-19d67b45].create-folder-btn svg {
-  stroke: var(--color-text-inverse) !important;
-  color: var(--color-text-inverse) !important;
-}
-
-/* SVG children with Vue scoped attribute */
-[data-v-19d67b45].create-folder-btn svg *,
-[data-v-19d67b45].create-folder-btn svg[data-v-19d67b45] *,
-[data-v-19d67b45].create-folder-btn svg line[data-v-19d67b45] {
-  stroke: var(--color-text-inverse) !important;
-}
-
-/* ============================================================================
-   NUCLEAR OPTION - ABSOLUTE HIGHEST SPECIFICITY
-   Use multiple selectors combined for maximum override power
-   ============================================================================ */
-
-/* Sidebar + class + Vue scope */
-.sidebar-header button.create-folder-btn[data-v-19d67b45] {
-  color: var(--color-text-inverse) !important;
-}
-
-.sidebar-header button.create-folder-btn[data-v-19d67b45] svg {
-  stroke: var(--color-text-inverse) !important;
-  color: var(--color-text-inverse) !important;
-}
-
-.sidebar-header button.create-folder-btn[data-v-19d67b45] svg line {
-  stroke: var(--color-text-inverse) !important;
-}
-
-.sidebar-header button.create-folder-btn[data-v-19d67b45] svg[data-v-19d67b45] {
-  stroke: var(--color-text-inverse) !important;
-}
-
-.sidebar-header button.create-folder-btn[data-v-19d67b45] svg[data-v-19d67b45] line[data-v-19d67b45] {
-  stroke: var(--color-text-inverse) !important;
 }
 
 /* ============================================================================
