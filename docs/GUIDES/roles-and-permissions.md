@@ -281,7 +281,7 @@ interface FeaturePermissions {
   canCreateDashboard: boolean
   canEditDashboard: boolean
   canDeleteDashboard: boolean
-  canShareDashboard: boolean
+  canShareDashboard: boolean // ⚠️ ไม่มี UI ไหนอ่านแล้ว ตั้งแต่ลบ Quick Share (2026-08-18)
 
   // Folder permissions
   canCreateFolder: boolean

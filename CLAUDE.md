@@ -24,6 +24,8 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 ### Error Handling & `any`
 - Caught values are `unknown`. Use the helpers in `shared/utils/errors.ts` (`getErrorStatus`, `getErrorMessage`, `getErrorDataMessage`, `getErrorCode`, `toError`) — auto-imported into **both** `app/` and `server/`. Never `catch (e: any)`
 - Stored dates are not `Date`. `restrictions.expiry` is a Firestore `Timestamp` in prod and an ISO string in the JSON store, while the type says `Date`. Read it with `toDate` / `isExpired` from `shared/utils/dates.ts` — `new Date(timestamp)` gives `Invalid Date`, compares `false`, and grants access that should have expired (PR #364)
+- Writing an expiry goes through `toExpiryTimestamps` (`app/utils/expiryWrite.ts`) so the stored shape is always a `Timestamp`, whatever the page held — the permissions page deep-clones its state through JSON, which turns a `Date` into a string before any save runs (PR #379)
+- A date picked as a date-only string is read with `endOfDayLocal` (`shared/utils/dates.ts`). `new Date('2026-08-18')` is midnight **UTC** — 07:00 in Bangkok — so an expiry set "for the 18th" used to cut access that morning, 17 hours early
 - Anything new in `shared/utils/` must also be registered as a global in `tests/setup.ts` — plain Vitest does not run Nuxt auto-import
 - Generic constraints: `T extends object`, **not** `Record<string, unknown>` (interfaces have no index signature, so it rejects `User`, `Dashboard`, …)
 - Always pass the type argument to `readJSON<T>` / `findById<T>` / `updateItem<T>`. Leaving it bare falls back to the constraint and invites an `as any[]` cast — that is how the `?company=` filter bug survived (PR #359)
@@ -116,7 +118,7 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite. **Baseline is 243 passing** |
+| `npm test` | Vitest suite. **Baseline is 286 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). **Baseline is 0 — any problem is yours** |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |

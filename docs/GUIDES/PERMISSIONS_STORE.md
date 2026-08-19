@@ -40,6 +40,9 @@ The **Permissions Store** (`stores/permissions.ts`) manages user access control 
 
 ## Role-Based Permissions
 
+
+> ⚠️ **`canShareDashboard` ไม่มีใครอ่านแล้ว (2026-08-18)** — Quick Share ถูกลบทั้งชุด การให้สิทธิ์ทุกกรณีผ่านหน้าจัดการสิทธิ์ (`/admin/permissions`, `/manage/permissions`) ซึ่งคุมด้วย middleware ของหน้า ไม่ใช่ flag นี้ ตัว flag ยังอยู่ในเมทริกซ์เพื่อไม่ให้ชนิดข้อมูลเปลี่ยน และตัวอย่างโค้ดที่มีปุ่ม Share ด้านล่างเป็นภาพประกอบการใช้ store เท่านั้น ไม่ตรงกับ UI จริงแล้ว
+
 ### Defined Roles
 
 StreamHub has 4 predefined roles:
