@@ -187,3 +187,46 @@ export function sourceDetail(source: AccessSource): string {
 
   return source.viaFolder ? `📁 ${source.viaFolder} · ${base}` : base
 }
+
+/**
+ * Restriction entries left with no grant to act on, given the state as it
+ * stands. [BUG-022]
+ *
+ * Checked when the admin saves rather than on each individual removal: a user
+ * can be stranded by removing their grant, by removing the group or company
+ * grant that covered them, by turning off public access or inheritance, or by
+ * clearing everything — guarding one button at a time missed the rest. Save is
+ * also the moment the write actually happens, so it is the honest place to ask.
+ *
+ * A restricted user who still has some grant appears in `entries` (with
+ * `blockedBy` set) and is NOT stranded — their restriction is doing its job.
+ */
+export function strandedRestrictions(
+  restrictions: PermissionSnapshot['restrictions'],
+  entries: AccessEntry[],
+): string[] {
+  const reached = new Set(entries.map((entry) => entry.uid))
+  const restricted = new Set([...restrictions.revoke, ...Object.keys(restrictions.expiry ?? {})])
+
+  return Array.from(restricted).filter((uid) => !reached.has(uid))
+}
+
+/**
+ * The same restrictions with `uids` dropped from both lists.
+ *
+ * Generic over the stored expiry type so the caller keeps whatever shape it
+ * declared — `AccessRestrictions` says `Date`, the wire carries `Timestamp` —
+ * without a cast on the way back.
+ */
+export function withoutRestrictionsFor<T>(
+  restrictions: { revoke: string[], expiry: Record<string, T> },
+  uids: string[],
+): { revoke: string[], expiry: Record<string, T> } {
+  const drop = new Set(uids)
+  const expiry: Record<string, T> = {}
+  for (const [uid, value] of Object.entries(restrictions.expiry ?? {})) {
+    if (!drop.has(uid)) expiry[uid] = value
+  }
+
+  return { revoke: restrictions.revoke.filter((uid) => !drop.has(uid)), expiry }
+}
