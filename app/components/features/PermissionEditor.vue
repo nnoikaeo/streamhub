@@ -455,7 +455,7 @@
       :message="pendingRemovalMessage"
       confirm-text="ลบ"
       cancel-text="ยกเลิก"
-      @confirm="confirmUserRemoval"
+      @confirm="confirmRemoval"
       @cancel="pendingRemoval = null"
     />
   </div>
@@ -479,7 +479,8 @@
 
 import { ref, computed, watch } from 'vue'
 import ConfirmDialog from '~/components/admin/ConfirmDialog.vue'
-import { hasAccessBesidesDirectUser, ALL_COMPANIES } from '~/utils/accessScope'
+import { restrictedWithoutAccess, ALL_COMPANIES } from '~/utils/accessScope'
+import type { GrantState } from '~/utils/accessScope'
 import type { User, AccessControl, AccessRestrictions } from '~/types/dashboard'
 import type { AdminGroup, Company } from '~/types/admin'
 
@@ -637,25 +638,6 @@ function toggleDirectUser(uid: string) {
   }
 }
 
-/** See app/utils/accessScope.ts for why a restriction outlives its grant. */
-function keepsAccessWithoutDirectGrant(uid: string): boolean {
-  const groupMembers: Record<string, string[]> = {}
-  for (const gid of localAccess.value.direct.groups) {
-    groupMembers[gid] = props.allGroups.find((g) => g.id === gid)?.members ?? []
-  }
-
-  return hasAccessBesidesDirectUser(
-    uid,
-    {
-      public: localAccess.value.public,
-      company: localAccess.value.company,
-      groups: localAccess.value.direct.groups,
-    },
-    props.allUsers.find((u) => u.uid === uid)?.company,
-    groupMembers,
-  )
-}
-
 /** Human-readable list of the restrictions attached to a uid. */
 function restrictionLabels(uid: string): string[] {
   const labels: string[] = []
@@ -665,44 +647,97 @@ function restrictionLabels(uid: string): string[] {
   return labels
 }
 
-const pendingRemoval = ref<string | null>(null)
+/** Everyone carrying a restriction right now, whether or not it currently bites. */
+function restrictedUids(): string[] {
+  return Array.from(
+    new Set([...localRestrictions.value.revoke, ...Object.keys(localRestrictions.value.expiry)]),
+  )
+}
 
-const pendingRemovalTitle = computed(() =>
-  pendingRemoval.value ? `ลบสิทธิ์ของ ${getUserName(pendingRemoval.value)}` : '',
-)
+function groupMemberMap(): Record<string, string[]> {
+  const members: Record<string, string[]> = {}
+  for (const group of props.allGroups) members[group.id] = group.members ?? []
+  return members
+}
 
-// Says what the click does, not why it is safe to offer — the "no other way
-// in" check is the code's job, not something the admin has to read
+function companyMap(uids: string[]): Record<string, string | undefined> {
+  const companies: Record<string, string | undefined> = {}
+  for (const uid of uids) {
+    companies[uid] = props.allUsers.find((u) => u.uid === uid)?.company
+  }
+  return companies
+}
+
+const pendingRemoval = ref<{ title: string; uids: string[]; apply: () => void } | null>(null)
+
+const pendingRemovalTitle = computed(() => pendingRemoval.value?.title ?? '')
+
+// Says what the click does, not why it is safe to offer — the "no way in left"
+// check is the code's job, not something the admin has to read
 const pendingRemovalMessage = computed(() => {
-  const uid = pendingRemoval.value
-  if (!uid) return ''
-  return `ข้อจำกัดที่ตั้งไว้ (${restrictionLabels(uid).join(', ')}) จะถูกลบไปด้วย`
+  const uids = pendingRemoval.value?.uids ?? []
+  const parts = uids.map((uid) => `${getUserName(uid)} (${restrictionLabels(uid).join(', ')})`)
+  return `ข้อจำกัดที่ตั้งไว้ของ ${parts.join(' · ')} จะถูกลบไปด้วย`
 })
 
-function removeDirectUser(uid: string) {
-  if (restrictionLabels(uid).length > 0 && !keepsAccessWithoutDirectGrant(uid)) {
-    pendingRemoval.value = uid
+/**
+ * Run a grant removal, asking first when it would strand a restriction.
+ *
+ * Removing ANY grant — user, group or company — can leave a restricted user
+ * with no path in, so every removal comes through here rather than only the
+ * direct-user one. [BUG-020]
+ *
+ * @param title dialog heading naming what is being removed
+ * @param nextState the grant state as it will be once `apply` has run
+ * @param apply the mutation itself
+ */
+function requestRemoval(title: string, nextState: GrantState, apply: () => void) {
+  const stranded = restrictedWithoutAccess(
+    restrictedUids(),
+    nextState,
+    companyMap(restrictedUids()),
+    groupMemberMap(),
+  )
+
+  if (stranded.length === 0) {
+    apply()
+    emitUpdate()
     return
   }
-  applyUserRemoval(uid)
+
+  pendingRemoval.value = { title, uids: stranded, apply }
 }
 
-function confirmUserRemoval() {
-  const uid = pendingRemoval.value
-  if (uid) applyUserRemoval(uid, true)
-  pendingRemoval.value = null
-}
+function confirmRemoval() {
+  const pending = pendingRemoval.value
+  if (!pending) return
 
-function applyUserRemoval(uid: string, withRestrictions = false) {
-  localAccess.value.direct.users = localAccess.value.direct.users.filter((u) => u !== uid)
-
-  if (withRestrictions) {
+  pending.apply()
+  for (const uid of pending.uids) {
     localRestrictions.value.revoke = localRestrictions.value.revoke.filter((u) => u !== uid)
     const { [uid]: _removed, ...rest } = localRestrictions.value.expiry
     localRestrictions.value.expiry = rest
   }
 
   emitUpdate()
+  pendingRemoval.value = null
+}
+
+/** The grant state after dropping one entry from one layer. */
+function stateWithout(layer: 'users' | 'groups' | 'companies', id: string): GrantState {
+  const state: GrantState = {
+    public: localAccess.value.public,
+    users: localAccess.value.direct.users,
+    groups: localAccess.value.direct.groups,
+    companies: localAccess.value.company,
+  }
+  return { ...state, [layer]: state[layer].filter((entry) => entry !== id) }
+}
+
+function removeDirectUser(uid: string) {
+  requestRemoval(`ลบสิทธิ์ของ ${getUserName(uid)}`, stateWithout('users', uid), () => {
+    localAccess.value.direct.users = localAccess.value.direct.users.filter((u) => u !== uid)
+  })
 }
 
 // ── Groups ──
@@ -733,8 +768,10 @@ function toggleDirectGroup(gid: string) {
 }
 
 function removeDirectGroup(gid: string) {
-  localAccess.value.direct.groups = localAccess.value.direct.groups.filter((g) => g !== gid)
-  emitUpdate()
+  const name = props.allGroups.find((g) => g.id === gid)?.name ?? gid
+  requestRemoval(`ลบสิทธิ์กลุ่ม ${name}`, stateWithout('groups', gid), () => {
+    localAccess.value.direct.groups = localAccess.value.direct.groups.filter((g) => g !== gid)
+  })
 }
 
 // ── Companies ──
@@ -789,17 +826,21 @@ function toggleAllCompanies() {
 }
 
 function removeCompany(code: string) {
-  localAccess.value.company = localAccess.value.company.filter((c) => c !== code)
-  emitUpdate()
+  const label = code === ALL_COMPANIES ? 'ทุกบริษัท' : code
+  requestRemoval(`ลบสิทธิ์บริษัท ${label}`, stateWithout('companies', code), () => {
+    localAccess.value.company = localAccess.value.company.filter((c) => c !== code)
+  })
 }
 
 // ── Clear all grants ──
 
 function clearAllGrants() {
-  localAccess.value.direct.users = []
-  localAccess.value.direct.groups = []
-  localAccess.value.company = []
-  emitUpdate()
+  const empty: GrantState = { public: localAccess.value.public, users: [], groups: [], companies: [] }
+  requestRemoval('ล้างสิทธิ์ทั้งหมด', empty, () => {
+    localAccess.value.direct.users = []
+    localAccess.value.direct.groups = []
+    localAccess.value.company = []
+  })
 }
 
 // ── Restrictions Section ──

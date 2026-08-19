@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 18 August 2569
-> **Total Test Cases:** 173
+> **Total Test Cases:** 174
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -334,8 +334,9 @@
 | 3.10.10 | Expiry ในอนาคตยังเข้าได้ (control) | แก้ Timestamp เป็น **พรุ่งนี้** → ยิง `/api/embed/request` ซ้ำ + รีเฟรชหน้าสิทธิ์ | เปลี่ยนเป็น **404** `No embed URL configured` (= ผ่านด่านสิทธิ์แล้ว) และหน้าสิทธิ์กลับเป็น 1 คน | High | ✅ |
 | 3.10.11 | ตั้งวันหมดอายุผ่าน UI ได้ค่าถูกต้อง (BUG-018) | 1. เปิดหน้าจัดการสิทธิ์ของแดชบอร์ดทดสอบ 2. แท็บ "ข้อจำกัด" → หมดอายุ → เลือกผู้ใช้ + วันพรุ่งนี้ 3. บันทึก 4. `node scripts/inspect-expiry.mjs <id>` | `shape: object<Timestamp>` และ `resolves` = **23:59:59.999 ตามเวลาผู้ตั้ง** ของวันที่เลือก (ไม่ใช่เที่ยงคืน UTC) | Medium | ✅ |
 | 3.10.12 | วันหมดอายุของโฟลเดอร์เขียน shape เดียวกัน | ทำแบบ 3.10.11 แต่ที่โฟลเดอร์ (`?folder=<id>`) | `folders/<id>.restrictions.expiry` เป็น `Timestamp` เช่นกัน | Low | 🔍 |
-| 3.10.13 | ลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ → ถามก่อน (BUG-020) | 1. ให้สิทธิ์ user + ตั้งวันหมดอายุ 2. ไม่มีสิทธิ์ทางอื่น (ไม่ public, ไม่ให้บริษัท/กลุ่ม) 3. กด ✕ ลบสิทธิ์ผู้ใช้ | ขึ้น dialog "ลบสิทธิ์พร้อมข้อจำกัด" — ยืนยัน = หายทั้งคู่, ยกเลิก = ไม่เปลี่ยนอะไร | Medium | 🔍 |
-| 3.10.14 | ข้อจำกัดที่ยังมีผลต้องไม่ถูกลบ | 1. ให้สิทธิ์ผ่าน **บริษัท** ของ user + ตั้งวันหมดอายุให้ user คนนั้น + ให้ direct grant ด้วย 2. ลบ direct grant | **ไม่ขึ้น dialog** และข้อจำกัดยังอยู่ (ยังกัดผ่านสิทธิ์บริษัท) | Medium | 🔍 |
+| 3.10.13 | ลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ → ถามก่อน (BUG-020) | 1. ให้สิทธิ์ user + ตั้งวันหมดอายุ 2. ไม่มีสิทธิ์ทางอื่น (ไม่ public, ไม่ให้บริษัท/กลุ่ม) 3. กด ✕ ลบสิทธิ์ผู้ใช้ | ขึ้น dialog "ลบสิทธิ์ของ &lt;ชื่อ&gt;" — ยืนยัน = หายทั้งคู่, ยกเลิก = ไม่เปลี่ยนอะไร | Medium | ✅ |
+| 3.10.14 | ข้อจำกัดที่ยังมีผลต้องไม่ถูกลบ | 1. ให้สิทธิ์ผ่าน **บริษัท** ของ user + ให้ direct grant + ตั้งวันหมดอายุให้ user คนนั้น 2. ลบ **direct grant** | **ไม่ขึ้น dialog** และข้อจำกัดยังอยู่ (ยังกัดผ่านสิทธิ์บริษัท) | Medium | 🔍 |
+| 3.10.15 | ลบสิทธิ์บริษัท/กลุ่มที่เป็นทางเข้าสุดท้าย → ถามเหมือนกัน | 1. ให้สิทธิ์เฉพาะ **บริษัท** ของ user + ตั้งวันหมดอายุ 2. ลบสิทธิ์บริษัทนั้น | ขึ้น dialog "ลบสิทธิ์บริษัท OAYT" → ยืนยัน = ข้อจำกัดหายด้วย (เดิมดักเฉพาะตอนลบ direct user) | Medium | 🔍 |
 
 > 🧪 **TC 3.10.6–3.10.10 — ทดสอบ end-to-end บน Firestore prod จริง 2026-08-16** (ยืนยัน fix PR #364)
 > ทำบนแดชบอร์ด `EXPIRY-TEST` ที่สร้างขึ้นเฉพาะการทดสอบแล้วลบทิ้ง (โฟลเดอร์ "แดชบอร์ดหลัก" ซึ่งไม่ให้สิทธิ์สืบทอดกับใคร) กับ user `survey.streamwash@gmail.com` (role `user`, company OAYT — ไม่มีสิทธิ์ทางอื่นเลย ตัวแปรเดียวที่เหลือคือ expiry)
@@ -615,8 +616,10 @@
 **BUG-020 รายละเอียด:**
 - **อาการ:** ลบ `Survey Streamwash` ออกจากสิทธิ์ของแดชบอร์ด กดบันทึก → `access.direct.users` ว่างแล้ว แต่ `restrictions.expiry.<uid>` ยังอยู่ หน้าจอขึ้น `จัดการสิทธิ์ 0` / `ข้อจำกัด 1`
 - **ทำไมไม่ลบอัตโนมัติทั้งหมด:** `restrictions` เป็น **Layer 3** ทำงานทับทุกเส้นทางที่ได้สิทธิ์ ([useFirestoreService.ts:688](../../app/composables/useFirestoreService.ts#L688) เช็ค restrictions ก่อน access; [:509-513](../../app/composables/useFirestoreService.ts#L509) ตัด uid หลังรวมคนจาก group + company) ⇒ ถ้าลบข้อจำกัดทิ้งทุกครั้งที่ลบ direct grant คนที่เข้าถึงผ่าน**บริษัท/กลุ่ม/โฟลเดอร์ที่สืบทอด** จะได้สิทธิ์ที่ถูกจำกัดเวลาไว้คืนแบบเงียบ ๆ = คืนสิทธิ์โดยไม่มีใครสั่ง
-- **Fix:** ถามก่อนด้วย `ConfirmDialog` และถามเฉพาะกรณีที่ direct grant เป็นทางเข้าเดียวจริง ๆ — ตัดสินด้วย [hasAccessBesidesDirectUser](../../app/utils/accessScope.ts) (public / ทุกบริษัท / บริษัทของผู้ใช้ / กลุ่มที่ให้สิทธิ์แล้วมีชื่อเขา) ยืนยัน = ลบทั้งสิทธิ์และข้อจำกัด, ยกเลิก = ไม่เปลี่ยนอะไรเลย
+- **Fix:** ถามก่อนด้วย `ConfirmDialog` เมื่อการลบทำให้คนที่มีข้อจำกัดไม่เหลือทางเข้าเลย — ตัดสินด้วย [restrictedWithoutAccess](../../app/utils/accessScope.ts) (public / ทุกบริษัท / บริษัทของผู้ใช้ / กลุ่มที่ให้สิทธิ์ / direct grant) ยืนยัน = ลบทั้งสิทธิ์และข้อจำกัด, ยกเลิก = ไม่เปลี่ยนอะไรเลย
+- **ครอบทุกชนิดของสิทธิ์:** ลบผู้ใช้ / กลุ่ม / บริษัท และ "ล้างทั้งหมด" ผ่านทางเดียวกันหมด — รอบแรก (PR #380) ดักเฉพาะตอนลบ direct user ทำให้ลบสิทธิ์บริษัทที่เป็นทางเข้าสุดท้ายแล้วยังทิ้ง orphan (พบตอนทดสอบ TC 3.10.14 วันที่ 2026-08-19)
 - **ยังมีผลอยู่ถ้าเข้าทางอื่นได้:** กรณีนั้นไม่ถาม และไม่ลบข้อจำกัด เพราะมันยังกัดอยู่จริง
+- **จังหวะเขียนฐานข้อมูล:** dialog กับปุ่ม ✕ แก้แค่ state ในหน้า การเขียนเกิดตอนกด **บันทึก** เท่านั้น ([savePermissions](../../app/components/features/PermissionsPage.vue#L653)) กด "ยกเลิก"/"รีเซ็ต" ก่อนบันทึก = ไม่มีอะไรลง Firestore
 
 **BUG-017 รายละเอียด (ปิดด้วยการลบ Quick Share — 2026-08-18):**
 - **อาการที่รายงาน:** กด 🔗 ที่การ์ดใน Discover → กด Share → dialog ปิดเหมือนสำเร็จ ไม่มี toast และไม่มีอะไรถูกเขียนลง Firestore
@@ -647,7 +650,7 @@
 | Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
 | Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
-| Admin Permissions | 14 | High | 🔍 partial (11 ✅ incl. 3.10.11 BUG-018 verified on prod 2026-08-19; 3.10.12–3.10.14 รอ UI pass) |
+| Admin Permissions | 15 | High | 🔍 partial (12 ✅ incl. 3.10.11 + 3.10.13 verified on prod 2026-08-19; 3.10.12 / 3.10.14 / 3.10.15 รอ UI pass) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 7 | High | ✅ (6/7 ✅ / 1 🐛 BUG-008 fixed) |
@@ -656,7 +659,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **173** | — | 140 ✅ / 12 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **174** | — | 141 ✅ / 12 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 
