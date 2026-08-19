@@ -485,7 +485,7 @@
 import { ref, computed, watch } from 'vue'
 import ConfirmDialog from '~/components/admin/ConfirmDialog.vue'
 import { restrictedWithoutAccess, ALL_COMPANIES } from '~/utils/accessScope'
-import { DIRECT_SOURCE } from '~/utils/effectiveAccess'
+import { sourceLabel } from '~/utils/effectiveAccess'
 import type { AccessEntry } from '~/utils/effectiveAccess'
 import type { GrantState } from '~/utils/accessScope'
 import type { User, AccessControl, AccessRestrictions } from '~/types/dashboard'
@@ -669,11 +669,12 @@ function accessBadge(uid: string): { text: string, tone: 'have' | 'blocked' } | 
     return { text: `มีสิทธิ์ แต่${entry.blockedBy}`, tone: 'blocked' }
   }
 
-  const indirect = entry.sources.filter((source) => source !== DIRECT_SOURCE)
-  if (indirect.length === 0) return null
+  const indirect = entry.sources.filter((source) => source.kind !== 'direct' || source.viaFolder)
+  const first = indirect[0]
+  if (!first) return null
 
   const extra = indirect.length > 1 ? ` · +${indirect.length - 1}` : ''
-  return { text: `เข้าถึงได้ · ${indirect[0]}${extra}`, tone: 'have' }
+  return { text: `เข้าถึงได้ · ${sourceLabel(first)}${extra}`, tone: 'have' }
 }
 
 /** Human-readable list of the restrictions attached to a uid. */

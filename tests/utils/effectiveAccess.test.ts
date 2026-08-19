@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { buildAccessEntries, accessibleUsers, DIRECT_SOURCE } from '../../app/utils/effectiveAccess'
+import { buildAccessEntries, accessibleUsers, sourceLabel, sourceDetail } from '../../app/utils/effectiveAccess'
 import { isExpired } from '../../shared/utils/dates'
 
 const users = [
@@ -42,35 +42,35 @@ describe('buildAccessEntries — sources', () => {
     const entries = buildAccessEntries({ ...base, permissions: permissions({ users: ['survey'] }) })
 
     expect(entries).toHaveLength(1)
-    expect(entries[0]?.sources).toEqual([DIRECT_SOURCE])
+    expect(entries[0]?.sources).toEqual([{ kind: 'direct', viaFolder: undefined }])
   })
 
   it('expands a company grant to its members', () => {
     const entries = buildAccessEntries({ ...base, permissions: permissions({ company: ['STTH'] }) })
 
     expect(entries.map((e) => e.uid).sort()).toEqual(['janine', 'nattha'])
-    expect(entries[0]?.sources).toEqual(['บริษัท STTH'])
+    expect(entries[0]?.sources.map(sourceLabel)).toEqual(['บริษัท STTH'])
   })
 
   it('expands ทุกบริษัท to every active company', () => {
     const entries = buildAccessEntries({ ...base, permissions: permissions({ company: ['ALL'] }) })
 
     expect(entries).toHaveLength(3)
-    expect(entries[0]?.sources).toEqual(['ทุกบริษัท'])
+    expect(entries[0]?.sources.map(sourceLabel)).toEqual(['ทุกบริษัท'])
   })
 
   it('expands a group grant to its members', () => {
     const entries = buildAccessEntries({ ...base, permissions: permissions({ groups: ['finance'] }) })
 
     expect(entries.map((e) => e.uid)).toEqual(['nattha'])
-    expect(entries[0]?.sources).toEqual(['กลุ่ม การเงิน'])
+    expect(entries[0]?.sources.map(sourceLabel)).toEqual(['กลุ่ม การเงิน'])
   })
 
   it('reaches everyone when the item is public', () => {
     const entries = buildAccessEntries({ ...base, permissions: permissions({ public: true }) })
 
     expect(entries).toHaveLength(3)
-    expect(entries[0]?.sources).toEqual(['สาธารณะ'])
+    expect(entries[0]?.sources.map(sourceLabel)).toEqual(['สาธารณะ'])
   })
 
   it('labels an inherited folder grant with the folder name', () => {
@@ -84,7 +84,9 @@ describe('buildAccessEntries — sources', () => {
     })
 
     expect(entries.map((e) => e.uid).sort()).toEqual(['janine', 'nattha'])
-    expect(entries[0]?.sources).toEqual(['📁 Finance · บริษัท STTH'])
+    // the badge names the folder only; the effective-access bar spells out how
+    expect(entries[0]?.sources.map(sourceLabel)).toEqual(['โฟลเดอร์ Finance'])
+    expect(entries[0]?.sources.map(sourceDetail)).toEqual(['📁 Finance · บริษัท STTH'])
   })
 
   it('collects every reason a user has access', () => {
@@ -94,7 +96,7 @@ describe('buildAccessEntries — sources', () => {
     })
     const nattha = entries.find((e) => e.uid === 'nattha')
 
-    expect(nattha?.sources).toEqual(['กลุ่ม การเงิน', 'บริษัท STTH'])
+    expect(nattha?.sources.map(sourceLabel)).toEqual(['กลุ่ม การเงิน', 'บริษัท STTH'])
   })
 })
 
@@ -110,7 +112,7 @@ describe('buildAccessEntries — restrictions', () => {
     const nattha = entries.find((e) => e.uid === 'nattha')
 
     expect(nattha?.blockedBy).toBe('หมดอายุแล้ว')
-    expect(nattha?.sources).toEqual(['บริษัท STTH'])
+    expect(nattha?.sources.map(sourceLabel)).toEqual(['บริษัท STTH'])
   })
 
   it('leaves a future expiry alone', () => {
@@ -165,5 +167,21 @@ describe('accessibleUsers', () => {
     })
 
     expect(accessibleUsers(entries).map((e) => e.uid)).toEqual(['nattha'])
+  })
+})
+
+describe('sourceLabel / sourceDetail', () => {
+  it('spells out folder and group so an identical name cannot be mistaken', () => {
+    // A folder named Finance and a group named Finance both exist in prod
+    expect(sourceLabel({ kind: 'company', name: 'STTH', viaFolder: 'Finance' })).toBe('โฟลเดอร์ Finance')
+    expect(sourceLabel({ kind: 'group', name: 'Finance' })).toBe('กลุ่ม Finance')
+  })
+
+  it('keeps the whole chain in the detailed form', () => {
+    expect(sourceDetail({ kind: 'company', name: 'STTH', viaFolder: 'Finance' })).toBe('📁 Finance · บริษัท STTH')
+    expect(sourceDetail({ kind: 'group', name: 'Finance' })).toBe('กลุ่ม Finance')
+    expect(sourceDetail({ kind: 'direct' })).toBe('สิทธิ์ตรง')
+    expect(sourceDetail({ kind: 'allCompanies' })).toBe('ทุกบริษัท')
+    expect(sourceDetail({ kind: 'public' })).toBe('สาธารณะ')
   })
 })
