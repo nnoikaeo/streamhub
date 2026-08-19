@@ -18,7 +18,7 @@ import { useDashboardService } from '~/composables/useDashboardService'
 import { useAuth } from '~/composables/useAuth'
 import type { Dashboard, User, AccessControl, AccessRestrictions, Folder, PermissionMetadata } from '~/types/dashboard'
 import type { AdminGroup, Company } from '~/types/admin'
-import { buildAccessEntries, accessibleUsers } from '~/utils/effectiveAccess'
+import { buildAccessEntries, accessibleUsers, sourceDetail } from '~/utils/effectiveAccess'
 import type { AccessEntry } from '~/utils/effectiveAccess'
 
 interface Props {
@@ -499,7 +499,8 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() =>
     name,
     // User.company is optional in the type but every non-admin carries one
     company: company ?? '',
-    sources,
+    // The bar has room for the whole chain — the picker badge shows the short form
+    sources: sources.map(sourceDetail),
   })),
 )
 

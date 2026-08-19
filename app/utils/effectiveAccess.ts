@@ -46,18 +46,33 @@ export interface AccessInput {
   now?: Date
 }
 
+/**
+ * One reason a user has access.
+ *
+ * Kept structured rather than pre-formatted because the two readers want
+ * different detail: the picker badge names only the nearest source
+ * ("โฟลเดอร์ Finance"), while the effective-access bar spells out the chain
+ * ("📁 Finance · บริษัท STTH").
+ */
+export interface AccessSource {
+  kind: 'direct' | 'group' | 'company' | 'allCompanies' | 'public'
+  /** Group name or company code, where the kind carries one. */
+  name?: string
+  /** Ancestor folder this grant came from — absent when granted on the item. */
+  viaFolder?: string
+}
+
 export interface AccessEntry {
   uid: string
   name: string
   company?: string
-  /** Why they have access, most direct first. */
-  sources: string[]
+  /** Why they have access, grants on the item itself first. */
+  sources: AccessSource[]
   /** Set when a Layer 3 restriction cancels the access above. */
   blockedBy?: string
 }
 
 export const ALL_COMPANIES = 'ALL'
-export const DIRECT_SOURCE = 'สิทธิ์ตรง'
 
 /**
  * Everyone the grants reach, each with their reasons and any restriction.
@@ -71,43 +86,47 @@ export function buildAccessEntries(input: AccessInput): AccessEntry[] {
   const now = input.now ?? new Date()
   const byUid = new Map<string, AccessEntry>()
 
-  const add = (uid: string, source: string) => {
+  const add = (uid: string, source: AccessSource) => {
     const user = users.find((u) => u.uid === uid)
     if (!user) return
     const entry = byUid.get(uid) ?? { uid, name: user.name, company: user.company, sources: [] }
-    if (!entry.sources.includes(source)) entry.sources.push(source)
+    const already = entry.sources.some(
+      (s) => s.kind === source.kind && s.name === source.name && s.viaFolder === source.viaFolder,
+    )
+    if (!already) entry.sources.push(source)
     byUid.set(uid, entry)
   }
-
-  const companyLabel = (code: string) => (code === ALL_COMPANIES ? 'ทุกบริษัท' : `บริษัท ${code}`)
 
   const usersInCompany = (code: string) =>
     code === ALL_COMPANIES
       ? users.filter((u) => u.company && activeCompanyCodes.includes(u.company))
       : users.filter((u) => u.company === code)
 
-  const applyAccess = (access: PermissionSnapshot['access'], prefix = '') => {
+  const applyAccess = (access: PermissionSnapshot['access'], viaFolder?: string) => {
     if (access.public) {
-      for (const user of users) add(user.uid, `${prefix}สาธารณะ`)
+      for (const user of users) add(user.uid, { kind: 'public', viaFolder })
     }
 
-    for (const uid of access.direct.users) add(uid, prefix ? `${prefix}${DIRECT_SOURCE}` : DIRECT_SOURCE)
+    for (const uid of access.direct.users) add(uid, { kind: 'direct', viaFolder })
 
     for (const gid of access.direct.groups) {
       const group = groups.find((g) => g.id === gid)
       if (!group) continue
-      for (const uid of group.members) add(uid, `${prefix}กลุ่ม ${group.name}`)
+      for (const uid of group.members) add(uid, { kind: 'group', name: group.name, viaFolder })
     }
 
     for (const code of access.company) {
-      for (const user of usersInCompany(code)) add(user.uid, `${prefix}${companyLabel(code)}`)
+      const kind = code === ALL_COMPANIES ? 'allCompanies' : 'company'
+      for (const user of usersInCompany(code)) {
+        add(user.uid, { kind, name: code === ALL_COMPANIES ? undefined : code, viaFolder })
+      }
     }
   }
 
   applyAccess(permissions.access)
 
   for (const folder of inherited) {
-    if (folder.access) applyAccess(folder.access, `📁 ${folder.name} · `)
+    if (folder.access) applyAccess(folder.access, folder.name)
   }
 
   // Layer 3 — the item's own restrictions and every ancestor's
@@ -135,4 +154,36 @@ export function buildAccessEntries(input: AccessInput): AccessEntry[] {
 /** Entries that actually resolve to access right now. */
 export function accessibleUsers(entries: AccessEntry[]): AccessEntry[] {
   return entries.filter((entry) => !entry.blockedBy)
+}
+
+/**
+ * Short label for the picker badge — names the nearest source only.
+ *
+ * An inherited grant reads "โฟลเดอร์ Finance" whatever mechanism the folder
+ * used, because the row already shows the user's own company and the folder
+ * name is what the admin needs to recognise. The words "โฟลเดอร์" and "กลุ่ม"
+ * are spelled out: a folder and a group can carry the same name, and an icon
+ * is not enough to tell them apart at a glance.
+ */
+export function sourceLabel(source: AccessSource): string {
+  if (source.viaFolder) return `โฟลเดอร์ ${source.viaFolder}`
+
+  switch (source.kind) {
+    case 'direct': return 'สิทธิ์ตรง'
+    case 'group': return `กลุ่ม ${source.name}`
+    case 'company': return `บริษัท ${source.name}`
+    case 'allCompanies': return 'ทุกบริษัท'
+    case 'public': return 'สาธารณะ'
+  }
+}
+
+/** Full chain for the effective-access list, where the detail is wanted. */
+export function sourceDetail(source: AccessSource): string {
+  const base = source.kind === 'direct' ? 'สิทธิ์ตรง'
+    : source.kind === 'group' ? `กลุ่ม ${source.name}`
+    : source.kind === 'company' ? `บริษัท ${source.name}`
+    : source.kind === 'allCompanies' ? 'ทุกบริษัท'
+    : 'สาธารณะ'
+
+  return source.viaFolder ? `📁 ${source.viaFolder} · ${base}` : base
 }
