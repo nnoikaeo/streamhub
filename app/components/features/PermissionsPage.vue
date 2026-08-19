@@ -465,7 +465,9 @@ const conflicts = computed<ConflictWarning[]>(() => {
 
 // ─── Effective Access Summary ───────────────────────────────────────────
 
-const effectiveAccessExpanded = ref(false)
+// Open by default: the count alone ('5 คน') is not the answer an admin came
+// for — who those people are is. Clicking collapses it.
+const effectiveAccessExpanded = ref(true)
 
 interface EffectiveAccessEntry {
   uid: string
