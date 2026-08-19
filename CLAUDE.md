@@ -120,7 +120,7 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite. **Baseline is 282 passing** |
+| `npm test` | Vitest suite. **Baseline is 307 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). **Baseline is 0 — any problem is yours** |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |
