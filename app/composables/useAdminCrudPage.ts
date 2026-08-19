@@ -38,8 +38,12 @@ interface CrudPageConfig<T, K extends string | number = string> {
   canDelete?: (item: T) => true | string
   /** Optional callback after successful save */
   onSaved?: () => void
-  /** Optional callback after successful delete */
-  onDeleted?: () => void
+  /**
+   * Optional callback after a successful delete. Receives the deleted item so
+   * the page can clean up references to it — the composable has already
+   * cleared its own state by this point (BUG-005).
+   */
+  onDeleted?: (item: T) => void | Promise<void>
   /** Label for the resource type (e.g., 'ผู้ใช้', 'บริษัท') — used in toast messages */
   resourceLabel?: string
 }
@@ -141,11 +145,12 @@ export function useAdminCrudPage<T extends object, K extends string | number = s
     }
 
     try {
-      await deleteFn(getId(itemToDelete.value))
+      const deleted = itemToDelete.value
+      await deleteFn(getId(deleted))
       showConfirmDialog.value = false
       itemToDelete.value = null
       showToast(`ลบ ${display} เรียบร้อยแล้ว`)
-      onDeleted?.()
+      await onDeleted?.(deleted)
     } catch (error) {
       console.error('Error deleting:', error)
       showToast(`เกิดข้อผิดพลาดในการลบ${resourceLabel}`, 'error')

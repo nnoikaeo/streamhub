@@ -51,6 +51,7 @@ import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminGroups } from '~/composables/useAdminGroups'
+import { planUserDeleteCascade, applyUserDeleteCascade } from '~/utils/cascadeDelete'
 import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 import {
   diffFolderAssignments,
@@ -97,6 +98,36 @@ const {
   updateFn: updateUser,
   deleteFn: deleteUser,
   resourceLabel: 'ผู้ใช้',
+  // Deleting the account leaves the uid in group.members[] and in the folders
+  // they moderated otherwise — nothing else ever removes it. [BUG-005]
+  onDeleted: async (user) => {
+    const cascade = planUserDeleteCascade(user.uid, groups.value, folders.value)
+    const writes = await applyUserDeleteCascade(
+      user.uid,
+      cascade,
+      groups.value,
+      folders.value,
+      updateGroup,
+      updateFolder
+    )
+    if (cascade.groupIds.length > 0) await fetchGroups()
+    if (cascade.folderIds.length > 0) await fetchFolders()
+    if (writes > 0) console.log(`🧹 [handleDeleteUser] cleaned ${writes} reference(s) to ${user.uid}`)
+  },
+})
+
+/** What still names the user queued for deletion — drives the dialog warning. */
+const referencesLosingUser = computed(() => {
+  if (!userToDelete.value) return { groupIds: [], folderIds: [] }
+  return planUserDeleteCascade(userToDelete.value.uid, groups.value, folders.value)
+})
+
+const deleteUserWarning = computed(() => {
+  const { groupIds, folderIds } = referencesLosingUser.value
+  const parts: string[] = []
+  if (groupIds.length) parts.push(`${groupIds.length} กลุ่ม`)
+  if (folderIds.length) parts.push(`${folderIds.length} โฟลเดอร์ที่ดูแล`)
+  return parts.join(' และ ')
 })
 
 const { showToast } = useAppToast()
@@ -381,7 +412,9 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       <ConfirmDialog
         :is-open="showConfirmDialog"
         title="ลบผู้ใช้"
-        :message="`คุณแน่ใจว่าต้องการลบผู้ใช้ ${userToDelete?.name} (${userToDelete?.email}) หรือไม่?`"
+        :message="deleteUserWarning
+          ? `${userToDelete?.name} (${userToDelete?.email}) ถูกอ้างอิงอยู่ใน ${deleteUserWarning} — ลบแล้วจะถอดออกจากที่เหล่านั้นด้วย ยืนยันหรือไม่?`
+          : `คุณแน่ใจว่าต้องการลบผู้ใช้ ${userToDelete?.name} (${userToDelete?.email}) หรือไม่?`"
         :loading="loading"
         @confirm="confirmDeleteUser"
         @cancel="showConfirmDialog = false"

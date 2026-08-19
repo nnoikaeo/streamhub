@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 19 August 2569
-> **Total Test Cases:** 200
+> **Total Test Cases:** 202
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -191,6 +191,7 @@
 | 3.2.6e | Edit user — role user → moderator | 1. Edit user (role=user) 2. Change role to moderator 3. Folder picker appears 4. Check folders 5. Save | Folder picker appears on role change; selected folders get UID added | High | ✅ |
 | 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ✅ (pre-launch group B4, 2026-06-28 — not re-run on prod to avoid deleting a real account) |
 | 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | ✅ |
+| 3.2.10 | ลบผู้ใช้ที่ถูกอ้างอิงอยู่ → ถามก่อน แล้วล้างให้ (BUG-005) | 1. เตรียมผู้ใช้ที่อยู่ในกลุ่มและ/หรือดูแลโฟลเดอร์ 2. กดลบ | dialog บอกว่า "ถูกอ้างอิงอยู่ใน N กลุ่ม และ M โฟลเดอร์ที่ดูแล" → ยืนยัน → uid หายจาก `group.members[]` และ `folders.assignedModerators[]` ทั้งหมด, audit = 0 | Medium | 🔍 (แก้แล้ว รอกดจริง — ต้องมีบัญชีที่ทิ้งได้) |
 | 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | N/A |
 | 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | ✅ |
 
@@ -292,6 +293,7 @@
 | 3.7.5 | Toggle group active status | 1. Click toggle switch | Status updates | Low | ✅ |
 | 3.7.6 | Search by name | 1. Type in search bar | Matching groups shown | Low | ✅ |
 | 3.7.7 | Unique id validation | 1. Create group with existing id | Error toast "รหัสกลุ่มซ้ำ" + no overwrite | High | ✅ (BUG-012 — was silent-overwrite, fixed via uniqueFields; added this case) |
+| 3.7.8 | ลบกลุ่มที่มีสมาชิก → ถามก่อน แล้วล้างให้ (BUG-005) | 1. `/admin/groups` สร้างกลุ่มทดสอบ ใส่สมาชิก 1 คน 2. `/admin/users` ยืนยันว่า badge กลุ่มขึ้นกับคนนั้น 3. กลับไปลบกลุ่ม | dialog บอก "มีสมาชิก N คน — ลบแล้วจะถอดกลุ่มนี้ออกจากทุกคนด้วย" → ยืนยัน → badge หายจากตารางผู้ใช้ และ `npm run audit:orphans` = 0 | Medium | 🔍 (แก้แล้ว รอกดจริง) |
 
 > **Note:** Deleting a group does **not** clear the deleted group id from its members' `user.groups[]` (delete uses the raw `deleteGroup`, not a sync wrapper) — those users keep an orphan group ref. This is the delete-direction gap of BUG-005 (create/edit sync IS handled via `createGroupWithSync`/`updateGroupWithSync`). Low severity (access control tolerates a group id that no longer exists); consider a `deleteGroupWithSync` if it matters.
 
@@ -547,7 +549,7 @@
 | BUG-004 | Bulk invite ไม่ใช้ role/company/group รายแถว — ทุกคนได้ค่าของแถวแรก | TC 3.9.8 | High | 🔧 Fixed |
 | DESIGN-001 | `access.company = []` = public ทุกคน — override direct user/group grant; 7/11 dashboards prod เป็น public (2 ตัวมี group grant ที่ถูก override) | TC 3.10.2 | High | 🔧 Fixed (Looker visibility model) |
 | BUG-006 | Discover company column แสดง "ทุกบริษัท" เมื่อ access.company ว่าง — label เก่าจากยุคก่อน DESIGN-001 (empty ≠ public แล้ว) ทำให้เข้าใจผิดว่า dashboard เปิดทุกคน | TC 4.2 | Medium | 🔧 Fixed |
-| BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + ลบ user ไม่ล้าง orphan ref ใน group.members | TC 3.10.3 | Medium | 🤔 Decision needed |
+| BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + **ทิศลบไม่ล้าง ref**: ลบกลุ่มแล้ว id ยังค้างใน `user.groups[]` (ตารางผู้ใช้ยังโชว์ badge ของกลุ่มที่ไม่มีแล้ว — ยืนยันด้วยการกดจริง 2026-08-19) และลบผู้ใช้แล้ว uid ยังค้างใน `group.members[]` + `folders.assignedModerators[]` | TC 3.10.3 / 3.7.8 / 3.2.10 | Medium | 🔧 Fixed (ทิศ create/edit: PR #279/#280 · **ทิศลบ: ถาม ConfirmDialog พร้อมจำนวนที่กระทบ แล้ว cascade ล้างให้** — `planGroupDeleteCascade` / `planUserDeleteCascade` ใน [cascadeDelete.ts](../../app/utils/cascadeDelete.ts) + 12 เทสต์; `audit:orphans` เพิ่มหมวด `assignedModerators` ที่เดิมไม่มีใครตรวจ) |
 | BUG-008 | Admin Explorer ลบโฟลเดอร์ที่มีเนื้อหาได้เงียบ ๆ ไม่มี error/warning — dashboard/subfolder ข้างในกลายเป็น orphan (`folderId`/`parentId` ชี้ไปยัง folder ที่ถูกลบ) | TC 3.13.6 | Medium | 🔧 Fixed |
 | BUG-009 | `/admin/folders` (DataTable, ต่างหน้ากับ BUG-008 ที่เป็น Explorer) ลบโฟลเดอร์ที่มี subfolder/dashboard ได้เงียบ ๆ — orphan แบบเดียวกัน; guard ของ Explorer ไม่ครอบหน้านี้ (คนละ composable: `useAdminCrudPage`) | TC 3.3.5 | High | 🔧 Fixed (เพิ่ม `canDelete` guard ใน `useAdminCrudPage` + wire หน้า folders) |
 | BUG-010 | สร้าง company/region ด้วย `code` ซ้ำ = **เขียนทับ record เดิมเงียบ ๆ (data loss)** — `useAdminResource.create` ใช้ `setDoc(docId=code)` ไม่เช็ค existence; tags `slug` ก็ไม่ถูกบังคับ unique | TC 3.5.4 / 3.6.5 / 3.8.6 | High | 🔧 Fixed (เพิ่ม `uniqueFields` + `assertUnique` บน create+update; companies/regions→`code`, tags→`slug`) |
@@ -696,12 +698,12 @@
 | Dashboard View | 14 | High | ✅ |
 | Profile | 5 | Medium | ✅ (5/5 — ยืนยันบน prod ทั้ง admin และ moderator 2026-08-19) |
 | Admin Overview | 5 | High | ✅ |
-| Admin Users | 10 | High | ✅ (all UI-verified on prod; 3.2.7 delete via pre-launch B4) |
+| Admin Users | 11 | High | ✅ partial (10/11 — 3.2.10 cascade delete รอกดจริง) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
 | Admin Dashboards | 8 | High | ⊘ N/A (5/8 orphan route, superseded by Explorer; 3.4.3/3.4.4/3.4.7 ยังผ่าน UI ตอนไล่ BUG-013 2026-08-15) |
 | Admin Companies | 9 | Medium | ✅ (9/9 — BUG-010 unique-code + BUG-011 blank-region fixed) |
 | Admin Regions | 5 | Medium | ✅ (5/5 — unique-code via BUG-010 fix) |
-| Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
+| Admin Groups | 8 | Medium | ✅ partial (7/8 — 3.7.8 cascade delete รอกดจริง) |
 | Admin Tags | 10 | Medium | ✅ (9/10 UI + 3.8.7 canManageTags guard code-verified — ยังไม่มีบัญชี admin ที่ถอดสิทธิ์แท็ก จึงกดจริงไม่ได้) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
 | Admin Permissions | 23 | High | ✅ (23/23 — 3.10.11–3.10.23 verified on prod 2026-08-19) |
@@ -713,7 +715,7 @@
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **200** | — | 186 ✅ / 2 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **202** | — | 186 ✅ / 4 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 

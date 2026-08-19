@@ -51,6 +51,7 @@ import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useAdminCrudPage } from '~/composables/useAdminCrudPage'
 import { diffIds, applyGroupMembersSync } from '~/utils/groupSync'
+import { planGroupDeleteCascade, applyGroupDeleteCascade } from '~/utils/cascadeDelete'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -111,7 +112,22 @@ const {
   updateFn: updateGroupWithSync,
   deleteFn: deleteGroup,
   resourceLabel: 'กลุ่ม',
+  // Deleting the group leaves its id in every member's groups[] otherwise —
+  // the users table then shows a badge for a group that no longer exists. [BUG-005]
+  onDeleted: async (group) => {
+    const cascade = planGroupDeleteCascade(group.id, allUsers.value)
+    const writes = await applyGroupDeleteCascade(group.id, cascade, allUsers.value, updateUser)
+    if (writes > 0) await fetchUsers()
+  },
 })
+
+/**
+ * Members counted from user.groups[] — the side access control reads, and the
+ * side the cascade has to clean. Drives the warning in the delete dialog.
+ */
+const membersLosingGroup = computed(() =>
+  groupToDelete.value ? planGroupDeleteCascade(groupToDelete.value.id, allUsers.value).userIds.length : 0
+)
 
 // Page-specific: view modal
 const showViewModal = ref(false)
@@ -332,7 +348,9 @@ const nextGroupSortOrder = computed(() =>
       <ConfirmDialog
         :is-open="showConfirmDialog"
         title="ลบกลุ่ม"
-        :message="`คุณแน่ใจว่าต้องการลบกลุ่ม '${groupToDelete?.name}' หรือไม่?`"
+        :message="membersLosingGroup > 0
+          ? `กลุ่ม '${groupToDelete?.name}' มีสมาชิก ${membersLosingGroup} คน — ลบแล้วจะถอดกลุ่มนี้ออกจากทุกคนด้วย ยืนยันหรือไม่?`
+          : `คุณแน่ใจว่าต้องการลบกลุ่ม '${groupToDelete?.name}' หรือไม่?`"
         :loading="loading"
         @confirm="confirmDeleteGroup"
         @cancel="showConfirmDialog = false"

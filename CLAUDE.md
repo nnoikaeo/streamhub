@@ -112,7 +112,7 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 |--------|---------|
 | `bash scripts/deploy-hosting.sh` | Build + deploy Hosting only (safe, loads .env.local) |
 | `firebase deploy --only firestore:rules --project streamhub-1c27a` | Deploy Firestore security rules |
-| `npm run audit:orphans` | Read-only Firestore data-hygiene check (dangling folderId / group / region / company / member refs) |
+| `npm run audit:orphans` | Read-only Firestore data-hygiene check (dangling folderId / group / region / company / member / **moderator** refs — the last one exposed five folders still naming a user deleted months ago) |
 | `node scripts/qa-broken-refs.mjs status\|break\|restore [--apply]` | QA fixture สำหรับ TC 6.2.1/6.2.2 — เขียน `folderId` และ `access.users` ที่ชี้ไปยัง id ที่ไม่มีจริง แล้วคืนค่าเดิมได้ (เก็บค่าเดิมไว้ก่อนแตะ ปฏิเสธทำงานกับแดชบอร์ดที่มีคนเข้าถึงได้ ไม่เขียนถ้าไม่ใส่ `--apply`) — สภาพนี้ UI สร้างเองไม่ได้แล้วเพราะ guard BUG-008/009 |
 | `node scripts/inspect-expiry.mjs [dashboardId] [--all]` | Read-only ตรวจ **ร่างจริง** ของ `dashboards.restrictions.expiry` — Firebase console แสดง Timestamp กับ ISO string เกือบเหมือนกัน สคริปต์นี้แยกให้ (`object<Timestamp>` vs `string`) พร้อมบอกว่า `new Date(value)` แบบก่อน PR #364 อ่านออกไหม; ใส่ dashboard id เพื่อดู `access`/`restrictions` + folder chain |
 | `npm run cloudbuild:status` | Read-only Cloud Build history for the functions deploy — tells queue expiry (`EXPIRED`, queued ~600s, ran 0s → Google-side, just rerun) apart from a real build failure. Pass a build id for details |

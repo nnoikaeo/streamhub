@@ -12,6 +12,7 @@
  *   4. companies.region           → missing region      (dead region ref)
  *   5. users.company              → missing company     (dead company ref)
  *   6. groups.members[]           → missing user        (dead member ref)
+ *   7. folders.assignedModerators[] → missing user   (dead moderator ref)
  *
  * Auth: reads GOOGLE_SERVICE_ACCOUNT_KEY (or GOOGLE_APPLICATION_CREDENTIALS)
  * from .env.local — the same admin credentials used by scripts/seed-firestore.ts.
@@ -102,6 +103,15 @@ report('Users with a dead company ref (user.company → missing company)',
 report('Groups with dead member refs (group.members[] → missing user)',
   groups.map(g => ({ g, dead: (g.members ?? []).filter(m => !userIds.has(m)) })).filter(x => x.dead.length),
   x => `id=${x.g._id} name="${x.g.name ?? '?'}" dead=${JSON.stringify(x.dead)}`)
+
+// A moderator's uid is named directly on each folder they manage, and deleting
+// the account never touched it before BUG-005 — the folder kept a moderator who
+// no longer exists, which no other check here would surface.
+report('Folders with dead moderator refs (folder.assignedModerators[] → missing user)',
+  folders
+    .map(f => ({ f, dead: (f.assignedModerators ?? []).filter(m => !userIds.has(m)) }))
+    .filter(x => x.dead.length),
+  x => `id=${x.f._id} name="${x.f.name ?? '?'}" dead=${JSON.stringify(x.dead)}`)
 
 console.log(`\n${total === 0 ? '✅ No orphans found.' : `⚠️  ${total} orphan reference(s) found.`} (read-only — no writes)\n`)
 process.exit(0)
