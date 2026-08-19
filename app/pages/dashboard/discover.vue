@@ -7,9 +7,7 @@
       :selected-folder-id="selectedFolderId"
       show-folders
       :allow-search="true"
-      :allow-create="canCreateFolder"
       @select-folder="(folder) => selectFolder(folder.id)"
-      @create-folder="handleCreateFolder"
     >
       <!-- Search Bar in breadcrumb row -->
       <template #breadcrumb-actions>
@@ -339,14 +337,10 @@ const {
   isInitializing,
   error,
 
-  // Permissions from store
-  canCreateFolder,
-
   // Methods
   selectFolder,
   handleViewDashboard,
   handleMenuDashboard,
-  handleCreateFolder,
 } = useDashboardPage({
   enableInfiniteScroll: true,
 })
@@ -872,7 +866,6 @@ const dashboardCountText = computed(() => {
 // ========== Permission-Based UI ==========
 
 // Permission checks are now automatic in composable:
-// - If canCreateFolder = false, create button will be disabled (prop binding)
 // - If canViewDashboards = false, view action is blocked at composable level
 
 // ========== Benefits of Strategy 4 ==========

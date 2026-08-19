@@ -14,7 +14,6 @@
  *   v-model="isOpen"
  *   :folders="folders"
  *   :allow-search="true"
- *   :allow-create="false"
  *   @select-folder="handleSelectFolder"
  * />
  */
@@ -49,10 +48,6 @@ interface Props {
    */
   allowSearch?: boolean
 
-  /**
-   * Allow create folder button
-   */
-  allowCreate?: boolean
 
   /**
    * Allow to open/close (for disabled state)
@@ -64,14 +59,12 @@ const props = withDefaults(defineProps<Props>(), {
   title: 'โฟลเดอร์',
   selectedFolderId: null,
   allowSearch: true,
-  allowCreate: false,
   disabled: false,
 })
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   'select-folder': [folder: Folder]
-  'create-folder': []
 }>()
 
 // Computed for open state
@@ -94,10 +87,6 @@ const handleToggle = () => {
  */
 const handleSelectFolder = (folder: Folder) => {
   emit('select-folder', folder)
-}
-
-const handleCreateFolder = () => {
-  emit('create-folder')
 }
 
 /**
@@ -171,9 +160,7 @@ const onLeave = (el: Element) => {
           :show-main-menu="false"
           :show-folders="true"
           :allow-search="allowSearch"
-          :allow-create="allowCreate"
           @select-folder="handleSelectFolder"
-          @create-folder="handleCreateFolder"
         />
 
         <!-- View All Dashboards Button -->

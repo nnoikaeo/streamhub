@@ -168,7 +168,6 @@ const nextTagSortOrder = computed(() =>
   <PageLayout
     :folders="folderTree"
     :allow-search="true"
-    :allow-create="false"
     :breadcrumbs="breadcrumbs"
   >
     <AdminPageContent>

@@ -178,7 +178,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
 
 <template>
-  <PageLayout :folders="folderTree" :allow-search="true" :allow-create="false" :breadcrumbs="breadcrumbs">
+  <PageLayout :folders="folderTree" :allow-search="true" :breadcrumbs="breadcrumbs">
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">คำเชิญผู้ใช้</h1>

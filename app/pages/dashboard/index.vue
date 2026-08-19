@@ -3,9 +3,7 @@
     :breadcrumbs="[{ label: 'หน้าแรก' }]"
     :folders="folderTree"
     :allow-search="true"
-    :allow-create="canCreateFolder"
     @select-folder="handleSelectFolder"
-    @create-folder="handleCreateFolder"
   >
     <!-- Note: showFolders & showAdmin now determined by user role (role-based) -->
     <!-- Main Content -->
@@ -90,7 +88,6 @@ import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import type { Folder } from '~/types/dashboard'
 import PageLayout from '~/components/compositions/PageLayout.vue'
-import { usePermissionsStore } from '~/stores/permissions'
 import { useRecentDashboards } from '~/composables/useRecentDashboards'
 
 definePageMeta({
@@ -99,14 +96,11 @@ definePageMeta({
 })
 
 const { user } = useAuth()
-const permissionsStore = usePermissionsStore()
 const { getRecentDashboards } = useRecentDashboards()
 const { dashboards, fetchDashboards } = useAdminDashboards()
 const { folders, fetchFolders } = useAdminFolders()
 const { companies, fetchCompanies } = useAdminCompanies()
 
-// Permissions
-const canCreateFolder = computed(() => permissionsStore.can('canCreateFolder'))
 
 // Role checks
 const isAdmin = computed(() => user.value?.role === 'admin')
@@ -185,11 +179,6 @@ const loadRecentDashboards = () => {
 const handleSelectFolder = (folder: Folder) => {
   // Navigate to discover page with selected folder
   navigateTo(`/dashboard/discover?folder=${folder.id}`)
-}
-
-const handleCreateFolder = () => {
-  // TODO: Implement create folder
-  alert('Create folder functionality coming soon!')
 }
 
 // Fetch all data on mount

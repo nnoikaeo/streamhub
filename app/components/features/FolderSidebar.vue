@@ -23,18 +23,6 @@
     <div v-if="showFolders" class="sidebar-section">
       <div class="sidebar-header">
         <h3 class="sidebar-title">โฟลเดอร์</h3>
-        <button
-          v-if="allowCreate"
-          class="create-folder-btn"
-          type="button"
-          :title="'สร้างโฟลเดอร์ใหม่'"
-          @click="$emit('create-folder')"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
       </div>
 
       <!-- Search Bar -->
@@ -85,7 +73,6 @@ import FolderTree from './FolderTree.vue'
  *
  * Events:
  * - select-folder: User selected a folder
- * - create-folder: User clicked create button
  *
  * Usage:
  * <FolderSidebar
@@ -94,7 +81,6 @@ import FolderTree from './FolderTree.vue'
  *   :main-menu-items="[{ label: 'หน้าแรก', icon: '🏠', to: '/dashboard' }]"
  *   :selected-folder-id="activeFolderId"
  *   @select-folder="handleSelectFolder"
- *   @create-folder="handleCreateFolder"
  * />
  */
 
@@ -135,10 +121,6 @@ interface Props {
    */
   allowSearch?: boolean
 
-  /**
-   * Allow create folder button
-   */
-  allowCreate?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -147,12 +129,10 @@ const props = withDefaults(defineProps<Props>(), {
   mainMenuItems: () => [],
   showFolders: true,
   allowSearch: true,
-  allowCreate: false,
 })
 
 const emit = defineEmits<{
   'select-folder': [folder: Folder]
-  'create-folder': []
 }>()
 
 const dashboardStore = useDashboardStore()
@@ -279,32 +259,6 @@ const handleFolderExpand = (folderId: string) => {
   color: #1f2937;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-.create-folder-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  padding: 0;
-  background: none;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  color: #6b7280;
-  transition: all 0.2s ease;
-
-  svg {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
-
-  &:hover {
-    background-color: #f9fafb;
-    border-color: #d1d5db;
-    color: #1f2937;
-  }
 }
 
 /* ========== SEARCH ========== */

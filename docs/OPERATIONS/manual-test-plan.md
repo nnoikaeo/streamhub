@@ -647,6 +647,13 @@
 - **สิ่งที่ถูกลบ:** `QuickShareDialog.vue`, `app/utils/quickShare.ts` + เทสต์, `handleShare`/`handleShareDashboard`/`shareDialogOpen`/`availableUsers` ใน `useDashboardPage`, สาย `@share-dashboard` ที่ตายแล้วใน Grid/List/Grouped, `quickShareDashboard` ทั้ง interface + Firestore + JSON mock + wrapper 2 ตัว, ปุ่ม 🔗 stub ที่หน้าแรก (`alert('coming soon')`) และปุ่ม Share ในหน้า view (ปิด BUG-019 ไปด้วย)
 - **สิ่งที่เก็บไว้:** `endOfDayLocal` ใน [shared/utils/dates.ts](../../shared/utils/dates.ts) พร้อมเทสต์ — ตอนนั้นยังไม่มีคนเรียก และถูกใช้จริงตอนแก้ BUG-018 ในวันถัดมา; flag `canShareDashboard` ใน permissions store ยังอยู่ในเมทริกซ์ role แต่ไม่มี UI ไหนอ่านแล้ว
 
+**สร้างโฟลเดอร์ที่ sidebar (ปิดด้วยการลบ — 2026-08-19):**
+- **สภาพเดิม:** ปุ่ม `+` ใน `FolderSidebar` ผูกกับ stub 2 ตัว — `alert('Create folder functionality coming soon!')` ที่ `/dashboard` และ `console.log` เงียบ ๆ ที่ `/dashboard/discover`
+- **ตรวจแล้วพบว่าไม่มีทางกดถึง:** `PageLayout` ส่ง `:allow-create` ต่อให้ `UnifiedSidebar` ซึ่ง render แค่ `AdminAccordion` 3 อัน ไม่เคย render `FolderSidebar`; ตัว `FolderSidebar` ถูกใช้โดย `FolderAccordion` ที่ไม่มีหน้าไหนเรียก ⇒ prop ตกพื้นกลางทาง แบบเดียวกับ dialog ของ BUG-017
+- **การตัดสินใจ:** ลบทั้งสาย ไม่ต่อให้ทำงาน — Explorer (`/admin/explorer`, `/manage/explorer`) สร้างโฟลเดอร์ได้จริงอยู่แล้ว และเป็นทางเดียวที่ผู้ใช้ใช้อยู่
+- **สิ่งที่ถูกลบ:** ปุ่ม `+` + prop `allowCreate` + event `create-folder` ตลอดสาย `FolderSidebar` → `FolderAccordion` → `UnifiedSidebar` → `PageLayout`, handler `handleCreateFolder` 4 ที่ (2 หน้า + composable + PageLayout), computed `canCreateFolder` ใน `useDashboardPage` และ `/dashboard`, และ `:allow-create="false"` ที่ 13 หน้า
+- **สิ่งที่เก็บไว้:** flag `canCreateFolder` ในเมทริกซ์ role ของ permissions store — ไม่มีโค้ดอ่านแล้ว แต่ยังเป็นสเปกที่ [docs/GUIDES/roles-and-permissions.md](../GUIDES/roles-and-permissions.md) อ้างถึง (Explorer ใช้ `canCreateInCurrentFolder` ของตัวเอง ไม่ได้อ่าน flag นี้)
+
 ---
 
 ## 9. Test Case Summary

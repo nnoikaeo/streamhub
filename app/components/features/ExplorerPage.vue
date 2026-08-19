@@ -124,7 +124,6 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
   <PageLayout
     :folders="folderTree"
     :allow-search="false"
-    :allow-create="false"
     :breadcrumbs="breadcrumbs"
   >
     <div class="explorer-page">
