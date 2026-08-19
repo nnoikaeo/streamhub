@@ -11,7 +11,7 @@
     <!-- Main Container -->
     <div class="layout-container">
       <!-- Optional Sidebar -->
-      <aside v-if="showSidebar" class="app-sidebar">
+      <aside v-if="showSidebar" class="app-sidebar" @click="closeOnLinkTap">
         <slot name="sidebar" />
       </aside>
 
@@ -83,11 +83,24 @@ defineProps({
 /**
  * Drawer state, mobile only — above 768px the sidebar sits in the flow and
  * this stays irrelevant. Tapping a link inside the drawer navigates, so the
- * drawer closes on every route change or it would cover the page it opened.
+ * drawer has to close or it covers the page it just opened.
  */
 const isSidebarOpen = ref(false)
 const route = useRoute()
 
+/**
+ * Close on the tap itself rather than on the navigation it triggers: tapping
+ * the entry for the page you are already on — "แดชบอร์ดทั้งหมด" while on
+ * /dashboard/discover — resolves to the same route, so no navigation happens
+ * and a route watcher alone left the drawer stuck open. Only links count;
+ * tapping an accordion header expands a section and must not close the drawer.
+ */
+const closeOnLinkTap = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null
+  if (target?.closest('a')) isSidebarOpen.value = false
+}
+
+// Still needed for navigation the drawer did not start (breadcrumbs, redirects)
 watch(() => route.fullPath, () => {
   isSidebarOpen.value = false
 })
