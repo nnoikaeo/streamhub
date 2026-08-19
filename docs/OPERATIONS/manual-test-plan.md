@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 18 August 2569
-> **Total Test Cases:** 182
+> **Last Updated:** 19 August 2569
+> **Total Test Cases:** 194
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -445,11 +445,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 5.1.1 | Create → Toast success | 1. Create any resource | Toast: "สร้างสำเร็จ" | High | 🔍 |
-| 5.1.2 | Update → Toast success | 1. Edit any resource | Toast: "อัปเดตสำเร็จ" | High | 🔍 |
-| 5.1.3 | Delete → Confirm dialog | 1. Click Delete on any resource | ConfirmDialog opens before delete | High | 🔍 |
+| 5.1.1 | Create → Toast success | 1. Create any resource | Toast: "เพิ่ม&lt;ทรัพยากร&gt;เรียบร้อยแล้ว" (เช่น "เพิ่มแท็กเรียบร้อยแล้ว") | High | 🔍 |
+| 5.1.2 | Update → Toast success | 1. Edit any resource | Toast: "แก้ไข&lt;ทรัพยากร&gt;เรียบร้อยแล้ว" | High | ✅ (UI: pre-launch B1–B3, 2026-06-28 — แก้ role/group ที่ `/admin/users` ขึ้น toast ทุกครั้ง) |
+| 5.1.3 | Delete → Confirm dialog | 1. Click Delete on any resource | ConfirmDialog เปิดก่อนเสมอ → ยืนยัน = Toast "ลบ &lt;ชื่อรายการ&gt; เรียบร้อยแล้ว" | High | ✅ (UI: pre-launch B4 2026-06-28 + TC 3.3.5 / 3.5.9 ที่เห็น dialog แล้วโดน guard บล็อก) |
 | 5.1.4 | Form validation — errors on submit | 1. Submit form with invalid data | Field-level error messages shown | High | ✅ |
-| 5.1.5 | Modal close without saving | 1. Open modal 2. Fill data 3. Click Cancel | No changes persisted | Medium | 🔍 |
+| 5.1.5 | Modal close without saving | 1. Open modal 2. Fill data 3. Click Cancel | No changes persisted | Medium | 🔍 (`FormModal` cancel emit `cancel` + ปิด modal เท่านั้น — เขียน Firestore อยู่ใน `handleSave` ทางเดียว; รอกดจริง 1 ครั้ง) |
 | 5.1.6 | Loading state during API call | 1. Submit form (slow network) | Spinner shown, button disabled | Medium | ☐ |
 | 5.1.7 | Error clears when the field is fixed | 1. `/admin/dashboards` → เพิ่มแดชบอร์ดใหม่ 2. กด บันทึก ทั้งที่ว่าง 3. เลือกโฟลเดอร์ | แดงใต้โฟลเดอร์หายทันที ไม่ต้องกด บันทึก ซ้ำ | High | ✅ |
 | 5.1.8 | Fixing one field keeps the others' errors | ต่อจาก 5.1.7 ก่อนกรอกชื่อ | แดงใต้ ชื่อแดชบอร์ด ยังอยู่ | High | ✅ |
@@ -461,9 +461,9 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 5.2.1 | Unauthenticated → `/admin/*` | 1. Open admin URL without login | Redirect to `/login` | Critical | 🔍 |
-| 5.2.2 | User role → `/admin/*` | 1. Login as User 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | 🔍 |
-| 5.2.3 | Moderator → `/admin/*` | 1. Login as Moderator 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | 🔍 |
+| 5.2.1 | Unauthenticated → `/admin/*` | 1. Open admin URL without login | Redirect to `/login` | Critical | ✅ (UI: pre-launch group A1, 2026-06-28) |
+| 5.2.2 | User role → `/admin/*` | 1. Login as User 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | ✅ (UI: pre-launch group A2, 2026-06-28) |
+| 5.2.3 | Moderator → `/admin/*` | 1. Login as Moderator 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | ✅ (UI: pre-launch group A3, 2026-06-28) |
 | 5.2.4 | Sidebar reflects role | 1. Login as each role | Sidebar shows role-appropriate menu items | High | ☐ |
 | 5.2.5 | Sidebar visibility on mobile | 1. Open on mobile viewport | Sidebar in drawer, toggle button visible | Medium | ☐ |
 
@@ -655,28 +655,28 @@
 |------|---------|----------|--------|
 | Login | 6 | Critical | ✅ |
 | Invite Accept | 6 | Critical | ✅ |
-| Dashboard Home | 7 | High | ✅ |
+| Dashboard Home | 5 | High | ✅ |
 | Dashboard Discover | 12 | High | ✅ |
-| Dashboard View | 11 | High | ✅ |
+| Dashboard View | 14 | High | ✅ |
 | Admin Overview | 5 | High | ✅ |
 | Admin Users | 10 | High | ✅ (all UI-verified on prod; 3.2.7 delete via pre-launch B4) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
-| Admin Dashboards | 8 | High | ⊘ N/A (8/8 — orphan route, superseded by Explorer, not tested) |
-| Admin Companies | 8 | Medium | ✅ (8/8 — BUG-010 unique-code + BUG-011 blank-region fixed) |
+| Admin Dashboards | 8 | High | ⊘ N/A (5/8 orphan route, superseded by Explorer; 3.4.3/3.4.4/3.4.7 ยังผ่าน UI ตอนไล่ BUG-013 2026-08-15) |
+| Admin Companies | 9 | Medium | ✅ (9/9 — BUG-010 unique-code + BUG-011 blank-region fixed) |
 | Admin Regions | 5 | Medium | ✅ (5/5 — unique-code via BUG-010 fix) |
 | Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
-| Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
+| Admin Tags | 10 | Medium | ✅ (9/10 UI + 3.8.7 canManageTags guard code-verified — ยังไม่มีบัญชี admin ที่ถอดสิทธิ์แท็ก จึงกดจริงไม่ได้) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
 | Admin Permissions | 23 | High | ✅ (23/23 — 3.10.11–3.10.23 verified on prod 2026-08-19) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
-| Admin Explorer | 7 | High | ✅ (6/7 ✅ / 1 🐛 BUG-008 fixed) |
+| Admin Explorer | 9 | High | ✅ (7/9 ✅ / 2 🐛 BUG-008 + BUG-013 fixed และ re-verified) |
 | Moderator Explorer | 6 | High | ✅ (6/6) |
 | Moderator Permissions | 5 | High | ✅ (5/5) |
-| Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
-| Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
+| Cross-Cutting (CRUD) | 11 | High | 🔍 partial (8/11 ✅ / 5.1.1+5.1.5 รอกดจริง / 5.1.6 loading-state human) |
+| Navigation & Middleware | 5 | Critical | ✅ partial (3/5 — 5.2.1–5.2.3 ปิดด้วย pre-launch A; sidebar+mobile ยัง ☐) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **182** | — | 153 ✅ / 8 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **194** | — | 168 ✅ / 3 🔍 / 12 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
