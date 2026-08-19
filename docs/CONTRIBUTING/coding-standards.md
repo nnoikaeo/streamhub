@@ -397,6 +397,36 @@ Implemented in `app/pages/dashboard/view/[id].vue` → `handleGoBack()` and `app
 
 ---
 
+## Logic Worth Testing Goes in `app/utils/`
+
+`vitest.config.ts` declares no `~` alias, so a test cannot import any file that
+uses `~/...` imports — which is most composables and every SFC. A rule that
+matters is therefore written as a plain function under `app/utils/`, with its
+collaborators passed in, and the component or composable calls it:
+
+```ts
+// app/utils/expiryWrite.ts — the Timestamp constructor is injected, so the
+// test never loads the Firebase SDK
+export function toExpiryTimestamps<T>(
+  expiry: Record<string, unknown> | undefined,
+  toTimestamp: (date: Date) => T,
+): Record<string, T> { … }
+```
+
+Files following this shape: `expiryWrite.ts` (expiry normalisation on save),
+`accessScope.ts` (does a user keep access after this grant is removed),
+`effectiveAccess.ts` (who reaches an item and why — read by both the permission
+picker badges and the effective-access bar), `groupSync.ts`.
+
+Two rules follow from it:
+
+- **type-only imports may use `~`** — esbuild erases them, so they never resolve
+  at runtime
+- **one calculation, one home.** `effectiveAccess.ts` exists because the page
+  and the picker each had their own idea of "has access", and the screen
+  contradicted itself (BUG-020). Two readers of the same question share the
+  function rather than the answer
+
 ## Custom Cells in `DataTable`
 
 `DataTable` is the shared admin table. To render a cell as something other than text, pass a **`#cell-<key>` slot** from the page — do **not** add another `isXxxColumn` flag.

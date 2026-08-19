@@ -451,12 +451,20 @@ app/components/
    ├── DashboardGrid.vue
    ├── FolderSidebar.vue
    ├── FolderTree.vue
-   ├── PermissionEditor.vue
+   ├── PermissionEditor.vue       # 3-column grant editor + restrictions; asks before
+   │                               # stranding a restriction, badges who already has access
    ├── AuditLog.vue
    ├── TagBadge.vue               # (NEW) Tag display chip
    ├── TagFilter.vue              # (NEW) Tag filter bar for View All page
    ├── TagSelector.vue            # (NEW) Tag add/remove in dashboard edit
    └── TagManager.vue             # (NEW) Admin tag CRUD page
+
+app/utils/                        # Pure logic, testable without the ~ alias — see
+├── accessScope.ts                # coding-standards.md § Logic Worth Testing
+├── effectiveAccess.ts            # who reaches an item and why (picker badges + the
+│                                 # "ผลลัพธ์รวม" bar read the same answer)
+├── expiryWrite.ts                # every expiry write normalised to a Timestamp
+└── groupSync.ts
 
 app/composables/
 ├── ... existing ...

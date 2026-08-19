@@ -56,7 +56,7 @@
 - [x] Dashboard Discovery Page (`/dashboard/discover`)
   - FolderSidebar + FolderTree for hierarchy
   - DashboardGrid + DashboardCard for display
-  - Breadcrumb navigation, Quick Share dialog
+  - Breadcrumb navigation, Quick Share dialog — *Quick Share ถูกลบทั้งชุด 2026-08-18 (ไม่มีทางเปิด dialog ในทุก UI) การให้สิทธิ์ผ่านหน้าจัดการสิทธิ์อย่างเดียว*
   - Full mock data support (folders, dashboards)
 - [x] Single Dashboard View Page (`/dashboard/view`)
   - Metadata display, Looker embed placeholder (iframe)
@@ -106,7 +106,7 @@
 - [x] **Dashboard Info sidebar** — toggle show/hide (admin only), hidden by default
 - [x] **Fullscreen mode** — expand embed to fullscreen, Esc to exit, default on open — *superseded by the native Fullscreen API in PR #351, see below*
 - [x] **Breadcrumb Thai** — "Dashboard" → "แดชบอร์ด"
-- [x] **Share button** — navigate to `/admin/permissions` (admin/moderator only)
+- [x] **Share button** — navigate to `/admin/permissions` (admin/moderator only) — *เอาปุ่มออก 2026-08-18: หน้าปลายทางเป็น admin-only แต่ปุ่มโชว์ให้ moderator ด้วย (BUG-019) ตอนนี้เข้าจาก Explorer 🔑 ซึ่งเลือก path ตาม role*
 - [x] **⋮ Dropdown menu** — Thai labels (แก้ไขข้อมูล / ดาวน์โหลด / เก็บถาวร), z-index fix, hover fix
 - [x] **Go Back** — `router.back()` to the page of origin (Explorer folder/scroll preserved), falls back to `/dashboard/discover` on cold entry
 - [x] **Dropdown styling** — fixed global button CSS override (added `.menu-item` to exclusion list in `main.css`)

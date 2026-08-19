@@ -1160,7 +1160,7 @@ For MODERATOR and ADMIN users who work across companies:
    - ✅ [Sidebar Navigation](./wireframes/sidebar-navigation.md)
    - ✅ [Tag Management Page](./wireframes/tag-management-page.md)
    - ✅ [Admin Permission Management](./wireframes/admin-permission-management-page.md)
-   - ✅ [Moderator Quick Share Dialog](./wireframes/moderator-quick-share-dialog.md)
+   - ⛔ [Moderator Quick Share Dialog](./wireframes/moderator-quick-share-dialog.md) — ยกเลิกแล้ว 2026-08-18 เก็บไว้เป็นประวัติ
 
 2. **Pending wireframes**
    - [ ] Regions & Business Groups page (Admin)
