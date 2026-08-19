@@ -501,8 +501,8 @@
 
 | # | Scenario | Expected Behavior | Status |
 |---|----------|-------------------|--------|
-| 6.2.1 | Folder deleted while dashboard still references it | ปัจจุบัน chip โฟลเดอร์แสดง**ว่างเปล่า** ([DashboardListItem.vue:76](../../app/components/features/DashboardListItem.vue#L76) `?? ''`) ไม่ error ไม่บอกว่ากำพร้า — สร้างสภาพนี้ผ่าน UI ไม่ได้แล้ว (guard BUG-008/009) ต้องแก้ Firestore ตรง ๆ; ตรวจด้วย `npm run audit:orphans` · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | ☐ |
-| 6.2.2 | User deleted while showing in admin table | หน้าจัดการสิทธิ์ fallback เป็น uid ดิบ ([PermissionsPage.vue:513](../../app/components/features/PermissionsPage.vue#L513)) และ PermissionEditor แสดง "Unknown" ([PermissionEditor.vue:520](../../app/components/features/PermissionEditor.vue#L520)) — ไม่ crash · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | 🔍 |
+| 6.2.1 | Folder deleted while dashboard still references it | ปัจจุบัน chip โฟลเดอร์แสดง**ว่างเปล่า** ([DashboardListItem.vue:76](../../app/components/features/DashboardListItem.vue#L76) `?? ''`) ไม่ error ไม่บอกว่ากำพร้า — สร้างสภาพนี้ผ่าน UI ไม่ได้แล้ว (guard BUG-008/009) ต้องแก้ Firestore ตรง ๆ; ตรวจด้วย `npm run audit:orphans` · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | ✅ (2026-08-19 — ตั้ง `folderId` เป็น id ที่ไม่มีจริง: แถวยังอยู่ในลิสต์ ช่องโฟลเดอร์ว่างเปล่า ไม่ error ไม่หาย · คืนค่าแล้ว audit = 0) |
+| 6.2.2 | User deleted while showing in admin table | หน้าจัดการสิทธิ์ fallback เป็น uid ดิบ ([PermissionsPage.vue:513](../../app/components/features/PermissionsPage.vue#L513)) และ PermissionEditor แสดง "Unknown" ([PermissionEditor.vue:520](../../app/components/features/PermissionEditor.vue#L520)) — ไม่ crash · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | ✅ (2026-08-19 — ใส่ uid ที่ไม่มีจริงใน `access.direct.users`: แท็บขึ้น "จัดการสิทธิ์ 1" แถวแสดง "Unknown" + badge สิทธิ์ตรง + ปุ่ม ✕ ลบได้ · "ผลลัพธ์รวม: 0 คน" ถูกต้องเพราะ uid ผีไม่ใช่ผู้ใช้จริง · คืนค่าแล้ว) |
 | 6.2.3 | Folder has children — delete attempt | Error toast "ไม่สามารถลบโฟลเดอร์ที่มีเนื้อหาได้ กรุณาลบแดชบอร์ดและโฟลเดอร์ย่อยทั้งหมดก่อน" + โฟลเดอร์ไม่ถูกลบ | ✅ (ครอบด้วย TC 3.3.5 `/admin/folders` และ TC 3.13.6 Explorer ที่กดจริงแล้วทั้งคู่ — BUG-008/009) |
 
 ### 6.3 Network Errors
@@ -712,8 +712,8 @@
 | Moderator Permissions | 5 | High | ✅ (5/5) |
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
-| Error Scenarios | 10 | Medium | 🔍 partial (6 ✅ / 2 🔍 / 1 ☐ / 1 ⊘ — §6.1 ปิดครบ; 6.3.1 จงใจข้าม; 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **200** | — | 184 ✅ / 3 🔍 / 1 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
+| Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
+| **TOTAL** | **200** | — | 186 ✅ / 2 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
