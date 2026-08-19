@@ -86,12 +86,13 @@ const readDashboard = async () => {
 
 const describe = (data) => {
   const access = data.access ?? {}
+  const direct = access.direct ?? {}
   console.log(`\n📄 dashboards/${dashboardId} — ${data.name ?? '(no name)'}`)
-  console.log(`   folderId       : ${data.folderId ?? '(none)'}`)
-  console.log(`   access.public  : ${access.public === true}`)
-  console.log(`   access.users   : ${JSON.stringify(access.users ?? [])}`)
-  console.log(`   access.groups  : ${JSON.stringify(access.groups ?? [])}`)
-  console.log(`   access.company : ${JSON.stringify(access.company ?? [])}`)
+  console.log(`   folderId              : ${data.folderId ?? '(none)'}`)
+  console.log(`   access.public         : ${access.public === true}`)
+  console.log(`   access.direct.users   : ${JSON.stringify(direct.users ?? [])}`)
+  console.log(`   access.direct.groups  : ${JSON.stringify(direct.groups ?? [])}`)
+  console.log(`   access.company        : ${JSON.stringify(access.company ?? [])}`)
 }
 
 /**
@@ -101,10 +102,11 @@ const describe = (data) => {
  */
 const assertSafeTarget = (data) => {
   const access = data.access ?? {}
+  const direct = access.direct ?? {}
   const reach = [
     access.public === true ? 'public' : null,
-    (access.users ?? []).filter(u => u !== GHOST_USER).length ? 'user grants' : null,
-    (access.groups ?? []).length ? 'group grants' : null,
+    (direct.users ?? []).filter(u => u !== GHOST_USER).length ? 'user grants' : null,
+    (direct.groups ?? []).length ? 'group grants' : null,
     (access.company ?? []).length ? 'company grants' : null,
   ].filter(Boolean)
 
@@ -133,7 +135,8 @@ if (command === 'break') {
   assertSafeTarget(data)
   describe(data)
 
-  const users = data.access?.users ?? []
+  // The app reads access.direct.users — access.users is not part of the schema
+  const users = data.access?.direct?.users ?? []
   if (loadState()) {
     console.error('\n❌ Originals are already saved — the fixture looks applied. Restore first.')
     process.exit(1)
@@ -141,7 +144,7 @@ if (command === 'break') {
 
   console.log('\n→ after:')
   console.log(`   folderId     : ${GHOST_FOLDER}   (TC 6.2.1 — folder chip must render empty, not crash)`)
-  console.log(`   access.users : ${JSON.stringify([...users, GHOST_USER])}   (TC 6.2.2 — permissions page must show the raw uid)`)
+  console.log(`   access.direct.users : ${JSON.stringify([...users, GHOST_USER])}   (TC 6.2.2 — permissions page must show the raw uid)`)
 
   if (!apply) {
     console.log('\n🔍 Dry run. Re-run with --apply to write.')
@@ -154,7 +157,7 @@ if (command === 'break') {
   )
   await db.collection('dashboards').doc(dashboardId).update({
     folderId: GHOST_FOLDER,
-    'access.users': [...users, GHOST_USER],
+    'access.direct.users': [...users, GHOST_USER],
   })
   console.log(`\n✅ Applied. Originals saved to ${STATE_FILE}`)
   console.log('   Restore when done: node scripts/qa-broken-refs.mjs restore --apply')
@@ -172,7 +175,7 @@ if (command === 'restore') {
   describe(data)
   console.log('\n→ restore to:')
   console.log(`   folderId     : ${state.folderId ?? '(none)'}`)
-  console.log(`   access.users : ${JSON.stringify(state.users)}`)
+  console.log(`   access.direct.users : ${JSON.stringify(state.users)}`)
 
   if (!apply) {
     console.log('\n🔍 Dry run. Re-run with --apply to write.')
@@ -181,7 +184,7 @@ if (command === 'restore') {
 
   await db.collection('dashboards').doc(state.dashboardId).update({
     folderId: state.folderId,
-    'access.users': state.users,
+    'access.direct.users': state.users,
   })
   unlinkSync(STATE_FILE)
   console.log('\n✅ Restored. Confirm with: npm run audit:orphans')
