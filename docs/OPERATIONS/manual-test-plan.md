@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 18 August 2569
-> **Total Test Cases:** 174
+> **Total Test Cases:** 175
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -333,10 +333,11 @@
 | 3.10.9 | ฝั่ง server ปฏิเสธด้วย (Cloud Function) | ต่อจาก 3.10.6 → `POST /api/embed/request` ด้วย ID token ของ user นั้น | **403** `Access revoked or expired` | High | ✅ |
 | 3.10.10 | Expiry ในอนาคตยังเข้าได้ (control) | แก้ Timestamp เป็น **พรุ่งนี้** → ยิง `/api/embed/request` ซ้ำ + รีเฟรชหน้าสิทธิ์ | เปลี่ยนเป็น **404** `No embed URL configured` (= ผ่านด่านสิทธิ์แล้ว) และหน้าสิทธิ์กลับเป็น 1 คน | High | ✅ |
 | 3.10.11 | ตั้งวันหมดอายุผ่าน UI ได้ค่าถูกต้อง (BUG-018) | 1. เปิดหน้าจัดการสิทธิ์ของแดชบอร์ดทดสอบ 2. แท็บ "ข้อจำกัด" → หมดอายุ → เลือกผู้ใช้ + วันพรุ่งนี้ 3. บันทึก 4. `node scripts/inspect-expiry.mjs <id>` | `shape: object<Timestamp>` และ `resolves` = **23:59:59.999 ตามเวลาผู้ตั้ง** ของวันที่เลือก (ไม่ใช่เที่ยงคืน UTC) | Medium | ✅ |
-| 3.10.12 | วันหมดอายุของโฟลเดอร์เขียน shape เดียวกัน | ทำแบบ 3.10.11 แต่ที่โฟลเดอร์ (`?folder=<id>`) | `folders/<id>.restrictions.expiry` เป็น `Timestamp` เช่นกัน | Low | 🔍 |
+| 3.10.12 | วันหมดอายุของโฟลเดอร์เขียน shape เดียวกัน | ทำแบบ 3.10.11 แต่ที่โฟลเดอร์ (`?folder=<id>`) | `folders/<id>.restrictions.expiry` เป็น `Timestamp` เช่นกัน | Low | ✅ |
 | 3.10.13 | ลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ → ถามก่อน (BUG-020) | 1. ให้สิทธิ์ user + ตั้งวันหมดอายุ 2. ไม่มีสิทธิ์ทางอื่น (ไม่ public, ไม่ให้บริษัท/กลุ่ม) 3. กด ✕ ลบสิทธิ์ผู้ใช้ | ขึ้น dialog "ลบสิทธิ์ของ &lt;ชื่อ&gt;" — ยืนยัน = หายทั้งคู่, ยกเลิก = ไม่เปลี่ยนอะไร | Medium | ✅ |
-| 3.10.14 | ข้อจำกัดที่ยังมีผลต้องไม่ถูกลบ | 1. ให้สิทธิ์ผ่าน **บริษัท** ของ user + ให้ direct grant + ตั้งวันหมดอายุให้ user คนนั้น 2. ลบ **direct grant** | **ไม่ขึ้น dialog** และข้อจำกัดยังอยู่ (ยังกัดผ่านสิทธิ์บริษัท) | Medium | 🔍 |
-| 3.10.15 | ลบสิทธิ์บริษัท/กลุ่มที่เป็นทางเข้าสุดท้าย → ถามเหมือนกัน | 1. ให้สิทธิ์เฉพาะ **บริษัท** ของ user + ตั้งวันหมดอายุ 2. ลบสิทธิ์บริษัทนั้น | ขึ้น dialog "ลบสิทธิ์บริษัท OAYT" → ยืนยัน = ข้อจำกัดหายด้วย (เดิมดักเฉพาะตอนลบ direct user) | Medium | 🔍 |
+| 3.10.14 | ข้อจำกัดที่ยังมีผลต้องไม่ถูกลบ | 1. ให้สิทธิ์ผ่าน **บริษัท** ของ user + ให้ direct grant + ตั้งวันหมดอายุให้ user คนนั้น 2. ลบ **direct grant** | **ไม่ขึ้น dialog** และข้อจำกัดยังอยู่ (ยังกัดผ่านสิทธิ์บริษัท) | Medium | ✅ |
+| 3.10.15 | ลบสิทธิ์บริษัท/กลุ่มที่เป็นทางเข้าสุดท้าย → ถามเหมือนกัน | 1. ให้สิทธิ์เฉพาะ **บริษัท** ของ user + ตั้งวันหมดอายุ 2. ลบสิทธิ์บริษัทนั้น | ขึ้น dialog "ลบสิทธิ์บริษัท OAYT" → ยืนยัน = ข้อจำกัดหายด้วย (เดิมดักเฉพาะตอนลบ direct user) | Medium | ✅ |
+| 3.10.16 | ป้าย "เข้าถึงได้ / หมดอายุแล้ว" ในคอลัมน์รายชื่อ | 1. ให้สิทธิ์บริษัท/กลุ่ม หรืออยู่ใต้โฟลเดอร์ที่ให้สิทธิ์ 2. ดูคอลัมน์ผู้ใช้ | คนที่เข้าถึงได้อยู่แล้วขึ้นป้ายเขียวพร้อมแหล่งที่มา (`บริษัท OAYT` / `กลุ่ม …` / `📁 Finance · …`); คนที่มีสิทธิ์แต่หมดอายุ/ถูกระงับขึ้นป้ายเหลือง; ป้ายต้องสอดคล้องกับแถบ "ผลลัพธ์รวม: n คน" | Medium | 🔍 |
 
 > 🧪 **TC 3.10.6–3.10.10 — ทดสอบ end-to-end บน Firestore prod จริง 2026-08-16** (ยืนยัน fix PR #364)
 > ทำบนแดชบอร์ด `EXPIRY-TEST` ที่สร้างขึ้นเฉพาะการทดสอบแล้วลบทิ้ง (โฟลเดอร์ "แดชบอร์ดหลัก" ซึ่งไม่ให้สิทธิ์สืบทอดกับใคร) กับ user `survey.streamwash@gmail.com` (role `user`, company OAYT — ไม่มีสิทธิ์ทางอื่นเลย ตัวแปรเดียวที่เหลือคือ expiry)
@@ -531,8 +532,8 @@
 | BUG-014 | Quick Share จาก Discover ส่ง `userIds: [undefined]` — `QuickShareDialog` อ่าน `user.id` ทั้งไฟล์ แต่ type `User` มีแค่ `uid`; ปุ่มลบผู้ใช้ที่เลือกก็ไม่เคยตรงกับแถวไหน (filter ด้วย `undefined`) | TC 2.2 (share flow) | High | ⊘ ปิดด้วยการลบ — แก้เป็น `uid` แล้ว (PR #353) แต่ไม่เคย retest ด้วยมือได้เพราะ dialog เปิดไม่ได้ ตอนนี้ Quick Share ถูกลบทั้งชุด โค้ดที่มีบั๊กไม่เหลือแล้ว |
 | BUG-016 | ข้อความ error ค้างหลังแก้ค่าให้ถูกแล้ว ทุกฟอร์ม admin — `useForm` ล้าง error ไว้ใน `setFieldValue` แต่ทุกฟอร์มผูก `v-model="formData.x"` ซึ่งเขียน reactive object ตรงๆ ทางนั้นจึงไม่เคยถูกเรียก (CompanyForm เป็นไฟล์เดียวในรีโปที่เรียก และเรียกกับ field ที่ไม่มี validator) | TC 5.1.7 | Medium | 🔧 Fixed (`watch(formData)` + re-validate ใน `useForm`; PR #367; UI-verified 2026-08-15 TC 5.1.7–5.1.10) |
 | BUG-017 | ปุ่ม "แชร์" ใน `QuickShareDialog` (Discover) **ไม่เขียนอะไรเลย** — `handleShare` ใน `useDashboardPage` เป็น stub ไม่เคยเรียก `quickShareDashboard` แต่ dialog ปิดตัวเองหลัง emit ผู้ใช้จึงเห็นเหมือนสำเร็จ | TC 2.2 (share flow) | High | ⊘ ปิดด้วยการลบ — ต่อสายให้ทำงานแล้ว (PR #376) จากนั้นพบว่า **dialog ไม่มีทางเปิดในทุก UI** จึงตัดสินใจลบ Quick Share ทั้งชุด ดูรายละเอียดใต้ตาราง |
-| BUG-018 | หน้า `/admin/permissions` (+ `/manage/permissions`) เขียน `restrictions.expiry` เป็น **ISO string ที่เที่ยงคืน UTC** = 07:00 น. ตามเวลาไทย ⇒ ตั้ง "หมดอายุ 18 ส.ค." สิทธิ์ตัดเช้าวันที่ 18 เร็วไป 17 ชม.; และ shape ต่างจากที่ Quick Share เขียน (`Timestamp`) ทั้งที่เป็นฟิลด์เดียวกัน | TC 3.10.11–3.10.12 | Medium | 🔧 Fixed — **ยืนยันบน prod 2026-08-19**: `dash_1787110946066` ได้ `object<Timestamp>` + `resolves 2026-08-20T16:59:59.999Z` (= 23:59:59.999 น. ไทย) ✅ ส่วนฝั่งโฟลเดอร์ (3.10.12) ยังรอทดสอบ |
-| BUG-020 | ลบสิทธิ์ผู้ใช้ออกจากแดชบอร์ด แต่ข้อจำกัด (หมดอายุ/ระงับ) ของคนนั้นยังค้างอยู่ — หน้าจอแสดง `จัดการสิทธิ์ 0` คู่กับ `ข้อจำกัด 1` โดยไม่บอกว่ามีผลหรือไม่ และถ้าให้สิทธิ์คนเดิมใหม่ภายหลัง วันหมดอายุเก่าจะกลับมามีผลเงียบ ๆ | TC 3.10.13 | Medium | 🔧 Fixed (ถาม ConfirmDialog ตอนลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ **เฉพาะเมื่อ direct grant เป็นทางเข้าเดียว** ยืนยันแล้วลบทั้งคู่) — **รอ UI pass TC 3.10.13–3.10.14** |
+| BUG-018 | หน้า `/admin/permissions` (+ `/manage/permissions`) เขียน `restrictions.expiry` เป็น **ISO string ที่เที่ยงคืน UTC** = 07:00 น. ตามเวลาไทย ⇒ ตั้ง "หมดอายุ 18 ส.ค." สิทธิ์ตัดเช้าวันที่ 18 เร็วไป 17 ชม.; และ shape ต่างจากที่ Quick Share เขียน (`Timestamp`) ทั้งที่เป็นฟิลด์เดียวกัน | TC 3.10.11–3.10.12 | Medium | 🔧 Fixed — **ยืนยันบน prod 2026-08-19**: `dash_1787110946066` ได้ `object<Timestamp>` + `resolves 2026-08-20T16:59:59.999Z` (= 23:59:59.999 น. ไทย) ✅ และฝั่งโฟลเดอร์ `folder_1785082588448` ได้ `Timestamp` เดียวกัน ✅ |
+| BUG-020 | ลบสิทธิ์ผู้ใช้ออกจากแดชบอร์ด แต่ข้อจำกัด (หมดอายุ/ระงับ) ของคนนั้นยังค้างอยู่ — หน้าจอแสดง `จัดการสิทธิ์ 0` คู่กับ `ข้อจำกัด 1` โดยไม่บอกว่ามีผลหรือไม่ และถ้าให้สิทธิ์คนเดิมใหม่ภายหลัง วันหมดอายุเก่าจะกลับมามีผลเงียบ ๆ | TC 3.10.13 | Medium | 🔧 Fixed (ถาม ConfirmDialog ตอนลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ **เฉพาะเมื่อ direct grant เป็นทางเข้าเดียว** ยืนยันแล้วลบทั้งคู่) — **ยืนยันบน prod 2026-08-19** TC 3.10.13/3.10.14/3.10.15 ผ่านครบ ✅ |
 | BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้ | TC 2.3.1 | Medium | ⊘ ปิดด้วยการลบ — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อม Quick Share (2026-08-18) เหลือทางเดียวคือ Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
@@ -650,7 +651,7 @@
 | Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
 | Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
-| Admin Permissions | 15 | High | 🔍 partial (12 ✅ incl. 3.10.11 + 3.10.13 verified on prod 2026-08-19; 3.10.12 / 3.10.14 / 3.10.15 รอ UI pass) |
+| Admin Permissions | 16 | High | 🔍 partial (15 ✅ — 3.10.11–3.10.15 verified on prod 2026-08-19; 3.10.16 ป้ายในคอลัมน์รายชื่อ รอ UI pass) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 7 | High | ✅ (6/7 ✅ / 1 🐛 BUG-008 fixed) |
@@ -659,7 +660,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **174** | — | 141 ✅ / 12 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **175** | — | 145 ✅ / 9 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 

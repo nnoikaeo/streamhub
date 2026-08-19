@@ -95,6 +95,11 @@
                 <div class="user-item__info">
                   <span class="user-item__name">{{ u.name }}</span>
                   <span class="user-item__email">{{ u.role ? ({ admin: 'Admin', moderator: 'Moderator', user: 'User' }[u.role] ?? u.role) + ' · ' + u.company : u.company }}</span>
+                  <span
+                    v-if="accessBadge(u.uid)"
+                    class="access-badge"
+                    :class="`access-badge--${accessBadge(u.uid)!.tone}`"
+                  >{{ accessBadge(u.uid)!.text }}</span>
                 </div>
                 <span v-if="isUserAdded(u.uid)" class="user-item__check">✓</span>
                 <span v-else class="user-item__add">+</span>
@@ -480,6 +485,8 @@
 import { ref, computed, watch } from 'vue'
 import ConfirmDialog from '~/components/admin/ConfirmDialog.vue'
 import { restrictedWithoutAccess, ALL_COMPANIES } from '~/utils/accessScope'
+import { DIRECT_SOURCE } from '~/utils/effectiveAccess'
+import type { AccessEntry } from '~/utils/effectiveAccess'
 import type { GrantState } from '~/utils/accessScope'
 import type { User, AccessControl, AccessRestrictions } from '~/types/dashboard'
 import type { AdminGroup, Company } from '~/types/admin'
@@ -495,6 +502,12 @@ interface Props {
   showRestrictions?: boolean
   /** Hide this user from the grant picker — they already have access (self). */
   excludeUserId?: string
+  /**
+   * Who already reaches this item and why, from the page's shared calculation.
+   * Drives the "เข้าถึงได้ / หมดอายุแล้ว" badges in the picker; omit it and the
+   * picker simply shows no badges.
+   */
+  accessEntries?: AccessEntry[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -503,6 +516,7 @@ const props = withDefaults(defineProps<Props>(), {
   allCompanies: () => [],
   showRestrictions: true,
   excludeUserId: '',
+  accessEntries: () => [],
 })
 
 const emit = defineEmits<{
@@ -636,6 +650,30 @@ function toggleDirectUser(uid: string) {
     localAccess.value.direct.users.push(uid)
     emitUpdate()
   }
+}
+
+/**
+ * Badge for one row of the user picker.
+ *
+ * Says what is true right now, restrictions deducted, so it agrees with the
+ * "ผลลัพธ์รวม" bar at the bottom of the page rather than offering a second
+ * opinion. A direct grant produces no badge — the ✓ on the row and the entry
+ * in the granted column already say that — but a restriction on a
+ * direct-granted user still shows, since that is the part the row cannot show.
+ */
+function accessBadge(uid: string): { text: string, tone: 'have' | 'blocked' } | null {
+  const entry = props.accessEntries.find((e) => e.uid === uid)
+  if (!entry) return null
+
+  if (entry.blockedBy) {
+    return { text: `มีสิทธิ์ แต่${entry.blockedBy}`, tone: 'blocked' }
+  }
+
+  const indirect = entry.sources.filter((source) => source !== DIRECT_SOURCE)
+  if (indirect.length === 0) return null
+
+  const extra = indirect.length > 1 ? ` · +${indirect.length - 1}` : ''
+  return { text: `เข้าถึงได้ · ${indirect[0]}${extra}`, tone: 'have' }
 }
 
 /** Human-readable list of the restrictions attached to a uid. */
@@ -1445,5 +1483,28 @@ function clearAllRestrictions() {
     border: 1px solid var(--color-border-default);
     border-radius: var(--radius-sm, 0.375rem);
   }
+}
+
+/* ── picker access badges [BUG-020 follow-up] ── */
+.access-badge {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+
+.access-badge--have {
+  background-color: var(--color-bg-success, #ecfdf5);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.access-badge--blocked {
+  background-color: var(--color-bg-warning);
+  border-color: var(--color-warning);
+  color: var(--color-warning-dark);
 }
 </style>
