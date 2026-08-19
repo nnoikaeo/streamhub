@@ -150,8 +150,8 @@
 |---|-----------|-------|-----------------|----------|--------|
 | 2.4.1 | เข้าหน้าโปรไฟล์จากเมนู | 1. คลิกชื่อผู้ใช้มุมขวาบน 2. คลิก "โปรไฟล์" | ไปที่ `/profile` — ชื่อ, อีเมล, badge บทบาท ตรงกับบัญชีที่ login | Medium | ✅ (prod-equivalent 2026-08-19, admin) |
 | 2.4.2 | ข้อมูลบัญชีถูกต้อง | 1. เปิด `/profile` | บริษัทแสดงเป็น "ชื่อเต็ม (CODE)", สถานะ = ใช้งานอยู่/ถูกระงับ, เข้าร่วมเมื่อ = วันที่จาก `users.createdAt` | Medium | ✅ (admin STTH: "บริษัท สทรีมวอช (ประเทศไทย) จำกัด (STTH)" · 1 มกราคม 2567) |
-| 2.4.3 | กลุ่มผู้ใช้ | 1. เปิด `/profile` ด้วยบัญชีที่อยู่ในกลุ่ม | แสดงชิปชื่อกลุ่ม (ไม่ใช่ id); บัญชีที่ไม่มีกลุ่มขึ้น "ยังไม่ได้อยู่กลุ่มใด" | Medium | 🔍 (เห็นเคสว่างแล้ว เคสมีกลุ่มยังไม่ได้กด) |
-| 2.4.4 | การ์ดโฟลเดอร์ที่ดูแล (moderator) | 1. login เป็น moderator 2. เปิด `/profile` | มีการ์ด "โฟลเดอร์ที่ดูแล" แสดงโฟลเดอร์ที่ `assignedModerators` มี uid นี้; admin/user ไม่มีการ์ดนี้ | Medium | ☐ |
+| 2.4.3 | กลุ่มผู้ใช้ | 1. เปิด `/profile` ด้วยบัญชีที่อยู่ในกลุ่ม | แสดงชิปชื่อกลุ่ม (ไม่ใช่ id); บัญชีที่ไม่มีกลุ่มขึ้น "ยังไม่ได้อยู่กลุ่มใด" | Medium | ✅ (prod 2026-08-19 — moderator INFE เห็นชิป "Sales"; admin STTH เห็นข้อความว่าง) |
+| 2.4.4 | การ์ดโฟลเดอร์ที่ดูแล (moderator) | 1. login เป็น moderator 2. เปิด `/profile` | มีการ์ด "โฟลเดอร์ที่ดูแล" แสดงโฟลเดอร์ที่ `assignedModerators` มี uid นี้; admin/user ไม่มีการ์ดนี้ | Medium | ✅ (prod 2026-08-19 — moderator เห็น 📁 Finance, badge "ผู้ดูแลโฟลเดอร์"; หน้า admin ไม่มีการ์ดนี้) |
 | 2.4.5 | หน้าอ่านอย่างเดียว | 1. เปิด `/profile` | ไม่มีปุ่มแก้ไข/ฟอร์มใด ๆ + มีข้อความท้ายหน้าว่าแก้ได้โดยผู้ดูแลระบบเท่านั้น | Low | ✅ |
 
 ---
@@ -687,7 +687,7 @@
 | Dashboard Home | 5 | High | ✅ |
 | Dashboard Discover | 12 | High | ✅ |
 | Dashboard View | 14 | High | ✅ |
-| Profile | 5 | Medium | ✅ partial (3/5 — 2.4.3 เคสมีกลุ่ม, 2.4.4 moderator ยังไม่ได้กด) |
+| Profile | 5 | Medium | ✅ (5/5 — ยืนยันบน prod ทั้ง admin และ moderator 2026-08-19) |
 | Admin Overview | 5 | High | ✅ |
 | Admin Users | 10 | High | ✅ (all UI-verified on prod; 3.2.7 delete via pre-launch B4) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
@@ -706,7 +706,7 @@
 | Cross-Cutting (CRUD) | 11 | High | ✅ partial (10/11 ✅ — เหลือ 5.1.6 loading-state ที่ต้อง throttle เอง) |
 | Navigation & Middleware | 5 | Critical | ✅ partial (3/5 — 5.2.1–5.2.3 ปิดด้วย pre-launch A; sidebar+mobile ยัง ☐) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **199** | — | 173 ✅ / 2 🔍 / 13 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **199** | — | 175 ✅ / 1 🔍 / 12 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
