@@ -24,7 +24,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
     console.log(`❌ [admin.middleware] User not authenticated after init check`)
     console.log(`❌ [admin.middleware] authStore.user = ${authStore.user ? authStore.user.email : 'null'}`)
     console.log(`❌ [admin.middleware] Redirecting to /login`)
-    return navigateTo('/login')
+    return navigateTo(
+      shouldRemember(to.fullPath)
+        ? { path: '/login', query: { returnTo: to.fullPath } }
+        : '/login'
+    )
   }
 
   // Check if user has admin access permission
