@@ -29,3 +29,6 @@ logs
 
 # Scratch prompts / working notes — throwaway, never committed
 prompt-*.md
+
+# QA fixture state (scripts/qa-broken-refs.mjs) — local only, holds the originals to restore
+scripts/.qa-broken-refs-state.json

@@ -467,7 +467,7 @@
 | 5.1.3 | Delete → Confirm dialog | 1. Click Delete on any resource | ConfirmDialog เปิดก่อนเสมอ → ยืนยัน = Toast "ลบ &lt;ชื่อรายการ&gt; เรียบร้อยแล้ว" | High | ✅ (UI: pre-launch B4 2026-06-28 + TC 3.3.5 / 3.5.9 ที่เห็น dialog แล้วโดน guard บล็อก) |
 | 5.1.4 | Form validation — errors on submit | 1. Submit form with invalid data | Field-level error messages shown | High | ✅ |
 | 5.1.5 | Modal close without saving | 1. Open modal 2. Fill data 3. Click Cancel | No changes persisted | Medium | ✅ (prod 2026-08-19 — กรอก `ZZ-CANCEL-TEST` แล้วกดยกเลิก, รีเฟรชแล้วยัง "แสดง 1–7 จาก 7 รายการ" เท่าเดิม) |
-| 5.1.6 | Loading state during API call | 1. Submit form (slow network) | Spinner shown, button disabled | Medium | ☐ |
+| 5.1.6 | Loading state during API call | 1. DevTools → Network → Slow 3G 2. `/admin/tags` เพิ่มแท็ก 3. กดบันทึก | ปุ่มเปลี่ยนเป็น "⟳ กำลังบันทึก..." และถูก disable กดซ้ำไม่ได้ | Medium | ✅ (2026-08-19 — throttle 3G, ปุ่มจางกดไม่ได้ตลอดช่วงรอ) |
 | 5.1.7 | Error clears when the field is fixed | 1. `/admin/dashboards` → เพิ่มแดชบอร์ดใหม่ 2. กด บันทึก ทั้งที่ว่าง 3. เลือกโฟลเดอร์ | แดงใต้โฟลเดอร์หายทันที ไม่ต้องกด บันทึก ซ้ำ | High | ✅ |
 | 5.1.8 | Fixing one field keeps the others' errors | ต่อจาก 5.1.7 ก่อนกรอกชื่อ | แดงใต้ ชื่อแดชบอร์ด ยังอยู่ | High | ✅ |
 | 5.1.9 | Message follows the failing rule | 1. `/admin/companies` → เพิ่มบริษัท 2. กด บันทึก ทั้งที่ว่าง 3. พิมพ์ `A` 4. พิมพ์ต่อเป็น `AB` | `is required` → `must be at least 2 characters` → แดงหาย | Medium | ✅ |
@@ -501,15 +501,15 @@
 
 | # | Scenario | Expected Behavior | Status |
 |---|----------|-------------------|--------|
-| 6.2.1 | Folder deleted while dashboard still references it | ปัจจุบัน chip โฟลเดอร์แสดง**ว่างเปล่า** ([DashboardListItem.vue:76](../../app/components/features/DashboardListItem.vue#L76) `?? ''`) ไม่ error ไม่บอกว่ากำพร้า — สร้างสภาพนี้ผ่าน UI ไม่ได้แล้ว (guard BUG-008/009) ต้องแก้ Firestore ตรง ๆ; ตรวจด้วย `npm run audit:orphans` | ☐ |
-| 6.2.2 | User deleted while showing in admin table | หน้าจัดการสิทธิ์ fallback เป็น uid ดิบ ([PermissionsPage.vue:513](../../app/components/features/PermissionsPage.vue#L513)) และ PermissionEditor แสดง "Unknown" ([PermissionEditor.vue:520](../../app/components/features/PermissionEditor.vue#L520)) — ไม่ crash | 🔍 |
+| 6.2.1 | Folder deleted while dashboard still references it | ปัจจุบัน chip โฟลเดอร์แสดง**ว่างเปล่า** ([DashboardListItem.vue:76](../../app/components/features/DashboardListItem.vue#L76) `?? ''`) ไม่ error ไม่บอกว่ากำพร้า — สร้างสภาพนี้ผ่าน UI ไม่ได้แล้ว (guard BUG-008/009) ต้องแก้ Firestore ตรง ๆ; ตรวจด้วย `npm run audit:orphans` · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | ☐ |
+| 6.2.2 | User deleted while showing in admin table | หน้าจัดการสิทธิ์ fallback เป็น uid ดิบ ([PermissionsPage.vue:513](../../app/components/features/PermissionsPage.vue#L513)) และ PermissionEditor แสดง "Unknown" ([PermissionEditor.vue:520](../../app/components/features/PermissionEditor.vue#L520)) — ไม่ crash · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | 🔍 |
 | 6.2.3 | Folder has children — delete attempt | Error toast "ไม่สามารถลบโฟลเดอร์ที่มีเนื้อหาได้ กรุณาลบแดชบอร์ดและโฟลเดอร์ย่อยทั้งหมดก่อน" + โฟลเดอร์ไม่ถูกลบ | ✅ (ครอบด้วย TC 3.3.5 `/admin/folders` และ TC 3.13.6 Explorer ที่กดจริงแล้วทั้งคู่ — BUG-008/009) |
 
 ### 6.3 Network Errors
 
 | # | Scenario | Expected Behavior | Status |
 |---|----------|-------------------|--------|
-| 6.3.1 | Slow API response | Spinner ของหน้าแสดงระหว่างรอ (throttle ที่ DevTools → Network) | ☐ |
+| 6.3.1 | Slow API response | Spinner + "กำลังโหลด..." กลางตารางระหว่างรอ | 🔍 (**จงใจไม่กด** — [DataTable.vue:208](../../app/components/admin/DataTable.vue#L208) `v-if="loading"` แสดง spinner แทนตาราง และ `useAdminResource.fetch` set `loading=true` ก่อน await ทุกครั้ง · ทดสอบจริงแล้วเห็นยาก เพราะคอลเลกชันจริงมี 7 แถวบน WebChannel ที่เปิดค้าง ⇒ round trip สั้นกว่าที่ตาจับได้ แม้ throttle 3G · ถ้ากลไกพัง อาการที่ผู้ใช้เห็นคือ "ตารางว่าง" ไม่ใช่ "ไม่มี spinner") |
 | 6.3.2 | API 500 error | Error toast ตามทรัพยากร เช่น "เกิดข้อผิดพลาดในการบันทึกแท็ก" / "เกิดข้อผิดพลาดในการลบแท็ก" ([useAdminCrudPage.ts:123](../../app/composables/useAdminCrudPage.ts#L123)) — ไม่มีข้อความรวม "เกิดข้อผิดพลาด กรุณาลองใหม่" ในระบบ | ☐ |
 | 6.3.3 | API 404 (resource not found) | หน้า `/dashboard/view/<id ที่ไม่มี>` ขึ้นกล่องแดง "เกิดข้อผิดพลาดในการโหลดรายงาน" + รายละเอียด `Dashboard not found` (อังกฤษ) + ปุ่ม "← ย้อนกลับ" | ✅ (2026-08-19 — `/dashboard/view/dash_xxxx` ด้วยบัญชี user) |
 
@@ -707,10 +707,10 @@
 | Admin Explorer | 9 | High | ✅ (7/9 ✅ / 2 🐛 BUG-008 + BUG-013 fixed และ re-verified) |
 | Moderator Explorer | 6 | High | ✅ (6/6) |
 | Moderator Permissions | 5 | High | ✅ (5/5) |
-| Cross-Cutting (CRUD) | 11 | High | ✅ partial (10/11 ✅ — เหลือ 5.1.6 loading-state ที่ต้อง throttle เอง) |
+| Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ partial (4/5 ✅ + 5.2.5 🔍 — BUG-025 แก้แล้ว รอยืนยันทางปิด) |
-| Error Scenarios | 10 | Medium | 🔍 partial (5 ✅ / 1 🔍 / 4 ☐ — §6.1 ปิดครบ, 6.3.3 ผ่าน) |
-| **TOTAL** | **200** | — | 181 ✅ / 3 🔍 / 5 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
+| Error Scenarios | 10 | Medium | 🔍 partial (5 ✅ / 2 🔍 / 3 ☐ — §6.1 ปิดครบ; 6.3.1 จงใจข้าม) |
+| **TOTAL** | **200** | — | 182 ✅ / 4 🔍 / 3 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
