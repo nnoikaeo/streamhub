@@ -451,9 +451,9 @@
     <!-- Removing a grant that still carries a restriction [BUG-020] -->
     <ConfirmDialog
       :is-open="pendingRemoval !== null"
-      title="ลบสิทธิ์พร้อมข้อจำกัด"
+      :title="pendingRemovalTitle"
       :message="pendingRemovalMessage"
-      confirm-text="ลบทั้งสองอย่าง"
+      confirm-text="ลบ"
       cancel-text="ยกเลิก"
       @confirm="confirmUserRemoval"
       @cancel="pendingRemoval = null"
@@ -667,11 +667,16 @@ function restrictionLabels(uid: string): string[] {
 
 const pendingRemoval = ref<string | null>(null)
 
+const pendingRemovalTitle = computed(() =>
+  pendingRemoval.value ? `ลบสิทธิ์ของ ${getUserName(pendingRemoval.value)}` : '',
+)
+
+// Says what the click does, not why it is safe to offer — the "no other way
+// in" check is the code's job, not something the admin has to read
 const pendingRemovalMessage = computed(() => {
   const uid = pendingRemoval.value
   if (!uid) return ''
-  return `${getUserName(uid)} มีข้อจำกัดผูกอยู่ (${restrictionLabels(uid).join(', ')}) ` +
-    'และไม่ได้เข้าถึงทางอื่นเลย — ลบสิทธิ์แล้วข้อจำกัดจะถูกลบไปด้วย'
+  return `ข้อจำกัดที่ตั้งไว้ (${restrictionLabels(uid).join(', ')}) จะถูกลบไปด้วย`
 })
 
 function removeDirectUser(uid: string) {
