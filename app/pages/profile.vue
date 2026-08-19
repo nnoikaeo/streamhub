@@ -31,7 +31,14 @@ const { assignedFolders, fetchFolders } = useModeratorFolders()
 const profile = ref<User | null>(null)
 const isLoading = ref(true)
 
-const isModerator = computed(() => user.value?.role === 'moderator')
+/**
+ * Role comes from the Firestore record, not the auth store: the store is only
+ * refreshed when auth re-initialises, so an admin who changes someone's role
+ * mid-session leaves it stale — the badge (which reads the record) would say
+ * moderator while this card stayed hidden. Falls back to the store until the
+ * record arrives.
+ */
+const isModerator = computed(() => (profile.value?.role ?? user.value?.role) === 'moderator')
 
 const displayName = computed(
   () => profile.value?.name || user.value?.displayName || user.value?.email?.split('@')[0] || 'ผู้ใช้'
@@ -70,15 +77,17 @@ const joinedAt = computed(() => {
 
 onMounted(async () => {
   try {
+    // The record has to land first — whether the folder list is worth fetching
+    // depends on the role it carries.
+    profile.value = await service.getCurrentUser()
+
     // Company and group names are lookups, so both lists are needed before the
     // labels resolve; the folder list is only meaningful for a moderator.
-    const [current] = await Promise.all([
-      service.getCurrentUser(),
+    await Promise.all([
       fetchCompanies(),
       fetchGroups(),
       ...(isModerator.value ? [fetchFolders()] : []),
     ])
-    profile.value = current
   } finally {
     isLoading.value = false
   }
