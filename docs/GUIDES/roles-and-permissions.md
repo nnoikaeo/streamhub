@@ -284,7 +284,7 @@ interface FeaturePermissions {
   canShareDashboard: boolean // ⚠️ ไม่มี UI ไหนอ่านแล้ว ตั้งแต่ลบ Quick Share (2026-08-18)
 
   // Folder permissions
-  canCreateFolder: boolean
+  canCreateFolder: boolean // ⚠️ ไม่มี UI ไหนอ่านแล้ว ตั้งแต่ลบ stub สร้างโฟลเดอร์ (2026-08-19) — Explorer ใช้ `canCreateInCurrentFolder` ของตัวเอง
   canEditFolder: boolean
   canDeleteFolder: boolean
 

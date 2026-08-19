@@ -190,12 +190,13 @@ Page-specific components for dashboard functionality.
 - `folders: Folder[]` - Folder tree data
 - `selectedFolderId: string`
 - `allowSearch: boolean`
-- `allowCreate: boolean`
 
 **Features:**
 - Smart collapse for 4-5 level deep hierarchies
 - Search box to find folders
 - Accordion expand/collapse behavior
+
+> ⚠️ **ไม่ได้ถูก render ที่ไหนเลยตอนนี้** — มีแต่ `FolderAccordion` ที่เรียก และ `FolderAccordion` ก็ไม่มีหน้าไหนเรียกอีกที · sidebar จริงที่ผู้ใช้เห็นคือ `UnifiedSidebar` → `AdminAccordion` · prop `allowCreate` + event `create-folder` ถูกลบทิ้งพร้อม stub สร้างโฟลเดอร์ (2026-08-19, PR #395)
 
 **See:** [dashboard-discover-page.md - Smart Collapse logic](wireframes/dashboard-discover-page.md)
 

@@ -235,11 +235,11 @@
 Feature stubs, optional — app fully functional without them:
 
 - [ ] QuickActions **create dashboard** button routes to `/dashboard/create`, **which does not exist** — `app/pages/dashboard/index.vue` → `navigateTo('/dashboard/create')` gives a 404. Visible to moderator + admin. Worse than the stubs below, which at least say something
-- [ ] Home page **create folder** button — `app/pages/dashboard/index.vue` → `handleCreateFolder()` (`alert('… coming soon!')`)
-- [ ] Home page **share** button — `app/pages/dashboard/index.vue` → share handler
-- [ ] Explorer **folder creation dialog** — `app/composables/useDashboardPage.ts:329`
-- [ ] **Profile page** + nav — `app/components/ui/UserMenu.vue:156`
-- [ ] **Settings page** + nav — `app/components/ui/UserMenu.vue:165`
+- [x] ~~Home page **create folder** button~~ **ปิดด้วยการลบ** (PR #395) — ปุ่ม `+` กดไม่ถึงอยู่แล้ว: `PageLayout` ส่ง `:allow-create` ต่อให้ `UnifiedSidebar` ซึ่ง render แค่ `AdminAccordion` ไม่เคย render `FolderSidebar` · Explorer สร้างโฟลเดอร์ได้จริงอยู่แล้ว จึงลบทั้งสาย prop/event/handler แทนที่จะต่อ
+- [x] ~~Home page **share** button~~ ลบไปพร้อม Quick Share (2026-08-18, BUG-017)
+- [x] ~~Explorer **folder creation dialog**~~ ลบพร้อมกัน (PR #395) — `handleCreateFolder` ใน `useDashboardPage` เป็น `console.log` ที่ไม่มีทางถูกเรียก
+- [x] **Profile page** + nav ✅ **DONE** (PR #396) — `/profile` อ่านอย่างเดียว: ตัวตน, บทบาท, บริษัท, สถานะ, วันเข้าร่วม, กลุ่ม + โฟลเดอร์ที่ดูแล (moderator) · อ่าน `users/{uid}` ของตัวเอง + lookup companies/groups ซึ่งอยู่ในสิทธิ์ที่ rules ให้อยู่แล้ว
+- [x] ~~**Settings page** + nav~~ **ปิดด้วยการลบ** (PR #396) — ยังไม่มีค่าอะไรให้ผู้ใช้ตั้ง (ธีม/ภาษา/แจ้งเตือน ไม่มีในระบบ) เมนูที่กดแล้วเงียบถูกเอาออก
 - [x] **Dashboard view back button returns to origin** ✅ DONE (PR #328, #329) — `handleGoBack()` in `app/pages/dashboard/view/[id].vue` now uses `router.back()` when in-app history exists, falling back to `/dashboard/discover` on cold entry. Archive flow keeps the explicit push to Discover (previous listing is stale after archiving)
 - [x] **Back-navigation cold-entry guard** ✅ DONE (PR #329, #330) — back handlers must test `window.history.state?.back` (the previous **in-app** entry, `null` on cold entry), not `window.history.length` (counts the whole tab, so a direct link opened after visiting another site navigated out of the app). Applied in `app/pages/dashboard/view/[id].vue` → `handleGoBack()` and `app/components/features/PermissionsPage.vue` → `goBackToExplorer()`. Use the same check for any new back button
 
@@ -247,12 +247,14 @@ Feature stubs, optional — app fully functional without them:
 
 ## Current Implementation
 
-### Pages (14 pages)
+### Pages (23 pages)
 
 ```
 app/pages/
 ├── index.vue                          Redirect
 ├── login.vue                          Google OAuth login
+│
+├── profile.vue                        Read-only profile (all roles)
 │
 ├── dashboard/
 │   ├── index.vue                      Dashboard home
@@ -263,14 +265,17 @@ app/pages/
 │   ├── index.vue                      Admin dashboard overview
 │   ├── overview.vue                   Admin overview
 │   ├── permissions.vue                Permission editor (3-layer)
+│   ├── audit.vue                      Audit logs
+│   ├── health.vue                     System health
+│   ├── explorer/[[folderId]].vue      Admin folder explorer
 │   ├── companies/index.vue            Company CRUD
-│   ├── dashboards/index.vue           Dashboard CRUD
+│   ├── dashboards/index.vue           Dashboard CRUD (orphan route)
 │   ├── folders/index.vue              Folder CRUD
 │   ├── groups/index.vue               Group CRUD
 │   ├── invitations/index.vue          Invitation management
 │   ├── regions/index.vue              Region CRUD
 │   ├── tags/index.vue                 Tag CRUD
-│   └── users/index.vue               User CRUD
+│   └── users/index.vue                User CRUD
 │
 ├── manage/
 │   ├── permissions.vue                Moderator permission editor
