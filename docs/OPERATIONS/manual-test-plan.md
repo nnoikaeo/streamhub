@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 18 August 2569
-> **Total Test Cases:** 175
+> **Total Test Cases:** 176
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -338,6 +338,7 @@
 | 3.10.14 | ข้อจำกัดที่ยังมีผลต้องไม่ถูกลบ | 1. ให้สิทธิ์ผ่าน **บริษัท** ของ user + ให้ direct grant + ตั้งวันหมดอายุให้ user คนนั้น 2. ลบ **direct grant** | **ไม่ขึ้น dialog** และข้อจำกัดยังอยู่ (ยังกัดผ่านสิทธิ์บริษัท) | Medium | ✅ |
 | 3.10.15 | ลบสิทธิ์บริษัท/กลุ่มที่เป็นทางเข้าสุดท้าย → ถามเหมือนกัน | 1. ให้สิทธิ์เฉพาะ **บริษัท** ของ user + ตั้งวันหมดอายุ 2. ลบสิทธิ์บริษัทนั้น | ขึ้น dialog "ลบสิทธิ์บริษัท OAYT" → ยืนยัน = ข้อจำกัดหายด้วย (เดิมดักเฉพาะตอนลบ direct user) | Medium | ✅ |
 | 3.10.16 | ป้าย "เข้าถึงได้ / หมดอายุแล้ว" ในคอลัมน์รายชื่อ | 1. ให้สิทธิ์บริษัท/กลุ่ม หรืออยู่ใต้โฟลเดอร์ที่ให้สิทธิ์ 2. ดูคอลัมน์ผู้ใช้ | ป้ายเขียวบอกต้นทางแบบสั้น: `โฟลเดอร์ Finance` / `กลุ่ม Finance` / `บริษัท OAYT` / `ทุกบริษัท` / `สาธารณะ` (+`· +n` ถ้าได้หลายทาง) — คำว่า "โฟลเดอร์"/"กลุ่ม" ต้องแยกกันได้แม้ชื่อซ้ำ; คนที่มีสิทธิ์แต่หมดอายุ/ถูกระงับขึ้นป้ายเหลือง; แถบ "ผลลัพธ์รวม" ยังแสดงลูกโซ่เต็ม (`📁 Finance · บริษัท STTH`) | Medium | ✅ |
+| 3.10.17 | บันทึกสิทธิ์แล้วต้องมีข้อความยืนยัน (BUG-021) | 1. เปิด `/admin/permissions?dashboard=<id>` หรือกด 🔑 จาก Explorer 2. แก้สิทธิ์ 3. บันทึก | toast เขียว "บันทึกสิทธิ์สำหรับ …" ขึ้นให้เห็น แม้หน้าจะเด้งกลับ Explorer; ถ้าบันทึกล้มเหลวต้องขึ้น toast แดง | Medium | 🔍 |
 
 > 🧪 **TC 3.10.6–3.10.10 — ทดสอบ end-to-end บน Firestore prod จริง 2026-08-16** (ยืนยัน fix PR #364)
 > ทำบนแดชบอร์ด `EXPIRY-TEST` ที่สร้างขึ้นเฉพาะการทดสอบแล้วลบทิ้ง (โฟลเดอร์ "แดชบอร์ดหลัก" ซึ่งไม่ให้สิทธิ์สืบทอดกับใคร) กับ user `survey.streamwash@gmail.com` (role `user`, company OAYT — ไม่มีสิทธิ์ทางอื่นเลย ตัวแปรเดียวที่เหลือคือ expiry)
@@ -534,6 +535,7 @@
 | BUG-017 | ปุ่ม "แชร์" ใน `QuickShareDialog` (Discover) **ไม่เขียนอะไรเลย** — `handleShare` ใน `useDashboardPage` เป็น stub ไม่เคยเรียก `quickShareDashboard` แต่ dialog ปิดตัวเองหลัง emit ผู้ใช้จึงเห็นเหมือนสำเร็จ | TC 2.2 (share flow) | High | ⊘ ปิดด้วยการลบ — ต่อสายให้ทำงานแล้ว (PR #376) จากนั้นพบว่า **dialog ไม่มีทางเปิดในทุก UI** จึงตัดสินใจลบ Quick Share ทั้งชุด ดูรายละเอียดใต้ตาราง |
 | BUG-018 | หน้า `/admin/permissions` (+ `/manage/permissions`) เขียน `restrictions.expiry` เป็น **ISO string ที่เที่ยงคืน UTC** = 07:00 น. ตามเวลาไทย ⇒ ตั้ง "หมดอายุ 18 ส.ค." สิทธิ์ตัดเช้าวันที่ 18 เร็วไป 17 ชม.; และ shape ต่างจากที่ Quick Share เขียน (`Timestamp`) ทั้งที่เป็นฟิลด์เดียวกัน | TC 3.10.11–3.10.12 | Medium | 🔧 Fixed — **ยืนยันบน prod 2026-08-19**: `dash_1787110946066` ได้ `object<Timestamp>` + `resolves 2026-08-20T16:59:59.999Z` (= 23:59:59.999 น. ไทย) ✅ และฝั่งโฟลเดอร์ `folder_1785082588448` ได้ `Timestamp` เดียวกัน ✅ |
 | BUG-020 | ลบสิทธิ์ผู้ใช้ออกจากแดชบอร์ด แต่ข้อจำกัด (หมดอายุ/ระงับ) ของคนนั้นยังค้างอยู่ — หน้าจอแสดง `จัดการสิทธิ์ 0` คู่กับ `ข้อจำกัด 1` โดยไม่บอกว่ามีผลหรือไม่ และถ้าให้สิทธิ์คนเดิมใหม่ภายหลัง วันหมดอายุเก่าจะกลับมามีผลเงียบ ๆ | TC 3.10.13 | Medium | 🔧 Fixed (ถาม ConfirmDialog ตอนลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ **เฉพาะเมื่อ direct grant เป็นทางเข้าเดียว** ยืนยันแล้วลบทั้งคู่) — **ยืนยันบน prod 2026-08-19** TC 3.10.13/3.10.14/3.10.15 ผ่านครบ ✅ |
+| BUG-021 | บันทึกสิทธิ์สำเร็จแล้ว **ไม่มีข้อความยืนยันเลย** — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (คือทางเข้าปกติทั้งหมด) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` เป็นโค้ดที่ไม่มีทางแสดง ผู้ใช้ไม่รู้ว่าบันทึกติดหรือไม่ | TC 3.10.17 | Medium | 🔧 Fixed (`showToast` ก่อน navigate — toast เป็น `useState` singleton จึงข้าม route ได้; ทางที่ล้มเหลวก็ toast ด้วย) — **รอ UI pass** |
 | BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้ | TC 2.3.1 | Medium | ⊘ ปิดด้วยการลบ — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อม Quick Share (2026-08-18) เหลือทางเดียวคือ Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
@@ -651,7 +653,7 @@
 | Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
 | Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
-| Admin Permissions | 16 | High | ✅ (16/16 — 3.10.11–3.10.16 verified on prod 2026-08-19) |
+| Admin Permissions | 17 | High | 🔍 partial (16 ✅ — 3.10.11–3.10.16 verified on prod 2026-08-19; 3.10.17 BUG-021 fix รอ UI pass) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 7 | High | ✅ (6/7 ✅ / 1 🐛 BUG-008 fixed) |
@@ -660,7 +662,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **175** | — | 146 ✅ / 8 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **176** | — | 146 ✅ / 9 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 
