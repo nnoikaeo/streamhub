@@ -12,7 +12,7 @@
  * - No folder tree in sidebar (folders are filters on discover page)
  *
  * Props kept for backward compatibility with PageLayout:
- * - folders, showFolders, selectedFolderId, allowSearch, allowCreate
+ * - folders, showFolders, selectedFolderId, allowSearch
  *   are accepted but no longer rendered in sidebar.
  *
  * Usage:
@@ -38,8 +38,6 @@ interface Props {
   selectedFolderId?: string | null
   /** @deprecated Not used. Kept for backward compat. */
   allowSearch?: boolean
-  /** @deprecated Not used. Kept for backward compat. */
-  allowCreate?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -48,12 +46,10 @@ const props = withDefaults(defineProps<Props>(), {
   showAdmin: undefined,
   selectedFolderId: null,
   allowSearch: true,
-  allowCreate: false,
 })
 
 defineEmits<{
   'select-folder': [folder: Folder]
-  'create-folder': []
 }>()
 
 // Role navigation — source of truth for menu groups

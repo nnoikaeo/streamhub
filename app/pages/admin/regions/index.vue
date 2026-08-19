@@ -194,7 +194,6 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   <PageLayout
     :folders="folderTree"
     :allow-search="true"
-    :allow-create="false"
     :breadcrumbs="breadcrumbs"
   >
     <!-- Main Content -->

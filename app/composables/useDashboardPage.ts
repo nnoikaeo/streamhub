@@ -39,9 +39,6 @@ export interface UseDashboardPageOptions {
  *   isLoading,
  *   error,
  *
- *   // Permissions
- *   canCreateFolder,
- *
  *   // Methods
  *   selectFolder,
  *   loadDashboards,
@@ -111,7 +108,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   })
 
   // ========== Permissions ==========
-  const canCreateFolder = computed(() => permissionsStore.can('canCreateFolder'))
   const canDeleteDashboard = computed(() => permissionsStore.can('canDeleteDashboard'))
   const canEditDashboard = computed(() => permissionsStore.can('canEditDashboard'))
 
@@ -263,22 +259,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
     console.log('Menu action event:', event, 'Dashboard:', dashboard.id)
   }
 
-  /**
-   * Handle folder creation
-   */
-  const handleCreateFolder = () => {
-    log('handleCreateFolder', { folderId: selectedFolderId.value })
-
-    // Check permission
-    if (!canCreateFolder.value) {
-      dashboardStore.setError('You do not have permission to create folders')
-      return
-    }
-
-    console.log('Create folder in:', selectedFolderId.value)
-    // TODO: Implement folder creation dialog
-  }
-
   // ========== Watchers ==========
 
   /**
@@ -422,7 +402,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
     isInitializing,
 
     // Permissions
-    canCreateFolder,
     canDeleteDashboard,
     canEditDashboard,
 
@@ -436,7 +415,6 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
     selectFolder,
     handleViewDashboard,
     handleMenuDashboard,
-    handleCreateFolder,
     setupInfiniteScroll,
     initialize,
 

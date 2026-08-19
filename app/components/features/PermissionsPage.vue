@@ -800,7 +800,6 @@ watch(() => props.allFolders, (folders) => {
   <PageLayout
     :folders="folderTree"
     :allow-search="false"
-    :allow-create="false"
     :breadcrumbs="breadcrumbs"
   >
     <AdminPageContent>

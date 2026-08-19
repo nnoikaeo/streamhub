@@ -14,13 +14,11 @@
  * - showFolders: Show/hide folders accordion section
  * - showAdmin: Show/hide admin accordion section
  * - allowSearch: Allow searching within folders
- * - allowCreate: Allow creating new folders
  * - selectedFolderId: Currently selected folder ID
  * - sidebarWidth: Sidebar width in rem units
  *
  * Events:
  * - select-folder: Fired when a folder is selected
- * - create-folder: Fired when create folder is clicked
  *
  * Usage:
  * <PageLayout
@@ -63,10 +61,6 @@ interface Props {
    */
   allowSearch?: boolean
 
-  /**
-   * Allow create folder button in sidebar
-   */
-  allowCreate?: boolean
 
   /**
    * Currently selected folder ID
@@ -83,7 +77,6 @@ withDefaults(defineProps<Props>(), {
   breadcrumbs: undefined,
   folders: () => [],
   allowSearch: true,
-  allowCreate: false,
   selectedFolderId: null,
   sidebarWidth: 15,
 })
@@ -96,7 +89,6 @@ const { showAdmin, showFolders } = useSidebarVisibility()
 
 const emit = defineEmits<{
   'select-folder': [folder: Folder]
-  'create-folder': []
 }>()
 
 /**
@@ -104,10 +96,6 @@ const emit = defineEmits<{
  */
 const handleSelectFolder = (folder: Folder) => {
   emit('select-folder', folder)
-}
-
-const handleCreateFolder = () => {
-  emit('create-folder')
 }
 </script>
 
@@ -120,10 +108,8 @@ const handleCreateFolder = () => {
         :show-folders="showFolders"
         :show-admin="showAdmin"
         :allow-search="allowSearch"
-        :allow-create="allowCreate"
         :selected-folder-id="selectedFolderId"
         @select-folder="handleSelectFolder"
-        @create-folder="handleCreateFolder"
       />
       <!-- Note: showFolders & showAdmin now determined by user role via composable -->
     </template>

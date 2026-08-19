@@ -88,7 +88,6 @@ onMounted(fetchHealth)
 <template>
   <PageLayout
     :allow-search="false"
-    :allow-create="false"
     :breadcrumbs="breadcrumbs"
   >
     <AdminPageContent>
