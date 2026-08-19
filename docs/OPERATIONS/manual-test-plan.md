@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 19 August 2569
-> **Total Test Cases:** 199
+> **Total Test Cases:** 200
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -492,8 +492,9 @@
 
 | # | Scenario | Expected Behavior | Status |
 |---|----------|-------------------|--------|
-| 6.1.1 | Token expired during action | Redirect ไป `/login?returnTo=<หน้าเดิม>` แล้ว login สำเร็จต้องพากลับหน้าเดิม (พร้อม query เช่น `?dashboard=`) | 🔍 (BUG-024 แก้แล้ว รอกดจริง) |
-| 6.1.2 | User account deactivated mid-session | รีเฟรช/เปิดหน้าใหม่ → sign out อัตโนมัติ + ข้อความ "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ" ที่หน้า `/` | 🔍 (BUG-023 แก้แล้ว รอกดจริง) |
+| 6.1.1 | Token expired during action | Redirect ไป `/login?returnTo=<หน้าเดิม>` แล้ว login สำเร็จต้องพากลับหน้าเดิม (พร้อม query เช่น `?dashboard=`) | ✅ (2026-08-19 — เข้า `/admin/permissions?dashboard=dash_1785082599181` ทั้งที่ไม่ได้ login แล้ว login เป็น admin กลับมาหน้าเดิมพร้อม query ครบ · `?returnTo=https://example.com` ไป `/dashboard` ไม่ออกนอกเว็บ) |
+| 6.1.2 | User account deactivated mid-session | รีเฟรชแล้วต้องถูก sign out ทันที เข้าหน้าไหนไม่ได้อีก | ✅ (2026-08-19 — user `survey` เปิดค้างที่ `/dashboard` · admin ปิดสวิตช์ · กด F5 เด้งออก `/login?returnTo=/dashboard` ทันที) |
+| 6.1.4 | หน้า login บอกเหตุผลที่ถูกเตะออก | ต่อจาก 6.1.2 — หน้า `/login` ต้องมีแถบแดง "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ" เหนือปุ่ม Google (ไม่ใช่หน้า login เปล่า) | 🔍 (เพิ่มแบนเนอร์หลังรอบทดสอบ 6.1.2 — รอเห็นด้วยตา 1 ครั้ง) |
 | 6.1.3 | Permission revoked mid-session | หลัง**รีเฟรช** `initAuth` อ่าน role ใหม่ → middleware เด้งออกจากหน้าที่ไม่มีสิทธิ์ · ระหว่าง SPA ที่ยังไม่รีเฟรช store ยังเป็นค่าเดิมตามการออกแบบ (role อ่านตอน auth init เท่านั้น) | ☐ |
 
 ### 6.2 Data Errors
@@ -561,8 +562,8 @@
 | BUG-021 | บันทึกสิทธิ์สำเร็จแล้ว **ไม่มีข้อความยืนยันเลย** — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (คือทางเข้าปกติทั้งหมด) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` เป็นโค้ดที่ไม่มีทางแสดง ผู้ใช้ไม่รู้ว่าบันทึกติดหรือไม่ | TC 3.10.17 | Medium | 🔧 Fixed (`showToast` ก่อน navigate — toast เป็น `useState` singleton จึงข้าม route ได้; ทางที่ล้มเหลวก็ toast ด้วย) — **ยืนยันบน prod 2026-08-19** ✅ |
 | BUG-022 | สวิตช์ **เข้าถึงสาธารณะ** ไม่ได้เดินผ่านการตรวจของ BUG-020 — มันเขียน `access.public` ตรง ๆ ที่ [PermissionsPage.vue:103](../../app/components/features/PermissionsPage.vue#L103) ไม่ใช่ `requestRemoval` ใน PermissionEditor ⇒ ปิดสาธารณะทั้งที่มีคนถูกระงับ/หมดอายุ = ทิ้งข้อจำกัดกำพร้าเงียบ ๆ (พบตอน regression pass 2026-08-19: ปิดสาธารณะ + ลบกลุ่ม แล้ว `revoke` ของ Janine ค้าง) | TC 3.10.22–3.10.23 | Medium | 🔧 Fixed (ย้ายการตรวจไปที่ตอน **กดบันทึก** ด้วย `strandedRestrictions`; ถอด guard รายปุ่มใน `PermissionEditor` ออก) — **ยืนยันบน prod 2026-08-19** ครบ 4 เส้นทาง: ถาม / ยกเลิกไม่เขียน / ยืนยันเขียนทั้งคู่ / ข้อจำกัดที่ยังมีผลไม่ถูกแตะ ✅ |
 | BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้ | TC 2.3.1 | Medium | ⊘ ปิดด้วยการลบ — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อม Quick Share (2026-08-18) เหลือทางเดียวคือ Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว |
-| BUG-023 | **ปิดบัญชีผู้ใช้กลางคัน แล้วเขายังใช้งานต่อได้** — `isActive === false` ถูกเช็คเฉพาะใน `signInWithGoogle` ส่วน `initAuth` (ที่รันทุกครั้งที่รีเฟรช) เช็คแค่ว่า "พบ user ไหม" และ `firestore.rules` ก็ไม่ดู `isActive` ⇒ คนที่ถูกปิดบัญชียังเปิดหน้า อ่านรายการแดชบอร์ด/โครงสร้างโฟลเดอร์ได้จนกว่าจะ sign out เอง (ตัวเนื้อหาแดชบอร์ดถูกกันไว้ที่ server แล้ว — `embed/request.post.ts` เช็ค `isActive`) | TC 6.1.2 | High | 🔧 Fixed (เช็ค `isActive` ใน `initAuth` → `signOut()` + ข้อความ "บัญชีของคุณถูกปิดใช้งาน") |
-| BUG-024 | หมด session กลางทางแล้วกลับเข้ามาไม่ถึงที่เดิม — middleware `navigateTo('/login')` ไม่แนบปลายทาง ⇒ login ใหม่ไปโผล่ `/dashboard` เสมอ คนที่กำลังแก้สิทธิ์ที่ `/admin/permissions?dashboard=<id>` ต้องเดินกลับเอง | TC 6.1.1 | Medium | 🔧 Fixed (`?returnTo=` + `safeReturnTo` sanitiser กัน open redirect; 13 เทสต์) |
+| BUG-023 | **ปิดบัญชีผู้ใช้กลางคัน แล้วเขายังใช้งานต่อได้** — `isActive === false` ถูกเช็คเฉพาะใน `signInWithGoogle` ส่วน `initAuth` (ที่รันทุกครั้งที่รีเฟรช) เช็คแค่ว่า "พบ user ไหม" และ `firestore.rules` ก็ไม่ดู `isActive` ⇒ คนที่ถูกปิดบัญชียังเปิดหน้า อ่านรายการแดชบอร์ด/โครงสร้างโฟลเดอร์ได้จนกว่าจะ sign out เอง (ตัวเนื้อหาแดชบอร์ดถูกกันไว้ที่ server แล้ว — `embed/request.post.ts` เช็ค `isActive`) | TC 6.1.2 | High | 🔧 Fixed (เช็ค `isActive` ใน `initAuth` → `signOut()`) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · การเตะออกเกิดก่อนกิ่ง `authError` ของ middleware ผู้ใช้จึงเห็นหน้า login เปล่า ตามมาด้วยแถบเหตุผลบนหน้า login (TC 6.1.4) |
+| BUG-024 | หมด session กลางทางแล้วกลับเข้ามาไม่ถึงที่เดิม — middleware `navigateTo('/login')` ไม่แนบปลายทาง ⇒ login ใหม่ไปโผล่ `/dashboard` เสมอ คนที่กำลังแก้สิทธิ์ที่ `/admin/permissions?dashboard=<id>` ต้องเดินกลับเอง | TC 6.1.1 | Medium | 🔧 Fixed (`?returnTo=` + `safeReturnTo` sanitiser กัน open redirect; 13 เทสต์) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ ทั้งเส้นปกติและเส้น open redirect |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
 **BUG-001 รายละเอียด:**
@@ -707,8 +708,8 @@
 | Moderator Permissions | 5 | High | ✅ (5/5) |
 | Cross-Cutting (CRUD) | 11 | High | ✅ partial (10/11 ✅ — เหลือ 5.1.6 loading-state ที่ต้อง throttle เอง) |
 | Navigation & Middleware | 5 | Critical | ✅ partial (3/5 — 5.2.1–5.2.3 ปิดด้วย pre-launch A; sidebar+mobile ยัง ☐) |
-| Error Scenarios | 9 | Medium | 🔍 partial (1 ✅ / 3 🔍 / 5 ☐ — 6.1.1+6.1.2 แก้แล้วรอกดจริง) |
-| **TOTAL** | **199** | — | 176 ✅ / 4 🔍 / 8 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
+| Error Scenarios | 10 | Medium | 🔍 partial (3 ✅ / 2 🔍 / 5 ☐ — 6.1.1/6.1.2 ปิดแล้ว, เหลือ 6.1.4 แบนเนอร์ + data/network) |
+| **TOTAL** | **200** | — | 178 ✅ / 3 🔍 / 8 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 

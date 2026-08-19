@@ -5,6 +5,7 @@ import ErrorDialog from '~/components/ErrorDialog.vue'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 const { signInWithGoogle } = useAuth()
 const loading = ref(false)
 const showErrorDialog = ref(false)
@@ -72,6 +73,13 @@ const handleRequestAccess = () => {
         </p>
 
         <ClientOnly>
+          <!-- Why the session ended, when it ended on its own. `initAuth` signs
+               a deactivated account out, so the middleware bounces here before
+               the index page (which also renders authError) is ever reached. -->
+          <div v-if="authStore.authError" class="login-alert" role="alert">
+            {{ authStore.authError }}
+          </div>
+
           <!-- Sign In Button -->
           <button
             key="sign-in-button"
@@ -103,6 +111,17 @@ const handleRequestAccess = () => {
 </template>
 
 <style scoped>
+.login-alert {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  background-color: #fef2f2;
+  color: #991b1b;
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
 /* Login Card Container */
 .login-card {
   width: 100%;
