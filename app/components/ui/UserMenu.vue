@@ -153,8 +153,7 @@ const handleClickOutside = (event: MouseEvent) => {
  */
 const handleProfile = () => {
   closeMenu()
-  // TODO: Navigate to profile page
-  console.log('Profile clicked')
+  navigateTo('/profile')
 }
 
 /**
