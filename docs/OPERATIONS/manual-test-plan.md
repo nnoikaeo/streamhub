@@ -511,7 +511,7 @@
 |---|----------|-------------------|--------|
 | 6.3.1 | Slow API response | Spinner ของหน้าแสดงระหว่างรอ (throttle ที่ DevTools → Network) | ☐ |
 | 6.3.2 | API 500 error | Error toast ตามทรัพยากร เช่น "เกิดข้อผิดพลาดในการบันทึกแท็ก" / "เกิดข้อผิดพลาดในการลบแท็ก" ([useAdminCrudPage.ts:123](../../app/composables/useAdminCrudPage.ts#L123)) — ไม่มีข้อความรวม "เกิดข้อผิดพลาด กรุณาลองใหม่" ในระบบ | ☐ |
-| 6.3.3 | API 404 (resource not found) | หน้า `/dashboard/view/<id ที่ไม่มี>` ขึ้นกล่อง error ข้อความ `Dashboard not found` (อังกฤษ ไม่ใช่ "ไม่พบข้อมูล") | ☐ |
+| 6.3.3 | API 404 (resource not found) | หน้า `/dashboard/view/<id ที่ไม่มี>` ขึ้นกล่องแดง "เกิดข้อผิดพลาดในการโหลดรายงาน" + รายละเอียด `Dashboard not found` (อังกฤษ) + ปุ่ม "← ย้อนกลับ" | ✅ (2026-08-19 — `/dashboard/view/dash_xxxx` ด้วยบัญชี user) |
 
 ---
 
@@ -709,8 +709,8 @@
 | Moderator Permissions | 5 | High | ✅ (5/5) |
 | Cross-Cutting (CRUD) | 11 | High | ✅ partial (10/11 ✅ — เหลือ 5.1.6 loading-state ที่ต้อง throttle เอง) |
 | Navigation & Middleware | 5 | Critical | ✅ partial (4/5 ✅ + 5.2.5 🔍 — BUG-025 แก้แล้ว รอยืนยันทางปิด) |
-| Error Scenarios | 10 | Medium | 🔍 partial (4 ✅ / 1 🔍 / 5 ☐ — §6.1 ปิดครบ เหลือ data/network) |
-| **TOTAL** | **200** | — | 180 ✅ / 3 🔍 / 6 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
+| Error Scenarios | 10 | Medium | 🔍 partial (5 ✅ / 1 🔍 / 4 ☐ — §6.1 ปิดครบ, 6.3.3 ผ่าน) |
+| **TOTAL** | **200** | — | 181 ✅ / 3 🔍 / 5 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
