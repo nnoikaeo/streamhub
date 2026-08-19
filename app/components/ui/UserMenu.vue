@@ -165,6 +165,19 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Phones: the avatar alone identifies the account — the name would push the
+   whole menu off the right edge (TC 5.2.5) */
+@media (max-width: 768px) {
+  .user-name,
+  .dropdown-icon {
+    display: none;
+  }
+
+  .user-menu-btn {
+    padding: 0.375rem;
+  }
+}
+
 .user-menu {
   position: relative;
 }
