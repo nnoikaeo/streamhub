@@ -481,7 +481,7 @@
 | 5.2.1 | Unauthenticated → `/admin/*` | 1. Open admin URL without login | Redirect to `/login` | Critical | ✅ (UI: pre-launch group A1, 2026-06-28) |
 | 5.2.2 | User role → `/admin/*` | 1. Login as User 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | ✅ (UI: pre-launch group A2, 2026-06-28) |
 | 5.2.3 | Moderator → `/admin/*` | 1. Login as Moderator 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | ✅ (UI: pre-launch group A3, 2026-06-28) |
-| 5.2.4 | Sidebar reflects role | 1. Login as each role | Sidebar shows role-appropriate menu items | High | ☐ |
+| 5.2.4 | Sidebar reflects role | 1. Login as each role | user = แดชบอร์ด (หน้าแรก + แดชบอร์ดทั้งหมด) เท่านั้น · moderator = + accordion "จัดการ" · admin = + accordion "ผู้ดูแลระบบ" (ภาพรวม/ผู้ใช้/คำเชิญ/Explorer/บริษัท/เขตพื้นที่/กลุ่มผู้ใช้/แท็ก/Audit Logs/System Health) | High | ✅ (2026-08-19 — เห็นครบ 3 role: `survey` user, `n.noikaeo` moderator, `it.streamwash` admin) |
 | 5.2.5 | Sidebar visibility on mobile | 1. Open on mobile viewport | Sidebar in drawer, toggle button visible | Medium | ☐ |
 
 ---
@@ -494,7 +494,7 @@
 |---|----------|-------------------|--------|
 | 6.1.1 | Token expired during action | Redirect ไป `/login?returnTo=<หน้าเดิม>` แล้ว login สำเร็จต้องพากลับหน้าเดิม (พร้อม query เช่น `?dashboard=`) | ✅ (2026-08-19 — เข้า `/admin/permissions?dashboard=dash_1785082599181` ทั้งที่ไม่ได้ login แล้ว login เป็น admin กลับมาหน้าเดิมพร้อม query ครบ · `?returnTo=https://example.com` ไป `/dashboard` ไม่ออกนอกเว็บ) |
 | 6.1.2 | User account deactivated mid-session | รีเฟรชแล้วต้องถูก sign out ทันที เข้าหน้าไหนไม่ได้อีก | ✅ (2026-08-19 — user `survey` เปิดค้างที่ `/dashboard` · admin ปิดสวิตช์ · กด F5 เด้งออก `/login?returnTo=/dashboard` ทันที) |
-| 6.1.4 | หน้า login บอกเหตุผลที่ถูกเตะออก | ต่อจาก 6.1.2 — หน้า `/login` ต้องมีแถบแดง "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ" เหนือปุ่ม Google (ไม่ใช่หน้า login เปล่า) | 🔍 (เพิ่มแบนเนอร์หลังรอบทดสอบ 6.1.2 — รอเห็นด้วยตา 1 ครั้ง) |
+| 6.1.4 | หน้า login บอกเหตุผลที่ถูกเตะออก | ต่อจาก 6.1.2 — หน้า `/login` ต้องมีแถบแดง "บัญชีของคุณถูกปิดใช้งาน กรุณาติดต่อผู้ดูแลระบบ" เหนือปุ่ม Google (ไม่ใช่หน้า login เปล่า) | ✅ (2026-08-19 — เห็นแถบแดงหลังกด F5 ที่ `/login?returnTo=/dashboard`) |
 | 6.1.3 | Permission revoked mid-session | หลัง**รีเฟรช** `initAuth` อ่าน role ใหม่ → middleware เด้งออกจากหน้าที่ไม่มีสิทธิ์ · ระหว่าง SPA ที่ยังไม่รีเฟรช store ยังเป็นค่าเดิมตามการออกแบบ (role อ่านตอน auth init เท่านั้น) | ☐ |
 
 ### 6.2 Data Errors
@@ -707,9 +707,9 @@
 | Moderator Explorer | 6 | High | ✅ (6/6) |
 | Moderator Permissions | 5 | High | ✅ (5/5) |
 | Cross-Cutting (CRUD) | 11 | High | ✅ partial (10/11 ✅ — เหลือ 5.1.6 loading-state ที่ต้อง throttle เอง) |
-| Navigation & Middleware | 5 | Critical | ✅ partial (3/5 — 5.2.1–5.2.3 ปิดด้วย pre-launch A; sidebar+mobile ยัง ☐) |
-| Error Scenarios | 10 | Medium | 🔍 partial (3 ✅ / 2 🔍 / 5 ☐ — 6.1.1/6.1.2 ปิดแล้ว, เหลือ 6.1.4 แบนเนอร์ + data/network) |
-| **TOTAL** | **200** | — | 178 ✅ / 3 🔍 / 8 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
+| Navigation & Middleware | 5 | Critical | ✅ partial (4/5 — เหลือ 5.2.5 mobile drawer) |
+| Error Scenarios | 10 | Medium | 🔍 partial (4 ✅ / 1 🔍 / 5 ☐ — §6.1 ปิดครบ เหลือ data/network) |
+| **TOTAL** | **200** | — | 180 ✅ / 2 🔍 / 7 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
