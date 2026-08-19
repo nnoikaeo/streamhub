@@ -445,11 +445,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 5.1.1 | Create → Toast success | 1. Create any resource | Toast: "เพิ่ม&lt;ทรัพยากร&gt;เรียบร้อยแล้ว" (เช่น "เพิ่มแท็กเรียบร้อยแล้ว") | High | 🔍 |
+| 5.1.1 | Create → Toast success | 1. Create any resource | Toast: "เพิ่ม&lt;ทรัพยากร&gt;เรียบร้อยแล้ว" (เช่น "เพิ่มแท็กเรียบร้อยแล้ว") | High | ✅ (prod 2026-08-19 — `/admin/tags` สร้าง `ZZ-TEST-511` ได้ toast เขียว "เพิ่มแท็กเรียบร้อยแล้ว" ตรงคำ) |
 | 5.1.2 | Update → Toast success | 1. Edit any resource | Toast: "แก้ไข&lt;ทรัพยากร&gt;เรียบร้อยแล้ว" | High | ✅ (UI: pre-launch B1–B3, 2026-06-28 — แก้ role/group ที่ `/admin/users` ขึ้น toast ทุกครั้ง) |
 | 5.1.3 | Delete → Confirm dialog | 1. Click Delete on any resource | ConfirmDialog เปิดก่อนเสมอ → ยืนยัน = Toast "ลบ &lt;ชื่อรายการ&gt; เรียบร้อยแล้ว" | High | ✅ (UI: pre-launch B4 2026-06-28 + TC 3.3.5 / 3.5.9 ที่เห็น dialog แล้วโดน guard บล็อก) |
 | 5.1.4 | Form validation — errors on submit | 1. Submit form with invalid data | Field-level error messages shown | High | ✅ |
-| 5.1.5 | Modal close without saving | 1. Open modal 2. Fill data 3. Click Cancel | No changes persisted | Medium | 🔍 (`FormModal` cancel emit `cancel` + ปิด modal เท่านั้น — เขียน Firestore อยู่ใน `handleSave` ทางเดียว; รอกดจริง 1 ครั้ง) |
+| 5.1.5 | Modal close without saving | 1. Open modal 2. Fill data 3. Click Cancel | No changes persisted | Medium | ✅ (prod 2026-08-19 — กรอก `ZZ-CANCEL-TEST` แล้วกดยกเลิก, รีเฟรชแล้วยัง "แสดง 1–7 จาก 7 รายการ" เท่าเดิม) |
 | 5.1.6 | Loading state during API call | 1. Submit form (slow network) | Spinner shown, button disabled | Medium | ☐ |
 | 5.1.7 | Error clears when the field is fixed | 1. `/admin/dashboards` → เพิ่มแดชบอร์ดใหม่ 2. กด บันทึก ทั้งที่ว่าง 3. เลือกโฟลเดอร์ | แดงใต้โฟลเดอร์หายทันที ไม่ต้องกด บันทึก ซ้ำ | High | ✅ |
 | 5.1.8 | Fixing one field keeps the others' errors | ต่อจาก 5.1.7 ก่อนกรอกชื่อ | แดงใต้ ชื่อแดชบอร์ด ยังอยู่ | High | ✅ |
@@ -673,10 +673,10 @@
 | Admin Explorer | 9 | High | ✅ (7/9 ✅ / 2 🐛 BUG-008 + BUG-013 fixed และ re-verified) |
 | Moderator Explorer | 6 | High | ✅ (6/6) |
 | Moderator Permissions | 5 | High | ✅ (5/5) |
-| Cross-Cutting (CRUD) | 11 | High | 🔍 partial (8/11 ✅ / 5.1.1+5.1.5 รอกดจริง / 5.1.6 loading-state human) |
+| Cross-Cutting (CRUD) | 11 | High | ✅ partial (10/11 ✅ — เหลือ 5.1.6 loading-state ที่ต้อง throttle เอง) |
 | Navigation & Middleware | 5 | Critical | ✅ partial (3/5 — 5.2.1–5.2.3 ปิดด้วย pre-launch A; sidebar+mobile ยัง ☐) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **194** | — | 168 ✅ / 3 🔍 / 12 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **194** | — | 170 ✅ / 1 🔍 / 12 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
