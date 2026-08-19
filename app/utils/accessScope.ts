@@ -1,45 +1,57 @@
 /**
- * "Can this user still reach the dashboard some other way?" [BUG-020]
+ * "Would this user still reach the dashboard?" [BUG-020]
  *
  * `restrictions.expiry` / `restrictions.revoke` are Layer 3: they apply on top
- * of every path a user can gain access by, so removing a direct grant does not
- * make a restriction meaningless — a user reached through a company or group
- * grant is still time-boxed by it. Dropping the restriction in that case would
- * silently hand back access the admin had deliberately limited.
+ * of every path into a dashboard, so removing one grant does not make a
+ * restriction meaningless — a user who still arrives through a company or group
+ * grant is still bound by it. Clearing it then would silently hand back access
+ * an admin had deliberately limited.
  *
- * The permission editor uses this to decide whether removing a direct grant
- * leaves a restriction that can do nothing except surprise whoever grants the
- * user access again later — only then does it offer to clear it.
+ * The permission editor uses this to spot the opposite case: a restriction on
+ * someone who, after the grant being removed, has no way in at all. That entry
+ * can do nothing except reappear the next time someone grants them access, so
+ * the editor offers to clear it.
  */
-
-/** The grant state as the editor holds it, before any save. */
-export interface AccessScope {
-  public?: boolean
-  company: string[]
-  groups: string[]
-}
 
 /** Sentinel used by the editor's company picker for "every company". */
 export const ALL_COMPANIES = 'ALL'
 
-/**
- * Whether `uid` keeps access after their direct user grant is removed.
- *
- * @param uid the user being removed
- * @param access the grant state minus nothing — direct users are ignored here
- *   on purpose, since that is the grant being taken away
- * @param userCompany company code of that user, when known
- * @param groupMembers members of each granted group, keyed by group id
- */
-export function hasAccessBesidesDirectUser(
+/** The grant state as the editor holds it, before any save. */
+export interface GrantState {
+  public?: boolean
+  users: string[]
+  groups: string[]
+  companies: string[]
+}
+
+/** Whether `uid` has access under `state`. */
+export function hasAccess(
   uid: string,
-  access: AccessScope,
+  state: GrantState,
   userCompany: string | undefined,
   groupMembers: Record<string, string[]>,
 ): boolean {
-  if (access.public) return true
-  if (access.company.includes(ALL_COMPANIES)) return true
-  if (userCompany && access.company.includes(userCompany)) return true
+  if (state.public) return true
+  if (state.users.includes(uid)) return true
+  if (state.companies.includes(ALL_COMPANIES)) return true
+  if (userCompany && state.companies.includes(userCompany)) return true
 
-  return access.groups.some((gid) => groupMembers[gid]?.includes(uid) ?? false)
+  return state.groups.some((gid) => groupMembers[gid]?.includes(uid) ?? false)
+}
+
+/**
+ * Which of `restrictedUids` would be left with a restriction and no access.
+ *
+ * @param restrictedUids users carrying a revoke or expiry entry
+ * @param state the grant state as it WOULD be after the removal
+ * @param companyOf company code per uid, where known
+ * @param groupMembers members of each group, keyed by group id
+ */
+export function restrictedWithoutAccess(
+  restrictedUids: string[],
+  state: GrantState,
+  companyOf: Record<string, string | undefined>,
+  groupMembers: Record<string, string[]>,
+): string[] {
+  return restrictedUids.filter((uid) => !hasAccess(uid, state, companyOf[uid], groupMembers))
 }
