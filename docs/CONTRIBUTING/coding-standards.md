@@ -414,9 +414,9 @@ export function toExpiryTimestamps<T>(
 ```
 
 Files following this shape: `expiryWrite.ts` (expiry normalisation on save),
-`accessScope.ts` (does a user keep access after this grant is removed),
-`effectiveAccess.ts` (who reaches an item and why — read by both the permission
-picker badges and the effective-access bar), `groupSync.ts`.
+`effectiveAccess.ts` (who reaches an item and why — read by the picker badges,
+the effective-access bar, and the save-time check for restrictions left with no
+grant to act on), `groupSync.ts`.
 
 Two rules follow from it:
 
@@ -426,6 +426,11 @@ Two rules follow from it:
   and the picker each had their own idea of "has access", and the screen
   contradicted itself (BUG-020). Two readers of the same question share the
   function rather than the answer
+- **guard where the routes converge, not at each control.** The first version of
+  that guard asked when a grant was removed, and so never covered the public and
+  inheritance switches, which live on the page rather than in the editor
+  (BUG-022). It now runs on save — one place, every route, and the moment the
+  write actually happens
 
 ## Custom Cells in `DataTable`
 

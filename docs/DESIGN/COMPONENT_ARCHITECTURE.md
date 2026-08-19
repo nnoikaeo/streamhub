@@ -451,8 +451,8 @@ app/components/
    ├── DashboardGrid.vue
    ├── FolderSidebar.vue
    ├── FolderTree.vue
-   ├── PermissionEditor.vue       # 3-column grant editor + restrictions; asks before
-   │                               # stranding a restriction, badges who already has access
+   ├── PermissionEditor.vue       # 3-column grant editor + restrictions; badges who
+   │                               # already has access and why
    ├── AuditLog.vue
    ├── TagBadge.vue               # (NEW) Tag display chip
    ├── TagFilter.vue              # (NEW) Tag filter bar for View All page
@@ -460,9 +460,9 @@ app/components/
    └── TagManager.vue             # (NEW) Admin tag CRUD page
 
 app/utils/                        # Pure logic, testable without the ~ alias — see
-├── accessScope.ts                # coding-standards.md § Logic Worth Testing
-├── effectiveAccess.ts            # who reaches an item and why (picker badges + the
-│                                 # "ผลลัพธ์รวม" bar read the same answer)
+├── effectiveAccess.ts            # who reaches an item and why — picker badges, the
+│                                 # "ผลลัพธ์รวม" bar and the save-time check for
+│                                 # stranded restrictions all read this
 ├── expiryWrite.ts                # every expiry write normalised to a Timestamp
 └── groupSync.ts
 
