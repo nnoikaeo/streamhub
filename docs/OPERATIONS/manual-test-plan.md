@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 18 August 2569
-> **Total Test Cases:** 180
+> **Total Test Cases:** 182
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -343,6 +343,8 @@
 | 3.10.19 | สวิตช์สาธารณะ + ป้าย + แถบผลลัพธ์รวม | 1. เปิดสวิตช์สาธารณะ 2. บันทึก 3. เปิดหน้าใหม่ | `access.public: true` และสิทธิ์เดิมไม่หาย; ทุกคนขึ้นป้าย `เข้าถึงได้ · สาธารณะ`; แถบล่างนับผู้ใช้ที่ไม่ใช่ admin ครบ | High | ✅ |
 | 3.10.20 | ระงับ (revoke) ผ่านตัวคำนวณเดียวกับ expiry | 1. ระงับผู้ใช้ที่มีสิทธิ์ 2. บันทึก | ป้ายเหลือง `มีสิทธิ์ แต่ถูกระงับ`; แถบผลลัพธ์รวมลดลง 1; `restrictions.revoke` มี uid นั้น | High | ✅ |
 | 3.10.21 | บันทึกสิทธิ์โฟลเดอร์ส่งครบทุกฟิลด์ | 1. ติ๊กสิทธิ์สืบทอด + เพิ่มบริษัท 2. บันทึก | `inheritPermissions: true` **และ** `access.company` อยู่ด้วยกัน พร้อม `permissionMeta` (provenance) | High | ✅ |
+| 3.10.22 | ปิดสาธารณะทั้งที่มีข้อจำกัดค้าง → ถามตอนบันทึก (BUG-022) | 1. เปิดสาธารณะ + ระงับผู้ใช้ 1 คน → บันทึก 2. ปิดสาธารณะ 3. กดบันทึก | ขึ้น dialog "ลบข้อจำกัดที่ไม่มีสิทธิ์รองรับ" ระบุชื่อคนนั้น → **ลบและบันทึก** = `restrictions` ว่างพร้อมกับสิทธิ์; **ยกเลิก** = ไม่บันทึกอะไรเลย | Medium | 🔍 |
+| 3.10.23 | ข้อจำกัดที่ยังมีสิทธิ์รองรับต้องไม่ถูกถาม | 1. ให้สิทธิ์บริษัทของผู้ใช้ + ระงับผู้ใช้คนนั้น 2. ลบ direct grant (ถ้ามี) 3. บันทึก | **ไม่ขึ้น dialog** และ `restrictions.revoke` ยังอยู่ (ยังกัดผ่านสิทธิ์บริษัท) | Medium | 🔍 |
 
 > 🧪 **TC 3.10.6–3.10.10 — ทดสอบ end-to-end บน Firestore prod จริง 2026-08-16** (ยืนยัน fix PR #364)
 > ทำบนแดชบอร์ด `EXPIRY-TEST` ที่สร้างขึ้นเฉพาะการทดสอบแล้วลบทิ้ง (โฟลเดอร์ "แดชบอร์ดหลัก" ซึ่งไม่ให้สิทธิ์สืบทอดกับใคร) กับ user `survey.streamwash@gmail.com` (role `user`, company OAYT — ไม่มีสิทธิ์ทางอื่นเลย ตัวแปรเดียวที่เหลือคือ expiry)
@@ -538,9 +540,9 @@
 | BUG-016 | ข้อความ error ค้างหลังแก้ค่าให้ถูกแล้ว ทุกฟอร์ม admin — `useForm` ล้าง error ไว้ใน `setFieldValue` แต่ทุกฟอร์มผูก `v-model="formData.x"` ซึ่งเขียน reactive object ตรงๆ ทางนั้นจึงไม่เคยถูกเรียก (CompanyForm เป็นไฟล์เดียวในรีโปที่เรียก และเรียกกับ field ที่ไม่มี validator) | TC 5.1.7 | Medium | 🔧 Fixed (`watch(formData)` + re-validate ใน `useForm`; PR #367; UI-verified 2026-08-15 TC 5.1.7–5.1.10) |
 | BUG-017 | ปุ่ม "แชร์" ใน `QuickShareDialog` (Discover) **ไม่เขียนอะไรเลย** — `handleShare` ใน `useDashboardPage` เป็น stub ไม่เคยเรียก `quickShareDashboard` แต่ dialog ปิดตัวเองหลัง emit ผู้ใช้จึงเห็นเหมือนสำเร็จ | TC 2.2 (share flow) | High | ⊘ ปิดด้วยการลบ — ต่อสายให้ทำงานแล้ว (PR #376) จากนั้นพบว่า **dialog ไม่มีทางเปิดในทุก UI** จึงตัดสินใจลบ Quick Share ทั้งชุด ดูรายละเอียดใต้ตาราง |
 | BUG-018 | หน้า `/admin/permissions` (+ `/manage/permissions`) เขียน `restrictions.expiry` เป็น **ISO string ที่เที่ยงคืน UTC** = 07:00 น. ตามเวลาไทย ⇒ ตั้ง "หมดอายุ 18 ส.ค." สิทธิ์ตัดเช้าวันที่ 18 เร็วไป 17 ชม.; และ shape ต่างจากที่ Quick Share เขียน (`Timestamp`) ทั้งที่เป็นฟิลด์เดียวกัน | TC 3.10.11–3.10.12 | Medium | 🔧 Fixed — **ยืนยันบน prod 2026-08-19**: `dash_1787110946066` ได้ `object<Timestamp>` + `resolves 2026-08-20T16:59:59.999Z` (= 23:59:59.999 น. ไทย) ✅ และฝั่งโฟลเดอร์ `folder_1785082588448` ได้ `Timestamp` เดียวกัน ✅ |
-| BUG-020 | ลบสิทธิ์ผู้ใช้ออกจากแดชบอร์ด แต่ข้อจำกัด (หมดอายุ/ระงับ) ของคนนั้นยังค้างอยู่ — หน้าจอแสดง `จัดการสิทธิ์ 0` คู่กับ `ข้อจำกัด 1` โดยไม่บอกว่ามีผลหรือไม่ และถ้าให้สิทธิ์คนเดิมใหม่ภายหลัง วันหมดอายุเก่าจะกลับมามีผลเงียบ ๆ | TC 3.10.13 | Medium | 🔧 Fixed (ถาม ConfirmDialog ตอนลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ **เฉพาะเมื่อ direct grant เป็นทางเข้าเดียว** ยืนยันแล้วลบทั้งคู่) — **ยืนยันบน prod 2026-08-19** TC 3.10.13/3.10.14/3.10.15 ผ่านครบ ✅ |
+| BUG-020 | ลบสิทธิ์ผู้ใช้ออกจากแดชบอร์ด แต่ข้อจำกัด (หมดอายุ/ระงับ) ของคนนั้นยังค้างอยู่ — หน้าจอแสดง `จัดการสิทธิ์ 0` คู่กับ `ข้อจำกัด 1` โดยไม่บอกว่ามีผลหรือไม่ และถ้าให้สิทธิ์คนเดิมใหม่ภายหลัง วันหมดอายุเก่าจะกลับมามีผลเงียบ ๆ | TC 3.10.13 | Medium | 🔧 Fixed (ถาม ConfirmDialog ตอนลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ **เฉพาะเมื่อ direct grant เป็นทางเข้าเดียว** ยืนยันแล้วลบทั้งคู่) — **ยืนยันบน prod 2026-08-19** TC 3.10.13/3.10.14/3.10.15 ผ่านครบ ✅ · ต่อมาย้าย guard ไปตรวจตอนกดบันทึกแทนการดักรายปุ่ม ดู BUG-022 |
 | BUG-021 | บันทึกสิทธิ์สำเร็จแล้ว **ไม่มีข้อความยืนยันเลย** — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (คือทางเข้าปกติทั้งหมด) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` เป็นโค้ดที่ไม่มีทางแสดง ผู้ใช้ไม่รู้ว่าบันทึกติดหรือไม่ | TC 3.10.17 | Medium | 🔧 Fixed (`showToast` ก่อน navigate — toast เป็น `useState` singleton จึงข้าม route ได้; ทางที่ล้มเหลวก็ toast ด้วย) — **ยืนยันบน prod 2026-08-19** ✅ |
-| BUG-022 | สวิตช์ **เข้าถึงสาธารณะ** ไม่ได้เดินผ่านการตรวจของ BUG-020 — มันเขียน `access.public` ตรง ๆ ที่ [PermissionsPage.vue:103](../../app/components/features/PermissionsPage.vue#L103) ไม่ใช่ `requestRemoval` ใน PermissionEditor ⇒ ปิดสาธารณะทั้งที่มีคนถูกระงับ/หมดอายุ = ทิ้งข้อจำกัดกำพร้าเงียบ ๆ (พบตอน regression pass 2026-08-19: ปิดสาธารณะ + ลบกลุ่ม แล้ว `revoke` ของ Janine ค้าง) | TC 3.10.20 (เก็บกวาด) | Medium | 🔍 ยืนยันบน prod — **ยังไม่แก้**; ทางแก้ที่เสนอคือย้ายการตรวจไปที่ตอน **บันทึก** ซึ่งครอบทุกทางที่ทำให้เกิด (ลบผู้ใช้/กลุ่ม/บริษัท, ปิดสาธารณะ, ปิดสืบทอด, ล้างทั้งหมด) |
+| BUG-022 | สวิตช์ **เข้าถึงสาธารณะ** ไม่ได้เดินผ่านการตรวจของ BUG-020 — มันเขียน `access.public` ตรง ๆ ที่ [PermissionsPage.vue:103](../../app/components/features/PermissionsPage.vue#L103) ไม่ใช่ `requestRemoval` ใน PermissionEditor ⇒ ปิดสาธารณะทั้งที่มีคนถูกระงับ/หมดอายุ = ทิ้งข้อจำกัดกำพร้าเงียบ ๆ (พบตอน regression pass 2026-08-19: ปิดสาธารณะ + ลบกลุ่ม แล้ว `revoke` ของ Janine ค้าง) | TC 3.10.22–3.10.23 | Medium | 🔧 Fixed (ย้ายการตรวจไปที่ตอน **กดบันทึก** ด้วย `strandedRestrictions` — ครอบทุกทางที่ทำให้เกิด; ถอด guard รายปุ่มใน `PermissionEditor` ออก) — **รอ UI pass** |
 | BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้ | TC 2.3.1 | Medium | ⊘ ปิดด้วยการลบ — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อม Quick Share (2026-08-18) เหลือทางเดียวคือ Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว |
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
@@ -633,7 +635,8 @@
 - **BUG-021 อาการ:** กดบันทึกที่หน้าจัดการสิทธิ์แล้วไม่มีข้อความยืนยันใด ๆ — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (ทางเข้าปกติทั้งหมด ทั้งปุ่ม 🔑 และลิงก์ที่ส่งต่อกัน) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` ในเทมเพลตไม่มีทางแสดงเลย
 - **BUG-021 fix:** ทั้ง 2 พาธ (dashboard/folder) `showToast` ก่อนแล้วค่อย navigate — toast เป็น `useState` singleton จึงข้าม route ได้ และทางที่ล้มเหลว toast แดงด้วย เดิมตั้งแค่ `errorMessage` ซึ่งอยู่บนสุดของหน้าที่แอดมินเลื่อนผ่านไปแล้ว (PR #387)
 - **BUG-022 อาการ:** สวิตช์ **เข้าถึงสาธารณะ** เขียน `access.public` ตรง ๆ ที่หน้าเพจ ไม่ได้ผ่าน `requestRemoval` ของ `PermissionEditor` ⇒ ปิดสาธารณะทั้งที่มีคนถือข้อจำกัดอยู่ = ทิ้ง orphan เงียบ ๆ เหมือนก่อนแก้ BUG-020
-- **BUG-022 ทางแก้ที่เสนอ (ยังไม่ทำ):** ย้ายการตรวจไปที่จังหวะ **กดบันทึก** แทนที่จะดักทีละปุ่ม — ครอบทุกทางที่ทำให้คนถือข้อจำกัดไม่เหลือทางเข้า (ลบผู้ใช้/กลุ่ม/บริษัท, ปิดสาธารณะ, ปิดสืบทอด, ล้างทั้งหมด) และตรงกับจังหวะที่เขียนจริง
+- **BUG-022 fix:** ย้ายการตรวจไปที่จังหวะ **กดบันทึก** — [strandedRestrictions](../../app/utils/effectiveAccess.ts) เทียบรายชื่อที่ถือข้อจำกัดกับผู้ที่สิทธิ์ชุดปัจจุบันเอื้อมถึง (จากการคำนวณตัวเดียวกับป้ายและแถบผลลัพธ์รวม) ถ้ามีคนตกค้างจึงถามครั้งเดียว ยืนยัน = ลบข้อจำกัดนั้นแล้วบันทึก, ยกเลิก = ไม่บันทึกอะไรเลย
+- **ถอด guard รายปุ่มออก:** `requestRemoval` กับ `app/utils/accessScope.ts` ถูกลบ — ดักรายปุ่มไม่มีทางครบ (สวิตช์สาธารณะกับสวิตช์สืบทอดอยู่คนละคอมโพเนนต์กับตัวแก้ไขสิทธิ์) และการถาม 2 ที่ในโฟลว์เดียวทำให้คนกดผ่านโดยไม่อ่าน
 
 **BUG-017 รายละเอียด (ปิดด้วยการลบ Quick Share — 2026-08-18):**
 - **อาการที่รายงาน:** กด 🔗 ที่การ์ดใน Discover → กด Share → dialog ปิดเหมือนสำเร็จ ไม่มี toast และไม่มีอะไรถูกเขียนลง Firestore
@@ -664,7 +667,7 @@
 | Admin Groups | 7 | Medium | ✅ (7/7 — incl. new 3.7.7 unique-id / BUG-012; BUG-005 sync verified) |
 | Admin Tags | 7 | Medium | ✅ (6/7 UI + 3.8.7 canManageTags guard code-verified) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
-| Admin Permissions | 21 | High | ✅ (21/21 — 3.10.11–3.10.21 verified on prod 2026-08-19, incl. the regression pass after the expiry/badge work) |
+| Admin Permissions | 23 | High | 🔍 partial (21 ✅ — 3.10.11–3.10.21 verified on prod 2026-08-19; 3.10.22–3.10.23 BUG-022 fix รอ UI pass) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 7 | High | ✅ (6/7 ✅ / 1 🐛 BUG-008 fixed) |
@@ -673,7 +676,7 @@
 | Cross-Cutting (CRUD) | 6 | High | 🔍 partial (5/6; loading-state human) |
 | Navigation & Middleware | 5 | Critical | 🔍 partial (3/5; sidebar+mobile human) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **180** | — | 151 ✅ / 8 🔍 / 12 ☐ / 9 ⊘ N/A |
+| **TOTAL** | **182** | — | 151 ✅ / 10 🔍 / 12 ☐ / 9 ⊘ N/A |
 
 ---
 

@@ -14,11 +14,12 @@
 
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import PermissionEditor from '~/components/features/PermissionEditor.vue'
+import ConfirmDialog from '~/components/admin/ConfirmDialog.vue'
 import { useDashboardService } from '~/composables/useDashboardService'
 import { useAuth } from '~/composables/useAuth'
 import type { Dashboard, User, AccessControl, AccessRestrictions, Folder, PermissionMetadata } from '~/types/dashboard'
 import type { AdminGroup, Company } from '~/types/admin'
-import { buildAccessEntries, accessibleUsers, sourceDetail } from '~/utils/effectiveAccess'
+import { buildAccessEntries, accessibleUsers, sourceDetail, strandedRestrictions, withoutRestrictionsFor } from '~/utils/effectiveAccess'
 import type { AccessEntry } from '~/utils/effectiveAccess'
 
 interface Props {
@@ -497,6 +498,34 @@ const accessEntries = computed<AccessEntry[]>(() =>
   }),
 )
 
+// Restrictions left with nothing to act on by the edits about to be saved.
+// Checked here rather than on each removal because public access, inheritance
+// and "ล้างทั้งหมด" can strand an entry just as easily as removing one grant,
+// and this is the moment the write happens. [BUG-022]
+const strandedUids = computed(() =>
+  strandedRestrictions(activePermissions.value.restrictions, accessEntries.value),
+)
+
+const strandedPrompt = ref(false)
+
+const strandedMessage = computed(() => {
+  const names = strandedUids.value.map(
+    (uid) => nonAdminUsers.value.find((u) => u.uid === uid)?.name ?? uid,
+  )
+  return `ข้อจำกัดของ ${names.join(' · ')} ไม่มีสิทธิ์รองรับแล้ว จะถูกลบไปพร้อมการบันทึก`
+})
+
+/** Drop the stranded entries, then run the save that asked. */
+const confirmStrandedCleanup = async () => {
+  const target = editMode.value === 'dashboard' ? permissionsToEdit : folderPermissions
+  target.value = {
+    ...target.value,
+    restrictions: withoutRestrictionsFor(target.value.restrictions, strandedUids.value),
+  }
+  strandedPrompt.value = false
+  await savePermissions(true)
+}
+
 const effectiveAccess = computed<EffectiveAccessEntry[]>(() =>
   accessibleUsers(accessEntries.value).map(({ uid, name, company, sources }) => ({
     uid,
@@ -603,7 +632,12 @@ const handlePermissionsUpdate = (newPermissions: { access: AccessControl; restri
 
 // ─── Save permissions ───────────────────────────────────────────────────
 
-const savePermissions = async () => {
+const savePermissions = async (strandedConfirmed = false) => {
+  if (!strandedConfirmed && strandedUids.value.length > 0) {
+    strandedPrompt.value = true
+    return
+  }
+
   if (editMode.value === 'folder') {
     await saveFolderPermissions()
     return
@@ -958,7 +992,7 @@ watch(() => props.allFolders, (folders) => {
                 type="button"
                 class="page-header-action-btn"
                 :disabled="!hasChanges || isSaving"
-                @click="savePermissions"
+                @click="savePermissions()"
               >
                 {{ isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
               </button>
@@ -1113,7 +1147,7 @@ watch(() => props.allFolders, (folders) => {
                 type="button"
                 class="page-header-action-btn"
                 :disabled="!hasChanges || isSaving"
-                @click="savePermissions"
+                @click="savePermissions()"
               >
                 {{ isSaving ? 'กำลังบันทึก...' : 'บันทึก' }}
               </button>
@@ -1221,6 +1255,18 @@ watch(() => props.allFolders, (folders) => {
         </div>
       </template>
     </AdminPageContent>
+  
+    <!-- Restrictions that the pending edits leave with nothing to act on [BUG-022] -->
+    <ConfirmDialog
+      :is-open="strandedPrompt"
+      title="ลบข้อจำกัดที่ไม่มีสิทธิ์รองรับ"
+      :message="strandedMessage"
+      confirm-text="ลบและบันทึก"
+      cancel-text="ยกเลิก"
+      @confirm="confirmStrandedCleanup"
+      @cancel="strandedPrompt = false"
+    />
+
   </PageLayout>
 </template>
 

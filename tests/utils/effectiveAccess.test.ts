@@ -7,7 +7,14 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { buildAccessEntries, accessibleUsers, sourceLabel, sourceDetail } from '../../app/utils/effectiveAccess'
+import {
+  buildAccessEntries,
+  accessibleUsers,
+  sourceLabel,
+  sourceDetail,
+  strandedRestrictions,
+  withoutRestrictionsFor,
+} from '../../app/utils/effectiveAccess'
 import { isExpired } from '../../shared/utils/dates'
 
 const users = [
@@ -183,5 +190,71 @@ describe('sourceLabel / sourceDetail', () => {
     expect(sourceDetail({ kind: 'direct' })).toBe('สิทธิ์ตรง')
     expect(sourceDetail({ kind: 'allCompanies' })).toBe('ทุกบริษัท')
     expect(sourceDetail({ kind: 'public' })).toBe('สาธารณะ')
+  })
+})
+
+describe('strandedRestrictions', () => {
+  const expiryDate = new Date('2026-09-01T00:00:00.000Z')
+
+  it('reports a restriction whose user no longer has any grant', () => {
+    const perms = permissions({ revoke: ['janine'] })
+    const entries = buildAccessEntries({ ...base, permissions: perms })
+
+    expect(strandedRestrictions(perms.restrictions, entries)).toEqual(['janine'])
+  })
+
+  it('leaves a restriction that still has a grant to act on', () => {
+    const perms = permissions({ company: ['STTH'], revoke: ['janine'] })
+    const entries = buildAccessEntries({ ...base, permissions: perms })
+
+    expect(strandedRestrictions(perms.restrictions, entries)).toEqual([])
+  })
+
+  it('counts public access as a grant, so nothing is stranded while it is on', () => {
+    const perms = permissions({ public: true, expiry: { nattha: expiryDate } })
+    const entries = buildAccessEntries({ ...base, permissions: perms })
+
+    expect(strandedRestrictions(perms.restrictions, entries)).toEqual([])
+  })
+
+  it('strands the same entry once public access is turned off', () => {
+    const perms = permissions({ expiry: { nattha: expiryDate } })
+    const entries = buildAccessEntries({ ...base, permissions: perms })
+
+    expect(strandedRestrictions(perms.restrictions, entries)).toEqual(['nattha'])
+  })
+
+  it('covers revoke and expiry together without duplicates', () => {
+    const perms = permissions({ revoke: ['janine', 'nattha'], expiry: { nattha: expiryDate } })
+    const entries = buildAccessEntries({ ...base, permissions: perms })
+
+    expect(strandedRestrictions(perms.restrictions, entries).sort()).toEqual(['janine', 'nattha'])
+  })
+
+  it('reports nothing when there are no restrictions', () => {
+    const perms = permissions({ company: ['STTH'] })
+    const entries = buildAccessEntries({ ...base, permissions: perms })
+
+    expect(strandedRestrictions(perms.restrictions, entries)).toEqual([])
+  })
+})
+
+describe('withoutRestrictionsFor', () => {
+  it('drops the named users from both lists and leaves the rest', () => {
+    const expiryDate = new Date('2026-09-01T00:00:00.000Z')
+    const restrictions = { revoke: ['janine', 'survey'], expiry: { nattha: expiryDate, survey: expiryDate } }
+
+    const next = withoutRestrictionsFor(restrictions, ['survey'])
+
+    expect(next.revoke).toEqual(['janine'])
+    expect(next.expiry).toEqual({ nattha: expiryDate })
+  })
+
+  it('does not mutate the input', () => {
+    const restrictions = { revoke: ['janine'], expiry: {} }
+
+    withoutRestrictionsFor(restrictions, ['janine'])
+
+    expect(restrictions.revoke).toEqual(['janine'])
   })
 })
