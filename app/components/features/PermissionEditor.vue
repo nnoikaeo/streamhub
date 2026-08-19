@@ -447,6 +447,17 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- Removing a grant that still carries a restriction [BUG-020] -->
+    <ConfirmDialog
+      :is-open="pendingRemoval !== null"
+      title="ลบสิทธิ์พร้อมข้อจำกัด"
+      :message="pendingRemovalMessage"
+      confirm-text="ลบทั้งสองอย่าง"
+      cancel-text="ยกเลิก"
+      @confirm="confirmUserRemoval"
+      @cancel="pendingRemoval = null"
+    />
   </div>
 </template>
 
@@ -467,6 +478,8 @@
  */
 
 import { ref, computed, watch } from 'vue'
+import ConfirmDialog from '~/components/admin/ConfirmDialog.vue'
+import { hasAccessBesidesDirectUser, ALL_COMPANIES } from '~/utils/accessScope'
 import type { User, AccessControl, AccessRestrictions } from '~/types/dashboard'
 import type { AdminGroup, Company } from '~/types/admin'
 
@@ -624,8 +637,66 @@ function toggleDirectUser(uid: string) {
   }
 }
 
+/** See app/utils/accessScope.ts for why a restriction outlives its grant. */
+function keepsAccessWithoutDirectGrant(uid: string): boolean {
+  const groupMembers: Record<string, string[]> = {}
+  for (const gid of localAccess.value.direct.groups) {
+    groupMembers[gid] = props.allGroups.find((g) => g.id === gid)?.members ?? []
+  }
+
+  return hasAccessBesidesDirectUser(
+    uid,
+    {
+      public: localAccess.value.public,
+      company: localAccess.value.company,
+      groups: localAccess.value.direct.groups,
+    },
+    props.allUsers.find((u) => u.uid === uid)?.company,
+    groupMembers,
+  )
+}
+
+/** Human-readable list of the restrictions attached to a uid. */
+function restrictionLabels(uid: string): string[] {
+  const labels: string[] = []
+  if (localRestrictions.value.revoke.includes(uid)) labels.push('ระงับ')
+  const expiry = localRestrictions.value.expiry[uid]
+  if (expiry) labels.push(`หมดอายุ ${formatDate(expiry)}`)
+  return labels
+}
+
+const pendingRemoval = ref<string | null>(null)
+
+const pendingRemovalMessage = computed(() => {
+  const uid = pendingRemoval.value
+  if (!uid) return ''
+  return `${getUserName(uid)} มีข้อจำกัดผูกอยู่ (${restrictionLabels(uid).join(', ')}) ` +
+    'และไม่ได้เข้าถึงทางอื่นเลย — ลบสิทธิ์แล้วข้อจำกัดจะถูกลบไปด้วย'
+})
+
 function removeDirectUser(uid: string) {
+  if (restrictionLabels(uid).length > 0 && !keepsAccessWithoutDirectGrant(uid)) {
+    pendingRemoval.value = uid
+    return
+  }
+  applyUserRemoval(uid)
+}
+
+function confirmUserRemoval() {
+  const uid = pendingRemoval.value
+  if (uid) applyUserRemoval(uid, true)
+  pendingRemoval.value = null
+}
+
+function applyUserRemoval(uid: string, withRestrictions = false) {
   localAccess.value.direct.users = localAccess.value.direct.users.filter((u) => u !== uid)
+
+  if (withRestrictions) {
+    localRestrictions.value.revoke = localRestrictions.value.revoke.filter((u) => u !== uid)
+    const { [uid]: _removed, ...rest } = localRestrictions.value.expiry
+    localRestrictions.value.expiry = rest
+  }
+
   emitUpdate()
 }
 
@@ -663,7 +734,6 @@ function removeDirectGroup(gid: string) {
 
 // ── Companies ──
 
-const ALL_COMPANIES = 'ALL'
 
 const activeCompanies = computed(() => props.allCompanies.filter((c) => c.isActive))
 
