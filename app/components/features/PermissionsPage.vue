@@ -60,6 +60,8 @@ const { user } = useAuth()
 const dashboardService = useDashboardService()
 
 /** Whether we arrived from explorer via ?dashboard or ?folder query param */
+const { showToast } = useAppToast()
+
 const cameFromExplorer = computed(() => !!route.query.dashboard || !!route.query.folder)
 
 const goBackToExplorer = () => {
@@ -622,18 +624,26 @@ const savePermissions = async () => {
     })
 
     if (response.success) {
+      const message = `บันทึกสิทธิ์สำหรับ "${currentDashboard.value.name}" แล้ว`
+      // Toast first: arriving here with ?dashboard= sends us straight back to
+      // Explorer, and the inline alert below never gets a chance to render.
+      // The toast is a useState singleton, so it survives that navigation.
+      showToast(message)
+      originalPermissions.value = JSON.parse(JSON.stringify(permissionsToEdit.value))
+
       if (cameFromExplorer.value) {
         goBackToExplorer()
         return
       }
-      successMessage.value = `บันทึกสิทธิ์สำหรับ "${currentDashboard.value.name}" แล้ว`
-      originalPermissions.value = JSON.parse(JSON.stringify(permissionsToEdit.value))
+      successMessage.value = message
       setTimeout(() => { successMessage.value = null }, 5000)
     } else {
       errorMessage.value = response.message || 'ไม่สามารถบันทึกสิทธิ์ได้'
+      showToast(errorMessage.value, 'error')
     }
   } catch (err) {
     errorMessage.value = err instanceof Error ? err.message : 'ไม่สามารถบันทึกสิทธิ์ได้'
+    showToast(errorMessage.value, 'error')
     console.error('Error saving permissions:', err)
   } finally {
     isSaving.value = false
@@ -665,11 +675,8 @@ const saveFolderPermissions = async () => {
     })
 
     if (response.success) {
-      if (cameFromExplorer.value) {
-        goBackToExplorer()
-        return
-      }
-      successMessage.value = `บันทึกสิทธิ์สำหรับโฟลเดอร์ "${currentEditFolder.value.name}" แล้ว`
+      const message = `บันทึกสิทธิ์สำหรับโฟลเดอร์ "${currentEditFolder.value.name}" แล้ว`
+      showToast(message)
       originalFolderPermissions.value = JSON.parse(JSON.stringify(folderPermissions.value))
       currentEditFolder.value = {
         ...currentEditFolder.value,
@@ -678,12 +685,20 @@ const saveFolderPermissions = async () => {
         inheritPermissions: folderInheritEnabled.value,
         permissionMeta,
       }
+
+      if (cameFromExplorer.value) {
+        goBackToExplorer()
+        return
+      }
+      successMessage.value = message
       setTimeout(() => { successMessage.value = null }, 5000)
     } else {
       errorMessage.value = response.message || 'ไม่สามารถบันทึกสิทธิ์ได้'
+      showToast(errorMessage.value, 'error')
     }
   } catch (err) {
     errorMessage.value = err instanceof Error ? err.message : 'ไม่สามารถบันทึกสิทธิ์ได้'
+    showToast(errorMessage.value, 'error')
     console.error('Error saving folder permissions:', err)
   } finally {
     isSaving.value = false
