@@ -407,6 +407,8 @@ otherwise                            → DENY   (default private)
 
 > Group grants resolve via each user's `user.groups[]` field (the field access control reads). `group.members[]` is a denormalized mirror kept in sync on save (`app/utils/groupSync.ts`, BUG-005).
 
+> Deleting either end cleans the other. Deleting a group asks first — "มีสมาชิก N คน" — then strips the id from every member's `groups[]`; deleting a user strips their uid from `group.members[]` and from `folders.assignedModerators[]` (`app/utils/cascadeDelete.ts`, BUG-005). Before this, a deleted group kept rendering as a badge on the admin users table, and a deleted moderator stayed assigned to their folders — `npm run audit:orphans` found five such folders on production, cleaned with `scripts/clean-orphan-refs.mjs` on 2026-08-20.
+
 **Permission Metadata** (provenance tracking):
 
 ```typescript
