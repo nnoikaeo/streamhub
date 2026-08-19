@@ -51,18 +51,6 @@
           <span>โปรไฟล์</span>
         </button>
 
-        <button
-          class="dropdown-item"
-          type="button"
-          @click="handleSettings"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m3.08 3.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m3.08-3.08l4.24-4.24"/>
-          </svg>
-          <span>การตั้งค่า</span>
-        </button>
-
         <!-- Divider -->
         <div class="dropdown-divider"/>
 
@@ -154,15 +142,6 @@ const handleClickOutside = (event: MouseEvent) => {
 const handleProfile = () => {
   closeMenu()
   navigateTo('/profile')
-}
-
-/**
- * Handle settings click
- */
-const handleSettings = () => {
-  closeMenu()
-  // TODO: Navigate to settings page
-  console.log('Settings clicked')
 }
 
 /**
