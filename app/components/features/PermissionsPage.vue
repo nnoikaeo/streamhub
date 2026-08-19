@@ -18,6 +18,8 @@ import { useDashboardService } from '~/composables/useDashboardService'
 import { useAuth } from '~/composables/useAuth'
 import type { Dashboard, User, AccessControl, AccessRestrictions, Folder, PermissionMetadata } from '~/types/dashboard'
 import type { AdminGroup, Company } from '~/types/admin'
+import { buildAccessEntries, accessibleUsers } from '~/utils/effectiveAccess'
+import type { AccessEntry } from '~/utils/effectiveAccess'
 
 interface Props {
   /** Dashboards available for selection */
@@ -470,90 +472,36 @@ interface EffectiveAccessEntry {
   sources: string[]
 }
 
-const effectiveAccess = computed<EffectiveAccessEntry[]>(() => {
-  const perms = activePermissions.value
-  const userMap = new Map<string, EffectiveAccessEntry>()
+/**
+ * Everyone the current grants reach, restricted users included but flagged.
+ *
+ * Shared with the picker badges in PermissionEditor so both read the same
+ * answer — the bar used to deduct restrictions while nothing else did.
+ */
+const accessEntries = computed<AccessEntry[]>(() =>
+  buildAccessEntries({
+    permissions: activePermissions.value,
+    users: nonAdminUsers.value,
+    groups: props.allGroups,
+    activeCompanyCodes: props.allCompanies.filter((c) => c.isActive).map((c) => c.code),
+    inherited: inheritedFolders.value.map((folder) => ({
+      name: folder.name,
+      access: folder.access,
+      restrictions: folder.restrictions,
+    })),
+    isExpiredFn: isExpired,
+  }),
+)
 
-  const addUser = (uid: string, source: string) => {
-    const u = nonAdminUsers.value.find(x => x.uid === uid)
-    if (!u) return
-    if (!userMap.has(uid)) {
-      userMap.set(uid, { uid, name: u.name, company: u.company, sources: [] })
-    }
-    const entry = userMap.get(uid)!
-    if (!entry.sources.includes(source)) entry.sources.push(source)
-  }
-
-  // Direct permissions on the current item (same labels in both modes)
-  for (const uid of perms.access.direct.users) addUser(uid, 'สิทธิ์ตรง')
-
-  for (const gid of perms.access.direct.groups) {
-    const group = props.allGroups.find((g) => g.id === gid)
-    if (!group) continue
-    for (const uid of group.members) addUser(uid, `กลุ่ม ${group.name}`)
-  }
-
-  for (const companyCode of perms.access.company) {
-    const usersForCode = companyCode === 'ALL'
-      ? nonAdminUsers.value.filter(x => props.allCompanies.some((c) => c.code === x.company && c.isActive))
-      : nonAdminUsers.value.filter(x => x.company === companyCode)
-    const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
-    for (const u of usersForCode) {
-      addUser(u.uid, label)
-    }
-  }
-
-  // Inherited folder permissions (from parent folders).
-  // Skip redundant badges when the user already has the equivalent direct badge.
-  for (const folder of inheritedFolders.value) {
-    if (!folder.access) continue
-    for (const uid of folder.access.direct.users) {
-      if (userMap.get(uid)?.sources.includes('สิทธิ์ตรง')) continue
-      addUser(uid, `📁 ${folder.name}`)
-    }
-    for (const gid of folder.access.direct.groups) {
-      const group = props.allGroups.find((g) => g.id === gid)
-      if (!group) continue
-      for (const uid of group.members) {
-        if (userMap.get(uid)?.sources.includes(`กลุ่ม ${group.name}`)) continue
-        addUser(uid, `📁 ${folder.name} · กลุ่ม ${group.name}`)
-      }
-    }
-    for (const companyCode of folder.access.company) {
-      const usersForCode = companyCode === 'ALL'
-        ? nonAdminUsers.value.filter(x => props.allCompanies.some((c) => c.code === x.company && c.isActive))
-        : nonAdminUsers.value.filter(x => x.company === companyCode)
-      const label = companyCode === 'ALL' ? 'ทุกบริษัท' : `บริษัท ${companyCode}`
-      for (const u of usersForCode) {
-        if (userMap.get(u.uid)?.sources.includes(label)) continue
-        addUser(u.uid, `📁 ${folder.name} · ${label}`)
-      }
-    }
-  }
-
-  // Remove restricted users
-  const restricted = new Set<string>(perms.restrictions.revoke)
-  const now = new Date()
-  // expiry reaches this page as a Date (convertTimestamps) but is a raw
-  // Firestore Timestamp or an ISO string on other paths — isExpired reads
-  // every shape, a bare `new Date(timestamp)` yields Invalid Date [PR #364]
-  for (const [uid, date] of Object.entries(perms.restrictions.expiry)) {
-    if (isExpired(date, now)) restricted.add(uid)
-  }
-  for (const folder of inheritedFolders.value) {
-    if (!folder.restrictions) continue
-    for (const uid of folder.restrictions.revoke) restricted.add(uid)
-    // The server denies on an inherited folder expiry as well
-    // (companyAccess.isRestricted runs over every ancestor), so this list has
-    // to drop those users too or it claims access the user does not have
-    for (const [uid, date] of Object.entries(folder.restrictions.expiry ?? {})) {
-      if (isExpired(date, now)) restricted.add(uid)
-    }
-  }
-  for (const uid of restricted) userMap.delete(uid)
-
-  return Array.from(userMap.values()).sort((a, b) => a.name.localeCompare(b.name))
-})
+const effectiveAccess = computed<EffectiveAccessEntry[]>(() =>
+  accessibleUsers(accessEntries.value).map(({ uid, name, company, sources }) => ({
+    uid,
+    name,
+    // User.company is optional in the type but every non-admin carries one
+    company: company ?? '',
+    sources,
+  })),
+)
 
 // ─── Load permissions ───────────────────────────────────────────────────
 
@@ -1069,6 +1017,7 @@ watch(() => props.allFolders, (folders) => {
               :permissions="permissionsToEdit"
               :show-restrictions="showRestrictions"
               :exclude-user-id="user?.uid"
+              :access-entries="accessEntries"
               @update:permissions="handlePermissionsUpdate"
             />
           </div>
@@ -1198,6 +1147,7 @@ watch(() => props.allFolders, (folders) => {
             :permissions="folderPermissions"
             :show-restrictions="showRestrictions"
             :exclude-user-id="user?.uid"
+            :access-entries="accessEntries"
             @update:permissions="handlePermissionsUpdate"
           />
 
