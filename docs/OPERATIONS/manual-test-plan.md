@@ -293,7 +293,7 @@
 | 3.7.5 | Toggle group active status | 1. Click toggle switch | Status updates | Low | ✅ |
 | 3.7.6 | Search by name | 1. Type in search bar | Matching groups shown | Low | ✅ |
 | 3.7.7 | Unique id validation | 1. Create group with existing id | Error toast "รหัสกลุ่มซ้ำ" + no overwrite | High | ✅ (BUG-012 — was silent-overwrite, fixed via uniqueFields; added this case) |
-| 3.7.8 | ลบกลุ่มที่มีสมาชิก → ถามก่อน แล้วล้างให้ (BUG-005) | 1. `/admin/groups` สร้างกลุ่มทดสอบ ใส่สมาชิก 1 คน 2. `/admin/users` ยืนยันว่า badge กลุ่มขึ้นกับคนนั้น 3. กลับไปลบกลุ่ม | dialog บอก "มีสมาชิก N คน — ลบแล้วจะถอดกลุ่มนี้ออกจากทุกคนด้วย" → ยืนยัน → badge หายจากตารางผู้ใช้ และ `npm run audit:orphans` = 0 | Medium | 🔍 (แก้แล้ว รอกดจริง) |
+| 3.7.8 | ลบกลุ่มที่มีสมาชิก → ถามก่อน แล้วล้างให้ (BUG-005) | 1. `/admin/groups` สร้างกลุ่มทดสอบ ใส่สมาชิก 1 คน 2. `/admin/users` ยืนยันว่า badge กลุ่มขึ้นกับคนนั้น 3. กลับไปลบกลุ่ม | dialog บอก "มีสมาชิก N คน — ลบแล้วจะถอดกลุ่มนี้ออกจากทุกคนด้วย" → ยืนยัน → badge หายจากตารางผู้ใช้ และ `npm run audit:orphans` = 0 | Medium | ✅ (prod 2026-08-20 — dialog "กลุ่ม 'zz-qa-grp2' มีสมาชิก 1 คน — ลบแล้วจะถอดกลุ่มนี้ออกจากทุกคนด้วย" · ยืนยันแล้ว badge หายจากแถว Janine เอง · audit = 0) |
 
 > **Note:** Deleting a group does **not** clear the deleted group id from its members' `user.groups[]` (delete uses the raw `deleteGroup`, not a sync wrapper) — those users keep an orphan group ref. This is the delete-direction gap of BUG-005 (create/edit sync IS handled via `createGroupWithSync`/`updateGroupWithSync`). Low severity (access control tolerates a group id that no longer exists); consider a `deleteGroupWithSync` if it matters.
 
@@ -703,7 +703,7 @@
 | Admin Dashboards | 8 | High | ⊘ N/A (5/8 orphan route, superseded by Explorer; 3.4.3/3.4.4/3.4.7 ยังผ่าน UI ตอนไล่ BUG-013 2026-08-15) |
 | Admin Companies | 9 | Medium | ✅ (9/9 — BUG-010 unique-code + BUG-011 blank-region fixed) |
 | Admin Regions | 5 | Medium | ✅ (5/5 — unique-code via BUG-010 fix) |
-| Admin Groups | 8 | Medium | ✅ partial (7/8 — 3.7.8 cascade delete รอกดจริง) |
+| Admin Groups | 8 | Medium | ✅ (8/8 — 3.7.8 cascade delete ยืนยันบน prod) |
 | Admin Tags | 10 | Medium | ✅ (9/10 UI + 3.8.7 canManageTags guard code-verified — ยังไม่มีบัญชี admin ที่ถอดสิทธิ์แท็ก จึงกดจริงไม่ได้) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
 | Admin Permissions | 23 | High | ✅ (23/23 — 3.10.11–3.10.23 verified on prod 2026-08-19) |
@@ -715,7 +715,7 @@
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **202** | — | 186 ✅ / 4 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **202** | — | 187 ✅ / 3 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
