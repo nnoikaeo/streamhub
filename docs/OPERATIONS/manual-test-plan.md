@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 19 August 2569
-> **Total Test Cases:** 194
+> **Total Test Cases:** 199
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -136,6 +136,23 @@
 | 2.3.12 | Embed zoom control | 1. เปิด dashboard ที่มี Looker embed 2. คลิก `−` ลงไปจนถึง 60% 3. คลิกที่ตัวเลข `60%` | ปุ่ม `− / % / +` อยู่ในแถบ header (แสดงเฉพาะเมื่อมี embed URL) — คลิก `−` → เนื้อหาเล็กลงและ**เห็นแถวล่างเพิ่มขึ้น** (ที่ 60% เห็นทั้งตารางบนและกราฟล่าง) จัดกึ่งกลาง ขอบขาวเท่ากันสองข้าง — คลิกตัวเลข → กลับเป็น 100% — ช่วง 40–100% ทีละ 10%, สุดช่วงแล้วปุ่ม disabled | Medium | ✅ |
 | 2.3.13 | Zoom persists across reload | 1. ตั้ง zoom เป็น 60% 2. refresh หน้า | ยังเป็น 60% (เก็บใน `localStorage` key `streamhub:embed-zoom`) | Low | ✅ |
 | 2.3.14 | Browser zoom ไม่ใช่ทางแก้ | 1. เปิด dashboard 2. ใช้ zoom out ของ Chrome (`Cmd -`) | หน้าจอ**ไม่เปลี่ยน** — ไม่ใช่บั๊ก ดู [common-issues.md](../TROUBLESHOOTING/common-issues.md) หัวข้อ "Zoom out ของเบราว์เซอร์ไม่มีผลกับแดชบอร์ด" — ต้องใช้ปุ่ม zoom ในแอปแทน | Low | ✅ |
+
+---
+
+### 2.4 Profile (`/profile`)
+
+| Layout: `default` | Role: ทุก role (auth) |
+|---|---|
+
+**Components:** PageLayout, UserMenu (ทางเข้า)
+
+| # | Test Case | Steps | Expected Result | Priority | Status |
+|---|-----------|-------|-----------------|----------|--------|
+| 2.4.1 | เข้าหน้าโปรไฟล์จากเมนู | 1. คลิกชื่อผู้ใช้มุมขวาบน 2. คลิก "โปรไฟล์" | ไปที่ `/profile` — ชื่อ, อีเมล, badge บทบาท ตรงกับบัญชีที่ login | Medium | ✅ (prod-equivalent 2026-08-19, admin) |
+| 2.4.2 | ข้อมูลบัญชีถูกต้อง | 1. เปิด `/profile` | บริษัทแสดงเป็น "ชื่อเต็ม (CODE)", สถานะ = ใช้งานอยู่/ถูกระงับ, เข้าร่วมเมื่อ = วันที่จาก `users.createdAt` | Medium | ✅ (admin STTH: "บริษัท สทรีมวอช (ประเทศไทย) จำกัด (STTH)" · 1 มกราคม 2567) |
+| 2.4.3 | กลุ่มผู้ใช้ | 1. เปิด `/profile` ด้วยบัญชีที่อยู่ในกลุ่ม | แสดงชิปชื่อกลุ่ม (ไม่ใช่ id); บัญชีที่ไม่มีกลุ่มขึ้น "ยังไม่ได้อยู่กลุ่มใด" | Medium | 🔍 (เห็นเคสว่างแล้ว เคสมีกลุ่มยังไม่ได้กด) |
+| 2.4.4 | การ์ดโฟลเดอร์ที่ดูแล (moderator) | 1. login เป็น moderator 2. เปิด `/profile` | มีการ์ด "โฟลเดอร์ที่ดูแล" แสดงโฟลเดอร์ที่ `assignedModerators` มี uid นี้; admin/user ไม่มีการ์ดนี้ | Medium | ☐ |
+| 2.4.5 | หน้าอ่านอย่างเดียว | 1. เปิด `/profile` | ไม่มีปุ่มแก้ไข/ฟอร์มใด ๆ + มีข้อความท้ายหน้าว่าแก้ได้โดยผู้ดูแลระบบเท่านั้น | Low | ✅ |
 
 ---
 
@@ -654,6 +671,11 @@
 - **สิ่งที่ถูกลบ:** ปุ่ม `+` + prop `allowCreate` + event `create-folder` ตลอดสาย `FolderSidebar` → `FolderAccordion` → `UnifiedSidebar` → `PageLayout`, handler `handleCreateFolder` 4 ที่ (2 หน้า + composable + PageLayout), computed `canCreateFolder` ใน `useDashboardPage` และ `/dashboard`, และ `:allow-create="false"` ที่ 13 หน้า
 - **สิ่งที่เก็บไว้:** flag `canCreateFolder` ในเมทริกซ์ role ของ permissions store — ไม่มีโค้ดอ่านแล้ว แต่ยังเป็นสเปกที่ [docs/GUIDES/roles-and-permissions.md](../GUIDES/roles-and-permissions.md) อ้างถึง (Explorer ใช้ `canCreateInCurrentFolder` ของตัวเอง ไม่ได้อ่าน flag นี้)
 
+**เมนูโปรไฟล์ / การตั้งค่า ใน UserMenu (2026-08-19):**
+- **สภาพเดิม:** ทั้งสองเมนูแสดงกับทุก role กดแล้ว `console.log` เฉย ๆ เพราะไม่มี route `/profile` และ `/settings`
+- **โปรไฟล์ → ทำจริง:** เพิ่มหน้า `/profile` แบบอ่านอย่างเดียว (ตัวตน, บทบาท, บริษัท, สถานะ, วันเข้าร่วม, กลุ่ม, โฟลเดอร์ที่ดูแลสำหรับ moderator) อ่านจาก `users/{uid}` ของตัวเอง + lookup ชื่อบริษัท/กลุ่ม ทั้งหมดอยู่ในสิทธิ์ที่ [firestore.rules](../../firestore.rules) ให้อยู่แล้ว ไม่ต้องแก้ rules — ดู TC 2.4.x
+- **การตั้งค่า → ลบทิ้ง:** ยังไม่มีค่าอะไรให้ผู้ใช้ตั้งเลย (ธีม/ภาษา/การแจ้งเตือน ไม่มีในระบบ) เมนูที่กดแล้วเงียบจึงถูกเอาออกจนกว่าจะมีของจริง
+
 ---
 
 ## 9. Test Case Summary
@@ -665,6 +687,7 @@
 | Dashboard Home | 5 | High | ✅ |
 | Dashboard Discover | 12 | High | ✅ |
 | Dashboard View | 14 | High | ✅ |
+| Profile | 5 | Medium | ✅ partial (3/5 — 2.4.3 เคสมีกลุ่ม, 2.4.4 moderator ยังไม่ได้กด) |
 | Admin Overview | 5 | High | ✅ |
 | Admin Users | 10 | High | ✅ (all UI-verified on prod; 3.2.7 delete via pre-launch B4) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
@@ -683,7 +706,7 @@
 | Cross-Cutting (CRUD) | 11 | High | ✅ partial (10/11 ✅ — เหลือ 5.1.6 loading-state ที่ต้อง throttle เอง) |
 | Navigation & Middleware | 5 | Critical | ✅ partial (3/5 — 5.2.1–5.2.3 ปิดด้วย pre-launch A; sidebar+mobile ยัง ☐) |
 | Error Scenarios | 9 | Medium | ☐ (runtime — human) |
-| **TOTAL** | **194** | — | 170 ✅ / 1 🔍 / 12 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **199** | — | 173 ✅ / 2 🔍 / 13 ☐ / 9 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
