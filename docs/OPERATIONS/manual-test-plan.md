@@ -1,6 +1,6 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 19 August 2569
+> **Last Updated:** 20 August 2569
 > **Total Test Cases:** 211
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
@@ -12,7 +12,7 @@
 | 🔍 | **Code-verified only** — logic confirmed in source, NOT yet exercised through the UI. Still needs a human UI pass to become ✅ |
 | ❌ | Tested via UI and **failed** — see Known Bugs |
 | ☐ | Not yet checked |
-| ⊘ N/A | **Intentionally not tested** — page/feature removed or superseded (e.g. legacy orphan route with no sidebar link); excluded from coverage |
+| ⊘ N/A | **เคสนี้ไม่มีทางกดจริงได้** — page/feature ถูกถอดหรือมีของใหม่มาแทน (legacy orphan route ที่ไม่มีลิงก์ในไซด์บาร์), หรือ**เงื่อนไขตั้งต้นประกอบขึ้นมาไม่ได้เลยในสถาปัตยกรรมปัจจุบัน** (6.3.2 = ไม่มี REST ของเราที่จะตอบ 500, 3.8.7 = ไม่มี per-user permission override); ไม่นับรวมใน coverage |
 
 > 🔍 cases were confirmed by reading the implementation (shared CRUD composables, middleware, forms). They cover create/edit/delete/toast/confirm-dialog mechanics, route protection, and UserForm field behavior. Cases needing real Google OAuth login, cross-browser, responsive, external side-effects (email send), uniqueness/delete-guard server checks, and live data remain ☐ for a human tester.
 
@@ -311,7 +311,7 @@
 | 3.8.4 | Delete tag | 1. Click Delete 2. Confirm | Tag removed | Medium | ✅ |
 | 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | ✅ |
 | 3.8.6 | Unique slug validation | 1. Create with existing slug | Error toast "slug นี้ถูกใช้แล้ว" + no overwrite | Medium | ✅ (BUG-010 fix — tags→slug uniqueFields) |
-| 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected to /admin/overview | Low | 🔍 (guard code-verified: `if(!can('canManageTags')) navigateTo('/admin/overview')`; not UI-run — no admin-without-perm account) |
+| 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected to /admin/overview | Low | ⊘ N/A (**สถานะ "admin ที่ถูกถอดสิทธิ์แท็ก" สร้างไม่ได้ในสถาปัตยกรรมนี้** — `canManageTags` มาจากเมทริกซ์ role ล้วน ๆ ที่ [permissions.ts:44](../../app/stores/permissions.ts#L44) (`admin: true` ตายตัว) ผ่าน `initializePermissions` ที่คัดลอกค่าจาก `ROLE_PERMISSIONS[role]` ตรง ๆ [permissions.ts:155](../../app/stores/permissions.ts#L155) · ไม่มีที่เก็บ per-user override ทั้งใน Firestore และในสโตร์ ⇒ ไม่มีทางประกอบเงื่อนไขของเคสนี้ขึ้นมาได้ · role อื่นก็มาไม่ถึง guard เพราะ `admin` middleware เด้งด้วย `canAccessAdmin` ไปก่อนที่ [admin.ts:39](../../app/middleware/admin.ts#L39) ⇒ guard ที่ [tags/index.vue:36](../../app/pages/admin/tags/index.vue#L36) เป็น defense-in-depth ที่ไม่มีเส้นทางเข้าถึงตามการออกแบบปัจจุบัน · **จะกดจริงได้ต่อเมื่อทำ per-user permission override** (ที่เก็บ + UI + rules) ซึ่งควรทำเมื่อมีคนขอจริงเท่านั้น — ถ้าทำเมื่อไร ให้เปิดเคสนี้กลับเป็น ☐) |
 | 3.8.8 | Tag color visible in list | 1. Open `/admin/tags` | `แท็ก` column shows each tag as a colored `TagBadge` (size md) — not plain text — so colors can be compared across rows without opening the edit modal | Low | ✅ (verified on prod 2026-08-04) |
 | 3.8.9 | Switched-off tag reads as off | 1. Toggle a tag's สถานะ off | Its badge dims (opacity 0.55) with a dashed outline and a "ปิดใช้งาน" tooltip, immediately, without a reload | Low | ✅ (prod 2026-08-05 — ภาคเหนือ toggled off) |
 | 3.8.10 | ลำดับ numbering has no gaps | 1. Delete a tag from the middle 2. Look at the ลำดับ column | Numbers stay contiguous (1..N) because the column shows list position, not the stored `sortOrder`; ⬆️/⬇️ still reorder | Low | ✅ (prod 2026-08-05 — 7 tags numbered 1–7) |
@@ -706,7 +706,7 @@
 | Admin Companies | 9 | Medium | ✅ (9/9 — BUG-010 unique-code + BUG-011 blank-region fixed) |
 | Admin Regions | 5 | Medium | ✅ (5/5 — unique-code via BUG-010 fix) |
 | Admin Groups | 8 | Medium | ✅ (8/8 — 3.7.8 cascade delete ยืนยันบน prod) |
-| Admin Tags | 10 | Medium | ✅ (9/10 UI + 3.8.7 canManageTags guard code-verified — ยังไม่มีบัญชี admin ที่ถอดสิทธิ์แท็ก จึงกดจริงไม่ได้) |
+| Admin Tags | 10 | Medium | ✅ (9 ✅ / 1 ⊘ 3.8.7 — "admin ที่ถูกถอดสิทธิ์แท็ก" ไม่มีทางเกิด เพราะ `canManageTags` ผูกกับ role ตรง ๆ ไม่มี per-user override) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
 | Admin Permissions | 23 | High | ✅ (23/23 — 3.10.11–3.10.23 verified on prod 2026-08-19) |
 | Admin Health | 3 | Low | ✅ (3/3) |
@@ -717,7 +717,7 @@
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **211** | — | 196 ✅ / 3 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **211** | — | 196 ✅ / 2 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
