@@ -71,13 +71,19 @@ StreamHub Application
 **Structure:**
 ```
 ┌─────────────────────────┐
-│    <AppHeader>          │ Fixed
+│  offline banner         │ Only when navigator.onLine is false
+├─────────────────────────┤
+│    <AppHeader>          │ Fixed · carries the ☰ toggle ≤768px
 ├─────────────────────────┤
 │  <slot> Page Content    │ Scrollable
 ├─────────────────────────┤
 │    <AppFooter>          │ Fixed
 └─────────────────────────┘
 ```
+
+**Also owns:**
+- **Mobile drawer state** — below 768px the sidebar leaves the flow; `AppHeader` emits `toggle-sidebar`, an overlay `<div>` closes it on tap, and a click on any `<a>` inside closes it too (a link to the page you are already on triggers no navigation, so a route watcher alone left it stuck open — BUG-025)
+- **Offline banner** — `useOnlineStatus()` drives a strip saying saves will hang while offline and that nothing is lost, because the Firestore SDK queues writes with no timeout (BUG-026)
 
 **Usage:** All main application pages
 
