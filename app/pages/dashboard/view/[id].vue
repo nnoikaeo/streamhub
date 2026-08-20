@@ -1150,6 +1150,22 @@ onUnmounted(() => {
    keeps the header one line tall and leaves the report the height it had.
    Both buttons carry an aria-label so hiding the text costs no accessible
    name — the zoom buttons already had theirs. [BUG-030, TC 7.2] */
+/* The info sidebar is `display: none` below 768px (TwoPaneLayout.vue), so the
+   button that toggles it flips state and produces nothing visible — it looked
+   broken because it was. Hiding it matches the breakpoint that hides what it
+   controls, and takes its ~34px with it. `display: none` also drops it from
+   the tab order and the accessibility tree, which a disabled-looking button
+   would not have.
+
+   Admins wanting the metadata on a phone need a wider window; the alternative
+   was making the sidebar stack below the report, which trades away the
+   vertical space this whole run of changes has been reclaiming. */
+@media (max-width: 768px) {
+  .toggle-sidebar-button {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
   .action-label {
     display: none;

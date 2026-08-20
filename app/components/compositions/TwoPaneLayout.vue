@@ -169,13 +169,17 @@ defineProps({
 }
 
 /* Mobile: Hide sidebar */
+/* The sidebar is hidden rather than stacked on small screens: the dashboard
+   report needs the height more than its metadata does. The button that toggled
+   it is hidden at this same width in [id].vue, so nothing offers to open what
+   cannot appear.
+
+   A `flex-direction: column` sat here to stack the two panes. With the sidebar
+   gone this container has one visible child, so it stacked nothing — removed.
+   Restore both lines together if the sidebar ever earns a place on mobile. */
 @media (max-width: 768px) {
   .two-pane-sidebar {
     display: none;
-  }
-
-  .two-pane-layout {
-    flex-direction: column;
   }
 }
 </style>
