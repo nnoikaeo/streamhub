@@ -49,6 +49,23 @@ NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN=streamhub-1234.firebaseapp.com
 
 ⚠️ **Never commit `.env.local`** - it contains secrets!
 
+### ไฟล์ไหนถูกโหลดเมื่อไร
+
+`.env.local` เป็นไฟล์เดียวที่ถือความจริง — ทั้งสามทางเข้าอ่านไฟล์นี้:
+
+| ทาง | อ่าน | ทำไม |
+|---|---|---|
+| `npm run dev` | `.env.local` | ผ่าน `nuxt dev --dotenv .env.local` ใน `package.json` |
+| `bash scripts/deploy-hosting.sh` | `.env.local` | สคริปต์ `source` เอง |
+| สคริปต์ใน `scripts/*.mjs` | `.env.local` | แต่ละตัวแกะไฟล์เอง |
+| CI (`.github/workflows/deploy.yml`) | GitHub Secrets | ไม่มีไฟล์ `.env*` บนเครื่อง runner |
+
+> ⚠️ **Nuxt โหลด `.env` เป็นค่าปริยาย ไม่ใช่ `.env.local`** — ธงบรรทัดคำสั่งข้างบนคือสิ่งเดียวที่บังคับให้อ่านไฟล์ที่ถูก ถ้าถอดออก dev server จะกลับไปอ่าน `.env` ที่ไม่มี `GOOGLE_SERVICE_ACCOUNT_KEY` ⇒ Nitro route ที่ต้องใช้ Admin SDK จะพังทั้งหมด **แต่หน้าเว็บส่วนใหญ่ยังทำงานปกติ** เพราะฝั่ง client ใช้ config สาธารณะคนละชุด — อาการที่เห็นคือ `500 (Server Error)` เฉพาะบางเส้น ไม่ใช่จอขาว ดู [common-issues.md](../TROUBLESHOOTING/common-issues.md)
+
+> ⚠️ **`.env.local` มีคีย์ Resend ตัวจริง** — ต่างจาก `.env` ที่ใส่ `re_test_xxxxxxxxxxxx` ไว้ ⇒ ตั้งแต่ dev server อ่าน `.env.local` **การกดส่งคำเชิญบน localhost จะส่งอีเมลออกจริง** ไม่ใช่แค่เขียนเอกสารลง Firestore เหมือนแต่ก่อน ทดสอบด้วยอีเมลของตัวเอง
+
+> `NUXT_PUBLIC_USE_JSON_MOCK` ที่ยังอยู่ใน `.env` และ `nuxt.config.ts` **ไม่มีโค้ดไหนอ่านแล้ว** — `useServiceMode` คิดจาก `isMock = !isFirestore` อย่างเดียว ไม่ต้องตามไปใส่ใน `.env.local`
+
 ## Production
 
 For production deployment:
