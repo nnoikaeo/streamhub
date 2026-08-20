@@ -1120,22 +1120,21 @@ onUnmounted(() => {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .view-header {
-    padding: 1rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
+/* A `@media (max-width: 768px)` block sat here duplicating
+   DashboardViewHeader.vue's copy byte for byte — including
+   `flex-direction: column`. Both landed on the same element (a child
+   component's root inherits the parent's scope id) at identical specificity,
+   so which one won came down to chunk order, and this one would have silently
+   undone the single-row header the height query below sets up. Removed.
 
-  .header-right {
-    width: 100%;
-    justify-content: flex-end;
-  }
+   Base copies of `.view-header`, `.header-right` and `.dashboard-title` are
+   still duplicated in this file. They set the same values the component does,
+   so nothing renders differently today, but they are the same hazard and
+   should be consolidated into the component in their own change — not folded
+   into a layout fix, where a mistake would be hard to spot.
 
-  .dashboard-title {
-    font-size: 1.25rem;
-  }
-}
+   The rules below are genuinely this file's: buttons passed into the #actions
+   slot are compiled here, so only this scope id reaches them. */
 
 /* Below ~640px the four controls in .header-right add up to more width than
    the row has (roughly 395px of content in 343px at a 375px viewport). The
@@ -1161,6 +1160,22 @@ onUnmounted(() => {
   .action-button {
     gap: 0;
     padding: 0.5rem;
+  }
+}
+
+/* Same treatment when the viewport is short rather than narrow — a phone held
+   sideways is 667px wide, so the width query above does not fire, yet its
+   375px of height is the scarcer resource. Dropping the labels here is what
+   lets the header collapse back to one row; DashboardViewHeader.vue handles
+   the rest of that block and explains the reasoning. Change them together. */
+@media (max-height: 500px) {
+  .action-label {
+    display: none;
+  }
+
+  .action-button {
+    gap: 0;
+    padding: 0.375rem;
   }
 }
 
