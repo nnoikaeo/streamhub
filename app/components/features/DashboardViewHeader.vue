@@ -224,4 +224,46 @@ const emit = defineEmits<{
     font-size: 1.25rem;
   }
 }
+
+/* A phone held sideways is 375px tall, and the rule above — keyed on width —
+   turns the header into two stacked rows there, which is the wrong trade when
+   height is what is scarce. Worse, `.view-header` carries `gap: 2rem`, and in
+   a column that becomes 32px of vertical air between the title and the
+   toolbar. Together with the padding, the title, and the breadcrumb, the
+   header ate about 147px of a 375px viewport — 39% of the screen, to show a
+   name the user just clicked.
+
+   Below 500px tall it goes back to a single row and drops what is merely nice
+   to have: the breadcrumb (the back arrow already goes there) and the label
+   text (the page hides its own — see [id].vue). That leaves roughly 42px, so
+   the report gets about 105px more, a quarter of the viewport back.
+
+   Keyed on height alone rather than `orientation: landscape`, since a short
+   desktop window has exactly the same problem. Must stay after the width
+   query above: both match at 667×375 and the later rule has to win. */
+@media (max-height: 500px) {
+  .view-header {
+    flex-direction: row;
+    align-items: center;
+    padding: 0.375rem 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .header-right {
+    width: auto;
+  }
+
+  .dashboard-title {
+    font-size: 1rem;
+  }
+
+  .breadcrumb-nav {
+    display: none;
+  }
+
+  .back-nav-button {
+    font-size: 1.25rem;
+    padding: 0.125rem 0.25rem;
+  }
+}
 </style>
