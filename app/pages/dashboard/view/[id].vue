@@ -624,11 +624,33 @@ const getFullscreenElement = () => {
   return doc.fullscreenElement || doc.webkitFullscreenElement || null
 }
 
+/**
+ * iPhone Safari implements the Fullscreen API for `<video>` only — no element,
+ * including the document root, can be made fullscreen. Both entry points are
+ * simply absent there.
+ *
+ * That mattered because of how the call was written: `webkitRequestFullscreen?.()`
+ * returns `undefined` when the method does not exist, `await undefined` resolves,
+ * and nothing throws — so the `catch` that exists to report failure never ran and
+ * the button did nothing at all, silently. Ask before calling.
+ */
+const supportsNativeFullscreen = () => {
+  if (typeof document === 'undefined') return false
+  const el = document.documentElement as FullscreenElement
+  return typeof el.requestFullscreen === 'function' || typeof el.webkitRequestFullscreen === 'function'
+}
+
 // Fullscreen the document root, not just the dashboard pane: dialogs and toasts
 // render outside this page's subtree and would be invisible otherwise.
 const toggleFullscreen = async () => {
   const doc = document as FullscreenDocument
   const target = document.documentElement as FullscreenElement
+
+  if (!getFullscreenElement() && !supportsNativeFullscreen()) {
+    showToast('เบราว์เซอร์นี้ไม่รองรับโหมดเต็มจอ (iPhone รองรับเฉพาะวิดีโอ)', 'error')
+    return
+  }
+
   try {
     if (getFullscreenElement()) {
       await (doc.exitFullscreen ? doc.exitFullscreen() : doc.webkitExitFullscreen?.())
