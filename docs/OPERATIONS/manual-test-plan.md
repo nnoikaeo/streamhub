@@ -531,7 +531,7 @@
 |---------|--------|--------|---------|
 | Chrome | Blink | ✅ | เบราว์เซอร์ที่ใช้ทดสอบทุกเคสในแผนนี้ |
 | Edge | Blink | ⊘ N/A | Blink เดียวกับ Chrome เวอร์ชันไล่ตามกันติด ๆ — ครอบคลุมโดยแถวบน ไม่ใช่ "ยังไม่ได้ทดสอบ" |
-| Safari | WebKit | ✅ (**6/6 · กดจริงบน prod 2026-08-20**) | ผ่านครบทุกช่อง · เจอ BUG-029 (ความสูง `<select>`) แก้แล้วในรอบเดียวกัน · **ทดสอบบน `https://streamhub-1c27a.web.app` เท่านั้น ไม่ใช่ localhost** (ดู authDomain caveat ใน [authentication.md](../GUIDES/authentication.md)) · เป็น engine ของ iPhone/iPad ทุกเครื่อง จึงได้ทดสอบมือถือจริงไปในตัว |
+| Safari | WebKit | ✅ (**6/6 บน macOS 2026-08-20 · ยืนยันซ้ำบน iPhone จริง 2026-08-21**) | ผ่านครบทุกช่อง · เจอ BUG-029 (ความสูง `<select>`) แก้แล้วในรอบเดียวกัน · **ทดสอบบน `https://streamhub-1c27a.web.app` เท่านั้น ไม่ใช่ localhost** (ดู authDomain caveat ใน [authentication.md](../GUIDES/authentication.md)) · เป็น engine ของ iPhone/iPad ทุกเครื่อง จึงได้ทดสอบมือถือจริงไปในตัว |
 | Firefox | Gecko | ☐ | engine เดียวที่ไม่มีอะไรครอบคลุม แต่ความเสี่ยงต่ำ — ไล่โค้ดแล้วไม่ใช้ `:has()` / container query / `dvh` เลย, `backdrop-filter` มีที่เดียวและเป็นการตกแต่ง ([DashboardGrid.vue:135](../../app/components/features/DashboardGrid.vue#L135)), scrollbar เขียนทั้ง `scrollbar-width` และ `::-webkit-scrollbar` |
 
 **สิ่งที่ต้องกดในเบราว์เซอร์ที่ยังไม่ผ่าน** (ไม่ต้องไล่ทั้ง 211 เคส — กดเฉพาะที่ engine ต่างกันแล้วพัง):
@@ -544,6 +544,12 @@
 | 7.1.d | หน้า admin ที่มีตาราง เช่น `/admin/users` | ตารางเรนเดอร์ครบ เลื่อนแนวนอนได้ถ้าจอแคบ ไม่ล้นทับ layout | ✅ Safari — ตารางเรนเดอร์ครบ ข้อมูลตรงกับ Chrome · พบ `<select>` ตัวกรองเตี้ยกว่า Chrome = **BUG-029** แก้แล้ว |
 | 7.1.e | เปิด modal สักตัว (แก้ไขผู้ใช้) | modal เปิด/ปิด ปุ่มกดได้ scrollbar ในตัว modal ใช้งานได้ | ✅ Safari — เปิด "แก้ไขผู้ใช้" (🖊️ ไม่ใช่ 🗑️) โดยย่อหน้าต่างให้เตี้ยจนฟอร์มล้น: เนื้อหาถูกตัดหลังช่อง "ชื่อจริง" แต่ **ปุ่มยกเลิก/บันทึกยังติดขอบล่าง modal ครบ** = `.modal-body` ถูกบีบตาม `max-height: 90vh` จริง · ไม่เห็น scrollbar ไม่ใช่สัญญาณ — macOS ซ่อน overlay scrollbar จนกว่าจะเลื่อน · **ต้องเปิด modal ที่ผ่าน [Modal.vue](../../app/components/ui/Modal.vue) เท่านั้น**: `ConfirmDialog` เป็นคนละคอมโพเนนต์ เขียน `position: fixed` เอง ไม่มี `.modal-body` จึงไม่ทดสอบอะไร |
 | 7.1.f | logout | กลับหน้า login ไม่ค้าง | ✅ Safari — กลับหน้า `/login` ไม่ค้าง |
+
+> **โหมดเต็มจอบน iPhone — ยืนยันด้วยเครื่องจริง 2026-08-21** · iPhone Safari ไม่มี Fullscreen API สำหรับ element ใด ๆ (มีเฉพาะ `<video>`) ⇒ `supportsNativeFullscreen()` คืน `false` และโค้ดข้ามส่วน native ไปเงียบ ๆ **ไม่มี toast** ซึ่งเป็นพฤติกรรมที่ตั้งใจ — ถ้าเห็น toast "ซ่อนแถบเบราว์เซอร์ไม่ได้…" แปลว่าเครื่องนั้น**มี** API แต่ปฏิเสธ คนละกรณีกัน
+>
+> ที่เห็นบนเครื่องจริง: แถบหัวแอปหาย รายงานกินที่แทน ปุ่มออกลอยมุมขวาบนใช้ได้ทั้งแนวตั้งและแนวนอน · **แถบของ Safari เองยังอยู่เสมอ** (แนวตั้าง = แถบล่าง, แนวนอน = URL bar + แถบแท็บ) แตะไม่ได้จากฝั่งเว็บ ⇒ พื้นที่ที่ได้คืนบน iPhone คือความสูงของแถบหัวแอปอย่างเดียว ไม่ใช่ทั้งจอ
+>
+> เส้นทางที่ยังไม่ได้กดจริง: **iPad** ซึ่ง Safari เป็น desktop-class และควรได้ทั้งสองอย่าง (แถบหัวแอปหาย *และ* แถบ Safari หาย)
 
 > **สิ่งที่ 7.1.e ตรวจจริง ๆ** — [Modal.vue:286](../../app/components/ui/Modal.vue#L286) เขียน `.modal-body { flex: 1; overflow-y: auto }` อยู่ใน container ที่เป็น `flex-direction: column; max-height: 90vh; overflow: hidden` แต่ **ไม่ได้ตั้ง `min-height: 0`** · flex item มีค่าเริ่มต้น `min-height: auto` = ห้ามหดต่ำกว่าความสูงเนื้อหา ถ้าเอนจินบังคับกฎนี้เข้ม `overflow-y` จะไม่ทำงาน เนื้อหาดันกล่องจนสูงเกิน แล้วโดน `overflow: hidden` ตัดส่วนล่างทิ้ง ⇒ **อาการคือปุ่มบันทึกหายไป ไม่ใช่ scrollbar หาย** · ทดสอบแล้วไม่เกิดทั้ง Blink และ WebKit แต่ถ้าวันหนึ่ง modal เพี้ยนบนเบราว์เซอร์ใหม่ ให้มาดูบรรทัดนี้ก่อน
 
