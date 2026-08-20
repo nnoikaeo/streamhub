@@ -213,7 +213,41 @@ const filteredUsers = computed(() => {
  *   2. applyFolderAssignments — syncs `assignedModerators` on each affected folder
  *      based on role transition (see docs/OPERATIONS/edit-user-form-plan.md).
  */
+/**
+ * Demoting a moderator strips every folder they manage, and promoting them
+ * back restores nothing — no history is kept. That is intended, but the form
+ * never said so, so the assignments just vanished. [BUG-027]
+ */
+const pendingSave = ref<UserFormSubmitPayload | null>(null)
+const showDemoteDialog = ref(false)
+
+const foldersLostOnDemote = (payload: UserFormSubmitPayload): number => {
+  const currentRole = payload.user.role ?? payload.previousRole
+  if (payload.previousRole !== 'moderator' || currentRole === 'moderator') return 0
+  return folders.value.filter(f => (f.assignedModerators ?? []).includes(payload.user.uid ?? '')).length
+}
+
+const demoteFolderCount = computed(() =>
+  pendingSave.value ? foldersLostOnDemote(pendingSave.value) : 0
+)
+
 const handleSaveUser = async (payload: UserFormSubmitPayload) => {
+  if (foldersLostOnDemote(payload) > 0) {
+    pendingSave.value = payload
+    showDemoteDialog.value = true
+    return
+  }
+  await performSaveUser(payload)
+}
+
+const confirmDemote = async () => {
+  const payload = pendingSave.value
+  showDemoteDialog.value = false
+  pendingSave.value = null
+  if (payload) await performSaveUser(payload)
+}
+
+const performSaveUser = async (payload: UserFormSubmitPayload) => {
   const { user, selectedFolderIds, previousRole } = payload
   if (!user.uid) {
     console.error('❌ [handleSaveUser] Missing uid in payload')
@@ -421,6 +455,17 @@ const folderTree = computed(() => buildFolderTree(folders.value))
       />
 
       <!-- Toggle Active Confirmation Dialog -->
+      <ConfirmDialog
+        :is-open="showDemoteDialog"
+        title="ถอดสิทธิ์ผู้ดูแลโฟลเดอร์"
+        :message="`${pendingSave?.user?.name ?? 'ผู้ใช้รายนี้'} ดูแลอยู่ ${demoteFolderCount} โฟลเดอร์ — เปลี่ยนบทบาทแล้วจะถูกถอดออกจากทุกโฟลเดอร์ และเลื่อนกลับเป็น moderator ภายหลังจะไม่ได้คืนอัตโนมัติ ยืนยันหรือไม่?`"
+        confirm-text="ยืนยัน"
+        :is-danger="true"
+        :loading="loading"
+        @confirm="confirmDemote"
+        @cancel="showDemoteDialog = false; pendingSave = null"
+      />
+
       <ConfirmDialog
         :is-open="showToggleDialog"
         :title="userToToggle?.isActive ? 'ปิดใช้งานผู้ใช้' : 'เปิดใช้งานผู้ใช้'"

@@ -1,5 +1,11 @@
 <template>
   <div class="app-layout" :class="{ 'sidebar-open': isSidebarOpen }">
+    <!-- Offline notice — the Firestore SDK queues writes silently and never
+         times out, so without this a save just hangs with no explanation -->
+    <div v-if="!isOnline" class="offline-banner" role="status">
+      ⚠️ ออฟไลน์ — การบันทึกจะค้างจนกว่าจะกลับมาออนไลน์ (ข้อมูลไม่หาย ระบบจะส่งให้เองเมื่อเชื่อมต่อได้)
+    </div>
+
     <!-- Header (Fixed) -->
     <header class="app-header">
       <AppHeader
@@ -87,6 +93,7 @@ defineProps({
  */
 const isSidebarOpen = ref(false)
 const route = useRoute()
+const { isOnline } = useOnlineStatus()
 
 /**
  * Close on the tap itself rather than on the navigation it triggers: tapping
@@ -123,6 +130,17 @@ watch(() => route.fullPath, () => {
   flex-direction: column;
   min-height: 100vh;
   background-color: #ffffff;
+}
+
+/* ========== OFFLINE BANNER ========== */
+.offline-banner {
+  padding: 0.5rem 1rem;
+  background-color: #fef3c7;
+  color: #92400e;
+  font-size: 0.875rem;
+  text-align: center;
+  border-bottom: 1px solid #fde68a;
+  flex-shrink: 0;
 }
 
 /* ========== HEADER ========== */

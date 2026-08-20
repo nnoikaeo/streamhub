@@ -234,10 +234,10 @@
 
 Feature stubs, optional — app fully functional without them:
 
-- [ ] QuickActions **create dashboard** button routes to `/dashboard/create`, **which does not exist** — `app/pages/dashboard/index.vue` → `navigateTo('/dashboard/create')` gives a 404. Visible to moderator + admin. Worse than the stubs below, which at least say something
+- [x] **QuickActions create dashboard** ✅ DONE (PR #413) — the button pointed at `/dashboard/create`, a page that was never written, so moderators and admins hit a full-screen 404. It now goes to Explorer by role (`/admin/explorer`, `/manage/explorer`), where dashboards are actually created; no second copy of the create form
 - [x] **BUG-005 delete direction** ✅ DONE (PR #409, #410) — deleting a group or a user now warns about what it will touch, then clears `user.groups[]` / `group.members[]` / `folders.assignedModerators[]`; `audit:orphans` gained a moderator check that immediately found five stale folders on prod, cleaned with the new `scripts/clean-orphan-refs.mjs`
-- [ ] **BUG-026** — saving while the network is down reports nothing: the button sits at "กำลังบันทึก..." with no timeout, because the Firestore SDK queues the write and only settles once the server accepts. Consider an offline banner (`navigator.onLine`) or a timeout on the save button
-- [ ] **BUG-027** — demoting a moderator to user silently strips every folder assignment, and promoting them back does not restore any (`app/utils/folderAssignment.ts`). Intended behaviour, but the form never says so — a confirm listing the N folders would match the BUG-020 pattern
+- [x] **BUG-026** ✅ DONE (PR #413) — an offline banner now says the save will hang and that nothing is lost. No timeout: cutting the promise short would abandon a write the SDK still completes once the connection returns
+- [x] **BUG-027** ✅ DONE (PR #413) — saving a role change away from moderator now asks first, naming how many folders the user will lose and that promoting them back does not restore them
 - [x] ~~Home page **create folder** button~~ **ปิดด้วยการลบ** (PR #395) — ปุ่ม `+` กดไม่ถึงอยู่แล้ว: `PageLayout` ส่ง `:allow-create` ต่อให้ `UnifiedSidebar` ซึ่ง render แค่ `AdminAccordion` ไม่เคย render `FolderSidebar` · Explorer สร้างโฟลเดอร์ได้จริงอยู่แล้ว จึงลบทั้งสาย prop/event/handler แทนที่จะต่อ
 - [x] ~~Home page **share** button~~ ลบไปพร้อม Quick Share (2026-08-18, BUG-017)
 - [x] ~~Explorer **folder creation dialog**~~ ลบพร้อมกัน (PR #395) — `handleCreateFolder` ใน `useDashboardPage` เป็น `console.log` ที่ไม่มีทางถูกเรียก
