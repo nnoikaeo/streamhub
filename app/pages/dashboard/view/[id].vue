@@ -67,13 +67,14 @@
               type="button"
               class="action-button toggle-sidebar-button"
               :title="showInfoSidebar ? 'ซ่อนข้อมูลแดชบอร์ด' : 'แสดงข้อมูลแดชบอร์ด'"
+              :aria-label="showInfoSidebar ? 'ซ่อนข้อมูลแดชบอร์ด' : 'แสดงข้อมูลแดชบอร์ด'"
               @click="showInfoSidebar = !showInfoSidebar"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
                 <line x1="9" y1="3" x2="9" y2="21" />
               </svg>
-              {{ showInfoSidebar ? 'ซ่อนข้อมูล' : 'แสดงข้อมูล' }}
+              <span class="action-label">{{ showInfoSidebar ? 'ซ่อนข้อมูล' : 'แสดงข้อมูล' }}</span>
             </button>
             <!-- Embed Zoom Control -->
             <div v-if="embedUrl" class="zoom-control" role="group" aria-label="ปรับขนาดแดชบอร์ด">
@@ -111,6 +112,7 @@
               type="button"
               class="action-button fullscreen-button"
               :title="isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
+              :aria-label="isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
               @click="toggleFullscreen"
             >
               <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -125,7 +127,7 @@
                 <line x1="14" y1="10" x2="21" y2="3" />
                 <line x1="3" y1="21" x2="10" y2="14" />
               </svg>
-              {{ isFullscreen ? 'ย่อ' : 'เต็มจอ' }}
+              <span class="action-label">{{ isFullscreen ? 'ย่อ' : 'เต็มจอ' }}</span>
             </button>
           </template>
         </DashboardViewHeader>
@@ -1118,20 +1120,62 @@ onUnmounted(() => {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .view-header {
-    padding: 1rem;
-    flex-direction: column;
-    align-items: flex-start;
+/* A `@media (max-width: 768px)` block sat here duplicating
+   DashboardViewHeader.vue's copy byte for byte — including
+   `flex-direction: column`. Both landed on the same element (a child
+   component's root inherits the parent's scope id) at identical specificity,
+   so which one won came down to chunk order, and this one would have silently
+   undone the single-row header the height query below sets up. Removed.
+
+   Base copies of `.view-header`, `.header-right` and `.dashboard-title` are
+   still duplicated in this file. They set the same values the component does,
+   so nothing renders differently today, but they are the same hazard and
+   should be consolidated into the component in their own change — not folded
+   into a layout fix, where a mistake would be hard to spot.
+
+   The rules below are genuinely this file's: buttons passed into the #actions
+   slot are compiled here, so only this scope id reaches them. */
+
+/* Below ~640px the four controls in .header-right add up to more width than
+   the row has (roughly 395px of content in 343px at a 375px viewport). The
+   row does not wrap, so everything is squeezed: the two text labels break
+   onto a second line and .zoom-control — which clips with `overflow: hidden`
+   — loses its `+` button entirely. Clipped, it is neither visible nor
+   clickable, so zooming in becomes impossible on a phone. That matters more
+   than it looks: this control exists because the browser's own zoom does
+   nothing to a Looker report, which refits itself to the iframe width
+   (PR #351).
+
+   Dropping the two labels frees ~150px and everything fits on one row, which
+   keeps the header one line tall and leaves the report the height it had.
+   Both buttons carry an aria-label so hiding the text costs no accessible
+   name — the zoom buttons already had theirs. [BUG-030, TC 7.2] */
+@media (max-width: 640px) {
+  .action-label {
+    display: none;
   }
 
-  .header-right {
-    width: 100%;
-    justify-content: flex-end;
+  /* Without a label there is nothing to sit beside the icon, so the 0.5rem
+     gap would pad the button off-centre. */
+  .action-button {
+    gap: 0;
+    padding: 0.5rem;
+  }
+}
+
+/* Same treatment when the viewport is short rather than narrow — a phone held
+   sideways is 667px wide, so the width query above does not fire, yet its
+   375px of height is the scarcer resource. Dropping the labels here is what
+   lets the header collapse back to one row; DashboardViewHeader.vue handles
+   the rest of that block and explains the reasoning. Change them together. */
+@media (max-height: 500px) {
+  .action-label {
+    display: none;
   }
 
-  .dashboard-title {
-    font-size: 1.25rem;
+  .action-button {
+    gap: 0;
+    padding: 0.375rem;
   }
 }
 

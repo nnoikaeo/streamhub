@@ -38,6 +38,29 @@ taskkill /PID <PID> /F
 
 ---
 
+## Issue: เปิดแดชบอร์ดบน localhost แล้วได้ `500` จาก `/api/embed/request` (แก้แล้ว 2026-08-21)
+
+**อาการ** — หน้าแดชบอร์ดขึ้น placeholder "Looker dashboard embed URL not configured" ทั้งที่แดชบอร์ดตัวนั้นมี `lookerEmbedUrl` และ**เปิดบน production ได้ปกติ** ใน console:
+
+```
+POST http://localhost:3000/api/embed/request?uid=... 500 (Server Error)
+❌ [FirestoreService] getDashboardEmbedUrl error: FetchError: [POST] "/api/embed/request?uid=...": 500 Server Error
+```
+
+**สาเหตุ** — `nuxt dev` โหลด `.env` เป็นค่าปริยาย ไม่ใช่ `.env.local` และ `.env` **ไม่มี `GOOGLE_SERVICE_ACCOUNT_KEY`** ⇒ `ensureAdminInitialized()` ไม่ได้ credential ⇒ `getApps().length === 0` ⇒ [getAdminDb()](../../server/utils/firestoreAdmin.ts) คืน `null` ⇒ [request.post.ts](../../server/api/embed/request.post.ts) โยน `500 'Firestore not available'`
+
+**ทำไมถึงหลอกตา** — ฝั่ง client ใช้ config สาธารณะคนละชุด จึงต่อ Firestore ได้ปกติ **ทุกหน้าอื่นทำงานหมด** พังเฉพาะ Nitro route ที่ต้องใช้ Admin SDK เท่านั้น (`/api/embed/*`, `/api/health`, `/api/audit/*`, `/api/invitations/*`) เป็นกับดักทรงเดียวกับ BUG-007
+
+**วิธีเช็คเร็วสุด** — ดู `authDomain` ที่ console พิมพ์ตอนบูต ถ้าเป็น `…firebaseapp.com` แปลว่าอ่าน `.env` อยู่ ถ้าเป็น `…web.app` คืออ่าน `.env.local` ถูกแล้ว
+
+**แก้แล้วที่ต้นทาง** — `package.json` เปลี่ยนเป็น `nuxt dev --dotenv .env.local` ⇒ dev server, `deploy-hosting.sh` และสคริปต์ใน `scripts/` อ่านไฟล์เดียวกันหมด ถ้าเจออาการนี้อีกให้เช็คว่าธง `--dotenv` ยังอยู่ไหม
+
+> ⚠️ ผลข้างเคียงที่ต้องรู้: `.env.local` มีคีย์ Resend **ตัวจริง** ⇒ กดส่งคำเชิญบน localhost ตอนนี้**อีเมลออกจริง** ดู [environment-variables.md](../REFERENCE/environment-variables.md)
+
+> ผลพลอยได้ที่ตามมาอีกอย่าง — พอ authDomain บน localhost เปลี่ยนจาก `…firebaseapp.com` เป็น `…web.app` **CSP บล็อก iframe ของ Firebase Auth** (`Framing 'https://…web.app/' violates … frame-src`) เพราะ [securityHeaders.ts](../../server/middleware/securityHeaders.ts) ฮาร์ดโค้ด `https://*.firebaseapp.com` ไว้ · แก้แล้วโดย derive origin จาก `authDomain` ใน runtimeConfig — prod ไม่เคยเจอเพราะ `'self'` ที่นั่นคือ authDomain พอดี
+
+---
+
 ## Issue: Google Sign-in Fails on Production (COOP)
 
 **Error:** `Cross-Origin-Opener-Policy policy would block the window.close call`
