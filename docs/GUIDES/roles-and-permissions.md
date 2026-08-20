@@ -347,6 +347,12 @@ const ROLE_PERMISSIONS = {
 }
 ```
 
+> ⚠️ **Feature permissions are derived from the role and nothing else.** `initializePermissions` copies `ROLE_PERMISSIONS[user.role]` field by field ([app/stores/permissions.ts](../../app/stores/permissions.ts)); there is no per-user override, in the store or in Firestore. So "an admin with one capability removed" is not a state this system can be put into — change the role, or change the matrix for every holder of that role.
+>
+> Two consequences worth knowing before you read a page guard:
+> - A guard that re-checks a capability the route's middleware already implies is defense-in-depth with no reachable path. `/admin/tags` checks `canManageTags`, but the `admin` middleware has already turned away anyone without `canAccessAdmin`, and every role that clears that check has `canManageTags: true`. Keep the guard — it is what makes the matrix safe to edit — but do not expect to be able to trigger it.
+> - The matching test case (TC 3.8.7) is recorded ⊘ N/A for exactly this reason. If per-user overrides are ever built, that case becomes runnable again and should go back to ☐.
+
 ---
 
 ## 🔐 Permission Structure
@@ -408,6 +414,8 @@ otherwise                            → DENY   (default private)
 > Group grants resolve via each user's `user.groups[]` field (the field access control reads). `group.members[]` is a denormalized mirror kept in sync on save (`app/utils/groupSync.ts`, BUG-005).
 
 > Deleting either end cleans the other. Deleting a group asks first — "มีสมาชิก N คน" — then strips the id from every member's `groups[]`; deleting a user strips their uid from `group.members[]` and from `folders.assignedModerators[]` (`app/utils/cascadeDelete.ts`, BUG-005). Before this, a deleted group kept rendering as a badge on the admin users table, and a deleted moderator stayed assigned to their folders — `npm run audit:orphans` found five such folders on production, cleaned with `scripts/clean-orphan-refs.mjs` on 2026-08-20.
+
+> The user side of that cascade was run end to end on production on 2026-08-20 (TC 3.2.11). Since accounts only exist by accepting an invitation, the disposable one has to be written directly: `node scripts/qa-cascade-user.mjs seed --apply` creates a `uid_qa_` user named from both a `group.members[]` and a `folder.assignedModerators[]`, and `restore --apply` removes it again. Deleting it through `/admin/users` produced the expected dialog ("ถูกอ้างอิงอยู่ใน 1 กลุ่ม และ 1 โฟลเดอร์ที่ดูแล") and left `audit:orphans` at 0. Note that the cleanup writes `assignedModerators: []` rather than removing the field, which is why restore uses `FieldValue.delete()`.
 
 **Permission Metadata** (provenance tracking):
 

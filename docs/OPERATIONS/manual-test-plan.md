@@ -1,6 +1,6 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 19 August 2569
+> **Last Updated:** 20 August 2569
 > **Total Test Cases:** 211
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
@@ -12,9 +12,9 @@
 | 🔍 | **Code-verified only** — logic confirmed in source, NOT yet exercised through the UI. Still needs a human UI pass to become ✅ |
 | ❌ | Tested via UI and **failed** — see Known Bugs |
 | ☐ | Not yet checked |
-| ⊘ N/A | **Intentionally not tested** — page/feature removed or superseded (e.g. legacy orphan route with no sidebar link); excluded from coverage |
+| ⊘ N/A | **เคสนี้ไม่มีทางกดจริงได้** — page/feature ถูกถอดหรือมีของใหม่มาแทน (legacy orphan route ที่ไม่มีลิงก์ในไซด์บาร์), หรือ**เงื่อนไขตั้งต้นประกอบขึ้นมาไม่ได้เลยในสถาปัตยกรรมปัจจุบัน** (6.3.2 = ไม่มี REST ของเราที่จะตอบ 500, 3.8.7 = ไม่มี per-user permission override); ไม่นับรวมใน coverage |
 
-> 🔍 cases were confirmed by reading the implementation (shared CRUD composables, middleware, forms). They cover create/edit/delete/toast/confirm-dialog mechanics, route protection, and UserForm field behavior. Cases needing real Google OAuth login, cross-browser, responsive, external side-effects (email send), uniqueness/delete-guard server checks, and live data remain ☐ for a human tester.
+> 🔍 เคยเป็นสถานะของทั้งกลุ่มเคสที่ยืนยันด้วยการอ่านโค้ดอย่างเดียว ตอนนี้เหลือตัวเดียวคือ **6.3.1** ซึ่งจงใจไม่กด (เหตุผลอยู่ในแถวนั้น) · ที่เหลือถูกกดจริงหมดแล้ว รวมถึงเคสที่ต้องใช้ข้อมูลซึ่ง UI สร้างเองไม่ได้ — เคสพวกนั้นมี fixture ของตัวเองใน `scripts/` (ดู §9 Testing Environment Setup) ที่เขียนสภาพตั้งต้นลง Firestore แล้วคืนค่าให้ได้ครบ
 
 ---
 
@@ -87,7 +87,7 @@
 | 2.1.4a | Recent dashboards — empty state (first login) | 1. Login (no prior visits) 2. Go to `/dashboard` | "ไม่มีแดชบอร์ดล่าสุด" empty state แสดง | Medium | ✅ |
 | 2.1.4b | Recent dashboards — after visit | 1. Open any dashboard 2. Return to `/dashboard` | Dashboard ที่เพิ่งเปิดขึ้นบนสุดใน "แดชบอร์ดล่าสุด" พร้อม "เปิดล่าสุด: เมื่อกี้" | Medium | ✅ |
 | 2.1.5 | Click "Dashboards" quick action | 1. Click "Dashboards" card | Navigate to `/dashboard/discover` | Medium | ✅ |
-| 2.1.6 | Sidebar folder navigation | N/A — folder tree removed from sidebar (Phase 5 redesign); folders are now filters on `/dashboard/discover` | — | Low | N/A |
+| 2.1.6 | Sidebar folder navigation | N/A — folder tree removed from sidebar (Phase 5 redesign); folders are now filters on `/dashboard/discover` | — | Low | ⊘ N/A |
 | 2.1.7 | ปุ่ม "สร้างแดชบอร์ด" ที่การ์ดการดำเนินการด่วน | 1. login admin หรือ moderator 2. `/dashboard` 3. กด ➕ สร้างแดชบอร์ด | admin → `/admin/explorer` · moderator → `/manage/explorer` (เดิมยิงไป `/dashboard/create` ที่ไม่มีอยู่ = หน้า 404 เต็มจอ) | High | ✅ (prod-equivalent 2026-08-20 ทั้งสอง role) |
 
 ---
@@ -183,7 +183,7 @@
 | 3.2.2 | Filter by role | 1. Select "Moderator" from role dropdown | Only moderators shown | High | ✅ |
 | 3.2.3 | Filter by company | 1. Select company from dropdown | Only users in that company shown | Medium | ✅ |
 | 3.2.4 | Multi-filter (role + company) | 1. Select role 2. Select company | Intersection of filters | Medium | ✅ |
-| 3.2.5 | ~~Create new user~~ | ~~N/A~~ | ~~Removed — use /admin/invitations instead~~ | ~~High~~ | N/A |
+| 3.2.5 | ~~Create new user~~ | ~~N/A~~ | ~~Removed — use /admin/invitations instead~~ | ~~High~~ | ⊘ N/A |
 | 3.2.6 | Edit existing user | 1. Click Edit on user 2. Change role 3. Save | User updated, table reflects change | High | ✅ |
 | 3.2.6a | Edit user — email is disabled | 1. Click Edit on any user | Email input is disabled (lock hint shown); cannot be changed | High | ✅ |
 | 3.2.6b | Edit user — change groups | 1. Click Edit 2. Check/uncheck groups in multi-select 3. Save | User's `groups` array updated, badges in table reflect change | High | ✅ |
@@ -192,9 +192,9 @@
 | 3.2.6e | Edit user — role user → moderator | 1. Edit user (role=user) 2. Change role to moderator 3. Folder picker appears 4. Check folders 5. Save | Folder picker appears on role change; selected folders get UID added | High | ✅ |
 | 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ✅ (pre-launch group B4, 2026-06-28 — not re-run on prod to avoid deleting a real account) |
 | 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | ✅ |
-| 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | N/A |
+| 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | ⊘ N/A |
 | 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | ✅ |
-| 3.2.11 | ลบผู้ใช้ที่ถูกอ้างอิงอยู่ → ถามก่อน แล้วล้างให้ (BUG-005) | 1. เตรียมผู้ใช้ที่อยู่ในกลุ่มและ/หรือดูแลโฟลเดอร์ 2. กดลบ | dialog บอกว่า "ถูกอ้างอิงอยู่ใน N กลุ่ม และ M โฟลเดอร์ที่ดูแล" → ยืนยัน → uid หายจาก `group.members[]` และ `folders.assignedModerators[]` ทั้งหมด, audit = 0 | Medium | 🔍 (แก้แล้ว รอกดจริง — ต้องมีบัญชีที่ทิ้งได้) |
+| 3.2.11 | ลบผู้ใช้ที่ถูกอ้างอิงอยู่ → ถามก่อน แล้วล้างให้ (BUG-005) | 1. เตรียมผู้ใช้ที่อยู่ในกลุ่มและ/หรือดูแลโฟลเดอร์ 2. กดลบ | dialog บอกว่า "ถูกอ้างอิงอยู่ใน N กลุ่ม และ M โฟลเดอร์ที่ดูแล" → ยืนยัน → uid หายจาก `group.members[]` และ `folders.assignedModerators[]` ทั้งหมด, audit = 0 | Medium | ✅ (**กดจริง 2026-08-20** — บัญชีมาจากคำเชิญเท่านั้น และ 6 บัญชีบน prod ใช้งานอยู่ทั้งหมด จึงสร้างตัวทดสอบด้วย [scripts/qa-cascade-user.mjs](../../scripts/qa-cascade-user.mjs) `seed --apply`: user `uid_qa_cascade` + `groups: ["analytics"]` + `groups/analytics.members` + `folders/folder_1785082588448` (TEST-E) `.assignedModerators` · ลบที่ `/admin/users` → dialog ขึ้นตรงตามคาด "…ถูกอ้างอิงอยู่ใน **1 กลุ่ม และ 1 โฟลเดอร์ที่ดูแล** — ลบแล้วจะถอดออกจากที่เหล่านั้นด้วย ยืนยันหรือไม่?" → ยืนยัน → แถวหาย, `members` และ `assignedModerators` ว่างทั้งคู่, `npm run audit:orphans` = 0 ทั้ง 7 หมวด · คืนสภาพด้วย `restore --apply`) |
 | 3.2.12 | ลด role moderator ที่ดูแลโฟลเดอร์ → เตือนก่อน (BUG-027) | 1. `/admin/users` แก้ moderator ที่ดูแลโฟลเดอร์อยู่ 2. เปลี่ยน role เป็น `user` 3. กดบันทึก | dialog "ดูแลอยู่ N โฟลเดอร์ — เปลี่ยนบทบาทแล้วจะถูกถอดออกจากทุกโฟลเดอร์ และเลื่อนกลับเป็น moderator ภายหลังจะไม่ได้คืนอัตโนมัติ" · ยกเลิก = ไม่บันทึกอะไร | Medium | ✅ (prod 2026-08-20 — Nopphol/1 โฟลเดอร์; ยืนยันแล้วถอดจริง คืนค่าให้แล้ว) |
 
 ---
@@ -311,7 +311,7 @@
 | 3.8.4 | Delete tag | 1. Click Delete 2. Confirm | Tag removed | Medium | ✅ |
 | 3.8.5 | Move Up/Down reorder | 1. Click Move Up/Down | sortOrder swaps | Low | ✅ |
 | 3.8.6 | Unique slug validation | 1. Create with existing slug | Error toast "slug นี้ถูกใช้แล้ว" + no overwrite | Medium | ✅ (BUG-010 fix — tags→slug uniqueFields) |
-| 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected to /admin/overview | Low | 🔍 (guard code-verified: `if(!can('canManageTags')) navigateTo('/admin/overview')`; not UI-run — no admin-without-perm account) |
+| 3.8.7 | Permission check (canManageTags) | 1. Login as admin without tag permission | Redirected to /admin/overview | Low | ⊘ N/A (**สถานะ "admin ที่ถูกถอดสิทธิ์แท็ก" สร้างไม่ได้ในสถาปัตยกรรมนี้** — `canManageTags` มาจากเมทริกซ์ role ล้วน ๆ ที่ [permissions.ts:44](../../app/stores/permissions.ts#L44) (`admin: true` ตายตัว) ผ่าน `initializePermissions` ที่คัดลอกค่าจาก `ROLE_PERMISSIONS[role]` ตรง ๆ [permissions.ts:155](../../app/stores/permissions.ts#L155) · ไม่มีที่เก็บ per-user override ทั้งใน Firestore และในสโตร์ ⇒ ไม่มีทางประกอบเงื่อนไขของเคสนี้ขึ้นมาได้ · role อื่นก็มาไม่ถึง guard เพราะ `admin` middleware เด้งด้วย `canAccessAdmin` ไปก่อนที่ [admin.ts:39](../../app/middleware/admin.ts#L39) ⇒ guard ที่ [tags/index.vue:36](../../app/pages/admin/tags/index.vue#L36) เป็น defense-in-depth ที่ไม่มีเส้นทางเข้าถึงตามการออกแบบปัจจุบัน · **จะกดจริงได้ต่อเมื่อทำ per-user permission override** (ที่เก็บ + UI + rules) ซึ่งควรทำเมื่อมีคนขอจริงเท่านั้น — ถ้าทำเมื่อไร ให้เปิดเคสนี้กลับเป็น ☐) |
 | 3.8.8 | Tag color visible in list | 1. Open `/admin/tags` | `แท็ก` column shows each tag as a colored `TagBadge` (size md) — not plain text — so colors can be compared across rows without opening the edit modal | Low | ✅ (verified on prod 2026-08-04) |
 | 3.8.9 | Switched-off tag reads as off | 1. Toggle a tag's สถานะ off | Its badge dims (opacity 0.55) with a dashed outline and a "ปิดใช้งาน" tooltip, immediately, without a reload | Low | ✅ (prod 2026-08-05 — ภาคเหนือ toggled off) |
 | 3.8.10 | ลำดับ numbering has no gaps | 1. Delete a tag from the middle 2. Look at the ลำดับ column | Numbers stay contiguous (1..N) because the column shows list position, not the stored `sortOrder`; ⬆️/⬇️ still reorder | Low | ✅ (prod 2026-08-05 — 7 tags numbered 1–7) |
@@ -332,7 +332,7 @@
 | 3.9.4 | Send single invitation | 1. Click "เชิญผู้ใช้" 2. Fill email, role, company 3. Submit | Email sent, record created in table | Critical | ✅ |
 | 3.9.5 | Resend pending invitation | 1. Click "ส่งอีกครั้ง" on pending invitation 2. Confirm | New email sent, expiry extended | Critical | ✅ |
 | 3.9.6 | Cancel pending invitation | 1. Click "ยกเลิก" on pending invitation 2. Confirm | Status changes to "cancelled" | High | ✅ |
-| 3.9.7 | ~~Delete invitation record~~ | ~~N/A~~ | ~~Removed — design is cancel-only (no hard delete)~~ | ~~Medium~~ | N/A |
+| 3.9.7 | ~~Delete invitation record~~ | ~~N/A~~ | ~~Removed — design is cancel-only (no hard delete)~~ | ~~Medium~~ | ⊘ N/A |
 | 3.9.8 | Bulk invite (multi-add) | 1. Click "เชิญหลายคน" 2. Add rows with mixed role/company/group 3. Submit | Multiple emails sent, records created **with per-row role/company/group** | High | ✅ |
 | 3.9.9 | Expired invitation auto-detect | 1. View invitation past expiry date | Status shows "expired" (client-side) | Medium | ✅ |
 | 3.9.10 | Resend already accepted | 1. Try resend on accepted invitation | Resend button hidden or disabled | Medium | ✅ |
@@ -700,13 +700,13 @@
 | Dashboard View | 14 | High | ✅ |
 | Profile | 5 | Medium | ✅ (5/5 — ยืนยันบน prod ทั้ง admin และ moderator 2026-08-19) |
 | Admin Overview | 5 | High | ✅ |
-| Admin Users | 17 | High | ✅ partial (16/17 — 3.2.11 cascade delete รอกดจริง) |
+| Admin Users | 17 | High | ✅ (17/17 — 3.2.11 cascade delete ยืนยันบน prod 2026-08-20 ด้วย fixture `scripts/qa-cascade-user.mjs`) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
 | Admin Dashboards | 8 | High | ⊘ N/A (5/8 orphan route, superseded by Explorer; 3.4.3/3.4.4/3.4.7 ยังผ่าน UI ตอนไล่ BUG-013 2026-08-15) |
 | Admin Companies | 9 | Medium | ✅ (9/9 — BUG-010 unique-code + BUG-011 blank-region fixed) |
 | Admin Regions | 5 | Medium | ✅ (5/5 — unique-code via BUG-010 fix) |
 | Admin Groups | 8 | Medium | ✅ (8/8 — 3.7.8 cascade delete ยืนยันบน prod) |
-| Admin Tags | 10 | Medium | ✅ (9/10 UI + 3.8.7 canManageTags guard code-verified — ยังไม่มีบัญชี admin ที่ถอดสิทธิ์แท็ก จึงกดจริงไม่ได้) |
+| Admin Tags | 10 | Medium | ✅ (9 ✅ / 1 ⊘ 3.8.7 — "admin ที่ถูกถอดสิทธิ์แท็ก" ไม่มีทางเกิด เพราะ `canManageTags` ผูกกับ role ตรง ๆ ไม่มี per-user override) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
 | Admin Permissions | 23 | High | ✅ (23/23 — 3.10.11–3.10.23 verified on prod 2026-08-19) |
 | Admin Health | 3 | Low | ✅ (3/3) |
@@ -717,11 +717,26 @@
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **211** | — | 196 ✅ / 3 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **211** | — | 197 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
+
+> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 211 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]? ` แล้วดูสัญลักษณ์ในช่องท้าย
 
 ---
 
 ## 9. Testing Environment Setup
+
+### Fixture scripts — สภาพตั้งต้นที่ UI สร้างเองไม่ได้
+
+บางเคสต้องการข้อมูลที่แอปปฏิเสธจะสร้าง (guard กันไว้) หรือไม่มีทางสร้าง (บัญชีเกิดจากคำเชิญเท่านั้น) สคริปต์พวกนี้เขียนสภาพนั้นลง Firestore ตรง ๆ พร้อมจำค่าเดิมไว้คืน — **dry run ถ้าไม่ใส่ `--apply`** และต้องรัน `restore --apply` ให้จบก่อนปิด session ทุกครั้ง
+
+| เคส | คำสั่ง | สร้างสภาพอะไร |
+|---|---|---|
+| TC 3.2.11 | `node scripts/qa-cascade-user.mjs seed\|restore [--apply]` | user `uid_qa_cascade` ที่ถูกอ้างอิงจาก **ทั้งสองฝั่ง** ของ cascade — `groups/analytics.members[]` + TEST-E `.assignedModerators[]` — เพื่อให้มีบัญชีที่ลบทิ้งได้ (6 บัญชีจริงบน prod ใช้งานอยู่หมด) |
+| TC 6.2.1 / 6.2.2 | `node scripts/qa-broken-refs.mjs break\|restore [--apply]` | dangling `folderId` + grant ที่ชี้ไป uid ที่ไม่มีจริง บนแดชบอร์ด QA (guard BUG-008/009 กันไม่ให้ UI สร้างสภาพนี้) |
+
+ปิดท้ายด้วย `npm run audit:orphans` ทุกครั้ง ต้องได้ 0 ทั้ง 7 หมวด
+
+---
 
 ### Prerequisite Data
 
@@ -788,3 +803,4 @@ real production database. (Always clean up test records.)
 - [ ] Export (CSV) ทำงาน
 - [ ] Email invitation ส่งสำเร็จ (Resend dashboard)
 - [ ] Mobile responsive layout ใช้งานได้
+- [ ] ลบผู้ใช้/กลุ่มแล้ว ref ฝั่งตรงข้ามถูกล้าง (`scripts/qa-cascade-user.mjs` + `npm run audit:orphans` = 0)
