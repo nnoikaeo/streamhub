@@ -13,7 +13,7 @@
     "predeploy": "node scripts/prepare-firebase-deploy.mjs",
     "deploy": "firebase deploy",
     "build:analyze": "NUXT_BUILD_ANALYZE=true nuxt build",
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --dotenv .env.local",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",

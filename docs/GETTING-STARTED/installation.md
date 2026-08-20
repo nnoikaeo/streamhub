@@ -72,6 +72,10 @@ NUXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
 **Don't have these?** → [See Firebase Setup Guide](setup-firebase.md)
 
+`.env.local` ต้องมี **`GOOGLE_SERVICE_ACCOUNT_KEY`** ด้วย (service account JSON บรรทัดเดียว) ไม่ใช่แค่คีย์ `NUXT_PUBLIC_*` ข้างบน — คีย์สาธารณะทำให้หน้าเว็บทำงาน แต่ Nitro route ที่ใช้ Admin SDK (`/api/embed/*`, `/api/health`, `/api/audit/*`, `/api/invitations/*`) ต้องใช้ตัวนี้ ถ้าไม่มีจะได้ `500` เฉพาะบางเส้นโดยหน้าอื่นดูปกติดี
+
+> `npm run dev` ตั้งค่าให้อ่าน `.env.local` ผ่าน `--dotenv .env.local` ใน `package.json` — **ค่าปริยายของ Nuxt คือ `.env`** ถ้าธงนี้หายไปจะกลับไปอ่านไฟล์ผิด ดู [environment-variables.md](../REFERENCE/environment-variables.md)
+
 ---
 
 ## Step 4: Start Development Server
