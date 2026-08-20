@@ -225,6 +225,31 @@ const emit = defineEmits<{
   }
 }
 
+/* Portrait on a phone cannot collapse to one row: at 375px wide the toolbar
+   alone is about 220px, and the title and back arrow do not fit beside it. So
+   the two rows stay — but nothing else has to. The `gap: 2rem` between them is
+   32px of nothing, the padding is generous for a phone, and the breadcrumb
+   repeats a journey the back arrow already offers. Trimming those takes the
+   header from about 144px to about 85px on a 667px-tall screen: from 22% of
+   the viewport to 13%.
+
+   Sits before the height query below so a landscape phone, which matches both,
+   still gets the single-row treatment. */
+@media (max-width: 640px) {
+  .view-header {
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .dashboard-title {
+    font-size: 1.125rem;
+  }
+
+  .breadcrumb-nav {
+    display: none;
+  }
+}
+
 /* A phone held sideways is 375px tall, and the rule above — keyed on width —
    turns the header into two stacked rows there, which is the wrong trade when
    height is what is scarce. Worse, `.view-header` carries `gap: 2rem`, and in
