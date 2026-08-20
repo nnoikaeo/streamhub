@@ -42,7 +42,7 @@
             :can-create="isModerator || isAdmin"
             :can-invite="false"
             @view-dashboards="navigateTo('/dashboard/discover')"
-            @create-dashboard="navigateTo('/dashboard/create')"
+            @create-dashboard="navigateTo(createDashboardPath)"
           />
         </ClientOnly>
       </div>
@@ -105,6 +105,15 @@ const { companies, fetchCompanies } = useAdminCompanies()
 // Role checks
 const isAdmin = computed(() => user.value?.role === 'admin')
 const isModerator = computed(() => user.value?.role === 'moderator')
+
+/**
+ * Where "สร้างแดชบอร์ด" goes. It used to point at /dashboard/create, a page
+ * that was never written — admins and moderators landed on a full-screen 404.
+ * Creation lives in Explorer, which each role reaches by a different path.
+ */
+const createDashboardPath = computed(() =>
+  isAdmin.value ? '/admin/explorer' : '/manage/explorer'
+)
 
 /**
  * Build folder tree hierarchy with children from flat folders array

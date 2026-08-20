@@ -1,7 +1,7 @@
 # StreamHub — Manual Test Plan
 
 > **Last Updated:** 19 August 2569
-> **Total Test Cases:** 202
+> **Total Test Cases:** 211
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
 ### Status Legend
@@ -88,6 +88,7 @@
 | 2.1.4b | Recent dashboards — after visit | 1. Open any dashboard 2. Return to `/dashboard` | Dashboard ที่เพิ่งเปิดขึ้นบนสุดใน "แดชบอร์ดล่าสุด" พร้อม "เปิดล่าสุด: เมื่อกี้" | Medium | ✅ |
 | 2.1.5 | Click "Dashboards" quick action | 1. Click "Dashboards" card | Navigate to `/dashboard/discover` | Medium | ✅ |
 | 2.1.6 | Sidebar folder navigation | N/A — folder tree removed from sidebar (Phase 5 redesign); folders are now filters on `/dashboard/discover` | — | Low | N/A |
+| 2.1.7 | ปุ่ม "สร้างแดชบอร์ด" ที่การ์ดการดำเนินการด่วน | 1. login admin หรือ moderator 2. `/dashboard` 3. กด ➕ สร้างแดชบอร์ด | admin → `/admin/explorer` · moderator → `/manage/explorer` (เดิมยิงไป `/dashboard/create` ที่ไม่มีอยู่ = หน้า 404 เต็มจอ) | High | ✅ (prod-equivalent 2026-08-20 ทั้งสอง role) |
 
 ---
 
@@ -191,9 +192,10 @@
 | 3.2.6e | Edit user — role user → moderator | 1. Edit user (role=user) 2. Change role to moderator 3. Folder picker appears 4. Check folders 5. Save | Folder picker appears on role change; selected folders get UID added | High | ✅ |
 | 3.2.7 | Delete user | 1. Click Delete 2. Confirm in dialog | User removed, toast shown | High | ✅ (pre-launch group B4, 2026-06-28 — not re-run on prod to avoid deleting a real account) |
 | 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | ✅ |
-| 3.2.10 | ลบผู้ใช้ที่ถูกอ้างอิงอยู่ → ถามก่อน แล้วล้างให้ (BUG-005) | 1. เตรียมผู้ใช้ที่อยู่ในกลุ่มและ/หรือดูแลโฟลเดอร์ 2. กดลบ | dialog บอกว่า "ถูกอ้างอิงอยู่ใน N กลุ่ม และ M โฟลเดอร์ที่ดูแล" → ยืนยัน → uid หายจาก `group.members[]` และ `folders.assignedModerators[]` ทั้งหมด, audit = 0 | Medium | 🔍 (แก้แล้ว รอกดจริง — ต้องมีบัญชีที่ทิ้งได้) |
 | 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | N/A |
 | 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | ✅ |
+| 3.2.11 | ลบผู้ใช้ที่ถูกอ้างอิงอยู่ → ถามก่อน แล้วล้างให้ (BUG-005) | 1. เตรียมผู้ใช้ที่อยู่ในกลุ่มและ/หรือดูแลโฟลเดอร์ 2. กดลบ | dialog บอกว่า "ถูกอ้างอิงอยู่ใน N กลุ่ม และ M โฟลเดอร์ที่ดูแล" → ยืนยัน → uid หายจาก `group.members[]` และ `folders.assignedModerators[]` ทั้งหมด, audit = 0 | Medium | 🔍 (แก้แล้ว รอกดจริง — ต้องมีบัญชีที่ทิ้งได้) |
+| 3.2.12 | ลด role moderator ที่ดูแลโฟลเดอร์ → เตือนก่อน (BUG-027) | 1. `/admin/users` แก้ moderator ที่ดูแลโฟลเดอร์อยู่ 2. เปลี่ยน role เป็น `user` 3. กดบันทึก | dialog "ดูแลอยู่ N โฟลเดอร์ — เปลี่ยนบทบาทแล้วจะถูกถอดออกจากทุกโฟลเดอร์ และเลื่อนกลับเป็น moderator ภายหลังจะไม่ได้คืนอัตโนมัติ" · ยกเลิก = ไม่บันทึกอะไร | Medium | ✅ (prod 2026-08-20 — Nopphol/1 โฟลเดอร์; ยืนยันแล้วถอดจริง คืนค่าให้แล้ว) |
 
 ---
 
@@ -549,7 +551,7 @@
 | BUG-004 | Bulk invite ไม่ใช้ role/company/group รายแถว — ทุกคนได้ค่าของแถวแรก | TC 3.9.8 | High | 🔧 Fixed |
 | DESIGN-001 | `access.company = []` = public ทุกคน — override direct user/group grant; 7/11 dashboards prod เป็น public (2 ตัวมี group grant ที่ถูก override) | TC 3.10.2 | High | 🔧 Fixed (Looker visibility model) |
 | BUG-006 | Discover company column แสดง "ทุกบริษัท" เมื่อ access.company ว่าง — label เก่าจากยุคก่อน DESIGN-001 (empty ≠ public แล้ว) ทำให้เข้าใจผิดว่า dashboard เปิดทุกคน | TC 4.2 | Medium | 🔧 Fixed |
-| BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + **ทิศลบไม่ล้าง ref**: ลบกลุ่มแล้ว id ยังค้างใน `user.groups[]` (ตารางผู้ใช้ยังโชว์ badge ของกลุ่มที่ไม่มีแล้ว — ยืนยันด้วยการกดจริง 2026-08-19) และลบผู้ใช้แล้ว uid ยังค้างใน `group.members[]` + `folders.assignedModerators[]` | TC 3.10.3 / 3.7.8 / 3.2.10 | Medium | 🔧 Fixed (ทิศ create/edit: PR #279/#280 · **ทิศลบ: ถาม ConfirmDialog พร้อมจำนวนที่กระทบ แล้ว cascade ล้างให้** — `planGroupDeleteCascade` / `planUserDeleteCascade` ใน [cascadeDelete.ts](../../app/utils/cascadeDelete.ts) + 12 เทสต์; `audit:orphans` เพิ่มหมวด `assignedModerators` ที่เดิมไม่มีใครตรวจ — รันครั้งแรกเจอ **5 โฟลเดอร์บน prod** ที่ยังถือ uid ของบัญชีที่ถูกลบไปนานแล้ว ล้างด้วย `scripts/clean-orphan-refs.mjs` เมื่อ 2026-08-20 audit = 0 ครบ 7 หมวด) |
+| BUG-005 | `group.members[]` (แก้ที่ /admin/groups) ไม่ sync กับ `user.groups[]` (แก้ที่ /admin/users) — 2 แหล่งข้อมูลไม่ตรงกัน + **ทิศลบไม่ล้าง ref**: ลบกลุ่มแล้ว id ยังค้างใน `user.groups[]` (ตารางผู้ใช้ยังโชว์ badge ของกลุ่มที่ไม่มีแล้ว — ยืนยันด้วยการกดจริง 2026-08-19) และลบผู้ใช้แล้ว uid ยังค้างใน `group.members[]` + `folders.assignedModerators[]` | TC 3.10.3 / 3.7.8 / 3.2.11 | Medium | 🔧 Fixed (ทิศ create/edit: PR #279/#280 · **ทิศลบ: ถาม ConfirmDialog พร้อมจำนวนที่กระทบ แล้ว cascade ล้างให้** — `planGroupDeleteCascade` / `planUserDeleteCascade` ใน [cascadeDelete.ts](../../app/utils/cascadeDelete.ts) + 12 เทสต์; `audit:orphans` เพิ่มหมวด `assignedModerators` ที่เดิมไม่มีใครตรวจ — รันครั้งแรกเจอ **5 โฟลเดอร์บน prod** ที่ยังถือ uid ของบัญชีที่ถูกลบไปนานแล้ว ล้างด้วย `scripts/clean-orphan-refs.mjs` เมื่อ 2026-08-20 audit = 0 ครบ 7 หมวด) |
 | BUG-008 | Admin Explorer ลบโฟลเดอร์ที่มีเนื้อหาได้เงียบ ๆ ไม่มี error/warning — dashboard/subfolder ข้างในกลายเป็น orphan (`folderId`/`parentId` ชี้ไปยัง folder ที่ถูกลบ) | TC 3.13.6 | Medium | 🔧 Fixed |
 | BUG-009 | `/admin/folders` (DataTable, ต่างหน้ากับ BUG-008 ที่เป็น Explorer) ลบโฟลเดอร์ที่มี subfolder/dashboard ได้เงียบ ๆ — orphan แบบเดียวกัน; guard ของ Explorer ไม่ครอบหน้านี้ (คนละ composable: `useAdminCrudPage`) | TC 3.3.5 | High | 🔧 Fixed (เพิ่ม `canDelete` guard ใน `useAdminCrudPage` + wire หน้า folders) |
 | BUG-010 | สร้าง company/region ด้วย `code` ซ้ำ = **เขียนทับ record เดิมเงียบ ๆ (data loss)** — `useAdminResource.create` ใช้ `setDoc(docId=code)` ไม่เช็ค existence; tags `slug` ก็ไม่ถูกบังคับ unique | TC 3.5.4 / 3.6.5 / 3.8.6 | High | 🔧 Fixed (เพิ่ม `uniqueFields` + `assertUnique` บน create+update; companies/regions→`code`, tags→`slug`) |
@@ -564,9 +566,9 @@
 | BUG-021 | บันทึกสิทธิ์สำเร็จแล้ว **ไม่มีข้อความยืนยันเลย** — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (คือทางเข้าปกติทั้งหมด) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` เป็นโค้ดที่ไม่มีทางแสดง ผู้ใช้ไม่รู้ว่าบันทึกติดหรือไม่ | TC 3.10.17 | Medium | 🔧 Fixed (`showToast` ก่อน navigate — toast เป็น `useState` singleton จึงข้าม route ได้; ทางที่ล้มเหลวก็ toast ด้วย) — **ยืนยันบน prod 2026-08-19** ✅ |
 | BUG-022 | สวิตช์ **เข้าถึงสาธารณะ** ไม่ได้เดินผ่านการตรวจของ BUG-020 — มันเขียน `access.public` ตรง ๆ ที่ [PermissionsPage.vue:103](../../app/components/features/PermissionsPage.vue#L103) ไม่ใช่ `requestRemoval` ใน PermissionEditor ⇒ ปิดสาธารณะทั้งที่มีคนถูกระงับ/หมดอายุ = ทิ้งข้อจำกัดกำพร้าเงียบ ๆ (พบตอน regression pass 2026-08-19: ปิดสาธารณะ + ลบกลุ่ม แล้ว `revoke` ของ Janine ค้าง) | TC 3.10.22–3.10.23 | Medium | 🔧 Fixed (ย้ายการตรวจไปที่ตอน **กดบันทึก** ด้วย `strandedRestrictions`; ถอด guard รายปุ่มใน `PermissionEditor` ออก) — **ยืนยันบน prod 2026-08-19** ครบ 4 เส้นทาง: ถาม / ยกเลิกไม่เขียน / ยืนยันเขียนทั้งคู่ / ข้อจำกัดที่ยังมีผลไม่ถูกแตะ ✅ |
 | BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้ | TC 2.3.1 | Medium | ⊘ ปิดด้วยการลบ — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อม Quick Share (2026-08-18) เหลือทางเดียวคือ Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว |
-| BUG-027 | ลด role moderator → user **ล้างโฟลเดอร์ที่ดูแลทิ้งทั้งหมดโดยไม่เตือน** และเลื่อนกลับเป็น moderator ไม่คืนให้ (ไม่มีที่เก็บประวัติ) — พบตอนทดสอบ TC 6.1.3: `folder_finance` เสีย `assignedModerators` ของบัญชีทดสอบไปถาวร ต้องผูกคืนเอง · การล้างเป็นพฤติกรรมตั้งใจ ([folderAssignment.ts:62](../../app/utils/folderAssignment.ts#L62)) แต่ฟอร์มไม่บอกว่ากำลังจะทิ้งอะไร | TC 6.1.3 | Medium | 📋 บันทึกไว้ ยังไม่แก้ — ทางแก้ที่คุยกันไว้: เตือนตอนกดบันทึกว่า "จะถอดสิทธิ์ดูแล N โฟลเดอร์" แบบเดียวกับ ConfirmDialog ของ BUG-020 |
+| BUG-027 | ลด role moderator → user **ล้างโฟลเดอร์ที่ดูแลทิ้งทั้งหมดโดยไม่เตือน** และเลื่อนกลับเป็น moderator ไม่คืนให้ (ไม่มีที่เก็บประวัติ) — พบตอนทดสอบ TC 6.1.3: `folder_finance` เสีย `assignedModerators` ของบัญชีทดสอบไปถาวร ต้องผูกคืนเอง · การล้างเป็นพฤติกรรมตั้งใจ ([folderAssignment.ts:62](../../app/utils/folderAssignment.ts#L62)) แต่ฟอร์มไม่บอกว่ากำลังจะทิ้งอะไร | TC 6.1.3 | Medium | 🔧 Fixed (ConfirmDialog ตอนกดบันทึกเมื่อ role เปลี่ยนจาก moderator และคนนั้นดูแลโฟลเดอร์อยู่ — บอกจำนวนและว่าเลื่อนกลับไม่ได้คืนอัตโนมัติ) — **ยืนยันด้วยการกดจริง 2026-08-20** ✅ |
 | BUG-028 | หน้า `/profile` ซ่อนการ์ด "โฟลเดอร์ที่ดูแล" ทั้งที่ badge ขึ้น "ผู้ดูแลโฟลเดอร์" — หน้าเดียวอ่าน role จาก 2 แหล่ง: badge จากเอกสาร Firestore (สด) ส่วนการ์ดจาก auth store (อัปเดตเฉพาะตอน auth init) ⇒ หลัง admin เปลี่ยน role กลางคัน สองส่วนขัดกันจนกว่าจะรีเฟรช | TC 6.1.3 | Low | 🔧 Fixed (อ่าน role จากเอกสารเป็นหลัก fallback ไป store ระหว่างรอโหลด; ย้ายการตัดสินใจ fetch โฟลเดอร์ไปหลังเอกสารมาถึง) |
-| BUG-026 | กดบันทึกตอนเน็ตหลุด = **เงียบไม่มีที่สิ้นสุด** — ปุ่มค้าง "กำลังบันทึก..." ไม่มีข้อความ ไม่มี timeout ไม่มีทางยกเลิก ผู้ใช้แยกไม่ออกระหว่าง "ช้า" กับ "เน็ตหลุด" (งานไม่หาย SDK ส่งให้เองเมื่อกลับมาออนไลน์ แต่ไม่มีอะไรบอก) | TC 6.3.2 | Low | 📋 บันทึกไว้ ยังไม่แก้ — ทางแก้ที่คุยกันไว้: ฟัง `navigator.onLine` ขึ้นแบนเนอร์ออฟไลน์ และ/หรือใส่ timeout ให้ปุ่มบันทึกแล้วบอกว่ายังส่งไม่ถึง |
+| BUG-026 | กดบันทึกตอนเน็ตหลุด = **เงียบไม่มีที่สิ้นสุด** — ปุ่มค้าง "กำลังบันทึก..." ไม่มีข้อความ ไม่มี timeout ไม่มีทางยกเลิก ผู้ใช้แยกไม่ออกระหว่าง "ช้า" กับ "เน็ตหลุด" (งานไม่หาย SDK ส่งให้เองเมื่อกลับมาออนไลน์ แต่ไม่มีอะไรบอก) | TC 6.3.2 | Low | 🔧 Fixed (แบนเนอร์ออฟไลน์ใน `AppLayout` จาก [useOnlineStatus.ts](../../app/composables/useOnlineStatus.ts) — บอกว่าการบันทึกจะค้างและข้อมูลไม่หาย · ไม่ใส่ timeout เพราะจะไปตัดงานที่ระบบส่งสำเร็จภายหลัง) — **ยืนยันด้วยการกดจริง 2026-08-20** ✅ |
 | BUG-025 | **บนมือถือใช้งานไม่ได้เลย** — ที่จอ ≤768px [AppLayout.vue](../../app/components/layouts/AppLayout.vue) ดัน sidebar ออกนอกจอ (`left: -100%`) แล้วรอคลาส `.sidebar-open` ที่**ไม่มีที่ไหนใส่** และไม่มีปุ่มเปิดในทั้งแอป ⇒ ไปหน้าอื่นไม่ได้; ซ้ำโลโก้สูง 5rem ดัน `UserMenu` ตกขอบขวา ⇒ กดออกจากระบบ/โปรไฟล์ก็ไม่ได้ เหลือแค่หน้าที่เปิดค้างอยู่ | TC 5.2.5 | High | 🔧 Fixed (ปุ่ม ☰ + state `isSidebarOpen` + overlay กดปิด + ปิดเองเมื่อเปลี่ยน route; ย่อโลโก้/ซ่อนชื่อผู้ใช้บนจอเล็ก; ปลด `.menu-toggle` ออกจากกฎ global ที่ทาทุก `button` เป็นน้ำเงิน) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · รอบแรกปิด drawer ด้วย `watch(route.fullPath)` อย่างเดียว ซึ่งค้างเมื่อกดลิงก์ของหน้าที่เปิดอยู่แล้ว (ปลายทางเดิม = ไม่มี navigation) จึงย้ายไปปิดตอนแตะ `<a>` |
 | BUG-023 | **ปิดบัญชีผู้ใช้กลางคัน แล้วเขายังใช้งานต่อได้** — `isActive === false` ถูกเช็คเฉพาะใน `signInWithGoogle` ส่วน `initAuth` (ที่รันทุกครั้งที่รีเฟรช) เช็คแค่ว่า "พบ user ไหม" และ `firestore.rules` ก็ไม่ดู `isActive` ⇒ คนที่ถูกปิดบัญชียังเปิดหน้า อ่านรายการแดชบอร์ด/โครงสร้างโฟลเดอร์ได้จนกว่าจะ sign out เอง (ตัวเนื้อหาแดชบอร์ดถูกกันไว้ที่ server แล้ว — `embed/request.post.ts` เช็ค `isActive`) | TC 6.1.2 | High | 🔧 Fixed (เช็ค `isActive` ใน `initAuth` → `signOut()`) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · การเตะออกเกิดก่อนกิ่ง `authError` ของ middleware ผู้ใช้จึงเห็นหน้า login เปล่า ตามมาด้วยแถบเหตุผลบนหน้า login (TC 6.1.4) |
 | BUG-024 | หมด session กลางทางแล้วกลับเข้ามาไม่ถึงที่เดิม — middleware `navigateTo('/login')` ไม่แนบปลายทาง ⇒ login ใหม่ไปโผล่ `/dashboard` เสมอ คนที่กำลังแก้สิทธิ์ที่ `/admin/permissions?dashboard=<id>` ต้องเดินกลับเอง | TC 6.1.1 | Medium | 🔧 Fixed (`?returnTo=` + `safeReturnTo` sanitiser กัน open redirect; 13 เทสต์) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ ทั้งเส้นปกติและเส้น open redirect |
@@ -693,12 +695,12 @@
 |------|---------|----------|--------|
 | Login | 6 | Critical | ✅ |
 | Invite Accept | 6 | Critical | ✅ |
-| Dashboard Home | 5 | High | ✅ |
+| Dashboard Home | 8 | High | ✅ |
 | Dashboard Discover | 12 | High | ✅ |
 | Dashboard View | 14 | High | ✅ |
 | Profile | 5 | Medium | ✅ (5/5 — ยืนยันบน prod ทั้ง admin และ moderator 2026-08-19) |
 | Admin Overview | 5 | High | ✅ |
-| Admin Users | 11 | High | ✅ partial (10/11 — 3.2.10 cascade delete รอกดจริง) |
+| Admin Users | 17 | High | ✅ partial (16/17 — 3.2.11 cascade delete รอกดจริง) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
 | Admin Dashboards | 8 | High | ⊘ N/A (5/8 orphan route, superseded by Explorer; 3.4.3/3.4.4/3.4.7 ยังผ่าน UI ตอนไล่ BUG-013 2026-08-15) |
 | Admin Companies | 9 | Medium | ✅ (9/9 — BUG-010 unique-code + BUG-011 blank-region fixed) |
@@ -715,7 +717,7 @@
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **202** | — | 187 ✅ / 3 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **211** | — | 196 ✅ / 3 🔍 / 0 ☐ / 10 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
