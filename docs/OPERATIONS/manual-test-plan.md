@@ -455,11 +455,11 @@
 
 ## 5. Cross-Cutting Concerns
 
-> **⏸️ §5 / §6 / §7 deferred — post-launch hardening (non-blocking).** The app
-> passed its pre-launch checklist (groups A–E, all ✅) and is entering user trial.
-> The remaining ☐ items here (loading states, sidebar-by-role, mobile drawer, error
-> scenarios, cross-browser & responsive) are robustness/compat coverage, **not launch
-> gates** — route protection (§5.2.1–3) already passed as pre-launch group A. Revisit
+> **⏸️ ~~§5 / §6 / §7 deferred~~ — เกือบปิดครบแล้ว (อัปเดต 2026-08-20).** §5 และ §6
+> กดจบไปแล้วทั้งหมด (เหลือ 6.3.1 ที่จงใจข้าม) · §7 ผ่าน Chrome + Safari ครบ 6/6 ช่อง
+> เหลือแค่ Firefox กับ breakpoint 320px/tablet ซึ่งยังเป็น compat coverage ไม่ใช่
+> launch gate — route protection (§5.2.1–3) ผ่านตั้งแต่ pre-launch group A. ย่อหน้า
+> ข้างล่างนี้เป็นบันทึกของตอนเข้า user trial เก็บไว้เป็นประวัติ. Revisit
 > opportunistically after trial feedback. Decision 2026-07-28.
 
 ### 5.1 CRUD Pattern (ทุกหน้า Admin)
@@ -531,7 +531,7 @@
 |---------|--------|--------|---------|
 | Chrome | Blink | ✅ | เบราว์เซอร์ที่ใช้ทดสอบทุกเคสในแผนนี้ |
 | Edge | Blink | ⊘ N/A | Blink เดียวกับ Chrome เวอร์ชันไล่ตามกันติด ๆ — ครอบคลุมโดยแถวบน ไม่ใช่ "ยังไม่ได้ทดสอบ" |
-| Safari | WebKit | ✅ (4/6 กดแล้วผ่านหมด · **กดจริงบน prod 2026-08-20**) | login / Looker iframe / ตาราง admin / logout ผ่านครบ · เจอ BUG-029 (ความสูง `<select>`) **แก้แล้วในรอบเดียวกัน** · 7.1.b/7.1.e ยังไม่ได้กด · **ทดสอบบน `https://streamhub-1c27a.web.app` เท่านั้น ไม่ใช่ localhost** (ดู authDomain caveat ใน [authentication.md](../GUIDES/authentication.md)) · เป็น engine ของ iPhone/iPad ทุกเครื่อง จึงได้ทดสอบมือถือจริงไปในตัว |
+| Safari | WebKit | ✅ (**6/6 · กดจริงบน prod 2026-08-20**) | ผ่านครบทุกช่อง · เจอ BUG-029 (ความสูง `<select>`) แก้แล้วในรอบเดียวกัน · **ทดสอบบน `https://streamhub-1c27a.web.app` เท่านั้น ไม่ใช่ localhost** (ดู authDomain caveat ใน [authentication.md](../GUIDES/authentication.md)) · เป็น engine ของ iPhone/iPad ทุกเครื่อง จึงได้ทดสอบมือถือจริงไปในตัว |
 | Firefox | Gecko | ☐ | engine เดียวที่ไม่มีอะไรครอบคลุม แต่ความเสี่ยงต่ำ — ไล่โค้ดแล้วไม่ใช้ `:has()` / container query / `dvh` เลย, `backdrop-filter` มีที่เดียวและเป็นการตกแต่ง ([DashboardGrid.vue:135](../../app/components/features/DashboardGrid.vue#L135)), scrollbar เขียนทั้ง `scrollbar-width` และ `::-webkit-scrollbar` |
 
 **สิ่งที่ต้องกดในเบราว์เซอร์ที่ยังไม่ผ่าน** (ไม่ต้องไล่ทั้ง 211 เคส — กดเฉพาะที่ engine ต่างกันแล้วพัง):
@@ -539,11 +539,13 @@
 | # | กดอะไร | ผลที่ต้องได้ | ผล |
 |---|--------|-------------|-----|
 | 7.1.a | login ด้วย Google | หน้าต่าง popup เปิด เลือกบัญชีแล้วปิดเอง กลับมาที่แอปแบบล็อกอินแล้ว — **จุดเสี่ยงหลักของ §7 ทั้งหมด** `signInWithPopup` เป็นที่ที่ popup blocker กับ storage partitioning ต่างกันมากที่สุดระหว่าง engine | ✅ Safari — popup เปิด เลือกบัญชี แล้วปิดเอง กลับมาที่ `/` แบบล็อกอินแล้ว ไม่ติด popup blocker ไม่ติด ITP (ยืนยันข้อสันนิษฐานว่า authDomain same-origin บน prod ทำให้ผ่าน) |
-| 7.1.b | ปิดหน้าต่าง Google ทิ้งกลางคัน | กลับมาหน้า login เงียบ ๆ ไม่มีข้อความแดง (`auth/popup-closed-by-user` ถูกกลืน) | ☐ ยังไม่ได้กด |
+| 7.1.b | ปิดหน้าต่าง Google ทิ้งกลางคัน | กลับมาหน้า login เงียบ ๆ ไม่มีข้อความแดง (`auth/popup-closed-by-user` ถูกกลืน) | ✅ Safari — ระหว่างรอปุ่มขึ้น "กำลังลงชื่อเข้า..." แบบ disabled พอปิดหน้าต่าง Google ทิ้ง **ปุ่มกลับมากดได้ตามปกติ** ไม่มีกล่องแดง · ตัวชี้ขาดคือปุ่ม ไม่ใช่ข้อความ: ถ้า `finally` ที่ [login.vue:41](../../app/pages/login.vue#L41) ไม่ทำงาน ปุ่มจะค้าง disabled ถาวร เข้าระบบต่อไม่ได้จนกว่าจะรีเฟรช |
 | 7.1.c | เปิดแดชบอร์ดที่ฝัง Looker | iframe แสดงผล ไม่โดน CSP `frame-src` บล็อก | ✅ Safari — `Master List` (`dash_1774216578264`) เรนเดอร์เต็มทั้งกราฟ ตาราง และ Looker control ไม่โดน CSP `frame-src` บล็อก แถบซูมในแอปก็ทำงาน · **รอบแรกเปิด `dash_1784197770551` (Budget 2026) ซึ่งเป็น 1 ใน 7/41 ตัวที่ไม่มี `lookerEmbedUrl` เลย** จึงขึ้น placeholder และไม่ได้ทดสอบ iframe — เลือกแดชบอร์ดให้ถูกก่อนกดเคสนี้ |
 | 7.1.d | หน้า admin ที่มีตาราง เช่น `/admin/users` | ตารางเรนเดอร์ครบ เลื่อนแนวนอนได้ถ้าจอแคบ ไม่ล้นทับ layout | ✅ Safari — ตารางเรนเดอร์ครบ ข้อมูลตรงกับ Chrome · พบ `<select>` ตัวกรองเตี้ยกว่า Chrome = **BUG-029** แก้แล้ว |
-| 7.1.e | เปิด modal สักตัว (แก้ไขผู้ใช้) | modal เปิด/ปิด ปุ่มกดได้ scrollbar ในตัว modal ใช้งานได้ | ☐ ยังไม่ได้กด |
+| 7.1.e | เปิด modal สักตัว (แก้ไขผู้ใช้) | modal เปิด/ปิด ปุ่มกดได้ scrollbar ในตัว modal ใช้งานได้ | ✅ Safari — เปิด "แก้ไขผู้ใช้" (🖊️ ไม่ใช่ 🗑️) โดยย่อหน้าต่างให้เตี้ยจนฟอร์มล้น: เนื้อหาถูกตัดหลังช่อง "ชื่อจริง" แต่ **ปุ่มยกเลิก/บันทึกยังติดขอบล่าง modal ครบ** = `.modal-body` ถูกบีบตาม `max-height: 90vh` จริง · ไม่เห็น scrollbar ไม่ใช่สัญญาณ — macOS ซ่อน overlay scrollbar จนกว่าจะเลื่อน · **ต้องเปิด modal ที่ผ่าน [Modal.vue](../../app/components/ui/Modal.vue) เท่านั้น**: `ConfirmDialog` เป็นคนละคอมโพเนนต์ เขียน `position: fixed` เอง ไม่มี `.modal-body` จึงไม่ทดสอบอะไร |
 | 7.1.f | logout | กลับหน้า login ไม่ค้าง | ✅ Safari — กลับหน้า `/login` ไม่ค้าง |
+
+> **สิ่งที่ 7.1.e ตรวจจริง ๆ** — [Modal.vue:286](../../app/components/ui/Modal.vue#L286) เขียน `.modal-body { flex: 1; overflow-y: auto }` อยู่ใน container ที่เป็น `flex-direction: column; max-height: 90vh; overflow: hidden` แต่ **ไม่ได้ตั้ง `min-height: 0`** · flex item มีค่าเริ่มต้น `min-height: auto` = ห้ามหดต่ำกว่าความสูงเนื้อหา ถ้าเอนจินบังคับกฎนี้เข้ม `overflow-y` จะไม่ทำงาน เนื้อหาดันกล่องจนสูงเกิน แล้วโดน `overflow: hidden` ตัดส่วนล่างทิ้ง ⇒ **อาการคือปุ่มบันทึกหายไป ไม่ใช่ scrollbar หาย** · ทดสอบแล้วไม่เกิดทั้ง Blink และ WebKit แต่ถ้าวันหนึ่ง modal เพี้ยนบนเบราว์เซอร์ใหม่ ให้มาดูบรรทัดนี้ก่อน
 
 ### 7.2 Responsive Breakpoints
 
