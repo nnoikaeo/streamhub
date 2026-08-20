@@ -350,6 +350,29 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 
 ---
 
+## ⚠️ กฎ `button` ตัวกลางใน `main.css` ชนะ scoped style ของคอมโพเนนต์
+
+[assets/css/main.css](../../assets/css/main.css) มีกฎที่ทาสีทุก `<button>` ที่**ไม่**อยู่ในลิสต์ `:not(...)` ยาว ๆ ท้ายเซเลกเตอร์ ตั้งให้เป็น:
+
+```css
+background-color: var(--color-primary);
+color: var(--color-text-inverse);
+border: none;
+border-radius: var(--radius-md);
+padding: var(--spacing-sm) var(--spacing-lg);
+font-weight: 500;
+```
+
+**ทำไมเขียนทับใน component ไม่ได้** — `:not()` แต่ละตัวนับ specificity เท่ากับสิ่งที่อยู่ข้างใน ลิสต์นี้มี ~40 ตัวซึ่งเกือบทั้งหมดเป็นคลาส ⇒ กฎรวมอยู่ราว **(0,40,1)** ส่วน scoped style ของคอมโพเนนต์เป็นแค่ `.my-button[data-v-xxxxxx]` = **(0,2,0)** แพ้ขาด · คอมโพเนนต์จึง**ปฏิเสธกฎนี้ด้วยตัวเองไม่ได้ ต้องไปเติมคลาสในลิสต์เท่านั้น**
+
+**อาการ** — ปุ่มใหม่ที่ตั้งใจให้เป็นไอคอนหรือข้อความเปล่า ๆ ออกมาเป็น**สี่เหลี่ยมน้ำเงิน/ม่วงทึบ** · property เดียวที่รอดคือตัวที่กฎนี้ไม่ได้ตั้ง เช่น `font-size`
+
+**เคสจริง** — `.back-nav-button` ใน [DashboardViewHeader.vue](../../app/components/features/DashboardViewHeader.vue) เขียน `background: none` + `color: var(--color-text-secondary)` + `padding: 0.25rem 0.5rem` ไว้ครบ แต่ขึ้น prod เป็นบล็อกม่วงสูง ~60px มาตลอด เหลือแต่ `font-size: 1.5rem` ที่รอด · กว่าจะเจอคือตอนไล่ลดความสูง header บนมือถือแล้วพบว่า**ตัดชื่อกับ breadcrumb ไปแล้วความสูงไม่ลดเลย** เพราะปุ่มนี้ต่างหากที่สูงที่สุดในแถว
+
+**เวลาเพิ่มปุ่มใหม่ที่ไม่ใช่ปุ่มหลัก** ให้เติมคลาสเข้าลิสต์ `:not(...)` ทั้ง **3 เซเลกเตอร์** (ปกติ / `:hover` / `:active`) — ไม่ใช่แค่ตัวแรก
+
+---
+
 ## 📝 Files Structure
 
 ```
