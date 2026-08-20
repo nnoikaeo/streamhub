@@ -47,8 +47,28 @@
       <div
         v-else-if="dashboard"
         class="dashboard-view-content is-fullscreen"
-        :class="{ 'is-printing': isPrinting }"
+        :class="{ 'is-printing': isPrinting, 'is-immersive': immersive }"
       >
+        <!-- Immersive mode hides the header, taking the button that got you here
+             with it. This is the way back, and the only one on a phone: Esc
+             needs a keyboard, and there is no browser chrome to leave when the
+             device has no native fullscreen. -->
+        <button
+          v-if="immersive"
+          type="button"
+          class="action-button immersive-exit"
+          title="ออกจากโหมดเต็มจอ"
+          aria-label="ออกจากโหมดเต็มจอ"
+          @click="toggleFullscreen"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 14 10 14 10 20" />
+            <polyline points="20 10 14 10 14 4" />
+            <line x1="14" y1="10" x2="21" y2="3" />
+            <line x1="3" y1="21" x2="10" y2="14" />
+          </svg>
+        </button>
+
         <!-- Top Navigation Bar -->
         <DashboardViewHeader
           :dashboard="dashboard"
@@ -111,11 +131,11 @@
             <button
               type="button"
               class="action-button fullscreen-button"
-              :title="isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
-              :aria-label="isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
+              :title="immersive ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
+              :aria-label="immersive ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
               @click="toggleFullscreen"
             >
-              <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg v-if="!immersive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="15 3 21 3 21 9" />
                 <polyline points="9 21 3 21 3 15" />
                 <line x1="21" y1="3" x2="14" y2="10" />
@@ -127,7 +147,7 @@
                 <line x1="14" y1="10" x2="21" y2="3" />
                 <line x1="3" y1="21" x2="10" y2="14" />
               </svg>
-              <span class="action-label">{{ isFullscreen ? 'ย่อ' : 'เต็มจอ' }}</span>
+              <span class="action-label">{{ immersive ? 'ย่อ' : 'เต็มจอ' }}</span>
             </button>
           </template>
         </DashboardViewHeader>
@@ -325,7 +345,16 @@ const iframeLoading = ref(true)
 const iframeError = ref(false)
 const showInfoSidebar = ref(false)
 const showEditDialog = ref(false)
-const isFullscreen = ref(false)
+/**
+ * In-app fullscreen: hide this page's own header so the report gets its height.
+ *
+ * This replaced an `isFullscreen` ref that mirrored the browser's native state.
+ * That was the wrong thing to drive the UI from: on iPhone it can never become
+ * true, so the button's label and icon never changed and nothing on screen
+ * moved. `immersive` is something this page controls, so it means the same
+ * thing everywhere.
+ */
+const immersive = ref(false)
 const watermarkOffset = ref({ x: 0, y: 0 })
 let watermarkTimer: ReturnType<typeof setInterval> | null = null
 
@@ -624,25 +653,63 @@ const getFullscreenElement = () => {
   return doc.fullscreenElement || doc.webkitFullscreenElement || null
 }
 
+/**
+ * iPhone Safari implements the Fullscreen API for `<video>` only — no element,
+ * including the document root, can be made fullscreen. Both entry points are
+ * simply absent there.
+ *
+ * That mattered because of how the call was written: `webkitRequestFullscreen?.()`
+ * returns `undefined` when the method does not exist, `await undefined` resolves,
+ * and nothing throws — so the `catch` that exists to report failure never ran and
+ * the button did nothing at all, silently. Ask before calling.
+ */
+const supportsNativeFullscreen = () => {
+  if (typeof document === 'undefined') return false
+  const el = document.documentElement as FullscreenElement
+  return typeof el.requestFullscreen === 'function' || typeof el.webkitRequestFullscreen === 'function'
+}
+
 // Fullscreen the document root, not just the dashboard pane: dialogs and toasts
 // render outside this page's subtree and would be invisible otherwise.
 const toggleFullscreen = async () => {
   const doc = document as FullscreenDocument
   const target = document.documentElement as FullscreenElement
+
+  // The in-app part always applies; native fullscreen is an extra on top where
+  // the browser offers it. Doing it this way means iPhone still gets the header
+  // back, instead of a message explaining why it gets nothing.
+  const entering = !immersive.value
+  immersive.value = entering
+
+  if (!supportsNativeFullscreen()) return
+
   try {
-    if (getFullscreenElement()) {
-      await (doc.exitFullscreen ? doc.exitFullscreen() : doc.webkitExitFullscreen?.())
-    } else {
+    if (entering) {
       await (target.requestFullscreen ? target.requestFullscreen() : target.webkitRequestFullscreen?.())
+    } else if (getFullscreenElement()) {
+      await (doc.exitFullscreen ? doc.exitFullscreen() : doc.webkitExitFullscreen?.())
     }
   } catch (err) {
-    console.error('Failed to toggle fullscreen:', err)
-    showToast('เบราว์เซอร์ไม่อนุญาตให้เข้าสู่โหมดเต็มจอ', 'error')
+    // Immersive mode is already on, so this is a partial success: the report
+    // has its space, the browser just kept its chrome. Say that rather than
+    // implying nothing happened.
+    console.error('Failed to toggle native fullscreen:', err)
+    showToast('ซ่อนแถบเบราว์เซอร์ไม่ได้ แต่ขยายพื้นที่แดชบอร์ดให้แล้ว', 'error')
   }
 }
 
+/** Esc leaves immersive mode where there is no native fullscreen to leave. */
+const onImmersiveKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && immersive.value && !getFullscreenElement()) {
+    immersive.value = false
+  }
+}
+
+// Leaving native fullscreen by Esc or the browser's own control should leave
+// immersive mode too — otherwise the header stays hidden with no way back that
+// the user associates with what they just pressed.
 const handleFullscreenChange = () => {
-  isFullscreen.value = !!getFullscreenElement()
+  if (!getFullscreenElement()) immersive.value = false
 }
 
 const applyZoom = (value: number) => {
@@ -673,6 +740,7 @@ const restoreZoom = () => {
 // Lifecycle
 onMounted(async () => {
   restoreZoom()
+  document.addEventListener('keydown', onImmersiveKeydown)
   document.addEventListener('fullscreenchange', handleFullscreenChange)
   document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
   window.addEventListener('beforeprint', onBeforePrint)
@@ -688,6 +756,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  document.removeEventListener('keydown', onImmersiveKeydown)
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
   document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
   window.removeEventListener('beforeprint', onBeforePrint)
@@ -1150,6 +1219,22 @@ onUnmounted(() => {
    keeps the header one line tall and leaves the report the height it had.
    Both buttons carry an aria-label so hiding the text costs no accessible
    name — the zoom buttons already had theirs. [BUG-030, TC 7.2] */
+/* The info sidebar is `display: none` below 768px (TwoPaneLayout.vue), so the
+   button that toggles it flips state and produces nothing visible — it looked
+   broken because it was. Hiding it matches the breakpoint that hides what it
+   controls, and takes its ~34px with it. `display: none` also drops it from
+   the tab order and the accessibility tree, which a disabled-looking button
+   would not have.
+
+   Admins wanting the metadata on a phone need a wider window; the alternative
+   was making the sidebar stack below the report, which trades away the
+   vertical space this whole run of changes has been reclaiming. */
+@media (max-width: 768px) {
+  .toggle-sidebar-button {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
   .action-label {
     display: none;
@@ -1197,6 +1282,37 @@ onUnmounted(() => {
    backdrop — keep the same white surface the overlay already uses. */
 :global(html:fullscreen) {
   background: white;
+}
+
+/* ========== Immersive Mode ========== */
+
+/* The header is this page's own ~48px. Native fullscreen only ever hid the
+   browser's chrome, and on iPhone not even that — so hiding the header is what
+   actually gives the report room, on every device. */
+.is-immersive .view-header {
+  display: none;
+}
+
+.immersive-exit {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 60;
+  padding: 0.5rem;
+  gap: 0;
+  /* Sits over the report, so it needs to stay legible against whatever colour
+     happens to be underneath without blocking much of it. */
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+}
+
+.immersive-exit:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.immersive-exit svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 /* ========== Embed Zoom Control ========== */
