@@ -32,3 +32,6 @@ prompt-*.md
 
 # QA fixture state (scripts/qa-broken-refs.mjs) — local only, holds the originals to restore
 scripts/.qa-broken-refs-state.json
+
+# QA fixture state (scripts/qa-cascade-user.mjs) — local only, holds the originals to restore
+scripts/.qa-cascade-user-state.json

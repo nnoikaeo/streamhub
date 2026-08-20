@@ -194,7 +194,7 @@
 | 3.2.8 | Toggle user active status | 1. Click toggle on user row 2. Confirm in dialog | ConfirmDialog shown → confirm → status updated, toast shown | Medium | ✅ |
 | 3.2.9 | ~~Form validation — missing email (create)~~ | ~~N/A~~ | ~~Removed with create flow~~ | ~~Medium~~ | N/A |
 | 3.2.10 | Cancel edit modal without saving | 1. Click Edit on user 2. Change fields 3. Click Cancel | No changes made, modal closes | Low | ✅ |
-| 3.2.11 | ลบผู้ใช้ที่ถูกอ้างอิงอยู่ → ถามก่อน แล้วล้างให้ (BUG-005) | 1. เตรียมผู้ใช้ที่อยู่ในกลุ่มและ/หรือดูแลโฟลเดอร์ 2. กดลบ | dialog บอกว่า "ถูกอ้างอิงอยู่ใน N กลุ่ม และ M โฟลเดอร์ที่ดูแล" → ยืนยัน → uid หายจาก `group.members[]` และ `folders.assignedModerators[]` ทั้งหมด, audit = 0 | Medium | 🔍 (แก้แล้ว รอกดจริง — ต้องมีบัญชีที่ทิ้งได้) |
+| 3.2.11 | ลบผู้ใช้ที่ถูกอ้างอิงอยู่ → ถามก่อน แล้วล้างให้ (BUG-005) | 1. เตรียมผู้ใช้ที่อยู่ในกลุ่มและ/หรือดูแลโฟลเดอร์ 2. กดลบ | dialog บอกว่า "ถูกอ้างอิงอยู่ใน N กลุ่ม และ M โฟลเดอร์ที่ดูแล" → ยืนยัน → uid หายจาก `group.members[]` และ `folders.assignedModerators[]` ทั้งหมด, audit = 0 | Medium | ✅ (**กดจริง 2026-08-20** — บัญชีมาจากคำเชิญเท่านั้น และ 6 บัญชีบน prod ใช้งานอยู่ทั้งหมด จึงสร้างตัวทดสอบด้วย [scripts/qa-cascade-user.mjs](../../scripts/qa-cascade-user.mjs) `seed --apply`: user `uid_qa_cascade` + `groups: ["analytics"]` + `groups/analytics.members` + `folders/folder_1785082588448` (TEST-E) `.assignedModerators` · ลบที่ `/admin/users` → dialog ขึ้นตรงตามคาด "…ถูกอ้างอิงอยู่ใน **1 กลุ่ม และ 1 โฟลเดอร์ที่ดูแล** — ลบแล้วจะถอดออกจากที่เหล่านั้นด้วย ยืนยันหรือไม่?" → ยืนยัน → แถวหาย, `members` และ `assignedModerators` ว่างทั้งคู่, `npm run audit:orphans` = 0 ทั้ง 7 หมวด · คืนสภาพด้วย `restore --apply`) |
 | 3.2.12 | ลด role moderator ที่ดูแลโฟลเดอร์ → เตือนก่อน (BUG-027) | 1. `/admin/users` แก้ moderator ที่ดูแลโฟลเดอร์อยู่ 2. เปลี่ยน role เป็น `user` 3. กดบันทึก | dialog "ดูแลอยู่ N โฟลเดอร์ — เปลี่ยนบทบาทแล้วจะถูกถอดออกจากทุกโฟลเดอร์ และเลื่อนกลับเป็น moderator ภายหลังจะไม่ได้คืนอัตโนมัติ" · ยกเลิก = ไม่บันทึกอะไร | Medium | ✅ (prod 2026-08-20 — Nopphol/1 โฟลเดอร์; ยืนยันแล้วถอดจริง คืนค่าให้แล้ว) |
 
 ---
@@ -700,7 +700,7 @@
 | Dashboard View | 14 | High | ✅ |
 | Profile | 5 | Medium | ✅ (5/5 — ยืนยันบน prod ทั้ง admin และ moderator 2026-08-19) |
 | Admin Overview | 5 | High | ✅ |
-| Admin Users | 17 | High | ✅ partial (16/17 — 3.2.11 cascade delete รอกดจริง) |
+| Admin Users | 17 | High | ✅ (17/17 — 3.2.11 cascade delete ยืนยันบน prod 2026-08-20 ด้วย fixture `scripts/qa-cascade-user.mjs`) |
 | Admin Folders | 8 | High | ✅ (8/8 — BUG-009 fixed; page superseded by Explorer) |
 | Admin Dashboards | 8 | High | ⊘ N/A (5/8 orphan route, superseded by Explorer; 3.4.3/3.4.4/3.4.7 ยังผ่าน UI ตอนไล่ BUG-013 2026-08-15) |
 | Admin Companies | 9 | Medium | ✅ (9/9 — BUG-010 unique-code + BUG-011 blank-region fixed) |
@@ -717,7 +717,7 @@
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **211** | — | 196 ✅ / 2 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **211** | — | 197 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
 ---
 
