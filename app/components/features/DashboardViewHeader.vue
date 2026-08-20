@@ -237,12 +237,26 @@ const emit = defineEmits<{
    still gets the single-row treatment. */
 @media (max-width: 640px) {
   .view-header {
+    flex-direction: row;
+    align-items: center;
     padding: 0.5rem 0.75rem;
     gap: 0.5rem;
   }
 
+  .header-right {
+    width: auto;
+  }
+
+  /* One row needs about 274px of the 343px a 375px viewport gives: the arrow,
+     four controls, and the gaps between them. That only became possible once
+     the zoom group stopped being padded to double its intended width (#427).
+
+     The title is what gives way, not the controls. It is the one thing here
+     the user just chose from a list and cannot act on, while every control is
+     something they came to press. The report keeps its own heading, and the
+     name is still one tap away through the back arrow. */
   .dashboard-title {
-    font-size: 1.125rem;
+    display: none;
   }
 
   .breadcrumb-nav {
