@@ -531,19 +531,19 @@
 |---------|--------|--------|---------|
 | Chrome | Blink | ✅ | เบราว์เซอร์ที่ใช้ทดสอบทุกเคสในแผนนี้ |
 | Edge | Blink | ⊘ N/A | Blink เดียวกับ Chrome เวอร์ชันไล่ตามกันติด ๆ — ครอบคลุมโดยแถวบน ไม่ใช่ "ยังไม่ได้ทดสอบ" |
-| Safari | WebKit | ☐ | **ทดสอบบน `https://streamhub-1c27a.web.app` เท่านั้น ไม่ใช่ localhost** (ดู authDomain caveat ใน [authentication.md](../GUIDES/authentication.md)) · เป็น engine ของ iPhone/iPad ทุกเครื่อง จึงได้ทดสอบมือถือจริงไปในตัว |
+| Safari | WebKit | ✅ (4/6 กดแล้วผ่านหมด · **กดจริงบน prod 2026-08-20**) | login / Looker iframe / ตาราง admin / logout ผ่านครบ · เจอ BUG-029 (ความสูง `<select>`) **แก้แล้วในรอบเดียวกัน** · 7.1.b/7.1.e ยังไม่ได้กด · **ทดสอบบน `https://streamhub-1c27a.web.app` เท่านั้น ไม่ใช่ localhost** (ดู authDomain caveat ใน [authentication.md](../GUIDES/authentication.md)) · เป็น engine ของ iPhone/iPad ทุกเครื่อง จึงได้ทดสอบมือถือจริงไปในตัว |
 | Firefox | Gecko | ☐ | engine เดียวที่ไม่มีอะไรครอบคลุม แต่ความเสี่ยงต่ำ — ไล่โค้ดแล้วไม่ใช้ `:has()` / container query / `dvh` เลย, `backdrop-filter` มีที่เดียวและเป็นการตกแต่ง ([DashboardGrid.vue:135](../../app/components/features/DashboardGrid.vue#L135)), scrollbar เขียนทั้ง `scrollbar-width` และ `::-webkit-scrollbar` |
 
 **สิ่งที่ต้องกดในเบราว์เซอร์ที่ยังไม่ผ่าน** (ไม่ต้องไล่ทั้ง 211 เคส — กดเฉพาะที่ engine ต่างกันแล้วพัง):
 
 | # | กดอะไร | ผลที่ต้องได้ | ผล |
 |---|--------|-------------|-----|
-| 7.1.a | login ด้วย Google | หน้าต่าง popup เปิด เลือกบัญชีแล้วปิดเอง กลับมาที่แอปแบบล็อกอินแล้ว — **จุดเสี่ยงหลักของ §7 ทั้งหมด** `signInWithPopup` เป็นที่ที่ popup blocker กับ storage partitioning ต่างกันมากที่สุดระหว่าง engine | ☐ |
-| 7.1.b | ปิดหน้าต่าง Google ทิ้งกลางคัน | กลับมาหน้า login เงียบ ๆ ไม่มีข้อความแดง (`auth/popup-closed-by-user` ถูกกลืน) | ☐ |
-| 7.1.c | เปิดแดชบอร์ดที่ฝัง Looker | iframe แสดงผล ไม่โดน CSP `frame-src` บล็อก | ☐ |
-| 7.1.d | หน้า admin ที่มีตาราง เช่น `/admin/users` | ตารางเรนเดอร์ครบ เลื่อนแนวนอนได้ถ้าจอแคบ ไม่ล้นทับ layout | ☐ |
-| 7.1.e | เปิด modal สักตัว (แก้ไขผู้ใช้) | modal เปิด/ปิด ปุ่มกดได้ scrollbar ในตัว modal ใช้งานได้ | ☐ |
-| 7.1.f | logout | กลับหน้า login ไม่ค้าง | ☐ |
+| 7.1.a | login ด้วย Google | หน้าต่าง popup เปิด เลือกบัญชีแล้วปิดเอง กลับมาที่แอปแบบล็อกอินแล้ว — **จุดเสี่ยงหลักของ §7 ทั้งหมด** `signInWithPopup` เป็นที่ที่ popup blocker กับ storage partitioning ต่างกันมากที่สุดระหว่าง engine | ✅ Safari — popup เปิด เลือกบัญชี แล้วปิดเอง กลับมาที่ `/` แบบล็อกอินแล้ว ไม่ติด popup blocker ไม่ติด ITP (ยืนยันข้อสันนิษฐานว่า authDomain same-origin บน prod ทำให้ผ่าน) |
+| 7.1.b | ปิดหน้าต่าง Google ทิ้งกลางคัน | กลับมาหน้า login เงียบ ๆ ไม่มีข้อความแดง (`auth/popup-closed-by-user` ถูกกลืน) | ☐ ยังไม่ได้กด |
+| 7.1.c | เปิดแดชบอร์ดที่ฝัง Looker | iframe แสดงผล ไม่โดน CSP `frame-src` บล็อก | ✅ Safari — `Master List` (`dash_1774216578264`) เรนเดอร์เต็มทั้งกราฟ ตาราง และ Looker control ไม่โดน CSP `frame-src` บล็อก แถบซูมในแอปก็ทำงาน · **รอบแรกเปิด `dash_1784197770551` (Budget 2026) ซึ่งเป็น 1 ใน 7/41 ตัวที่ไม่มี `lookerEmbedUrl` เลย** จึงขึ้น placeholder และไม่ได้ทดสอบ iframe — เลือกแดชบอร์ดให้ถูกก่อนกดเคสนี้ |
+| 7.1.d | หน้า admin ที่มีตาราง เช่น `/admin/users` | ตารางเรนเดอร์ครบ เลื่อนแนวนอนได้ถ้าจอแคบ ไม่ล้นทับ layout | ✅ Safari — ตารางเรนเดอร์ครบ ข้อมูลตรงกับ Chrome · พบ `<select>` ตัวกรองเตี้ยกว่า Chrome = **BUG-029** แก้แล้ว |
+| 7.1.e | เปิด modal สักตัว (แก้ไขผู้ใช้) | modal เปิด/ปิด ปุ่มกดได้ scrollbar ในตัว modal ใช้งานได้ | ☐ ยังไม่ได้กด |
+| 7.1.f | logout | กลับหน้า login ไม่ค้าง | ✅ Safari — กลับหน้า `/login` ไม่ค้าง |
 
 ### 7.2 Responsive Breakpoints
 
@@ -567,7 +567,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | 7.2.c | ที่ 769px พอดี (ขอบล่างของช่วง) | sidebar ยังอยู่ ไม่มี ☰ ไม่มี overlay ค้าง ([AppLayout.vue:271](../../app/components/layouts/AppLayout.vue#L271) ซ่อน overlay ตั้งแต่ 769 ขึ้นไป) | ☐ |
 | 7.2.d | ที่ 768px (ต่ำลงมา 1px) | สลับเป็น drawer ทันที ปุ่ม ☰ โผล่ ไม่มีสภาพครึ่ง ๆ กลาง ๆ | ☐ |
 
-เคสไหนพัง จดเป็น BUG-029 ขึ้นไปในตาราง §8 ก่อน แล้วค่อยตัดสินใจว่าจะแก้รอบไหน
+เคสไหนพัง จดเป็น BUG-030 ขึ้นไปในตาราง §8 ก่อน แล้วค่อยตัดสินใจว่าจะแก้รอบไหน (BUG-029 ถูกใช้ไปแล้วกับความสูง `<select>` บน WebKit)
 
 ---
 
@@ -600,6 +600,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | BUG-027 | ลด role moderator → user **ล้างโฟลเดอร์ที่ดูแลทิ้งทั้งหมดโดยไม่เตือน** และเลื่อนกลับเป็น moderator ไม่คืนให้ (ไม่มีที่เก็บประวัติ) — พบตอนทดสอบ TC 6.1.3: `folder_finance` เสีย `assignedModerators` ของบัญชีทดสอบไปถาวร ต้องผูกคืนเอง · การล้างเป็นพฤติกรรมตั้งใจ ([folderAssignment.ts:62](../../app/utils/folderAssignment.ts#L62)) แต่ฟอร์มไม่บอกว่ากำลังจะทิ้งอะไร | TC 6.1.3 | Medium | 🔧 Fixed (ConfirmDialog ตอนกดบันทึกเมื่อ role เปลี่ยนจาก moderator และคนนั้นดูแลโฟลเดอร์อยู่ — บอกจำนวนและว่าเลื่อนกลับไม่ได้คืนอัตโนมัติ) — **ยืนยันด้วยการกดจริง 2026-08-20** ✅ |
 | BUG-028 | หน้า `/profile` ซ่อนการ์ด "โฟลเดอร์ที่ดูแล" ทั้งที่ badge ขึ้น "ผู้ดูแลโฟลเดอร์" — หน้าเดียวอ่าน role จาก 2 แหล่ง: badge จากเอกสาร Firestore (สด) ส่วนการ์ดจาก auth store (อัปเดตเฉพาะตอน auth init) ⇒ หลัง admin เปลี่ยน role กลางคัน สองส่วนขัดกันจนกว่าจะรีเฟรช | TC 6.1.3 | Low | 🔧 Fixed (อ่าน role จากเอกสารเป็นหลัก fallback ไป store ระหว่างรอโหลด; ย้ายการตัดสินใจ fetch โฟลเดอร์ไปหลังเอกสารมาถึง) |
 | BUG-026 | กดบันทึกตอนเน็ตหลุด = **เงียบไม่มีที่สิ้นสุด** — ปุ่มค้าง "กำลังบันทึก..." ไม่มีข้อความ ไม่มี timeout ไม่มีทางยกเลิก ผู้ใช้แยกไม่ออกระหว่าง "ช้า" กับ "เน็ตหลุด" (งานไม่หาย SDK ส่งให้เองเมื่อกลับมาออนไลน์ แต่ไม่มีอะไรบอก) | TC 6.3.2 | Low | 🔧 Fixed (แบนเนอร์ออฟไลน์ใน `AppLayout` จาก [useOnlineStatus.ts](../../app/composables/useOnlineStatus.ts) — บอกว่าการบันทึกจะค้างและข้อมูลไม่หาย · ไม่ใส่ timeout เพราะจะไปตัดงานที่ระบบส่งสำเร็จภายหลัง) — **ยืนยันด้วยการกดจริง 2026-08-20** ✅ |
+| BUG-029 | `<select>` ที่ใช้คลาส `.theme-form-select` เตี้ยกว่าที่ออกแบบไว้บน Safari/WebKit — คลาสนี้ตั้ง `padding: 0.5rem 1rem` แต่ไม่เคลียร์ `appearance` ⇒ ยังเป็น native control ที่ **WebKit ไม่สนใจ padding แนวตั้ง** (Blink ใส่ให้) ตัวกรองจึงไม่เท่าช่องค้นหาและปุ่มในแถวเดียวกัน · กระทบ select 13 ตัวใน 11 ไฟล์ · `.form-select` ของ [FormField.vue](../../app/components/forms/FormField.vue) **มีการแก้แบบนี้อยู่แล้ว** — `.theme-form-select` คือเส้นที่ตกหล่นไป | TC 7.1.d | Low | 🔧 Fixed (เคลียร์ `appearance` + วาดลูกศรเอง ใน [theme.css](../../assets/css/theme.css) โดย**ใช้ค่าเดียวกับ `.form-select` ทุกตัว** เพราะ filter bar กับ modal เห็นพร้อมกันได้ ลูกศรคนละทรงจะโป๊ะ — แก้ทีหลังต้องแก้คู่กัน) |
 | BUG-025 | **บนมือถือใช้งานไม่ได้เลย** — ที่จอ ≤768px [AppLayout.vue](../../app/components/layouts/AppLayout.vue) ดัน sidebar ออกนอกจอ (`left: -100%`) แล้วรอคลาส `.sidebar-open` ที่**ไม่มีที่ไหนใส่** และไม่มีปุ่มเปิดในทั้งแอป ⇒ ไปหน้าอื่นไม่ได้; ซ้ำโลโก้สูง 5rem ดัน `UserMenu` ตกขอบขวา ⇒ กดออกจากระบบ/โปรไฟล์ก็ไม่ได้ เหลือแค่หน้าที่เปิดค้างอยู่ | TC 5.2.5 | High | 🔧 Fixed (ปุ่ม ☰ + state `isSidebarOpen` + overlay กดปิด + ปิดเองเมื่อเปลี่ยน route; ย่อโลโก้/ซ่อนชื่อผู้ใช้บนจอเล็ก; ปลด `.menu-toggle` ออกจากกฎ global ที่ทาทุก `button` เป็นน้ำเงิน) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · รอบแรกปิด drawer ด้วย `watch(route.fullPath)` อย่างเดียว ซึ่งค้างเมื่อกดลิงก์ของหน้าที่เปิดอยู่แล้ว (ปลายทางเดิม = ไม่มี navigation) จึงย้ายไปปิดตอนแตะ `<a>` |
 | BUG-023 | **ปิดบัญชีผู้ใช้กลางคัน แล้วเขายังใช้งานต่อได้** — `isActive === false` ถูกเช็คเฉพาะใน `signInWithGoogle` ส่วน `initAuth` (ที่รันทุกครั้งที่รีเฟรช) เช็คแค่ว่า "พบ user ไหม" และ `firestore.rules` ก็ไม่ดู `isActive` ⇒ คนที่ถูกปิดบัญชียังเปิดหน้า อ่านรายการแดชบอร์ด/โครงสร้างโฟลเดอร์ได้จนกว่าจะ sign out เอง (ตัวเนื้อหาแดชบอร์ดถูกกันไว้ที่ server แล้ว — `embed/request.post.ts` เช็ค `isActive`) | TC 6.1.2 | High | 🔧 Fixed (เช็ค `isActive` ใน `initAuth` → `signOut()`) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · การเตะออกเกิดก่อนกิ่ง `authError` ของ middleware ผู้ใช้จึงเห็นหน้า login เปล่า ตามมาด้วยแถบเหตุผลบนหน้า login (TC 6.1.4) |
 | BUG-024 | หมด session กลางทางแล้วกลับเข้ามาไม่ถึงที่เดิม — middleware `navigateTo('/login')` ไม่แนบปลายทาง ⇒ login ใหม่ไปโผล่ `/dashboard` เสมอ คนที่กำลังแก้สิทธิ์ที่ `/admin/permissions?dashboard=<id>` ต้องเดินกลับเอง | TC 6.1.1 | Medium | 🔧 Fixed (`?returnTo=` + `safeReturnTo` sanitiser กัน open redirect; 13 เทสต์) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ ทั้งเส้นปกติและเส้น open redirect |
