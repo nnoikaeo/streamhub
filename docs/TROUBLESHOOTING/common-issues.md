@@ -57,6 +57,8 @@ POST http://localhost:3000/api/embed/request?uid=... 500 (Server Error)
 
 > ⚠️ ผลข้างเคียงที่ต้องรู้: `.env.local` มีคีย์ Resend **ตัวจริง** ⇒ กดส่งคำเชิญบน localhost ตอนนี้**อีเมลออกจริง** ดู [environment-variables.md](../REFERENCE/environment-variables.md)
 
+> ผลพลอยได้ที่ตามมาอีกอย่าง — พอ authDomain บน localhost เปลี่ยนจาก `…firebaseapp.com` เป็น `…web.app` **CSP บล็อก iframe ของ Firebase Auth** (`Framing 'https://…web.app/' violates … frame-src`) เพราะ [securityHeaders.ts](../../server/middleware/securityHeaders.ts) ฮาร์ดโค้ด `https://*.firebaseapp.com` ไว้ · แก้แล้วโดย derive origin จาก `authDomain` ใน runtimeConfig — prod ไม่เคยเจอเพราะ `'self'` ที่นั่นคือ authDomain พอดี
+
 ---
 
 ## Issue: Google Sign-in Fails on Production (COOP)
