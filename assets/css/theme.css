@@ -266,6 +266,28 @@
   transition: all var(--transition-fast);
 }
 
+/* `<select>` renders as a native control unless appearance is cleared, and
+   WebKit ignores vertical padding on a native select — so the shared rule above
+   produced a shorter box in Safari than in Chrome, out of line with the input
+   and the button beside it (BUG-029, TC 7.1.d). Clearing appearance makes the
+   padding apply in both engines, but it also removes the built-in arrow, so one
+   is drawn here.
+
+   Values mirror `.form-select` in app/components/forms/FormField.vue, which has
+   carried this same fix for its own selects — a filter bar and a modal are
+   visible at once, so a second arrow of a different size or shade would show.
+   Change the two together. No `<select multiple>` uses either class, which is
+   the case where a corner chevron would be wrong. */
+.theme-form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1.25rem 1.25rem;
+  padding-right: 2.5rem;
+}
+
 .theme-form-input:focus,
 .theme-form-select:focus,
 .theme-form-textarea:focus {
