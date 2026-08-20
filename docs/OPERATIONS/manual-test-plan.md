@@ -455,11 +455,11 @@
 
 ## 5. Cross-Cutting Concerns
 
-> **⏸️ §5 / §6 / §7 deferred — post-launch hardening (non-blocking).** The app
-> passed its pre-launch checklist (groups A–E, all ✅) and is entering user trial.
-> The remaining ☐ items here (loading states, sidebar-by-role, mobile drawer, error
-> scenarios, cross-browser & responsive) are robustness/compat coverage, **not launch
-> gates** — route protection (§5.2.1–3) already passed as pre-launch group A. Revisit
+> **⏸️ ~~§5 / §6 / §7 deferred~~ — เกือบปิดครบแล้ว (อัปเดต 2026-08-20).** §5 และ §6
+> กดจบไปแล้วทั้งหมด (เหลือ 6.3.1 ที่จงใจข้าม) · §7 ผ่าน Chrome + Safari ครบ 6/6 ช่อง
+> เหลือแค่ Firefox กับ breakpoint 320px/tablet ซึ่งยังเป็น compat coverage ไม่ใช่
+> launch gate — route protection (§5.2.1–3) ผ่านตั้งแต่ pre-launch group A. ย่อหน้า
+> ข้างล่างนี้เป็นบันทึกของตอนเข้า user trial เก็บไว้เป็นประวัติ. Revisit
 > opportunistically after trial feedback. Decision 2026-07-28.
 
 ### 5.1 CRUD Pattern (ทุกหน้า Admin)
@@ -521,22 +521,55 @@
 
 ## 7. Cross-Browser & Responsive
 
+> แถวใน §7 **ไม่นับรวมใน 211 เคส** ของ §8 — เป็นเมทริกซ์สภาพแวดล้อม ไม่ใช่เคสทดสอบฟังก์ชัน
+
 ### 7.1 Browsers
 
-| Browser | Version | Status |
-|---------|---------|--------|
-| Chrome | Latest 2 | ☐ |
-| Firefox | Latest 2 | ☐ |
-| Safari | Latest 2 | ☐ |
-| Edge | Latest | ☐ |
+เบราว์เซอร์แยกกันที่ **engine** ไม่ใช่ที่ยี่ห้อ Chrome กับ Edge ใช้ Blink ตัวเดียวกัน กดทั้งคู่จึงได้ข้อมูลชุดเดียว
+
+| Browser | Engine | Status | หมายเหตุ |
+|---------|--------|--------|---------|
+| Chrome | Blink | ✅ | เบราว์เซอร์ที่ใช้ทดสอบทุกเคสในแผนนี้ |
+| Edge | Blink | ⊘ N/A | Blink เดียวกับ Chrome เวอร์ชันไล่ตามกันติด ๆ — ครอบคลุมโดยแถวบน ไม่ใช่ "ยังไม่ได้ทดสอบ" |
+| Safari | WebKit | ✅ (**6/6 · กดจริงบน prod 2026-08-20**) | ผ่านครบทุกช่อง · เจอ BUG-029 (ความสูง `<select>`) แก้แล้วในรอบเดียวกัน · **ทดสอบบน `https://streamhub-1c27a.web.app` เท่านั้น ไม่ใช่ localhost** (ดู authDomain caveat ใน [authentication.md](../GUIDES/authentication.md)) · เป็น engine ของ iPhone/iPad ทุกเครื่อง จึงได้ทดสอบมือถือจริงไปในตัว |
+| Firefox | Gecko | ☐ | engine เดียวที่ไม่มีอะไรครอบคลุม แต่ความเสี่ยงต่ำ — ไล่โค้ดแล้วไม่ใช้ `:has()` / container query / `dvh` เลย, `backdrop-filter` มีที่เดียวและเป็นการตกแต่ง ([DashboardGrid.vue:135](../../app/components/features/DashboardGrid.vue#L135)), scrollbar เขียนทั้ง `scrollbar-width` และ `::-webkit-scrollbar` |
+
+**สิ่งที่ต้องกดในเบราว์เซอร์ที่ยังไม่ผ่าน** (ไม่ต้องไล่ทั้ง 211 เคส — กดเฉพาะที่ engine ต่างกันแล้วพัง):
+
+| # | กดอะไร | ผลที่ต้องได้ | ผล |
+|---|--------|-------------|-----|
+| 7.1.a | login ด้วย Google | หน้าต่าง popup เปิด เลือกบัญชีแล้วปิดเอง กลับมาที่แอปแบบล็อกอินแล้ว — **จุดเสี่ยงหลักของ §7 ทั้งหมด** `signInWithPopup` เป็นที่ที่ popup blocker กับ storage partitioning ต่างกันมากที่สุดระหว่าง engine | ✅ Safari — popup เปิด เลือกบัญชี แล้วปิดเอง กลับมาที่ `/` แบบล็อกอินแล้ว ไม่ติด popup blocker ไม่ติด ITP (ยืนยันข้อสันนิษฐานว่า authDomain same-origin บน prod ทำให้ผ่าน) |
+| 7.1.b | ปิดหน้าต่าง Google ทิ้งกลางคัน | กลับมาหน้า login เงียบ ๆ ไม่มีข้อความแดง (`auth/popup-closed-by-user` ถูกกลืน) | ✅ Safari — ระหว่างรอปุ่มขึ้น "กำลังลงชื่อเข้า..." แบบ disabled พอปิดหน้าต่าง Google ทิ้ง **ปุ่มกลับมากดได้ตามปกติ** ไม่มีกล่องแดง · ตัวชี้ขาดคือปุ่ม ไม่ใช่ข้อความ: ถ้า `finally` ที่ [login.vue:41](../../app/pages/login.vue#L41) ไม่ทำงาน ปุ่มจะค้าง disabled ถาวร เข้าระบบต่อไม่ได้จนกว่าจะรีเฟรช |
+| 7.1.c | เปิดแดชบอร์ดที่ฝัง Looker | iframe แสดงผล ไม่โดน CSP `frame-src` บล็อก | ✅ Safari — `Master List` (`dash_1774216578264`) เรนเดอร์เต็มทั้งกราฟ ตาราง และ Looker control ไม่โดน CSP `frame-src` บล็อก แถบซูมในแอปก็ทำงาน · **รอบแรกเปิด `dash_1784197770551` (Budget 2026) ซึ่งเป็น 1 ใน 7/41 ตัวที่ไม่มี `lookerEmbedUrl` เลย** จึงขึ้น placeholder และไม่ได้ทดสอบ iframe — เลือกแดชบอร์ดให้ถูกก่อนกดเคสนี้ |
+| 7.1.d | หน้า admin ที่มีตาราง เช่น `/admin/users` | ตารางเรนเดอร์ครบ เลื่อนแนวนอนได้ถ้าจอแคบ ไม่ล้นทับ layout | ✅ Safari — ตารางเรนเดอร์ครบ ข้อมูลตรงกับ Chrome · พบ `<select>` ตัวกรองเตี้ยกว่า Chrome = **BUG-029** แก้แล้ว |
+| 7.1.e | เปิด modal สักตัว (แก้ไขผู้ใช้) | modal เปิด/ปิด ปุ่มกดได้ scrollbar ในตัว modal ใช้งานได้ | ✅ Safari — เปิด "แก้ไขผู้ใช้" (🖊️ ไม่ใช่ 🗑️) โดยย่อหน้าต่างให้เตี้ยจนฟอร์มล้น: เนื้อหาถูกตัดหลังช่อง "ชื่อจริง" แต่ **ปุ่มยกเลิก/บันทึกยังติดขอบล่าง modal ครบ** = `.modal-body` ถูกบีบตาม `max-height: 90vh` จริง · ไม่เห็น scrollbar ไม่ใช่สัญญาณ — macOS ซ่อน overlay scrollbar จนกว่าจะเลื่อน · **ต้องเปิด modal ที่ผ่าน [Modal.vue](../../app/components/ui/Modal.vue) เท่านั้น**: `ConfirmDialog` เป็นคนละคอมโพเนนต์ เขียน `position: fixed` เอง ไม่มี `.modal-body` จึงไม่ทดสอบอะไร |
+| 7.1.f | logout | กลับหน้า login ไม่ค้าง | ✅ Safari — กลับหน้า `/login` ไม่ค้าง |
+
+> **สิ่งที่ 7.1.e ตรวจจริง ๆ** — [Modal.vue:286](../../app/components/ui/Modal.vue#L286) เขียน `.modal-body { flex: 1; overflow-y: auto }` อยู่ใน container ที่เป็น `flex-direction: column; max-height: 90vh; overflow: hidden` แต่ **ไม่ได้ตั้ง `min-height: 0`** · flex item มีค่าเริ่มต้น `min-height: auto` = ห้ามหดต่ำกว่าความสูงเนื้อหา ถ้าเอนจินบังคับกฎนี้เข้ม `overflow-y` จะไม่ทำงาน เนื้อหาดันกล่องจนสูงเกิน แล้วโดน `overflow: hidden` ตัดส่วนล่างทิ้ง ⇒ **อาการคือปุ่มบันทึกหายไป ไม่ใช่ scrollbar หาย** · ทดสอบแล้วไม่เกิดทั้ง Blink และ WebKit แต่ถ้าวันหนึ่ง modal เพี้ยนบนเบราว์เซอร์ใหม่ ให้มาดูบรรทัดนี้ก่อน
 
 ### 7.2 Responsive Breakpoints
 
+CSS media query ล้วน ๆ — ทดสอบใน DevTools ของ Chrome ได้ ไม่ต้องเปลี่ยนเบราว์เซอร์
+
 | Breakpoint | Width | Key Checks | Status |
 |------------|-------|------------|--------|
-| Mobile | 320–640px | Sidebar in drawer, modals full-width, tables scroll horizontal | ☐ |
-| Tablet | 641–1024px | Sidebar narrow, responsive grid | ☐ |
-| Desktop | 1025px+ | Full layout, sidebar visible | ☐ |
+| Mobile (drawer) | 375px | ปุ่ม ☰ + drawer + overlay + ย่อโลโก้ + ซ่อนชื่อผู้ใช้ | ✅ (ยืนยันตอนแก้ BUG-025) |
+| Mobile (ขอบล่าง) | 320px | เหมือน 375 แต่แคบสุด — หัวข้อ/ปุ่มในแถบบนต้องไม่ทับกัน, `width: 70vw` ของ drawer = 224px ยังอ่านเมนูออก | ☐ |
+| Tablet | 641–1024px | sidebar ย่อเหลือ `12rem` แต่ยังอยู่ในflow ([AppLayout.vue:236](../../app/components/layouts/AppLayout.vue#L236)) — **ไม่มีปุ่ม ☰ ในช่วงนี้ และถูกต้องแล้ว** เพราะ sidebar ไม่ได้ถูกซ่อน · ที่ต้องดูคือผลข้างเคียง ดูตารางล่าง | ☐ |
+| Desktop | 1025px+ | layout เต็ม sidebar กว้างปกติ | ✅ |
+
+**ช่วง 769–1024px — สิ่งที่ต้องดูจริง ๆ**
+
+drawer ตัดที่ `max-width: 768px` ส่วนการย่อ sidebar ตัดที่ `max-width: 1024px` ⇒ ช่วงคาบเกี่ยวนี้ sidebar กว้าง 192px และเห็นตลอด เหลือเนื้อที่เนื้อหา ~832px ที่ 1024
+
+| # | ดูอะไร | ผลที่ต้องได้ | ผล |
+|---|--------|-------------|-----|
+| 7.2.a | เมนูไทยยาวใน sidebar ("กลุ่มธุรกิจ/เขตพื้นที่") | ไม่ล้น 192px ไม่ถูกตัดจนอ่านไม่รู้เรื่อง | ☐ |
+| 7.2.b | `/admin/users` (ตาราง 7 คอลัมน์) ที่ 1024 และ 800 | ตารางเลื่อนแนวนอนในกรอบตัวเอง ไม่ดันทั้งหน้าให้เลื่อนแนวนอน | ☐ |
+| 7.2.c | ที่ 769px พอดี (ขอบล่างของช่วง) | sidebar ยังอยู่ ไม่มี ☰ ไม่มี overlay ค้าง ([AppLayout.vue:271](../../app/components/layouts/AppLayout.vue#L271) ซ่อน overlay ตั้งแต่ 769 ขึ้นไป) | ☐ |
+| 7.2.d | ที่ 768px (ต่ำลงมา 1px) | สลับเป็น drawer ทันที ปุ่ม ☰ โผล่ ไม่มีสภาพครึ่ง ๆ กลาง ๆ | ☐ |
+
+เคสไหนพัง จดเป็น BUG-030 ขึ้นไปในตาราง §8 ก่อน แล้วค่อยตัดสินใจว่าจะแก้รอบไหน (BUG-029 ถูกใช้ไปแล้วกับความสูง `<select>` บน WebKit)
 
 ---
 
@@ -569,6 +602,7 @@
 | BUG-027 | ลด role moderator → user **ล้างโฟลเดอร์ที่ดูแลทิ้งทั้งหมดโดยไม่เตือน** และเลื่อนกลับเป็น moderator ไม่คืนให้ (ไม่มีที่เก็บประวัติ) — พบตอนทดสอบ TC 6.1.3: `folder_finance` เสีย `assignedModerators` ของบัญชีทดสอบไปถาวร ต้องผูกคืนเอง · การล้างเป็นพฤติกรรมตั้งใจ ([folderAssignment.ts:62](../../app/utils/folderAssignment.ts#L62)) แต่ฟอร์มไม่บอกว่ากำลังจะทิ้งอะไร | TC 6.1.3 | Medium | 🔧 Fixed (ConfirmDialog ตอนกดบันทึกเมื่อ role เปลี่ยนจาก moderator และคนนั้นดูแลโฟลเดอร์อยู่ — บอกจำนวนและว่าเลื่อนกลับไม่ได้คืนอัตโนมัติ) — **ยืนยันด้วยการกดจริง 2026-08-20** ✅ |
 | BUG-028 | หน้า `/profile` ซ่อนการ์ด "โฟลเดอร์ที่ดูแล" ทั้งที่ badge ขึ้น "ผู้ดูแลโฟลเดอร์" — หน้าเดียวอ่าน role จาก 2 แหล่ง: badge จากเอกสาร Firestore (สด) ส่วนการ์ดจาก auth store (อัปเดตเฉพาะตอน auth init) ⇒ หลัง admin เปลี่ยน role กลางคัน สองส่วนขัดกันจนกว่าจะรีเฟรช | TC 6.1.3 | Low | 🔧 Fixed (อ่าน role จากเอกสารเป็นหลัก fallback ไป store ระหว่างรอโหลด; ย้ายการตัดสินใจ fetch โฟลเดอร์ไปหลังเอกสารมาถึง) |
 | BUG-026 | กดบันทึกตอนเน็ตหลุด = **เงียบไม่มีที่สิ้นสุด** — ปุ่มค้าง "กำลังบันทึก..." ไม่มีข้อความ ไม่มี timeout ไม่มีทางยกเลิก ผู้ใช้แยกไม่ออกระหว่าง "ช้า" กับ "เน็ตหลุด" (งานไม่หาย SDK ส่งให้เองเมื่อกลับมาออนไลน์ แต่ไม่มีอะไรบอก) | TC 6.3.2 | Low | 🔧 Fixed (แบนเนอร์ออฟไลน์ใน `AppLayout` จาก [useOnlineStatus.ts](../../app/composables/useOnlineStatus.ts) — บอกว่าการบันทึกจะค้างและข้อมูลไม่หาย · ไม่ใส่ timeout เพราะจะไปตัดงานที่ระบบส่งสำเร็จภายหลัง) — **ยืนยันด้วยการกดจริง 2026-08-20** ✅ |
+| BUG-029 | `<select>` ที่ใช้คลาส `.theme-form-select` เตี้ยกว่าที่ออกแบบไว้บน Safari/WebKit — คลาสนี้ตั้ง `padding: 0.5rem 1rem` แต่ไม่เคลียร์ `appearance` ⇒ ยังเป็น native control ที่ **WebKit ไม่สนใจ padding แนวตั้ง** (Blink ใส่ให้) ตัวกรองจึงไม่เท่าช่องค้นหาและปุ่มในแถวเดียวกัน · กระทบ select 13 ตัวใน 11 ไฟล์ · `.form-select` ของ [FormField.vue](../../app/components/forms/FormField.vue) **มีการแก้แบบนี้อยู่แล้ว** — `.theme-form-select` คือเส้นที่ตกหล่นไป | TC 7.1.d | Low | 🔧 Fixed (เคลียร์ `appearance` + วาดลูกศรเอง ใน [theme.css](../../assets/css/theme.css) โดย**ใช้ค่าเดียวกับ `.form-select` ทุกตัว** เพราะ filter bar กับ modal เห็นพร้อมกันได้ ลูกศรคนละทรงจะโป๊ะ — แก้ทีหลังต้องแก้คู่กัน) |
 | BUG-025 | **บนมือถือใช้งานไม่ได้เลย** — ที่จอ ≤768px [AppLayout.vue](../../app/components/layouts/AppLayout.vue) ดัน sidebar ออกนอกจอ (`left: -100%`) แล้วรอคลาส `.sidebar-open` ที่**ไม่มีที่ไหนใส่** และไม่มีปุ่มเปิดในทั้งแอป ⇒ ไปหน้าอื่นไม่ได้; ซ้ำโลโก้สูง 5rem ดัน `UserMenu` ตกขอบขวา ⇒ กดออกจากระบบ/โปรไฟล์ก็ไม่ได้ เหลือแค่หน้าที่เปิดค้างอยู่ | TC 5.2.5 | High | 🔧 Fixed (ปุ่ม ☰ + state `isSidebarOpen` + overlay กดปิด + ปิดเองเมื่อเปลี่ยน route; ย่อโลโก้/ซ่อนชื่อผู้ใช้บนจอเล็ก; ปลด `.menu-toggle` ออกจากกฎ global ที่ทาทุก `button` เป็นน้ำเงิน) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · รอบแรกปิด drawer ด้วย `watch(route.fullPath)` อย่างเดียว ซึ่งค้างเมื่อกดลิงก์ของหน้าที่เปิดอยู่แล้ว (ปลายทางเดิม = ไม่มี navigation) จึงย้ายไปปิดตอนแตะ `<a>` |
 | BUG-023 | **ปิดบัญชีผู้ใช้กลางคัน แล้วเขายังใช้งานต่อได้** — `isActive === false` ถูกเช็คเฉพาะใน `signInWithGoogle` ส่วน `initAuth` (ที่รันทุกครั้งที่รีเฟรช) เช็คแค่ว่า "พบ user ไหม" และ `firestore.rules` ก็ไม่ดู `isActive` ⇒ คนที่ถูกปิดบัญชียังเปิดหน้า อ่านรายการแดชบอร์ด/โครงสร้างโฟลเดอร์ได้จนกว่าจะ sign out เอง (ตัวเนื้อหาแดชบอร์ดถูกกันไว้ที่ server แล้ว — `embed/request.post.ts` เช็ค `isActive`) | TC 6.1.2 | High | 🔧 Fixed (เช็ค `isActive` ใน `initAuth` → `signOut()`) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · การเตะออกเกิดก่อนกิ่ง `authError` ของ middleware ผู้ใช้จึงเห็นหน้า login เปล่า ตามมาด้วยแถบเหตุผลบนหน้า login (TC 6.1.4) |
 | BUG-024 | หมด session กลางทางแล้วกลับเข้ามาไม่ถึงที่เดิม — middleware `navigateTo('/login')` ไม่แนบปลายทาง ⇒ login ใหม่ไปโผล่ `/dashboard` เสมอ คนที่กำลังแก้สิทธิ์ที่ `/admin/permissions?dashboard=<id>` ต้องเดินกลับเอง | TC 6.1.1 | Medium | 🔧 Fixed (`?returnTo=` + `safeReturnTo` sanitiser กัน open redirect; 13 เทสต์) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ ทั้งเส้นปกติและเส้น open redirect |
@@ -719,7 +753,7 @@
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
 | **TOTAL** | **211** | — | 197 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
-> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 211 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]? ` แล้วดูสัญลักษณ์ในช่องท้าย
+> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 211 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]? ` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
 
 ---
 
