@@ -67,13 +67,14 @@
               type="button"
               class="action-button toggle-sidebar-button"
               :title="showInfoSidebar ? 'ซ่อนข้อมูลแดชบอร์ด' : 'แสดงข้อมูลแดชบอร์ด'"
+              :aria-label="showInfoSidebar ? 'ซ่อนข้อมูลแดชบอร์ด' : 'แสดงข้อมูลแดชบอร์ด'"
               @click="showInfoSidebar = !showInfoSidebar"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
                 <line x1="9" y1="3" x2="9" y2="21" />
               </svg>
-              {{ showInfoSidebar ? 'ซ่อนข้อมูล' : 'แสดงข้อมูล' }}
+              <span class="action-label">{{ showInfoSidebar ? 'ซ่อนข้อมูล' : 'แสดงข้อมูล' }}</span>
             </button>
             <!-- Embed Zoom Control -->
             <div v-if="embedUrl" class="zoom-control" role="group" aria-label="ปรับขนาดแดชบอร์ด">
@@ -111,6 +112,7 @@
               type="button"
               class="action-button fullscreen-button"
               :title="isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
+              :aria-label="isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'โหมดเต็มจอ'"
               @click="toggleFullscreen"
             >
               <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -125,7 +127,7 @@
                 <line x1="14" y1="10" x2="21" y2="3" />
                 <line x1="3" y1="21" x2="10" y2="14" />
               </svg>
-              {{ isFullscreen ? 'ย่อ' : 'เต็มจอ' }}
+              <span class="action-label">{{ isFullscreen ? 'ย่อ' : 'เต็มจอ' }}</span>
             </button>
           </template>
         </DashboardViewHeader>
@@ -1132,6 +1134,33 @@ onUnmounted(() => {
 
   .dashboard-title {
     font-size: 1.25rem;
+  }
+}
+
+/* Below ~640px the four controls in .header-right add up to more width than
+   the row has (roughly 395px of content in 343px at a 375px viewport). The
+   row does not wrap, so everything is squeezed: the two text labels break
+   onto a second line and .zoom-control — which clips with `overflow: hidden`
+   — loses its `+` button entirely. Clipped, it is neither visible nor
+   clickable, so zooming in becomes impossible on a phone. That matters more
+   than it looks: this control exists because the browser's own zoom does
+   nothing to a Looker report, which refits itself to the iframe width
+   (PR #351).
+
+   Dropping the two labels frees ~150px and everything fits on one row, which
+   keeps the header one line tall and leaves the report the height it had.
+   Both buttons carry an aria-label so hiding the text costs no accessible
+   name — the zoom buttons already had theirs. [BUG-030, TC 7.2] */
+@media (max-width: 640px) {
+  .action-label {
+    display: none;
+  }
+
+  /* Without a label there is nothing to sit beside the icon, so the 0.5rem
+     gap would pad the button off-centre. */
+  .action-button {
+    gap: 0;
+    padding: 0.5rem;
   }
 }
 

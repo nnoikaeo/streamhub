@@ -14,10 +14,24 @@ export default defineEventHandler((event: H3Event) => {
   setHeader(event, 'X-Frame-Options', 'SAMEORIGIN')
   setHeader(event, 'Referrer-Policy', 'strict-origin')
   setHeader(event, 'X-Content-Type-Options', 'nosniff')
+  // Firebase Auth loads a helper iframe from whatever `authDomain` is
+  // configured, so that origin has to be allowed to be framed. The list used
+  // to hardcode `*.firebaseapp.com`, which was only ever correct by accident:
+  // on production authDomain is the site's own origin, so `'self'` covered it,
+  // and locally authDomain used to be a firebaseapp.com address. Point the
+  // dev server at an .env with `authDomain=…web.app` and the iframe is blocked
+  // — auth still works through the popup, but the console fills with CSP
+  // violations and cross-tab state sync loses its channel. Derive the origin
+  // instead of naming one. (firebase.json carries a static copy of this header
+  // for assets Hosting serves directly; it cannot read runtime config, and on
+  // production `'self'` already covers the authDomain, so it is left as is.)
+  const authDomain = useRuntimeConfig(event).public.firebase.authDomain
+  const authFrameSrc = authDomain && !authDomain.startsWith('YOUR_') ? ` https://${authDomain}` : ''
   setHeader(
     event,
     'Content-Security-Policy',
-    "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com https://*.firebaseapp.com https://*.googleapis.com; frame-ancestors 'self'"
+    "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com " +
+      `https://*.firebaseapp.com https://*.googleapis.com${authFrameSrc}; frame-ancestors 'self'`
   )
 
   const pathname = getRequestURL(event).pathname
