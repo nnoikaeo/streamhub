@@ -73,7 +73,7 @@ NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN=streamhub-1234.firebaseapp.com
 | Key | ใช้ทำอะไร |
 |---|---|
 | `RESEND_API_KEY` | ส่งอีเมลคำเชิญ |
-| `EMBED_TOKEN_SECRET` | กุญแจ AES-256-GCM ที่ปิดผนึก token ของ `/api/embed/*` |
+| `EMBED_TOKEN_SECRET` | กุญแจ AES-256-GCM ที่ปิดผนึกทั้ง token ของ `/api/embed/*` และ cookie `__session` ที่ผูก token เข้ากับเบราว์เซอร์ |
 
 ตั้งค่าครั้งแรกหรือหมุนกุญแจ:
 
@@ -83,6 +83,8 @@ firebase functions:secrets:set EMBED_TOKEN_SECRET --project streamhub-1c27a
 ```
 
 แล้ววางค่า**เดียวกัน**ลง `.env.local` เพื่อให้ dev server ใช้ได้ · หมุนกุญแจแล้ว token ที่ค้างอยู่จะใช้ไม่ได้ทันที ผู้ใช้ที่เปิดแดชบอร์ดค้างไว้ต้องรีเฟรชหนึ่งครั้ง (อายุ token 5 นาที)
+
+> `__session` เป็น **ชื่อ cookie เดียว** ที่ Firebase Hosting ส่งต่อให้ Cloud Functions ชื่ออื่นถูกตัดทิ้งทั้งหมด — ถ้าจะเพิ่ม cookie ฝั่ง server ในอนาคตต้องยัดรวมในตัวนี้ ไม่ใช่ตั้งชื่อใหม่
 
 > ถ้า `EMBED_TOKEN_SECRET` ว่าง `POST /api/embed/request` จะตอบ 500 `Embed tokens are not configured` — ตั้งใจให้ดังกว่าการแจก token ที่ไม่มีใครเปิดอ่านได้
 
