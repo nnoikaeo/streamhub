@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { createEmbedToken, verifyEmbedToken, TOKEN_TTL_SECONDS } from '../../server/utils/embedToken'
+import {
+  createEmbedToken,
+  verifyEmbedToken,
+  createEmbedSession,
+  verifyEmbedSession,
+  TOKEN_TTL_SECONDS,
+  SESSION_TTL_SECONDS,
+} from '../../server/utils/embedToken'
 
 const SECRET = 'test-secret-value'
 const URL = 'https://lookerstudio.google.com/embed/reporting/abc123'
@@ -101,6 +108,61 @@ describe('embedToken', () => {
     it('returns null when no secret is configured', () => {
       const token = createEmbedToken(URL, 'user1', SECRET)
       expect(verifyEmbedToken(token, '')).toBeNull()
+    })
+  })
+
+  describe('session cookie', () => {
+    it('seals the uid rather than exposing it', () => {
+      const cookie = createEmbedSession('user1', SECRET)
+
+      expect(cookie).not.toContain('user1')
+      expect(Buffer.from(cookie, 'base64url').toString('utf8')).not.toContain('user1')
+    })
+
+    it('round-trips the uid', () => {
+      expect(verifyEmbedSession(createEmbedSession('user1', SECRET), SECRET)?.uid).toBe('user1')
+    })
+
+    it('throws when no secret is configured', () => {
+      expect(() => createEmbedSession('user1', '')).toThrow('EMBED_TOKEN_SECRET is not configured')
+    })
+
+    it('rejects a cookie the client made up', () => {
+      const forged = Buffer.from(JSON.stringify({ uid: 'victim', exp: 2000000000 })).toString('base64url')
+
+      expect(verifyEmbedSession(forged, SECRET)).toBeNull()
+    })
+
+    it('rejects a cookie sealed with another secret', () => {
+      expect(verifyEmbedSession(createEmbedSession('user1', SECRET), 'another-secret')).toBeNull()
+    })
+
+    it('rejects an absent cookie', () => {
+      expect(verifyEmbedSession(undefined, SECRET)).toBeNull()
+      expect(verifyEmbedSession('', SECRET)).toBeNull()
+    })
+
+    it('rejects a cookie past its expiry', () => {
+      vi.useFakeTimers()
+      const cookie = createEmbedSession('user1', SECRET)
+
+      vi.advanceTimersByTime((SESSION_TTL_SECONDS + 1) * 1000)
+
+      expect(verifyEmbedSession(cookie, SECRET)).toBeNull()
+    })
+
+    // A second dashboard opened in another tab must not invalidate the first:
+    // the cookie is per-user, so both tabs hold an interchangeable one.
+    it('issues interchangeable cookies for the same user', () => {
+      const first = createEmbedSession('user1', SECRET)
+      const second = createEmbedSession('user1', SECRET)
+
+      expect(first).not.toBe(second)
+      expect(verifyEmbedSession(first, SECRET)?.uid).toBe(verifyEmbedSession(second, SECRET)?.uid)
+    })
+
+    it('outlives a token, so a token never expires with a live cookie behind it', () => {
+      expect(SESSION_TTL_SECONDS).toBeGreaterThan(TOKEN_TTL_SECONDS)
     })
   })
 })
