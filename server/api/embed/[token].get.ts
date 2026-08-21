@@ -1,5 +1,5 @@
 import { sendRedirect } from 'h3'
-import { consumeToken } from '../../utils/embedTokenStore'
+import { verifyEmbedToken } from '../../utils/embedToken'
 
 export default defineEventHandler(async (event) => {
   const token = getRouterParam(event, 'token')
@@ -8,11 +8,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Token is required' })
   }
 
-  const embedUrl = consumeToken(token)
+  const { embedTokenSecret } = useRuntimeConfig(event)
+  const payload = verifyEmbedToken(token, embedTokenSecret)
 
-  if (!embedUrl) {
+  if (!payload) {
     throw createError({ statusCode: 403, message: 'Invalid or expired token' })
   }
 
-  return sendRedirect(event, embedUrl, 302)
+  return sendRedirect(event, payload.embedUrl, 302)
 })

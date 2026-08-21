@@ -1,7 +1,7 @@
 import { readBody } from 'h3'
 import { findById, readJSON } from '../../utils/jsonDatabase'
 import { checkDashboardAccess, validateCompanyAccess } from '../../utils/companyAccess'
-import { createToken } from '../../utils/embedTokenStore'
+import { createEmbedToken } from '../../utils/embedToken'
 import { sendForbidden, sendUnauthorized } from '../../utils/apiResponse'
 import { isFirestoreMode, getAdminDb, fsReadAll } from '../../utils/firestoreAdmin'
 import type { User, Dashboard, Folder } from '~/types/dashboard'
@@ -73,7 +73,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'No embed URL configured for this dashboard' })
   }
 
-  const token = createToken(embedUrl, uid)
+  const { embedTokenSecret } = useRuntimeConfig(event)
+  if (!embedTokenSecret) {
+    throw createError({ statusCode: 500, message: 'Embed tokens are not configured' })
+  }
+
+  const token = createEmbedToken(embedUrl, uid, embedTokenSecret)
 
   return {
     success: true,

@@ -76,6 +76,9 @@
       "secretEnvironmentVariables": [
         {
           "key": "RESEND_API_KEY"
+        },
+        {
+          "key": "EMBED_TOKEN_SECRET"
         }
       ]
     }
