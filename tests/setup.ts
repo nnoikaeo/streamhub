@@ -15,3 +15,6 @@ vi.stubGlobal('defineEventHandler', <T>(handler: T) => handler)
 vi.stubGlobal('createError', (opts: { statusCode?: number, message?: string }) =>
   Object.assign(new Error(opts.message), { statusCode: opts.statusCode }))
 vi.stubGlobal('getRouterParam', vi.fn())
+// Server handlers read secrets through useRuntimeConfig(event). Tests that care
+// about a specific value re-stub it locally.
+vi.stubGlobal('useRuntimeConfig', () => ({ embedTokenSecret: 'test-embed-secret' }))

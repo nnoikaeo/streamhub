@@ -164,6 +164,10 @@ export default defineNuxtConfig({
     resendFromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@streamwash.com',
     appUrl: process.env.APP_URL || '',
     googleServiceAccountKey: process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '',
+    // Signs the short-lived embed tokens (BUG-031). No fallback value:
+    // an empty secret makes /api/embed/request fail loudly instead of minting
+    // tokens that any other deploy could forge.
+    embedTokenSecret: process.env.EMBED_TOKEN_SECRET || '',
 
     public: {
       // Service Configuration: Firestore (production) vs JSON Mock (development)
