@@ -843,58 +843,24 @@ onUnmounted(() => {
   height: 100%;
 }
 
-.view-header {
-  background: white;
-  border-bottom: 1px solid var(--color-border-light);
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+/* The header's own styling lives in DashboardViewHeader.vue. This file used to
+   carry a second copy of `.view-header`, `.header-left`/`.header-right`,
+   `.back-nav-button`, `.dashboard-title` and the breadcrumb rules; all of it is
+   gone now.
 
-.header-left,
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
+   Only one of those copies could ever have applied. `.view-header` is the
+   component's root element, so it inherits this page's scope id and both
+   copies matched it at equal specificity — which one won came down to chunk
+   order. The values were identical, so nothing rendered differently, but the
+   next edit to either file would have changed that silently.
 
-.back-nav-button {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  padding: 0.25rem 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-}
+   The rest never matched anything at all: `.header-left`, `.back-nav-button`,
+   `.dashboard-title` and the breadcrumbs are *inside* the component, and a
+   parent's scope id reaches the child's root element only.
 
-.back-nav-button:hover {
-  color: var(--color-text-primary);
-}
-
-.dashboard-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0;
-  line-height: 1.2;
-}
-
-.breadcrumb-nav {
-  font-size: 0.75rem;
-  color: var(--color-gray-400);
-  margin-top: 0.25rem;
-}
-
-.breadcrumb-sep {
-  margin: 0 0.25rem;
-}
+   What stays below is genuinely this file's: buttons passed into the #actions
+   slot are compiled in this scope, so `.action-button`, `.action-label`,
+   `.zoom-control` and friends must be styled here. */
 
 .action-button {
   display: flex;
@@ -1196,11 +1162,9 @@ onUnmounted(() => {
    so which one won came down to chunk order, and this one would have silently
    undone the single-row header the height query below sets up. Removed.
 
-   Base copies of `.view-header`, `.header-right` and `.dashboard-title` are
-   still duplicated in this file. They set the same values the component does,
-   so nothing renders differently today, but they are the same hazard and
-   should be consolidated into the component in their own change — not folded
-   into a layout fix, where a mistake would be hard to spot.
+   The base copies of `.view-header`, `.header-right` and `.dashboard-title`
+   that this note used to flag are gone too — see the comment at the top of
+   this <style> block.
 
    The rules below are genuinely this file's: buttons passed into the #actions
    slot are compiled here, so only this scope id reaches them. */
