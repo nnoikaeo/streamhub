@@ -88,6 +88,10 @@ firebase functions:secrets:set EMBED_TOKEN_SECRET --project streamhub-1c27a
 
 > ถ้า `EMBED_TOKEN_SECRET` ว่าง `POST /api/embed/request` จะตอบ 500 `Embed tokens are not configured` — ตั้งใจให้ดังกว่าการแจก token ที่ไม่มีใครเปิดอ่านได้
 
+> ⚠️ **Nitro override `runtimeConfig` จาก env ที่ขึ้นต้น `NUXT_` เท่านั้น** — Secret Manager ฉีดค่าเข้ามาด้วย**ชื่อดิบ** (`EMBED_TOKEN_SECRET`, `RESEND_API_KEY`) ⇒ `process.env.X` ที่เขียนไว้ใน `nuxt.config.ts` ถูกอ่านตอน **build** ซึ่ง runner ไม่มีค่านั้น ค่าที่ baked ไปจึงเป็นสตริงว่างถาวร · โค้ดฝั่ง server ต้องอ่าน `process.env` เป็น fallback เอง — `resolveEmbedSecret` ใน [embedToken.ts](../../server/utils/embedToken.ts) และ `getResendApiKey` ใน [emailService.ts](../../server/utils/emailService.ts) ทำแบบเดียวกัน · **อาการถ้าลืม: ผ่านหมดบน dev (ที่ `.env.local` ถูกอ่านตอน build) แต่ prod 500 ทันที**
+
+> ตั้งชื่อ secret เป็น `NUXT_EMBED_TOKEN_SECRET` ก็ตัดปัญหาได้เหมือนกัน แต่ต้องสร้าง secret ใหม่พร้อมให้ IAM binding ครบสามชุดอีกรอบ — ไม่คุ้มกับการเขียน fallback สามบรรทัด
+
 ## Production
 
 For production deployment:

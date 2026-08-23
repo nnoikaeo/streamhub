@@ -1,5 +1,10 @@
 import { getCookie, sendRedirect } from 'h3'
-import { verifyEmbedToken, verifyEmbedSession, SESSION_COOKIE_NAME } from '../../utils/embedToken'
+import {
+  verifyEmbedToken,
+  verifyEmbedSession,
+  resolveEmbedSecret,
+  SESSION_COOKIE_NAME,
+} from '../../utils/embedToken'
 
 export default defineEventHandler(async (event) => {
   const token = getRouterParam(event, 'token')
@@ -8,7 +13,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Token is required' })
   }
 
-  const { embedTokenSecret } = useRuntimeConfig(event)
+  const embedTokenSecret = resolveEmbedSecret(useRuntimeConfig(event).embedTokenSecret)
   const payload = verifyEmbedToken(token, embedTokenSecret)
 
   if (!payload) {

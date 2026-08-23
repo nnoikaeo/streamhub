@@ -48,6 +48,22 @@ export interface EmbedSessionPayload {
   exp: number
 }
 
+/**
+ * Resolve the signing secret.
+ *
+ * Nitro only overrides `runtimeConfig` from environment variables that carry
+ * the `NUXT_` prefix, but Secret Manager injects the secret under its own bare
+ * name — so the value baked in at build time stays empty in production and the
+ * live one is only ever visible through `process.env`. `emailService` reads
+ * `RESEND_API_KEY` the same way for the same reason.
+ */
+export function resolveEmbedSecret(fromRuntimeConfig: string | undefined): string {
+  return fromRuntimeConfig
+    || process.env.NUXT_EMBED_TOKEN_SECRET
+    || process.env.EMBED_TOKEN_SECRET
+    || ''
+}
+
 /** AES-256 needs exactly 32 bytes; the configured secret is any length. */
 function deriveKey(secret: string): Buffer {
   return createHash('sha256').update(secret).digest()
