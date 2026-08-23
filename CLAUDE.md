@@ -37,6 +37,13 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 - Never `throw` inside Nitro plugins (`server/plugins/`) — Firebase CLI runs them during deploy analysis without env vars
 - Guard Firestore access with `if (!db) return` pattern before any query
 
+### Looker Embeds
+- A Looker report in an iframe needs **Google's cookies**, which are third-party there. Safari blocks those by default, so a report that is shared with named accounts renders Looker's own "cannot access report" page on every Safari — desktop, iPhone, iPad, and Chrome/Firefox on iOS (all WebKit). Chrome on desktop is unaffected, which is why this hid for so long (BUG-032)
+- The failure is a **cross-origin document**: no load error, no event, nothing to feature-detect. Do not try to detect it — [browser.ts](app/utils/browser.ts) sniffs WebKit and the dashboard page shows a dismissible hint up front
+- **The only fix that works** is sharing the report as "anyone with the link" **and** turning on File > Embed report > Enable embedding in Looker. Those are two separate switches: link-shared without embedding enabled is a blank frame in *every* browser, which looks exactly like the cookie failure and is not
+- `allow-storage-access-by-user-activation` is on every Looker iframe, but measured on prod it changes nothing — Looker never calls `requestStorageAccess()`. Keep it, don't count on it
+- Sharing by link means anyone holding the Looker URL can open the report without passing StreamHub's permission checks. The URL stays sealed inside the embed token, but this is a **per-report** decision against how sensitive the data is
+
 ---
 
 ## Document Index
@@ -121,7 +128,7 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite. **Baseline is 330 passing** |
+| `npm test` | Vitest suite. **Baseline is 334 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). **Baseline is 0 — any problem is yours** |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |
