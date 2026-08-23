@@ -207,9 +207,27 @@ button:disabled {
  * edge off the `+` button — so it looked narrower than `−` and, on a phone,
  * had been unclickable entirely (BUG-030).
  *
+ * The 2026-08-23 sweep added six more. Four were visibly wrong on prod and
+ * nobody had reported them: `.quick-view-btn` is meant to be a white pill
+ * floating over a preview image and rendered as a solid blue rectangle,
+ * `.browse-btn` and `.select-btn` are outline buttons that rendered filled,
+ * and `.back-to-explorer-btn` is a ghost button on a coloured header bar that
+ * rendered as a solid block on top of it.
+ *
+ * `.open-button` and `.open-full-btn` are the other kind: they *are* primary
+ * buttons and looked right, but each declared a padding and a `font-weight:
+ * 600` that this rule was quietly overwriting, plus an `:active` transform in
+ * the first one's case. They are listed here so the declarations they already
+ * carry are the ones that apply — the alternative was deleting lines that look
+ * deliberate and read as if they work.
+ *
+ * The test for whether a class belongs here is not "does it look broken". It is
+ * "does the component declare any of the properties this rule sets" — if it
+ * does, one of the two is dead, and the component should win.
+ *
  * Adding a class here restores what its component already asked for.
  */
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not(.result-action-btn):not(.folder-filter-clear):not([class*="mode-toggle__"]):not([class*="pe-tabs__"]):not([class*="dashboard-search__"]):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):not(.back-nav-button):not(.zoom-button):not(.zoom-level) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not(.result-action-btn):not(.folder-filter-clear):not([class*="mode-toggle__"]):not([class*="pe-tabs__"]):not([class*="dashboard-search__"]):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):not(.back-nav-button):not(.zoom-button):not(.zoom-level):not(.quick-view-btn):not(.browse-btn):not(.select-btn):not(.back-to-explorer-btn):not(.open-button):not(.open-full-btn) {
   background-color: var(--color-primary);
   color: var(--color-text-inverse);
   border: none;
@@ -218,12 +236,12 @@ button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):
   font-weight: 500;
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not([class*="mode-toggle__"]):not([class*="pe-tabs__"]):not([class*="dashboard-search__"]):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):not(.back-nav-button):not(.zoom-button):not(.zoom-level):hover:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not([class*="mode-toggle__"]):not([class*="pe-tabs__"]):not([class*="dashboard-search__"]):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):not(.back-nav-button):not(.zoom-button):not(.zoom-level):not(.quick-view-btn):not(.browse-btn):not(.select-btn):not(.back-to-explorer-btn):not(.open-button):not(.open-full-btn):hover:not(:disabled) {
   background-color: var(--color-primary-dark);
   box-shadow: var(--shadow-md);
 }
 
-button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):not(.back-nav-button):not(.zoom-button):not(.zoom-level):active:not(:disabled) {
+button:not([class*="theme-btn"]):not([class*="close"]):not([class*="icon-btn"]):not([class*="action-button"]):not(.expand-btn):not(.user-menu-btn):not(.menu-toggle):not(.dropdown-item):not(.page-header-action-btn):not(.pagination-button):not(.pagination-page):not([class*="company-item"]):not([class*="user-item"]):not([class*="panel__"]):not([class*="selected-item"]):not([class*="members-action"]):not([class*="member-checkbox"]):not(.search-result-item):not(.action-btn):not([class*="type-item"]):not([class*="group-checkbox"]):not(.permission-tab):not(.user-row):not(.form-toggle):not([class*="stats-bar"]):not(.menu-item):not(.view-mode-btn):not(.collapse-ctrl-btn):not(.folder-group__header):not(.view-all-link):not(.search-clear):not(.group-by-btn):not(.tree-group-row):not(.group-divider):not(.back-nav-button):not(.zoom-button):not(.zoom-level):not(.quick-view-btn):not(.browse-btn):not(.select-btn):not(.back-to-explorer-btn):not(.open-button):not(.open-full-btn):active:not(:disabled) {
   transform: translateY(1px);
 }
 
