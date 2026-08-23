@@ -6,9 +6,11 @@ import type { AuditEntry, AuditLevel } from '#shared/types/audit'
 // ============================================================================
 
 // Definitions live in shared/types/audit.ts so `/admin/audit` reads the same
-// shape this file writes. Re-exported because the audit route handlers import
-// AuditAction from here.
-export type { AuditAction, AuditLevel, AuditEntry, AuditSummary } from '#shared/types/audit'
+// shape this file writes. They are deliberately NOT re-exported from here:
+// Nuxt scans both `shared/types` and `server/utils` for auto-imports, so a
+// re-export registers each name twice and every dev-server start printed
+// "Duplicated imports \"AuditAction\" ... has been ignored". Route handlers
+// import the types from '#shared/types/audit' directly.
 
 /** Legacy entry format (invitation events from previous phases) */
 interface LegacyAuditEntry {
