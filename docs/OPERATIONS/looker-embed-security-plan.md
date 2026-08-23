@@ -122,8 +122,10 @@
 **สิ่งที่ต้องทำ:**
 - สร้าง `server/api/embed/request.post.ts` — รับ dashboardId + Firebase token → ตรวจสิทธิ์ → สร้าง one-time token
 - สร้าง `server/api/embed/[token].get.ts` — ตรวจ token validity → 302 redirect ไป Looker URL จริง
-- สร้าง `server/utils/embedTokenStore.ts` — in-memory token store พร้อม TTL cleanup
+- ~~สร้าง `server/utils/embedTokenStore.ts` — in-memory token store พร้อม TTL cleanup~~
 - แก้ `app/pages/dashboard/view/[id].vue` — iframe src ใช้ proxy URL แทน Looker URL ตรง
+
+> **ทำจริงแล้วและเปลี่ยนจากแผนตรงนี้ (BUG-031, PR #434–#436, 2026-08-23)** — in-memory store ใช้ไม่ได้จริงบน `gcfv2`: token ถูกสร้างที่ instance หนึ่งแต่ iframe ไปโดนอีก instance ที่ Map ว่าง ⇒ `403` เป็นครั้งคราวทุกเครื่องแบบไม่มีรูปแบบ · แทนที่ด้วย [embedToken.ts](../../server/utils/embedToken.ts) ซึ่ง**ไม่มี state เลย**: payload `{embedUrl, uid, exp}` ปิดผนึกด้วย AES-256-GCM จาก `EMBED_TOKEN_SECRET` · เลือก encrypt ไม่ใช่ HMAC เพราะ payload ที่แค่เซ็นจะอ่านออกด้วย base64 ซึ่งทำให้ URL หลุด — ขัดกับเป้าหมายของข้อนี้ทั้งข้อ · TTL 30 วินาที → **5 นาที** และ redeem ซ้ำได้ (retry/refresh ไม่พังอีก) · ผูก token กับเบราว์เซอร์ที่ขอด้วยคุกกี้ `__session` ที่ปิดผนึกด้วยกุญแจเดียวกัน
 
 **ไฟล์ที่เกี่ยวข้อง:**
 - `server/api/embed/request.post.ts` (สร้างใหม่)
@@ -220,6 +222,14 @@ Browser ต้องโหลด iframe จาก `lookerstudio.google.com` อ�
 - **Looker Studio Pro** — มี embedded SSO ที่ Google ตรวจสอบตัวตนก่อนแสดงผล
 - **ตั้งแดชบอร์ดเป็น Private** — แต่ต้องจัดการสิทธิ์ซ้ำซ้อนทั้ง Looker Studio และ StreamHub
 - **ใช้ Looker ตัวเต็ม** — มี signed embed URL พร้อม user-level auth
+
+### ข้อจำกัดที่เพิ่งเจอ: Safari กับคุกกี้บุคคลที่สาม (BUG-032, 2026-08-23)
+
+รายงานที่แชร์แบบ **จำกัดสิทธิ์** (เฉพาะบัญชีที่ระบุ) **เปิดไม่ได้เลยบน Safari ทุกเครื่อง** — Looker ต้องใช้คุกกี้ Google ยืนยันตัวผู้ดู ซึ่งใน iframe เป็นคุกกี้บุคคลที่สามที่ Safari บล็อกโดยปริยาย
+
+นี่ทำให้ **"ตั้งแดชบอร์ดเป็น Private" ในลิสต์ข้างบนแลกมาด้วยราคาที่แผนนี้ไม่ได้คิดไว้ตอนแรก**: มันปลอดภัยขึ้นก็จริง แต่ผู้ใช้ Safari เปิดไม่ได้จนกว่าจะไปปิดการป้องกันความเป็นส่วนตัวของเบราว์เซอร์เอง ซึ่งเป็นสิ่งที่ไม่ควรขอจากผู้ใช้
+
+ทางที่ใช้ได้จริงคือแชร์ "ใครมีลิงก์ก็ดูได้" **+ เปิด Enable embedding** แล้วให้ชั้นสิทธิ์อยู่ที่ StreamHub กับ embed proxy แทน — ซึ่งแปลว่า **ความปลอดภัยของรายงานพิงอยู่กับการที่ URL ไม่หลุด** พอดีกับที่ข้อ 4 ออกแบบไว้ · รายละเอียดและสิ่งที่ตัดทิ้งไปแล้วอยู่ใน [common-issues.md](../TROUBLESHOOTING/common-issues.md)
 
 **เป้าหมาย:** ทำให้ยากพอที่คนทั่วไปเข้าไม่ได้ + ตรวจจับได้ถ้ามีการเข้าถึงผิดปกติ
 
