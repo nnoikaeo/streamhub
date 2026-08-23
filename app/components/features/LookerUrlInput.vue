@@ -211,7 +211,7 @@ onMounted(async () => {
         class="preview-iframe"
         title="Looker Dashboard Preview"
         frameborder="0"
-        sandbox="allow-scripts allow-same-origin allow-popups"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-storage-access-by-user-activation"
         @load="iframeLoading = false"
       />
     </div>

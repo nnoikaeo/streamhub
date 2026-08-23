@@ -152,6 +152,23 @@
           </template>
         </DashboardViewHeader>
 
+        <!-- Third-party cookie hint (Safari only) -->
+        <div v-if="showCookieHint && embedUrl && !immersive" class="cookie-hint" role="note">
+          <span class="cookie-hint-text">
+            รายงานไม่แสดง? Safari บล็อกคุกกี้ข้ามไซต์ที่ Looker ใช้ยืนยันสิทธิ์ —
+            ปิด "ป้องกันการติดตามข้ามไซต์" ที่ ตั้งค่า &gt; แอป &gt; Safari
+          </span>
+          <button
+            type="button"
+            class="cookie-hint-close"
+            aria-label="ปิดคำแนะนำ"
+            title="ปิดคำแนะนำ"
+            @click="dismissCookieHint"
+          >
+            ✕
+          </button>
+        </div>
+
         <!-- Main Content with TwoPane -->
         <TwoPaneLayout :sidebar-width="320" :show-sidebar="showInfoSidebar">
           <!-- Left Pane: Dashboard Info -->
@@ -249,7 +266,7 @@
                 title="Looker Dashboard"
                 frameborder="0"
                 referrerpolicy="no-referrer"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation allow-storage-access-by-user-activation"
                 @load="iframeLoading = false"
                 @error="iframeError = true"
               />
@@ -367,6 +384,33 @@ const ZOOM_MAX = 1
 const ZOOM_STEP = 0.1
 const ZOOM_STORAGE_KEY = 'streamhub:embed-zoom'
 const embedZoom = ref(1)
+
+// Safari blocks third-party cookies, and Looker needs Google's to know who is
+// looking at the report. When they are blocked it renders its own error page
+// inside the frame — cross-origin, so no event reaches us and there is nothing
+// to feature-detect. The hint is therefore shown up front to the browsers that
+// have the restriction, and dismissed for good once read. [BUG-032]
+const COOKIE_HINT_STORAGE_KEY = 'streamhub:looker-cookie-hint-dismissed'
+const showCookieHint = ref(false)
+
+const dismissCookieHint = () => {
+  showCookieHint.value = false
+  try {
+    localStorage.setItem(COOKIE_HINT_STORAGE_KEY, '1')
+  } catch {
+    // Private mode — the hint comes back next visit, which is harmless
+  }
+}
+
+const initCookieHint = () => {
+  if (!isSafariLike(navigator.userAgent)) return
+  try {
+    if (localStorage.getItem(COOKIE_HINT_STORAGE_KEY) === '1') return
+  } catch {
+    // Storage unreadable — better to show the hint than to hide it
+  }
+  showCookieHint.value = true
+}
 
 // Computed properties
 const dashboardId = computed(() => route.params.id as string)
@@ -740,6 +784,7 @@ const restoreZoom = () => {
 // Lifecycle
 onMounted(async () => {
   restoreZoom()
+  initCookieHint()
   document.addEventListener('keydown', onImmersiveKeydown)
   document.addEventListener('fullscreenchange', handleFullscreenChange)
   document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
@@ -841,6 +886,43 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+/* Sits between the header and the report, so it must not eat the height the
+   report just got back: one line, small type, and it disappears for good on
+   dismissal. Hidden in immersive mode with the rest of the chrome. [BUG-032] */
+.cookie-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  /* No light-amber token exists; --color-warning is the solid accent and
+     too loud for a full-width bar. */
+  background: #fef3c7;
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+
+.cookie-hint-text {
+  flex: 1;
+}
+
+.cookie-hint-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.cookie-hint-close:hover {
+  color: var(--color-text-primary);
 }
 
 /* The header's own styling lives in DashboardViewHeader.vue. This file used to
