@@ -457,7 +457,7 @@
 
 > **⏸️ ~~§5 / §6 / §7 deferred~~ — เกือบปิดครบแล้ว (อัปเดต 2026-08-20).** §5 และ §6
 > กดจบไปแล้วทั้งหมด (เหลือ 6.3.1 ที่จงใจข้าม) · §7 ผ่าน Chrome + Safari ครบ 6/6 ช่อง
-> เหลือแค่ Firefox กับ breakpoint 320px/tablet ซึ่งยังเป็น compat coverage ไม่ใช่
+> เหลือแค่ breakpoint 320px/tablet ซึ่งยังเป็น compat coverage ไม่ใช่ (Firefox ตัดออกจากขอบเขต 2026-08-23)
 > launch gate — route protection (§5.2.1–3) ผ่านตั้งแต่ pre-launch group A. ย่อหน้า
 > ข้างล่างนี้เป็นบันทึกของตอนเข้า user trial เก็บไว้เป็นประวัติ. Revisit
 > opportunistically after trial feedback. Decision 2026-07-28.
@@ -532,9 +532,11 @@
 | Chrome | Blink | ✅ | เบราว์เซอร์ที่ใช้ทดสอบทุกเคสในแผนนี้ |
 | Edge | Blink | ⊘ N/A | Blink เดียวกับ Chrome เวอร์ชันไล่ตามกันติด ๆ — ครอบคลุมโดยแถวบน ไม่ใช่ "ยังไม่ได้ทดสอบ" |
 | Safari | WebKit | ✅ (**6/6 บน macOS 2026-08-20 · ยืนยันซ้ำบน iPhone จริง 2026-08-21**) | ผ่านครบทุกช่อง · เจอ BUG-029 (ความสูง `<select>`) แก้แล้วในรอบเดียวกัน · **ทดสอบบน `https://streamhub-1c27a.web.app` เท่านั้น ไม่ใช่ localhost** (ดู authDomain caveat ใน [authentication.md](../GUIDES/authentication.md)) · เป็น engine ของ iPhone/iPad ทุกเครื่อง จึงได้ทดสอบมือถือจริงไปในตัว |
-| Firefox | Gecko | ☐ | engine เดียวที่ไม่มีอะไรครอบคลุม แต่ความเสี่ยงต่ำ — ไล่โค้ดแล้วไม่ใช้ `:has()` / container query / `dvh` เลย, `backdrop-filter` มีที่เดียวและเป็นการตกแต่ง ([DashboardGrid.vue:135](../../app/components/features/DashboardGrid.vue#L135)), scrollbar เขียนทั้ง `scrollbar-width` และ `::-webkit-scrollbar` |
+| Firefox | Gecko | ⊘ ตัดออกจากขอบเขต (2026-08-23) | **เจ้าของโปรเจกต์ตัดออก ไม่ใช่ "ยังไม่ได้ทดสอบ"** — ต่างจาก Edge ตรงที่ Edge ครอบคลุมโดย Blink แต่ Gecko ไม่มีอะไรครอบคลุม จึงเป็นช่องว่างที่ **รับไว้โดยรู้ตัว** ไม่ใช่ช่องว่างที่ปิดแล้ว · ฐานที่ใช้ตัดสิน: ไล่โค้ดแล้วไม่ใช้ `:has()` / container query / `dvh` เลย, `backdrop-filter` มีที่เดียวและเป็นการตกแต่ง ([DashboardGrid.vue:135](../../app/components/features/DashboardGrid.vue#L135)), scrollbar เขียนทั้ง `scrollbar-width` และ `::-webkit-scrollbar` ⇒ ความเสี่ยงต่ำ · **เปิดกลับเมื่อไร:** มีผู้ใช้จริงรายงานปัญหาบน Firefox หรือมีโค้ดใหม่แตะ `signInWithPopup` / CSP `frame-src` / ฟีเจอร์ CSS ที่ Gecko ต่างจาก Blink — ช่อง `7.1.a–7.1.f` ยังอยู่ในตารางล่าง กดต่อได้ทันที |
 
 **สิ่งที่ต้องกดในเบราว์เซอร์ที่ยังไม่ผ่าน** (ไม่ต้องไล่ทั้ง 211 เคส — กดเฉพาะที่ engine ต่างกันแล้วพัง):
+
+> **ไม่มีเบราว์เซอร์ค้างแล้ว ณ 2026-08-23** — Chrome ✅, Safari ✅ 6/6, Edge ⊘ N/A (Blink), Firefox ⊘ ตัดออกจากขอบเขต · ตารางนี้เก็บไว้เป็นสคริปต์พร้อมกดถ้า Firefox ถูกเปิดกลับ หรือมี engine ใหม่เข้ามา
 
 | # | กดอะไร | ผลที่ต้องได้ | ผล |
 |---|--------|-------------|-----|
