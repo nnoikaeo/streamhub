@@ -29,7 +29,7 @@ Looker ยืนยันสิทธิ์ผู้ดูด้วยคุก�
 
 ทาง API ไม่ได้: service account ของเราถือ scope `datastudio.readonly` ([lookerStudioApi.ts](../../server/utils/lookerStudioApi.ts)) และการตั้ง Enable embedding ก็ไม่มีใน Looker Studio API
 
-## รายการ (31 ตัวที่ต้องทำ + 4 ตัวข้าม)
+## รายการ (31 ตัว)
 
 | ✓ | แดชบอร์ดในแอป | โฟลเดอร์ | รายงาน Looker |
 |---|---|---|---|
@@ -64,12 +64,8 @@ Looker ยืนยันสิทธิ์ผู้ดูด้วยคุก�
 | ☐ | งบทดลอง [STEB] | STEB | [6cad525f-38b3-498b-83fc-e71beb95ce12](https://lookerstudio.google.com/reporting/6cad525f-38b3-498b-83fc-e71beb95ce12) |
 | ☐ | งบทดลอง [STSB] | STSB | [a7e1821d-e05f-4ac8-8b75-9f1fb8d488c3](https://lookerstudio.google.com/reporting/a7e1821d-e05f-4ac8-8b75-9f1fb8d488c3) |
 | ☐ | งบทดลอง [STSS] | STSS | [4266e6b9-e6d1-4746-9524-09df42ca61be](https://lookerstudio.google.com/reporting/4266e6b9-e6d1-4746-9524-09df42ca61be) |
-| ⛔ | Budget 2024 | 2024 | [d4e5f6a7-b8c9-0123-defa-234567890123](https://lookerstudio.google.com/reporting/d4e5f6a7-b8c9-0123-defa-234567890123) |
-| ⛔ | Regional East Performance | East | [a1b2c3d4-e5f6-7890-abcd-ef1234567890](https://lookerstudio.google.com/reporting/a1b2c3d4-e5f6-7890-abcd-ef1234567890) |
-| ⛔ | Finance Summary | Finance | [b2c3d4e5-f6a7-8901-bcde-f12345678901](https://lookerstudio.google.com/reporting/b2c3d4e5-f6a7-8901-bcde-f12345678901) |
-| ⛔ | Regional Sales Map (Edited) | Regional | [e5f6a7b8-c9d0-1234-efab-345678901234](https://lookerstudio.google.com/reporting/e5f6a7b8-c9d0-1234-efab-345678901234) |
 
-`⛔` = UUID ปลอมจากข้อมูล seed ไม่ใช่รายงานจริง — เปิดใน Looker ไม่เจอ ข้ามไป · ควรลบหรือใส่ URL จริงให้แดชบอร์ดพวกนี้แยกต่างหาก (ตอนนี้ผู้ใช้กดเข้าไปก็เจอกรอบเปล่าอยู่แล้ว)
+> รายการนี้เคยมีอีก 4 แถวที่ชี้ไป UUID จากข้อมูล seed ซึ่งไม่มีอยู่จริงใน Looker (`Budget 2024`, `Finance Summary`, `Regional East Performance`, `Regional Sales Map (Edited)`) — ใครกดเข้าไปเจอกรอบเปล่า · **ลบทิ้งจาก Firestore แล้ว 2026-08-24** (แดชบอร์ด 42 → 38) ตรวจก่อนลบว่าไม่มีคอลเลกชันไหนอ้างถึงเลยนอกจาก `audit-log` และ `npm run audit:orphans` หลังลบได้ 0 ทั้ง 7 หมวด
 
 ## ยืนยันหลังทำ
 
