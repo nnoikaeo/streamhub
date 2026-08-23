@@ -6,9 +6,25 @@ import type { AuditEntry, AuditLevel } from '#shared/types/audit'
 // ============================================================================
 
 // Definitions live in shared/types/audit.ts so `/admin/audit` reads the same
-// shape this file writes. Re-exported because the audit route handlers import
-// AuditAction from here.
-export type { AuditAction, AuditLevel, AuditEntry, AuditSummary } from '#shared/types/audit'
+// shape this file writes.
+//
+// DO NOT add `export type { AuditAction, ... } from '#shared/types/audit'`
+// back to this file, however convenient it looks when a route handler wants
+// the type and the function from one import path.
+//
+// Nuxt scans `shared/types` AND `server/utils` for auto-imports. A re-export
+// registers each of those names twice, and Nuxt then resolves the collision
+// by keeping the copy from here and dropping the one from the file that
+// actually defines them — announcing it once per name, per build:
+//
+//   Duplicated imports "AuditAction", the one from shared/types/audit.ts has
+//   been ignored and server/utils/auditLog.ts is used
+//
+// The warning is the harmless half. The real cost is that every auto-imported
+// use of these names resolves through a server-only module, so anything
+// outside `server/` that leans on the auto-import silently loses the type it
+// asked for. Import from '#shared/types/audit' explicitly instead — that is
+// what the three audit route handlers do.
 
 /** Legacy entry format (invitation events from previous phases) */
 interface LegacyAuditEntry {
