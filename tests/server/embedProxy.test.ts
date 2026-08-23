@@ -18,6 +18,7 @@ vi.mock('../../server/utils/embedToken', () => ({
   createEmbedToken: vi.fn(() => 'mock.token'),
   verifyEmbedToken: vi.fn(),
   createEmbedSession: vi.fn(() => 'mock.session'),
+  resolveEmbedSecret: vi.fn((v: string | undefined) => v || ''),
   verifyEmbedSession: vi.fn(),
   SESSION_COOKIE_NAME: '__session',
   SESSION_TTL_SECONDS: 3600,

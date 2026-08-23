@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   createEmbedToken,
+  resolveEmbedSecret,
   verifyEmbedToken,
   createEmbedSession,
   verifyEmbedSession,
@@ -163,6 +164,40 @@ describe('embedToken', () => {
 
     it('outlives a token, so a token never expires with a live cookie behind it', () => {
       expect(SESSION_TTL_SECONDS).toBeGreaterThan(TOKEN_TTL_SECONDS)
+    })
+  })
+
+  // Regression: the first prod deploy answered 500 "Embed tokens are not
+  // configured" because Nitro only overrides runtimeConfig from NUXT_-prefixed
+  // env vars, while Secret Manager injects the bare name.
+  describe('resolveEmbedSecret', () => {
+    const saved = { ...process.env }
+
+    afterEach(() => {
+      process.env = { ...saved }
+    })
+
+    it('prefers the runtime config value', () => {
+      process.env.EMBED_TOKEN_SECRET = 'from-env'
+      expect(resolveEmbedSecret('from-config')).toBe('from-config')
+    })
+
+    it('falls back to the bare env var Secret Manager injects', () => {
+      delete process.env.NUXT_EMBED_TOKEN_SECRET
+      process.env.EMBED_TOKEN_SECRET = 'from-secret-manager'
+      expect(resolveEmbedSecret('')).toBe('from-secret-manager')
+    })
+
+    it('accepts the NUXT_-prefixed form too', () => {
+      process.env.NUXT_EMBED_TOKEN_SECRET = 'from-nuxt-env'
+      process.env.EMBED_TOKEN_SECRET = 'from-secret-manager'
+      expect(resolveEmbedSecret(undefined)).toBe('from-nuxt-env')
+    })
+
+    it('returns empty when nothing is configured', () => {
+      delete process.env.NUXT_EMBED_TOKEN_SECRET
+      delete process.env.EMBED_TOKEN_SECRET
+      expect(resolveEmbedSecret('')).toBe('')
     })
   })
 })
