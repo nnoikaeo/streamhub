@@ -81,6 +81,7 @@ Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as 
 | [docs/OPERATIONS/roadmap.md](docs/OPERATIONS/roadmap.md) | Feature roadmap and priorities |
 | [docs/OPERATIONS/versioning.md](docs/OPERATIONS/versioning.md) | Version numbering policy |
 | [docs/OPERATIONS/manual-test-plan.md](docs/OPERATIONS/manual-test-plan.md) | Manual QA test cases by role |
+| [docs/OPERATIONS/looker-sharing-checklist.md](docs/OPERATIONS/looker-sharing-checklist.md) | Per-report checklist for making Looker embeds work on Safari (BUG-032) |
 
 ### Reference
 | Doc | Contents |
