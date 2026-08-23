@@ -16,7 +16,7 @@
       class="preview-iframe"
       frameborder="0"
       allowfullscreen
-      sandbox="allow-scripts allow-same-origin allow-popups"
+      sandbox="allow-scripts allow-same-origin allow-popups allow-storage-access-by-user-activation"
       @load="iframeLoaded = true"
     />
   </div>
@@ -84,7 +84,7 @@
         class="modal-iframe"
         frameborder="0"
         allowfullscreen
-        sandbox="allow-scripts allow-same-origin allow-popups"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-storage-access-by-user-activation"
         @load="iframeLoaded = true"
       />
     </div>
