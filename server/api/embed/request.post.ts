@@ -3,6 +3,7 @@ import { findById, readJSON } from '../../utils/jsonDatabase'
 import { checkDashboardAccess, validateCompanyAccess } from '../../utils/companyAccess'
 import {
   createEmbedToken,
+  resolveEmbedSecret,
   createEmbedSession,
   SESSION_COOKIE_NAME,
   SESSION_TTL_SECONDS,
@@ -78,7 +79,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'No embed URL configured for this dashboard' })
   }
 
-  const { embedTokenSecret } = useRuntimeConfig(event)
+  const embedTokenSecret = resolveEmbedSecret(useRuntimeConfig(event).embedTokenSecret)
   if (!embedTokenSecret) {
     throw createError({ statusCode: 500, message: 'Embed tokens are not configured' })
   }
