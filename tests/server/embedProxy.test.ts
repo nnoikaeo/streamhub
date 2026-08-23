@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { H3Event } from 'h3'
 
-import { readBody, sendRedirect } from 'h3'
-import { createToken, consumeToken } from '../../server/utils/embedTokenStore'
+import { getCookie, readBody, sendRedirect, setCookie } from 'h3'
+import { createEmbedToken, verifyEmbedToken, createEmbedSession, verifyEmbedSession } from '../../server/utils/embedToken'
 import { findById } from '../../server/utils/jsonDatabase'
 import { validateCompanyAccess, checkDashboardAccess } from '../../server/utils/companyAccess'
 import type { User } from '~/types/dashboard'
@@ -13,10 +13,14 @@ import tokenHandler from '../../server/api/embed/[token].get'
 
 // --- Mock dependencies before importing handlers ---
 
-// Mock embedTokenStore
-vi.mock('../../server/utils/embedTokenStore', () => ({
-  createToken: vi.fn(() => 'mock-token-uuid'),
-  consumeToken: vi.fn(),
+// Mock embedToken — signing itself is covered in embedToken.test.ts
+vi.mock('../../server/utils/embedToken', () => ({
+  createEmbedToken: vi.fn(() => 'mock.token'),
+  verifyEmbedToken: vi.fn(),
+  createEmbedSession: vi.fn(() => 'mock.session'),
+  verifyEmbedSession: vi.fn(),
+  SESSION_COOKIE_NAME: '__session',
+  SESSION_TTL_SECONDS: 3600,
 }))
 
 // Mock jsonDatabase
@@ -42,6 +46,8 @@ vi.mock('h3', () => ({
   readBody: vi.fn(),
   sendRedirect: vi.fn((_event, url, code) => ({ __redirect: true, url, code })),
   setResponseStatus: vi.fn(),
+  setCookie: vi.fn(),
+  getCookie: vi.fn(),
 }))
 
 // Helper: create a fake H3Event. The handlers only read `context`, so the stub
@@ -97,18 +103,41 @@ describe('POST /api/embed/request', () => {
     vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: storedUser(), reason: 'Admin access' })
     vi.mocked(findById).mockResolvedValue(storedDashboard('https://lookerstudio.google.com/embed/abc'))
     vi.mocked(checkDashboardAccess).mockReturnValue({ allowed: true, reason: 'Admin access' })
-    vi.mocked(createToken).mockReturnValue('test-uuid-token')
+    vi.mocked(createEmbedToken).mockReturnValue('test.token')
 
     const result = await requestHandler(event)
 
     expect(result).toEqual({
       success: true,
       data: {
-        token: 'test-uuid-token',
-        proxyUrl: '/api/embed/test-uuid-token',
+        token: 'test.token',
+        proxyUrl: '/api/embed/test.token',
       },
     })
-    expect(createToken).toHaveBeenCalledWith('https://lookerstudio.google.com/embed/abc', 'user_admin')
+    expect(createEmbedToken).toHaveBeenCalledWith(
+      'https://lookerstudio.google.com/embed/abc',
+      'user_admin',
+      'test-embed-secret'
+    )
+  })
+
+  it('binds the token to this browser with a __session cookie', async () => {
+    const event = createMockEvent()
+    vi.mocked(readBody).mockResolvedValue({ dashboardId: 'dash_001' })
+    vi.mocked(validateCompanyAccess).mockResolvedValue({ allowed: true, user: storedUser(), reason: 'ok' })
+    vi.mocked(findById).mockResolvedValue(storedDashboard('https://lookerstudio.google.com/embed/abc'))
+    vi.mocked(checkDashboardAccess).mockReturnValue({ allowed: true, reason: 'ok' })
+    vi.mocked(createEmbedSession).mockReturnValue('sealed-session')
+
+    await requestHandler(event)
+
+    expect(createEmbedSession).toHaveBeenCalledWith('user_admin', 'test-embed-secret')
+    expect(setCookie).toHaveBeenCalledWith(
+      event,
+      '__session',
+      'sealed-session',
+      expect.objectContaining({ httpOnly: true, sameSite: 'lax', path: '/' })
+    )
   })
 
   it('should throw 400 if dashboardId is missing', async () => {
@@ -180,7 +209,13 @@ describe('GET /api/embed/[token]', () => {
   it('should 302 redirect to embed URL for valid token', async () => {
     const event = createMockEvent()
     vi.mocked(getRouterParam).mockReturnValue('valid-token')
-    vi.mocked(consumeToken).mockReturnValue('https://lookerstudio.google.com/embed/abc')
+    vi.mocked(verifyEmbedToken).mockReturnValue({
+      embedUrl: 'https://lookerstudio.google.com/embed/abc',
+      uid: 'user_admin',
+      exp: 2000000000,
+    })
+    vi.mocked(getCookie).mockReturnValue('sealed-session')
+    vi.mocked(verifyEmbedSession).mockReturnValue({ uid: 'user_admin', exp: 2000000000 })
 
     await tokenHandler(event)
 
@@ -190,7 +225,7 @@ describe('GET /api/embed/[token]', () => {
   it('should throw 403 for invalid/expired token', async () => {
     const event = createMockEvent()
     vi.mocked(getRouterParam).mockReturnValue('expired-token')
-    vi.mocked(consumeToken).mockReturnValue(null)
+    vi.mocked(verifyEmbedToken).mockReturnValue(null)
 
     await expect(tokenHandler(event)).rejects.toThrow('Invalid or expired token')
   })
@@ -200,5 +235,37 @@ describe('GET /api/embed/[token]', () => {
     vi.mocked(getRouterParam).mockReturnValue(undefined)
 
     await expect(tokenHandler(event)).rejects.toThrow('Token is required')
+  })
+
+  it('should throw 403 when the browser has no session cookie', async () => {
+    const event = createMockEvent()
+    vi.mocked(getRouterParam).mockReturnValue('valid-token')
+    vi.mocked(verifyEmbedToken).mockReturnValue({
+      embedUrl: 'https://lookerstudio.google.com/embed/abc',
+      uid: 'user_admin',
+      exp: 2000000000,
+    })
+    vi.mocked(getCookie).mockReturnValue(undefined)
+    vi.mocked(verifyEmbedSession).mockReturnValue(null)
+
+    await expect(tokenHandler(event)).rejects.toThrow('Invalid or expired token')
+    expect(sendRedirect).not.toHaveBeenCalled()
+  })
+
+  // A token lifted from one person's iframe and opened in another person's
+  // browser: the token is valid, the cookie is valid, the uids differ.
+  it('should throw 403 when the session belongs to a different user', async () => {
+    const event = createMockEvent()
+    vi.mocked(getRouterParam).mockReturnValue('valid-token')
+    vi.mocked(verifyEmbedToken).mockReturnValue({
+      embedUrl: 'https://lookerstudio.google.com/embed/abc',
+      uid: 'user_admin',
+      exp: 2000000000,
+    })
+    vi.mocked(getCookie).mockReturnValue('someone-elses-session')
+    vi.mocked(verifyEmbedSession).mockReturnValue({ uid: 'user_other', exp: 2000000000 })
+
+    await expect(tokenHandler(event)).rejects.toThrow('Invalid or expired token')
+    expect(sendRedirect).not.toHaveBeenCalled()
   })
 })

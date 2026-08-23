@@ -66,6 +66,28 @@ NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN=streamhub-1234.firebaseapp.com
 
 > `NUXT_PUBLIC_USE_JSON_MOCK` ที่ยังอยู่ใน `.env` และ `nuxt.config.ts` **ไม่มีโค้ดไหนอ่านแล้ว** — `useServiceMode` คิดจาก `isMock = !isFirestore` อย่างเดียว ไม่ต้องตามไปใส่ใน `.env.local`
 
+## ความลับฝั่ง server (Cloud Functions)
+
+ค่าที่ห้ามหลุดถึง client **ไม่ได้เดินทางผ่าน GitHub Secrets** — ประกาศชื่อไว้ที่ `secretEnvironmentVariables` ใน [firebase.json](../../firebase.json) แล้ว `scripts/prepare-firebase-deploy.mjs` คัดลงเป็น `functions.yaml` ตอน deploy ส่วน**ค่าจริงอยู่ใน Google Secret Manager** ของโปรเจกต์ Firebase
+
+| Key | ใช้ทำอะไร |
+|---|---|
+| `RESEND_API_KEY` | ส่งอีเมลคำเชิญ |
+| `EMBED_TOKEN_SECRET` | กุญแจ AES-256-GCM ที่ปิดผนึกทั้ง token ของ `/api/embed/*` และ cookie `__session` ที่ผูก token เข้ากับเบราว์เซอร์ |
+
+ตั้งค่าครั้งแรกหรือหมุนกุญแจ:
+
+```bash
+openssl rand -base64 32          # สร้างค่าใหม่
+firebase functions:secrets:set EMBED_TOKEN_SECRET --project streamhub-1c27a
+```
+
+แล้ววางค่า**เดียวกัน**ลง `.env.local` เพื่อให้ dev server ใช้ได้ · หมุนกุญแจแล้ว token ที่ค้างอยู่จะใช้ไม่ได้ทันที ผู้ใช้ที่เปิดแดชบอร์ดค้างไว้ต้องรีเฟรชหนึ่งครั้ง (อายุ token 5 นาที)
+
+> `__session` เป็น **ชื่อ cookie เดียว** ที่ Firebase Hosting ส่งต่อให้ Cloud Functions ชื่ออื่นถูกตัดทิ้งทั้งหมด — ถ้าจะเพิ่ม cookie ฝั่ง server ในอนาคตต้องยัดรวมในตัวนี้ ไม่ใช่ตั้งชื่อใหม่
+
+> ถ้า `EMBED_TOKEN_SECRET` ว่าง `POST /api/embed/request` จะตอบ 500 `Embed tokens are not configured` — ตั้งใจให้ดังกว่าการแจก token ที่ไม่มีใครเปิดอ่านได้
+
 ## Production
 
 For production deployment:
