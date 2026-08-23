@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import { getQuery } from 'h3'
-import { queryAuditLogs, getAuditSummary, type AuditAction } from '../../utils/auditLog'
+import { queryAuditLogs, getAuditSummary } from '../../utils/auditLog'
+import type { AuditAction } from '#shared/types/audit'
 import { sendForbidden, sendUnauthorized } from '../../utils/apiResponse'
 import { resolveUserRole } from '../../utils/resolveUserRole'
 
