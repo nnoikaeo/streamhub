@@ -38,7 +38,11 @@ const STATE_FILE = resolve(ROOT_DIR, 'scripts/.qa-broken-refs-state.json')
 
 const GHOST_FOLDER = 'folder_ghost_qa'
 const GHOST_USER = 'uid_ghost_qa'
-const DEFAULT_DASHBOARD = 'dash_1785082599181'
+// No default target any more. `dash_1785082599181` ("Dashboard in E") used to
+// be reserved for this script, and was deleted with the rest of the test data
+// on 2026-08-25. Every dashboard now in Firestore is real, so a default here
+// would point this script at production content the moment someone forgot the
+// flag. Pass --dashboard <id> and use something you created for the purpose.
 
 // Load .env.local manually (script runs outside Nuxt)
 const envLocalPath = resolve(ROOT_DIR, '.env.local')
@@ -72,7 +76,15 @@ const command = args.find(a => !a.startsWith('--')) ?? 'status'
 const apply = args.includes('--apply')
 const dashboardId = (() => {
   const i = args.indexOf('--dashboard')
-  return i !== -1 && args[i + 1] ? args[i + 1] : DEFAULT_DASHBOARD
+  if (i !== -1 && args[i + 1] && !args[i + 1].startsWith('--')) return args[i + 1]
+  console.error('❌ --dashboard <id> is required.')
+  console.error('')
+  console.error('   There is no reserved QA dashboard any more. Create a throwaway one')
+  console.error('   (no Looker URL needed, nobody granted access), pass its id here, and')
+  console.error('   run `restore` before deleting it again.')
+  console.error('')
+  console.error('   node scripts/qa-broken-refs.mjs status --dashboard dash_xxx')
+  process.exit(1)
 })()
 
 const readDashboard = async () => {
