@@ -31,7 +31,7 @@ Looker ยืนยันสิทธิ์ผู้ดูด้วยคุก�
 
 ทาง API ไม่ได้: service account ของเราถือ scope `datastudio.readonly` ([lookerStudioApi.ts](../../server/utils/lookerStudioApi.ts)) และการตั้ง Enable embedding ก็ไม่มีใน Looker Studio API
 
-## รายการ (31 ตัว)
+## รายการ (30 ตัว)
 
 | ✓ | แดชบอร์ดในแอป | โฟลเดอร์ | รายงาน Looker |
 |---|---|---|---|
@@ -43,7 +43,6 @@ Looker ยืนยันสิทธิ์ผู้ดูด้วยคุก�
 | ☐ | บอกเลิกสัญญา | แดชบอร์ดหลัก | [e3ffc5e1-cf5f-4142-9657-17c07d4f9e32](https://lookerstudio.google.com/reporting/e3ffc5e1-cf5f-4142-9657-17c07d4f9e32) |
 | ☐ | รายได้ใหม่ | แดชบอร์ดหลัก | [8d52255b-fbb8-466d-b59d-89958d85996a](https://lookerstudio.google.com/reporting/8d52255b-fbb8-466d-b59d-89958d85996a) |
 | ☐ | Master List | แดชบอร์ดหลัก | [d95a3df9-e38b-4002-b5b4-89ba8585a5e3](https://lookerstudio.google.com/reporting/d95a3df9-e38b-4002-b5b4-89ba8585a5e3) |
-| ☐ | Warehouse | แดชบอร์ดหลัก | [e9e5d4a3-e523-463d-8938-f1b8d746f11d](https://lookerstudio.google.com/reporting/e9e5d4a3-e523-463d-8938-f1b8d746f11d) |
 | ☐ | งบทดลอง [ภาคตะวันออก] | ภาคตะวันออก | [c226da92-d386-4837-b08c-61a8115a6775](https://lookerstudio.google.com/reporting/c226da92-d386-4837-b08c-61a8115a6775) |
 | ☐ | งบทดลอง [STCN] | ภาคตะวันออก | [4f93e985-0150-488c-8345-1f07cfa875a6](https://lookerstudio.google.com/reporting/4f93e985-0150-488c-8345-1f07cfa875a6) |
 | ☐ | งบทดลอง [STPT] | ภาคตะวันออก | [de8583f3-9371-4b9e-85da-c29b8995aaf0](https://lookerstudio.google.com/reporting/de8583f3-9371-4b9e-85da-c29b8995aaf0) |
@@ -66,6 +65,8 @@ Looker ยืนยันสิทธิ์ผู้ดูด้วยคุก�
 | ☐ | งบทดลอง [STEB] | STEB | [6cad525f-38b3-498b-83fc-e71beb95ce12](https://lookerstudio.google.com/reporting/6cad525f-38b3-498b-83fc-e71beb95ce12) |
 | ☐ | งบทดลอง [STSB] | STSB | [a7e1821d-e05f-4ac8-8b75-9f1fb8d488c3](https://lookerstudio.google.com/reporting/a7e1821d-e05f-4ac8-8b75-9f1fb8d488c3) |
 | ☐ | งบทดลอง [STSS] | STSS | [4266e6b9-e6d1-4746-9524-09df42ca61be](https://lookerstudio.google.com/reporting/4266e6b9-e6d1-4746-9524-09df42ca61be) |
+
+> **อัปเดต 2026-08-25** — เจ้าของลบแดชบอร์ดและโฟลเดอร์ที่ใช้ทดสอบทั้งหมดออกจาก prod (แดชบอร์ด 38 → 30) · `Warehouse` เป็นหนึ่งในนั้น จึงถูกตัดออกจากรายการ เหลือ **30 ตัว** · เทียบกับ Firestore แล้วตรงกันพอดี ไม่มีรายงานตกหล่นและไม่มีแถวตาย · ทุกแดชบอร์ดที่เหลือมี `lookerEmbedUrl` ครบทุกตัว
 
 > รายการนี้เคยมีอีก 4 แถวที่ชี้ไป UUID จากข้อมูล seed ซึ่งไม่มีอยู่จริงใน Looker (`Budget 2024`, `Finance Summary`, `Regional East Performance`, `Regional Sales Map (Edited)`) — ใครกดเข้าไปเจอกรอบเปล่า · **ลบทิ้งจาก Firestore แล้ว 2026-08-24** (แดชบอร์ด 42 → 38) ตรวจก่อนลบว่าไม่มีคอลเลกชันไหนอ้างถึงเลยนอกจาก `audit-log` และ `npm run audit:orphans` หลังลบได้ 0 ทั้ง 7 หมวด
 
