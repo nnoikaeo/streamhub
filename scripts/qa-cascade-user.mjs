@@ -44,7 +44,10 @@ const STATE_FILE = resolve(ROOT_DIR, 'scripts/.qa-cascade-user-state.json')
 const QA_UID_PREFIX = 'uid_qa_'
 const DEFAULT_UID = 'uid_qa_cascade'
 const DEFAULT_GROUP = 'analytics'
-const DEFAULT_FOLDER = 'folder_1785082588448' // TEST-E, reserved for QA
+// No default folder any more. TEST-E (`folder_1785082588448`) held that job
+// and was deleted with the rest of the test data on 2026-08-25. Seeding writes
+// into `folders.assignedModerators[]`, so defaulting to any surviving folder
+// would mean editing a real one by omission. Pass --folder <id>.
 
 // Load .env.local manually (script runs outside Nuxt)
 const envLocalPath = resolve(ROOT_DIR, '.env.local')
@@ -82,7 +85,17 @@ const flag = (name, fallback) => {
 }
 const uid = flag('uid', DEFAULT_UID)
 const groupId = flag('group', DEFAULT_GROUP)
-const folderId = flag('folder', DEFAULT_FOLDER)
+const folderId = flag('folder', null)
+if (!folderId) {
+  console.error('❌ --folder <id> is required.')
+  console.error('')
+  console.error('   There is no reserved QA folder any more. Create an empty throwaway')
+  console.error('   folder with no assigned moderators, pass its id here, and run')
+  console.error('   `restore` before deleting it again.')
+  console.error('')
+  console.error('   node scripts/qa-cascade-user.mjs seed --folder folder_xxx --apply')
+  process.exit(1)
+}
 
 /**
  * The whole safety story rests on this prefix: restore deletes a user document
