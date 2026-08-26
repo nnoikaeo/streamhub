@@ -26,7 +26,7 @@ A: Nuxt 4, Vue 3, TypeScript, Tailwind CSS, Firebase, Pinia.
 
 **Q: How do I start developing?**
 
-A: Follow the [Installation Guide](../../GETTING-STARTED/installation.md).
+A: Follow the [Installation Guide](../GETTING-STARTED/installation.md).
 
 **Q: Do I need to install Firebase locally?**
 
@@ -74,7 +74,7 @@ A: Yes, but Firebase Hosting is the easiest with Nuxt.
 
 **Q: Where's the API documentation?**
 
-A: Check [Reference Docs](../../REFERENCE/README.md).
+A: Check [Reference Docs](../REFERENCE/environment-variables.md).
 
 **Q: Can I request new features?**
 
@@ -105,4 +105,4 @@ A: Roughly $0.06 per 100K reads, $0.18 per 100K writes.
 ## See Also
 
 - [Common Issues](common-issues.md)
-- [Troubleshooting Guide](README.md)
+- [Documentation Index](../README.md)

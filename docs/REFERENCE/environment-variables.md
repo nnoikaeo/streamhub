@@ -105,5 +105,5 @@ NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN=prod_domain.com
 
 ## See Also
 
-- [Firebase Setup](../../GETTING-STARTED/setup-firebase.md)
-- [Installation Guide](../../GETTING-STARTED/installation.md)
+- [Firebase Setup](../GETTING-STARTED/setup-firebase.md)
+- [Installation Guide](../GETTING-STARTED/installation.md)

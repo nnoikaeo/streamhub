@@ -14,16 +14,16 @@ A modern, secure, and scalable dashboard solution built with Nuxt 4, Firebase, a
 
 | Goal | Read This |
 |------|-----------|
-| 🚀 **Start developing** | [Getting Started](docs/GETTING-STARTED/README.md) |
+| 🚀 **Start developing** | [Getting Started](docs/GETTING-STARTED/installation.md) |
 | 📋 **See development plan** | [Development Roadmap](docs/OPERATIONS/roadmap.md) |
 | 🏗️ **Understand architecture** | [Architecture Overview](docs/ARCHITECTURE/overview.md) |
-| 📚 **Learn features** | [Feature Guides](docs/GUIDES/README.md) |
+| 📚 **Learn features** | [Feature Guides](docs/GUIDES/roles-and-permissions.md) |
 | � **Understand roles & permissions** | [Roles & Permissions](docs/GUIDES/roles-and-permissions.md) |
 | 🏢 **Learn company management** | [Company Management](docs/GUIDES/company-management.md) |
 | �🔧 **Deploy to production** | [Deployment Guide](docs/OPERATIONS/deployment.md) |
-| 🐛 **Fix a problem** | [Troubleshooting](docs/TROUBLESHOOTING/README.md) |
+| 🐛 **Fix a problem** | [Troubleshooting](docs/TROUBLESHOOTING/common-issues.md) |
 | 🤝 **Contribute code** | [Contributing Guide](docs/CONTRIBUTING/workflow.md) |
-| 📡 **Check API reference** | [API Reference](docs/REFERENCE/README.md) |
+| 📡 **Look up an env var** | [Environment Variables](docs/REFERENCE/environment-variables.md) |
 
 ---
 
@@ -85,13 +85,13 @@ npm run dev
 
 ## 📖 Full Documentation
 
-- 🆕 [Getting Started](docs/GETTING-STARTED/README.md)
+- 🆕 [Getting Started](docs/GETTING-STARTED/installation.md)
 - 🏗️ [Architecture](docs/ARCHITECTURE/overview.md)
-- 📚 [Development Guides](docs/GUIDES/README.md)
+- 📚 [Development Guides](docs/GUIDES/roles-and-permissions.md)
 - 🔧 [Operations & Deployment](docs/OPERATIONS/deployment.md)
-- 🐛 [Troubleshooting](docs/TROUBLESHOOTING/README.md)
+- 🐛 [Troubleshooting](docs/TROUBLESHOOTING/common-issues.md)
 - 🤝 [Contributing](docs/CONTRIBUTING/workflow.md)
-- 📡 [API Reference](docs/REFERENCE/README.md)
+- 📡 [Environment Variables](docs/REFERENCE/environment-variables.md)
 
 ---
 
@@ -164,7 +164,7 @@ docs(readme): update installation steps
 ### More Info:
 - 📖 Full workflow: [Contributing Guide](docs/CONTRIBUTING/workflow.md)
 - 🏗️ Architecture: [Architecture Overview](docs/ARCHITECTURE/overview.md)
-- 🛠️ Development: [Development Guides](docs/GUIDES/README.md)
+- 🛠️ Development: [Development Guides](docs/GUIDES/roles-and-permissions.md)
 
 ---
 

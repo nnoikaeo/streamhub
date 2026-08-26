@@ -135,7 +135,7 @@
 - [x] **Card Limit Per Folder** — max 4 (grid), 6 (compact), 8 (list) with "ดูทั้งหมด" link
 - [x] **Responsive Testing** — Desktop/Tablet/Mobile breakpoints, 200ms transitions
 
-**Plan:** ~~[discover-redesign-tasks.md](discover-redesign-tasks.md)~~ *(archived — completed)*
+**Plan:** ~~[discover-redesign-tasks.md](archive/discover-redesign-tasks.md)~~ *(archived — completed)*
 
 ---
 

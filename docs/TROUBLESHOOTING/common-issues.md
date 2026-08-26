@@ -614,5 +614,5 @@ npm run dev
 ## See Also
 
 - [FAQ](faq.md)
-- [Installation Guide](../../GETTING-STARTED/installation.md)
-- [Setup Guide](../../GETTING-STARTED/setup-firebase.md)
+- [Installation Guide](../GETTING-STARTED/installation.md)
+- [Setup Guide](../GETTING-STARTED/setup-firebase.md)

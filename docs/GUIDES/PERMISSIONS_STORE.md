@@ -71,7 +71,7 @@ Full access to all features and settings
 #### 2. Moderator (formerly Editor)
 Can create and edit content in assigned folders, assign tags, but cannot manage users or create tags.
 Has **dual-view model**: Viewer mode (read-only) and Manager mode (CRUD in assigned folders).
-See [Moderator Dual-View Model](GUIDES/roles-and-permissions.md#-moderator-dual-view-model).
+See [Moderator Dual-View Model](roles-and-permissions.md#-moderator-dual-view-model).
 ```typescript
 {
   canViewDashboards: true,

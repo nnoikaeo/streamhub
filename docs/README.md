@@ -92,7 +92,7 @@ docs/
 2. **[Permissions Store](GUIDES/PERMISSIONS_STORE.md)** - `usePermissionsStore()` API + examples
 
 ### "I need to work on the Tag system"
-1. **[Database Schema > Tags](GUIDES/database-schema.md#6-tags-collection)** - Tag data model + queries
+1. **[Database Schema > Tags](GUIDES/database-schema.md#7-tags-collection)** - Tag data model + queries
 2. **[Roles & Permissions > Tag Permissions](GUIDES/roles-and-permissions.md#-tag-permissions)** - Who can do what with tags
 3. **[Tag Management Wireframe](DESIGN/wireframes/tag-management-page.md)** - Tag Filter + Selector + Manager UI
 

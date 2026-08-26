@@ -185,5 +185,5 @@ We'll update security rules before deploying to production!
 ## 📚 Next Steps
 
 1. [Test your setup](installation.md)
-2. [Learn authentication flow](../../GUIDES/authentication.md)
-3. [Deploy to production](../../OPERATIONS/deployment.md)
+2. [Learn authentication flow](../GUIDES/authentication.md)
+3. [Deploy to production](../OPERATIONS/deployment.md)

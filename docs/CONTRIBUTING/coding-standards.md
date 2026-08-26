@@ -633,4 +633,4 @@ Before designing a generic to preserve a mechanism, check what the mechanism is 
 
 - [Workflow Guide](workflow.md)
 - [Code Review](code-review.md)
-- [ESLint Config](eslint.config.mjs)
+- [ESLint Config](../../eslint.config.mjs)
