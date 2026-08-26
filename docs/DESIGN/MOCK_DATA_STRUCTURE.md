@@ -606,10 +606,10 @@ const dashboards = await dashboardService.getDashboards(userId, companyId)
 ## 📚 Related Files
 
 - [app/types/dashboard.ts](../../app/types/dashboard.ts) - TypeScript interfaces
-- [app/composables/useMockData.ts](../../app/composables/useMockData.ts) - Mock data
+- [app/composables/useJSONMockService.ts](../../app/composables/useJSONMockService.ts) - JSON-backed mock service
 - [app/composables/useDashboardService.ts](../../app/composables/useDashboardService.ts) - Service interface & implementation
 - [docs/DESIGN/wireframes/dashboard-discover-page.md](./wireframes/dashboard-discover-page.md) - UI design
-- [docs/GUIDES/roles-and-permissions.md](./roles-and-permissions.md) - Permission logic reference
+- [docs/GUIDES/roles-and-permissions.md](../GUIDES/roles-and-permissions.md) - Permission logic reference
 
 ---
 

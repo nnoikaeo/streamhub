@@ -378,7 +378,7 @@ See [Moderator Dual-View Model](../GUIDES/roles-and-permissions.md#-moderator-du
 | **Move dashboard?** | Target in assigned | Allow move |
 | | Target not assigned | Block move (🔒) |
 
-**📝 Note:** Dashboard permissions are checked using 3-layer model. See [Roles & Permissions Guide > Permission Structure](../GUIDES/roles-and-permissions.md#-dashboard-access-structure) for details.
+**📝 Note:** Dashboard permissions are checked using 3-layer model. See [Roles & Permissions Guide > Permission Structure](../GUIDES/roles-and-permissions.md#-permission-structure) for details.
 
 ---
 

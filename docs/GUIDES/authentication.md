@@ -250,5 +250,5 @@ provider.addScope('https://www.googleapis.com/auth/calendar')
 ## Next Steps
 
 - [Database Schema](database-schema.md)
-- [Route Protection](../../ARCHITECTURE/overview.md)
-- [Firebase Setup](../../GETTING-STARTED/setup-firebase.md)
+- [Route Protection](../ARCHITECTURE/overview.md)
+- [Firebase Setup](../GETTING-STARTED/setup-firebase.md)

@@ -323,7 +323,7 @@ match /users/{userId} {
 **Path:** `/dashboards/{dashboardId}`  
 **Purpose:** Dashboard metadata and configuration
 
-**⚠️ IMPORTANT:** For complete access control logic, **see [Roles & Permissions Guide > Permission Structure](./roles-and-permissions.md#permission-structure)**
+**⚠️ IMPORTANT:** For complete access control logic, **see [Roles & Permissions Guide > Permission Structure](./roles-and-permissions.md#-permission-structure)**
 
 **Document Structure:**
 

@@ -141,12 +141,12 @@ service cloud.firestore {
 
 ## 📚 Next Steps
 
-1. [Update version](../../OPERATIONS/versioning.md)
-2. [View roadmap](../../OPERATIONS/roadmap.md)
+1. [Update version](../OPERATIONS/versioning.md)
+2. [View roadmap](../OPERATIONS/roadmap.md)
 
 ---
 
 ## 🆘 Deployment Issues?
 
 - Check [Firebase docs](https://firebase.google.com/docs/hosting)
-- See [Troubleshooting guide](../../TROUBLESHOOTING/README.md)
+- See [Troubleshooting guide](../TROUBLESHOOTING/common-issues.md)

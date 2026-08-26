@@ -133,21 +133,21 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
-**Still stuck?** → [See Troubleshooting Guide](../../TROUBLESHOOTING/README.md)
+**Still stuck?** → [See Troubleshooting Guide](../TROUBLESHOOTING/common-issues.md)
 
 ---
 
 ## 📚 Next Steps
 
-1. **Understand the structure** → [Architecture Overview](../../ARCHITECTURE/overview.md)
-2. **Learn authentication flow** → [Authentication Guide](../../GUIDES/authentication.md)
-3. **Deploy to production** → [Deployment Guide](../../OPERATIONS/deployment.md)
-4. **Start contributing** → [Contributing Guide](../../CONTRIBUTING/workflow.md)
+1. **Understand the structure** → [Architecture Overview](../ARCHITECTURE/overview.md)
+2. **Learn authentication flow** → [Authentication Guide](../GUIDES/authentication.md)
+3. **Deploy to production** → [Deployment Guide](../OPERATIONS/deployment.md)
+4. **Start contributing** → [Contributing Guide](../CONTRIBUTING/workflow.md)
 
 ---
 
 ## 🆘 Need Help?
 
-- Check the [FAQ](../../TROUBLESHOOTING/faq.md)
-- Read [Common Issues](../../TROUBLESHOOTING/common-issues.md)
+- Check the [FAQ](../TROUBLESHOOTING/faq.md)
+- Read [Common Issues](../TROUBLESHOOTING/common-issues.md)
 - Ask in team Slack channel

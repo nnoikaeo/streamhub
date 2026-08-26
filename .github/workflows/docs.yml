@@ -1,0 +1,33 @@
+name: Docs
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '**/*.md'
+      - 'scripts/check-doc-links.mjs'
+      - '.github/workflows/docs.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - '**/*.md'
+      - 'scripts/check-doc-links.mjs'
+      - '.github/workflows/docs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    name: Check doc links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # No install step: the checker uses node builtins + git only.
+      - name: Check Markdown links
+        run: node scripts/check-doc-links.mjs
