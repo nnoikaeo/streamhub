@@ -11,7 +11,7 @@
 > `filterAccessibleDashboards(dashboards: any[], …)` ปัจจุบันใช้ `AccessDashboard` /
 > `AccessFolder` / `AccessUser` กับ `CompanyAccessResult` แบบ discriminated union แล้ว
 > (PR #364) และ `new Date(expiryDate)` ที่บรรทัด 123 คือบั๊กที่ทำให้วันหมดอายุไม่เคยทำงาน
-> บน Firestore — ตอนนี้ใช้ `isExpired()` ยึด [`server/utils/companyAccess.ts`](../../server/utils/companyAccess.ts) เป็นแหล่งอ้างอิงจริง
+> บน Firestore — ตอนนี้ใช้ `isExpired()` ยึด [`server/utils/companyAccess.ts`](../../../server/utils/companyAccess.ts) เป็นแหล่งอ้างอิงจริง
 
 ---
 

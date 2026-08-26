@@ -152,7 +152,7 @@
 - [x] **Responsive & Polish** — mobile/tablet breakpoints, accessibility, transitions (PR #127)
 - [x] **Bugfix** — button style overrides, column alignment, default view (PR #128)
 
-**Plan:** [discover-tree-view-groupby-plan.md](discover-tree-view-groupby-plan.md) *(completed)*
+**Plan:** [discover-tree-view-groupby-plan.md](archive/discover-tree-view-groupby-plan.md) *(completed)*
 
 ---
 

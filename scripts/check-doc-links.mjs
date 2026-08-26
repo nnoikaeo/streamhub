@@ -10,9 +10,14 @@
  * Fragments on non-Markdown targets (`app/x.vue#L120`) are line references, not
  * anchors, so only the file is checked.
  *
+ * It also fails on an orphan: a doc under `docs/` that nothing links to. That is
+ * what lets an index drift — a file gets added, the index does not mention it, and
+ * no link is broken so nothing complains.
+ *
  * Usage:
- *   node scripts/check-doc-links.mjs            # files + anchors
+ *   node scripts/check-doc-links.mjs            # files + anchors + orphans
  *   node scripts/check-doc-links.mjs --no-anchors
+ *   node scripts/check-doc-links.mjs --no-orphans
  *   node scripts/check-doc-links.mjs --json
  *
  * Exit 1 when anything is broken. Baseline is 0.
@@ -24,6 +29,7 @@ import { dirname, join, normalize, relative, resolve } from 'node:path'
 const ROOT = resolve(import.meta.dirname, '..')
 const args = process.argv.slice(2)
 const CHECK_ANCHORS = !args.includes('--no-anchors')
+const CHECK_ORPHANS = !args.includes('--no-orphans')
 const AS_JSON = args.includes('--json')
 
 /** Vendored skill packages — not ours to fix. */
@@ -100,7 +106,9 @@ function linksIn(file) {
 }
 
 const problems = []
-for (const file of trackedMarkdown()) {
+const linkedTo = new Set()
+const files = trackedMarkdown()
+for (const file of files) {
   const dir = dirname(join(ROOT, file))
   for (const { line, raw } of linksIn(file)) {
     const target = raw.replace(/^<|>$/g, '')
@@ -123,8 +131,25 @@ for (const file of trackedMarkdown()) {
       })
       continue
     }
+    linkedTo.add(abs)
     if (CHECK_ANCHORS && anchor && abs.endsWith('.md') && !hasAnchor(abs, anchor)) {
       problems.push({ file, line, target, kind: 'missing-anchor', detail: `no heading anchors to #${anchor}` })
+    }
+  }
+}
+
+if (CHECK_ORPHANS) {
+  // docs/README.md is the index itself — it is reached from the repo README, not from docs/.
+  for (const file of files) {
+    if (!file.startsWith('docs/') || file === 'docs/README.md') continue
+    if (!linkedTo.has(resolve(ROOT, file))) {
+      problems.push({
+        file,
+        line: 1,
+        target: '',
+        kind: 'orphan',
+        detail: 'nothing links to this doc — add it to docs/README.md',
+      })
     }
   }
 }
@@ -132,10 +157,13 @@ for (const file of trackedMarkdown()) {
 if (AS_JSON) {
   console.log(JSON.stringify(problems, null, 2))
 } else if (problems.length === 0) {
-  console.log('✅ doc links OK — 0 broken')
+  console.log(`✅ docs OK — 0 broken links, 0 orphans (${files.length} files checked)`)
 } else {
-  for (const p of problems) console.log(`${p.file}:${p.line}  ${p.target}\n    ${p.kind}: ${p.detail}`)
-  const files = new Set(problems.map((p) => p.file)).size
-  console.log(`\n❌ ${problems.length} broken link(s) in ${files} file(s)`)
+  for (const p of problems) {
+    console.log(p.target ? `${p.file}:${p.line}  ${p.target}` : p.file)
+    console.log(`    ${p.kind}: ${p.detail}`)
+  }
+  const n = new Set(problems.map((p) => p.file)).size
+  console.log(`\n❌ ${problems.length} problem(s) in ${n} file(s)`)
 }
 process.exit(problems.length === 0 ? 0 : 1)
