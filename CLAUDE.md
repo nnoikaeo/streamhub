@@ -1,6 +1,6 @@
 # Streamhub — Claude Instructions
 
-Nuxt 3 SPA deployed on Firebase Hosting + Cloud Functions (Nitro). Firestore as the database.
+Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro, nodejs22). Firestore as the database.
 
 ---
 
@@ -58,7 +58,7 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | Doc | Contents |
 |-----|----------|
 | [docs/ARCHITECTURE/overview.md](docs/ARCHITECTURE/overview.md) | System overview, component map |
-| [docs/ARCHITECTURE/tech-stack.md](docs/ARCHITECTURE/tech-stack.md) | Nuxt 3, Firebase, Pinia, Tailwind versions |
+| [docs/ARCHITECTURE/tech-stack.md](docs/ARCHITECTURE/tech-stack.md) | Nuxt 4, Vue 3, Firebase, Pinia, Tailwind 4 versions — and what is installed but unused |
 | [docs/ARCHITECTURE/folder-structure.md](docs/ARCHITECTURE/folder-structure.md) | Directory layout and conventions |
 | [docs/ARCHITECTURE/data-flow.md](docs/ARCHITECTURE/data-flow.md) | Client ↔ Firestore ↔ Functions data flow |
 
