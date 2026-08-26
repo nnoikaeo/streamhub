@@ -146,7 +146,7 @@ folders/{folderId}  ← updateDoc (for each changed folder)
 
 | Document | Link |
 |----------|------|
-| Implementation Plan | [edit-user-form-plan.md](../../OPERATIONS/edit-user-form-plan.md) |
+| Implementation Plan | [edit-user-form-plan.md](../../OPERATIONS/archive/edit-user-form-plan.md) |
 | Roles & Permissions Guide | [roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
 | Permission Management Wireframe | [admin-permission-management-page.md](./admin-permission-management-page.md) |
 

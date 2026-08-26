@@ -3,7 +3,7 @@
 > **Feature:** เพิ่ม Groups multi-select และ Moderator Folder Picker ใน Edit User modal
 > **Approved:** 2026-04-16
 > **Branch:** `feat/edit-user-form-groups-folders`
-> **Wireframe:** [admin-user-management-page.md](../DESIGN/wireframes/admin-user-management-page.md)
+> **Wireframe:** [admin-user-management-page.md](../../DESIGN/wireframes/admin-user-management-page.md)
 
 ---
 

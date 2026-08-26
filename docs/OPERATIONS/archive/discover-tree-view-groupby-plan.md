@@ -1,4 +1,4 @@
-git # Discover Page: Tree View & Group By System
+# Discover Page: Tree View & Group By System
 
 **Branch:** `feat/discover-tree-view-groupby`  
 **Base:** `develop`  

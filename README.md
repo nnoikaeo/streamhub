@@ -85,6 +85,8 @@ npm run dev
 
 ## 📖 Full Documentation
 
+**[→ Documentation index](docs/README.md)** — every document, checked in CI.
+
 - 🆕 [Getting Started](docs/GETTING-STARTED/installation.md)
 - 🏗️ [Architecture](docs/ARCHITECTURE/overview.md)
 - 📚 [Development Guides](docs/GUIDES/roles-and-permissions.md)
