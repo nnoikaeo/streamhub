@@ -66,7 +66,7 @@ runtime. Let CI build them.
 | `vitest` | ^4.1.2 | 335 tests, `npm test`. Anything added to `shared/utils/` must also be registered in `tests/setup.ts` — plain Vitest does not run Nuxt auto-imports |
 | `eslint` + `@nuxt/eslint` | ^9.39.2 / ^1.12.1 | `npx eslint .`, config in [eslint.config.mjs](../../eslint.config.mjs) |
 | `tsx` | ^4.21.0 | Runs the `.ts` maintenance scripts in `scripts/` |
-| `@types/node` | ^25.2.0 | Typings run **ahead** of the Node 22 runtime. Nothing has bitten yet, but `vue-tsc` will accept an API that Node 22 does not have |
+| `@types/node` | ^22.20.1 | Pinned to the **runtime major**. On `^25` the typings described APIs Node 22 does not have, so `vue-tsc` would have accepted code that fails in the deployed function |
 
 **Node 22 everywhere.** Three places say so and all three must agree — CI once built on Node 24
 against a nodejs22 runtime, which happened not to break but was nobody's decision:
@@ -78,6 +78,30 @@ against a nodejs22 runtime, which happened not to break but was nobody's decisio
 | [firebase.json](../../firebase.json) → `functions[].runtime` | `nodejs22` — what Cloud Functions actually runs |
 
 Changing the runtime means editing `.nvmrc`, `nitro.firebase.nodeVersion` and `firebase.json` together.
+
+## package-lock.json
+
+The lock had drifted from `package.json`: 56 entries for `firebase-functions@7.2.2` and the
+`express` tree it pulled, left behind when firebase-functions stopped being a devDependency.
+Nothing declared them, `npm ci` installed them on every CI run, and no code imported them.
+Pruned by regenerating with `npm install --package-lock-only`.
+
+The deployed function is unaffected either way: Nitro writes its own
+`.output/server/package.json` (which declares `firebase-functions` itself), and CI installs
+that separately. The repo lock never reaches Cloud Functions.
+
+**Regenerate the lock with the npm that CI runs, not yours.** Node 22 ships npm 10, and npm 11
+resolves one entry differently: it drops `@nuxt/test-utils/node_modules/crossws`, which npm 10
+requires, and `npm ci` then fails with `Missing: crossws@0.4.12 from lock file`. Both majors
+agree about everything else. So:
+
+```bash
+npx --yes npm@10.9.8 install --package-lock-only --ignore-scripts
+```
+
+A lock written by npm 10 installs cleanly under both; one written by npm 11 breaks CI. If
+`npm install` rewrites the lock when you changed nothing in `package.json`, commit the
+regenerated file on its own rather than letting it ride along in an unrelated diff.
 
 ## Verification baselines
 
