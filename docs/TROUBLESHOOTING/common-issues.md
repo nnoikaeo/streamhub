@@ -1,7 +1,5 @@
 ---
 title: Common Issues
-version: 1.1
-updated: 2026-08-14
 ---
 
 # Common Issues & Solutions

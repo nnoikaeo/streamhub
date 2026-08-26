@@ -1,7 +1,6 @@
 # User Flow Diagrams
 
 > **Document Status:** UI/UX Design Document  
-> **Last Updated:** 2026-03-22 (v2.0)
 > **Document Owner:** Development Team
 
 ---
@@ -1185,5 +1184,3 @@ For MODERATOR and ADMIN users who work across companies:
 ---
 
 **Document Maintainer:** Development Team  
-**Last Updated:** 2026-03-22  
-**Version:** 2.0

@@ -1,9 +1,7 @@
 # Database Schema Reference
 
 > **Document Status:** Technical Reference for Firestore Data Model
-> **Last Updated:** 2026-03-22
 > **Document Owner:** Development Team
-> **Version:** 5.0 (Sync with actual TypeScript interfaces)
 
 ---
 
@@ -473,7 +471,6 @@ pending → cancelled  (admin cancels the invitation)
 ```
 
 ---
-
 
 ## 7. Tags Collection
 

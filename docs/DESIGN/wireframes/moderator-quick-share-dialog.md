@@ -5,8 +5,6 @@
 > **Purpose:** Quick sharing dialog for moderators to grant temporary direct access to dashboards
 > **Users:** Moderators (own dashboards only)
 > **Interaction:** Modal dialog from Dashboard Discover Page
-> **Last Updated:** 2026-02-13
-> **Version:** 4.0 (Consolidated with Single Source of Truth)
 
 ---
 
@@ -241,4 +239,3 @@ Try:
 **Created:** 2024-02-03
 **Updated:** 2026-02-13 (v4.0 - Consolidated & Simplified)
 **Designer:** Development Team
-**Version:** 4.0

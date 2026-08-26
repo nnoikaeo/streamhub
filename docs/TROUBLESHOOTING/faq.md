@@ -1,7 +1,5 @@
 ---
 title: FAQ
-version: 1.0
-updated: 2024-01-21
 ---
 
 # Frequently Asked Questions

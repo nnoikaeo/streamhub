@@ -3,8 +3,6 @@
 > **Purpose:** Manage subsidiary companies (create, edit, delete, activate/deactivate)
 > **Users:** Admin role only
 > **Current Implementation:** `app/pages/admin/companies/index.vue` (to be created)
-> **Last Updated:** 2026-03-15
-> **Version:** 2.0
 
 ---
 
@@ -240,5 +238,4 @@ For each company, track:
 ---
 
 **Created:** 2026-02-14
-**Version:** 1.0 (Initial v4.0 consolidated format)
 **Designer:** Development Team

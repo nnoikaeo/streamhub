@@ -1,7 +1,5 @@
 ---
 title: Skills Playbook — คู่มือใช้งาน AI Skills สำหรับ StreamHub
-version: 1.0
-updated: 2026-04-02
 ---
 
 # Skills Playbook

@@ -1,8 +1,5 @@
 # StreamHub Design System
 
-> **Last Updated:** 2026-03-25
-> **Version:** 2.0 (Phase 5.8 design doc review)
-
 ## 📋 Overview
 
 StreamHub uses a **centralized design system** to ensure consistency across all pages and components. This document outlines the theme configuration, color palette, and component styling guidelines.

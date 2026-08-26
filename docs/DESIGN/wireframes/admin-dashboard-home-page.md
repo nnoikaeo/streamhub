@@ -3,8 +3,6 @@
 > **Purpose:** Central hub for admin overview, quick access to management tools, and system status
 > **Users:** Admin role only
 > **Current Implementation:** `app/pages/admin/index.vue` (to be created)
-> **Last Updated:** 2026-02-14
-> **Version:** 1.0
 
 ---
 
@@ -166,5 +164,4 @@
 ---
 
 **Created:** 2026-02-14
-**Version:** 1.0 (Initial v4.0 consolidated format)
 **Designer:** Development Team

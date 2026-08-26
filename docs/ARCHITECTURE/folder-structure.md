@@ -1,7 +1,5 @@
 ---
 title: Folder Structure
-version: 2.1
-updated: 2026-08-14
 ---
 
 # Folder Structure

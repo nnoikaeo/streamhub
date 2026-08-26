@@ -1,7 +1,5 @@
 ---
 title: Authentication System
-version: 2.1
-updated: 2026-08-20
 ---
 
 # Authentication System

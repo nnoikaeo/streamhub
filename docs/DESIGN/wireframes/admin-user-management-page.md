@@ -3,8 +3,6 @@
 > **Purpose:** Manage users across all companies (Edit, Delete, Toggle Active, Filter)
 > **Users:** Admin role only
 > **Current Implementation:** `app/pages/admin/users/index.vue`
-> **Last Updated:** 2026-04-16
-> **Version:** 2.0
 
 ---
 
@@ -154,4 +152,3 @@ folders/{folderId}  ← updateDoc (for each changed folder)
 
 **Created:** 2026-02-14
 **Updated:** 2026-04-16
-**Version:** 2.0 — Remove create, add groups + moderator folder picker to edit modal

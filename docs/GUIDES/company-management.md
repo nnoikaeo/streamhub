@@ -1,7 +1,6 @@
 # Company Management Guide
 
 > **Document Status:** Foundational Guide for Multi-Company Architecture
-> **Last Updated:** 2026-03-15
 > **Document Owner:** Development Team
 
 ---
