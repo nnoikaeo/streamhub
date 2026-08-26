@@ -20,7 +20,7 @@
 
 ## 🎯 Overview
 
-**Streamwash** operates as a **holding company** with **10+ subsidiary companies** (บริษัทในเครือ). Each subsidiary:
+**Streamwash** operates as a **holding company** with **20 companies** in the group (บริษัทในเครือ), all active. Each one:
 
 - Has its own separate **company code** (STTH, STTN, STCS, etc.)
 - Manages its own **folders and dashboards**
@@ -54,10 +54,12 @@
 ```text
 Streamwash Group
 │
-├── [ไม่มีภูมิภาค] — สำนักงานใหญ่และบริษัทหลัก
-│   ├── STTH — บริษัท สทรีมวอช (ประเทศไทย) จำกัด (สำนักงานใหญ่)
-│   ├── STTN — บริษัท สทรีมวอช เทคโนโลยี จำกัด
-│   └── STCS — บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด
+├── สำนักงานใหญ่ (HEADQUARTERS)
+│   └── STTH — บริษัท สทรีมวอช (ประเทศไทย) จำกัด [Hub]
+│
+├── กลุ่มซัพพลายเชน (SUPPLY_CHAIN)
+│   ├── STTN — บริษัท สทรีมวอช เทคโนโลยี จำกัด [Hub]
+│   └── STCS — บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด [Hub]
 │
 ├── กลุ่มภาคเหนือ (NORTH)
 │   ├── STCM — บริษัท สทรีมวอช (เชียงใหม่) จำกัด [Hub]
@@ -88,15 +90,16 @@ Streamwash Group
 │   └── INFE — บริษัท อินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์ จำกัด [Hub]
 │
 └── กลุ่มบริษัทออเร้นจ์เอส (ORANGES)
-    └── ORAY — บริษัท ออเร้นจ์ เอส (พระนครศรีอยุธยา) จำกัด [Hub]
+    └── OAYT — บริษัท ออเร้นจ์ เอส (พระนครศรีอยุธยา) จำกัด [Hub]
 ```
 
-**Total:**
+**Total: 20 companies across 9 region groups**, every one active. The nine are the five
+geographic regions (NORTH, NORTHEAST, EAST, SOUTH, MBR) plus HEADQUARTERS, SUPPLY_CHAIN,
+INNOTECH and ORANGES.
 
-- **20 บริษัทในเครือ** (active ทั้งหมด)
-- **7 กลุ่มภูมิภาค** (4 ภูมิภาคหลัก + 3 กลุ่มพิเศษ)
-- **100+ dashboards** total
-- **30+ folders** total
+Dashboard and folder counts are deliberately **not** written down here. They move, and a number
+in a document does not. `/admin/overview` shows the live figures, and `npm run audit:orphans`
+prints per-collection totals while it checks references.
 
 ---
 
@@ -104,9 +107,9 @@ Streamwash Group
 
 | Code | ชื่อบริษัท | กลุ่มภูมิภาค | Role | สถานะ |
 |------|-----------|--------------|------|-------|
-| STTH | บริษัท สทรีมวอช (ประเทศไทย) จำกัด | — | — | Active |
-| STTN | บริษัท สทรีมวอช เทคโนโลยี จำกัด | — | — | Active |
-| STCS | บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด | — | — | Active |
+| STTH | บริษัท สทรีมวอช (ประเทศไทย) จำกัด | HEADQUARTERS | Hub | Active |
+| STTN | บริษัท สทรีมวอช เทคโนโลยี จำกัด | SUPPLY_CHAIN | Hub | Active |
+| STCS | บริษัท สทรีมวอช คลีนนิ่ง โซลูชั่น จำกัด | SUPPLY_CHAIN | Hub | Active |
 | STCM | บริษัท สทรีมวอช (เชียงใหม่) จำกัด | NORTH | Hub | Active |
 | STPL | บริษัท สทรีมวอช (พิษณุโลก) จำกัด | NORTH | Sub | Active |
 | STNR | บริษัท สทรีมวอช (นครราชสีมา) จำกัด | NORTHEAST | Hub | Active |
@@ -123,7 +126,7 @@ Streamwash Group
 | STEB | บริษัท สทรีมวอช (กรุงเทพตะวันออก) จำกัด | MBR | Hub | Active |
 | STSB | บริษัท สทรีมวอช (กรุงเทพใต้) จำกัด | MBR | Hub | Active |
 | INFE | บริษัท อินโนเทค ฟู้ด แอนด์ อีควิปเม้นท์ จำกัด | INNOTECH | Hub | Active |
-| ORAY | บริษัท ออเร้นจ์ เอส (พระนครศรีอยุธยา) จำกัด | ORANGES | Hub | Active |
+| OAYT | บริษัท ออเร้นจ์ เอส (พระนครศรีอยุธยา) จำกัด | ORANGES | Hub | Active |
 
 ---
 

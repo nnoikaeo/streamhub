@@ -996,7 +996,7 @@ For MODERATOR and ADMIN users who work across companies:
 │ (Only accessible ones)   │
 │                          │
 │ For ADMIN:               │
-│ - All 10+ companies      │
+│ - Every company          │
 │                          │
 │ For MODERATOR:           │
 │ - Companies with         │

@@ -2,7 +2,12 @@
 
 > **Purpose:** Manage subsidiary companies (create, edit, delete, activate/deactivate)
 > **Users:** Admin role only
-> **Current Implementation:** `app/pages/admin/companies/index.vue` (to be created)
+> **Current Implementation:** `app/pages/admin/companies/index.vue` — **built and in production.**
+>
+> The component names below were never used. The page is `PageLayout` → `AdminPageContent` →
+> shared **`DataTable`**, with **`FormModal` + `CompanyForm`** for create/edit and
+> **`ConfirmDialog`** for delete. There is no `CompanyTable`, `CompanyCard` or `CompanyModal`,
+> and no `AdminLayout` / `AdminHeader` — the app-wide `AppLayout` and `UnifiedSidebar` do that.
 
 ---
 

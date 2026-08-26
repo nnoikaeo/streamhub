@@ -37,6 +37,18 @@ must check permissions itself.
 | Composables | `app/composables/` | Data access and page logic. `useFirestoreService` and `useJSONMockService` implement the same interface |
 | Utils | `app/utils/`, `shared/utils/` | `shared/` is auto-imported into **both** `app/` and `server/` |
 
+### How each page is reached
+
+The sidebar (`app/composables/useRoleNavigation.ts`) is not the whole navigation. Three live
+admin pages have no sidebar entry and are reached only from the quick-action cards on
+`/admin/overview`: **`/admin/dashboards`**, **`/admin/folders`** and **`/admin/permissions`**.
+Permissions is also reached from the 🔑 button in Explorer, which swaps `/explorer` for
+`/permissions` in the current route prefix — that is how one page serves both `/admin` and
+`/manage`.
+
+Absent from the sidebar is therefore not the same as unreachable. Every page under `app/pages/`
+has a way in.
+
 Data is fetched once, not streamed: there is no `onSnapshot` anywhere in the codebase. A page
 loads what it needs and refetches after a write. Anything describing StreamHub as
 "real-time" is describing a plan, not the code.

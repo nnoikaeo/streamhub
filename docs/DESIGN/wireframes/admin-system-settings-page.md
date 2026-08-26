@@ -2,7 +2,10 @@
 
 > **Purpose:** Global system configuration and settings (email, authentication, integrations)
 > **Users:** Admin role only (superadmin settings)
-> **Current Implementation:** `app/pages/admin/settings.vue` (to be created)
+> ⛔ **Not built, and not reachable.** There is no `app/pages/admin/settings.vue`, no
+> `/admin/settings` route, and no sidebar entry for it in `useRoleNavigation.ts`. This is a
+> design for a page nobody has started. `AdminLayout` does not exist either — admin pages use
+> `PageLayout` → `AppLayout`.
 
 ---
 

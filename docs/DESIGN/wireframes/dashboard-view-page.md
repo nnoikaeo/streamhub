@@ -4,7 +4,7 @@
 
 > **Purpose:** Display individual dashboard with Looker Studio embed and related dashboards
 > **Users:** All roles with dashboard access (USER, MODERATOR, ADMIN)
-> **Current Implementation:** `app/pages/dashboard/view.vue` using AppLayout + TwoPaneLayout
+> **Current Implementation:** `app/pages/dashboard/view/[id].vue` using AppLayout + TwoPaneLayout
 
 ---
 
