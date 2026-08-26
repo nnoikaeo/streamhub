@@ -305,6 +305,10 @@ onMounted(async () => {
 }
 
 .sharing-reminder ol {
+  /* Tailwind's preflight sets `list-style: none` on every ol/ul, so the
+     numbering has to be asked for. Without it the two requirements read as one
+     paragraph of run-on text, which is the opposite of a checklist. */
+  list-style: decimal;
   margin: 0.375rem 0 0;
   padding-left: 1.25rem;
 }
