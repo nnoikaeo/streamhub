@@ -1,5 +1,24 @@
 # Sidebar Navigation Wireframe (Role-Based)
 
+> ⚠️ **The menus below are the original design, not what ships.** Checked against
+> [`app/composables/useRoleNavigation.ts`](../../../app/composables/useRoleNavigation.ts), which is
+> the single source of the sidebar. Differences, all real:
+>
+> - Labels are **Thai** in the app: `แดชบอร์ด` / `จัดการ` / `ผู้ดูแลระบบ`.
+> - The Dashboard group has **`หน้าแรก` (`/dashboard`)** and **`แดชบอร์ดทั้งหมด` (`/dashboard/discover`)**.
+>   There is no **Search** item and no `?view=` / `?mode=` query parameters.
+> - The Moderator group is **`จัดการ` with one item, `Explorer` → `/manage/explorer`**. There is
+>   no folder tree, no count badges, and **no `/manage/folders/…` route exists at all** — every
+>   such link in this file is dead.
+> - The Admin group ships **ten** items, not eight: `ภาพรวม`, `ผู้ใช้`, **`คำเชิญ`**, `Explorer`,
+>   `บริษัท`, **`กลุ่มธุรกิจ/เขตพื้นที่`**, `กลุ่มผู้ใช้`, `แท็ก`, **`Audit Logs`**, **`System Health`**.
+> - **Dashboards** and **Permissions** are drawn here but are *not* in the sidebar. Both pages
+>   exist (`/admin/dashboards`, `/admin/permissions`); permissions is reached from Explorer's 🔑
+>   button, and `/admin/dashboards` has no entry point at all.
+>
+> Correct as drawn: accordions are mutually exclusive, and the folder tree really is kept out of
+> the sidebar — `showFolders` is hardcoded `false` in `useSidebarVisibility.ts`.
+
 > **Purpose:** Role-based sidebar navigation design for StreamHub
 > **Related:** [User Flows](../user-flows.md), [Roles & Permissions](../../GUIDES/roles-and-permissions.md)
 
