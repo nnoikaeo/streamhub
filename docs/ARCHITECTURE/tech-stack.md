@@ -22,10 +22,10 @@ in the lockfile at the time of writing. `npm ls <pkg>` is the authority, not thi
 | `vee-validate` + `@vee-validate/zod` | ^4.15.1 | Form validation |
 | `zod` | ^3.24.0 | Schemas, shared with server routes |
 
-> **`tailwind.config.ts` at the repo root is dead.** Tailwind 4 only reads a JS/TS config when
-> a stylesheet points at one with `@config`, and nothing does. Its palette, spacing and shadow
-> scales have no effect — no `primary-500`-style class appears anywhere in `app/`. Real theming
-> lives in the CSS variables in `assets/css/theme.css`; see
+> **There is no `tailwind.config.ts`.** Tailwind 4 reads a JS/TS config only when a stylesheet
+> points at one with `@config`, and none does. A leftover v3 config file sat in the repo root
+> until it was deleted after two builds proved the CSS output byte-identical with and without
+> it. Theming lives in the CSS variables in `assets/css/theme.css`; see
 > [DESIGN_SYSTEM.md](../DESIGN/DESIGN_SYSTEM.md).
 
 ## State

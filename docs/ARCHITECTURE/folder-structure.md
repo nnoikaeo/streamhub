@@ -224,7 +224,6 @@ streamhub/
 │   └── robots.txt
 │
 ├── 📄 nuxt.config.ts                # Nuxt configuration
-├── 📄 tailwind.config.ts            # Tailwind + design tokens
 ├── 📄 tsconfig.json                 # Root config — "files": [], references only
 └── 📄 package.json                  # Dependencies + scripts
 ```
