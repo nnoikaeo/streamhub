@@ -1,7 +1,3 @@
----
-title: Data Flow
----
-
 # Data Flow
 
 The paths a request actually takes. Function and route names here are real — grep them.
@@ -17,7 +13,7 @@ Two rules shape every flow below:
 
 ## 1. Sign-in
 
-```
+```text
 login.vue
   └─ useAuth().signInWithGoogle()
        └─ signInWithPopup(auth, GoogleAuthProvider)   ← popup, not redirect
@@ -34,7 +30,7 @@ the session without a second popup. Details and the `authDomain` caveat:
 
 ## 2. Listing dashboards
 
-```
+```text
 page  →  useDashboardPage()  →  useFirestoreService()  →  getDocs(...)
                                       │
                                       └─ canAccessDashboard(dashboardId, userId)
@@ -54,7 +50,7 @@ returns `Invalid Date`, compares false, and grants access that should have expir
 
 Two separate requests. This is the flow to understand before touching embeds.
 
-```
+```text
 dashboard/view/[id].vue
   │
   ├─(1) POST /api/embed/request  { dashboardId }
@@ -80,7 +76,7 @@ reports shared to named accounts render Looker's own error page. See
 
 ## 4. Inviting a user
 
-```
+```text
 admin/invitations  →  POST /api/invitations        (or /bulk)
                         ├─ write the invitation document
                         └─ server/utils/emailService.ts → Resend
@@ -95,7 +91,7 @@ email.
 
 ## 5. Mock vs Firestore
 
-```
+```text
 useServiceMode()  ──  NUXT_PUBLIC_USE_FIRESTORE=true  →  /api/{resource}
                   └─  otherwise                       →  /api/mock/{resource}
 ```
@@ -107,7 +103,7 @@ flag cannot leak mock data into production.
 
 CI/CD is live, not planned.
 
-```
+```text
 push to main
   └─ .github/workflows/deploy.yml
        └─ firebase deploy --only hosting,functions --force

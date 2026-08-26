@@ -11,6 +11,7 @@ Sidebar navigation is **role-based** — each role sees different menu structure
 All roles share the **Dashboard** menu (View All + Search) as the primary entry point.
 
 **Key Design Decisions:**
+
 - Folder Tree is **removed from Sidebar** for User and Moderator — replaced by Folder Filter dropdown on the "View All" page
 - Moderator has **2 menu groups**: Dashboard (Viewer) + Manage Folders (Manager)
 - Admin keeps **Folder Tree in Explorer** (left panel) for structural management
@@ -20,7 +21,7 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 
 ## 1. USER Role Sidebar
 
-```
+```text
 ┌──────────────────────┐
 │                      │
 │  ▾ Dashboard         │  ← Always open by default
@@ -43,12 +44,14 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 ```
 
 **Behavior:**
+
 - "View All" → Opens Dashboard Discover page with all accessible dashboards, grouped by folder, with tag filter chips and folder dropdown filter
 - "Search" → Opens Dashboard Discover page with search input focused
 - No Folder Tree in sidebar (folders are used as filters on the discover page)
 - Sidebar is minimal and clean
 
 **Active State:**
+
 - Current menu item highlighted with primary color background
 - `/dashboard/discover` → "View All" highlighted
 - `/dashboard/view/:id` → no sidebar item highlighted (breadcrumb shows path)
@@ -57,7 +60,7 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 
 ## 2. MODERATOR Role Sidebar
 
-```
+```text
 ┌──────────────────────┐
 │                      │
 │  ▾ Dashboard         │  ← View 1: Viewer Mode
@@ -79,6 +82,7 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 ```
 
 **Behavior:**
+
 - **Dashboard group** = Viewer mode (read-only, same as User)
 - **Manage Folders group** = Manager mode (CRUD in assigned folders)
 - Manage Folders shows **only `assignedFolders`** — not all folders
@@ -87,10 +91,12 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 - Accordions are **mutually exclusive**: opening "Manage Folders" closes "Dashboard" and vice versa
 
 **Active State:**
+
 - `/dashboard/discover` → "View All" highlighted, Dashboard accordion open
 - `/manage/folders/folder_sales` → "Sales" highlighted, Manage Folders accordion open
 
 **Visual Indicators:**
+
 - ✏️ icon next to assigned folder names (to indicate manageable)
 - Badge with dashboard count `(2)` next to folder names
 - Indented subfolders with tree lines
@@ -99,7 +105,7 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 
 ## 3. ADMIN Role Sidebar
 
-```
+```text
 ┌──────────────────────┐
 │                      │
 │  ▾ Dashboard         │  ← Same as User/Moderator
@@ -126,6 +132,7 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 ```
 
 **Behavior:**
+
 - **Dashboard group** = Same view as User (tag filter + folder filter + lazy load)
 - **Admin group** = Full admin panel with all management pages
 - **Tags** = New menu item for tag CRUD management
@@ -133,6 +140,7 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 - Accordions are **mutually exclusive**: opening Admin closes Dashboard and vice versa
 
 **Active State:**
+
 - `/admin/tags` → "Tags" highlighted, Admin accordion open
 - `/admin/explorer/folder_sales` → "Explorer" highlighted, Admin accordion open
 
@@ -141,6 +149,7 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 ## 4. Sidebar Visibility Logic
 
 > **Design Decision (Phase 5 Redesign):** Folder Tree ถูก **remove ออกจาก Sidebar โดยตั้งใจ**
+>
 > - `showFolders` ใน `app/composables/useSidebarVisibility.ts` ถูก hardcode เป็น `false`
 > - Folder ถูกย้ายไปเป็น **filter dropdown** บนหน้า `/dashboard/discover` แทน
 > - Admin ยังคงเห็น Folder Tree ได้ผ่าน **Explorer** (`/admin/explorer`) ซึ่งมี left panel ของตัวเอง
@@ -230,7 +239,8 @@ function getSidebarMenus(role: string, assignedFolders: Folder[]): SidebarMenuGr
 ## 5. Responsive Behavior
 
 ### Desktop (>1024px)
-```
+
+```text
 ┌──────────────────┬──────────────────────────────────────┐
 │                  │                                      │
 │     SIDEBAR      │          MAIN CONTENT                │
@@ -242,7 +252,8 @@ function getSidebarMenus(role: string, assignedFolders: Folder[]): SidebarMenuGr
 ```
 
 ### Tablet (768-1024px)
-```
+
+```text
 ┌────────┬────────────────────────────────────────────────┐
 │        │                                                │
 │SIDEBAR │              MAIN CONTENT                      │
@@ -251,11 +262,13 @@ function getSidebarMenus(role: string, assignedFolders: Folder[]): SidebarMenuGr
 │        │                                                │
 └────────┴────────────────────────────────────────────────┘
 ```
+
 - Sidebar width reduced to 200px
 - Text labels shortened or hidden (icon-only mode optional)
 
 ### Mobile (<768px)
-```
+
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  [☰]  StreamHub Logo                    [User ▾]       │
 ├─────────────────────────────────────────────────────────┤
@@ -278,6 +291,7 @@ function getSidebarMenus(role: string, assignedFolders: Folder[]): SidebarMenuGr
   │  [Close ✕]       │
   └──────────────────┘
 ```
+
 - Sidebar hidden by default
 - Hamburger menu (☰) toggles drawer overlay
 - Full menu accessible via drawer

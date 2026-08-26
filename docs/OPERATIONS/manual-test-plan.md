@@ -3,7 +3,7 @@
 > **Total Test Cases:** 211
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
-> ### ⚠️ ของทดสอบถูกล้างออกจาก prod แล้ว (2026-08-25)
+> ## ⚠️ ของทดสอบถูกล้างออกจาก prod แล้ว (2026-08-25)
 >
 > เจ้าของโปรเจกต์ลบแดชบอร์ด/โฟลเดอร์ที่ใช้ทดสอบและบัญชีที่สร้างขึ้นมาทดสอบออกทั้งหมด · เหลือ **users 3 · dashboards 30 · folders 12** และทุกแดชบอร์ดมี `lookerEmbedUrl` จริง · `npm run audit:orphans` = 0 ทั้ง 7 หมวดหลังล้าง
 >
@@ -635,26 +635,31 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
 **BUG-001 รายละเอียด:**
+
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
 - **Root Cause:** `buildFolderTree()` ใน `useFirestoreService.ts` คืนค่าเฉพาะ root folders (sub-folders ถูก nest ไว้ใน `.children`) แต่ `groupedByFolder` และ `folderNameMap` ใน `discover.vue` iterate แค่ level บนสุด ทำให้ sub-folder ID ไม่ถูก map
 - **ไฟล์ที่เกี่ยวข้อง:** `app/pages/dashboard/discover.vue` (computed `groupedByFolder`, `folderNameMap`)
 
 **BUG-002 รายละเอียด:**
+
 - **อาการ:** Admin เปิด toggle "แสดงที่เก็บถาวร" แล้ว archived dashboard ไม่ปรากฏ
 - **Root Cause:** `loadDashboards()` ใน `useDashboardPage.ts` ไม่ได้ส่ง `includeArchived: true` ไปให้ service ทำให้ archived dashboards ไม่ถูก load เข้า `dashboards.value` ตั้งแต่แรก toggle บน UI จึงไม่มีผล
 - **ไฟล์ที่เกี่ยวข้อง:** `app/composables/useDashboardPage.ts` (function `loadDashboards`)
 
 **BUG-003 รายละเอียด:**
+
 - **อาการ:** เลือก tag filter แล้ว URL bar ไม่เปลี่ยน — copy URL ไปเปิด new tab ได้หน้าว่างไม่มี filter
 - **Root Cause:** `handleTagFilterUpdate()` อัปเดตเฉพาะ `tagStore` แต่ไม่ push query param ลง URL ตรงข้ามกับ folder ที่ใช้ `router.push` เสมอ และไม่มี restore tag จาก URL ตอน `onMounted`
 - **ไฟล์ที่เกี่ยวข้อง:** `app/pages/dashboard/discover.vue` (function `handleTagFilterUpdate`, `onMounted`)
 
 **ENV-001 รายละเอียด:**
+
 - **อาการ:** หน้าขาวพร้อม console error: `Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html"`
 - **Root Cause:** Browser cache สาเหตุ — tab ที่เปิดค้างไว้ก่อน deploy ใหม่ถือ `index.html` เก่าที่อ้างอิง JS chunk hash เก่า (เช่น `IhJDMPiJ.js`) ซึ่ง Firebase Hosting ลบออกหลัง deploy Firebase SPA rewrite จึงตอบด้วย `index.html` แทน JS จริง ทำให้ browser ปฏิเสธ
 - **วิธีแก้:** กด **Cmd+Shift+R** (Hard Refresh) หรือ clear cache — error หายทันที ไม่ใช่ app bug
 
 **BUG-004 รายละเอียด:**
+
 - **อาการ:** เชิญหลายคนใส่ role/company/group ต่างกันรายแถว แต่ทุกคนได้ role/company/group ของแถวแรก (เช่น แถว 2 ตั้ง Moderator + Management → ถูกส่งเป็น User + ไม่มีกลุ่ม)
 - **Root Cause:** `server/api/invitations/bulk.post.ts` destructure แค่ flat `{ emails, role, company, assignedGroups }` แล้ว loop `for (const email of emails)` ใช้ค่าเดียวกับทุก email — **เมิน array `items[]`** ที่ client ([BulkInviteModal.vue](../../app/components/admin/BulkInviteModal.vue)) ส่งมาพร้อม role/company/group รายแถว
 - **ไฟล์ที่เกี่ยวข้อง:** `server/api/invitations/bulk.post.ts` (+ `server/api/mock/invitations/bulk.post.ts` น่าจะมีปัญหาเดียวกัน)
@@ -662,6 +667,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **🔧 Fixed (2026-07-19):** เพิ่ม `normalizeBulkItems` util + regression tests (PR #279); follow-up ปิด group leak (แถวไม่มี group ดึงของแถวก่อนหน้า) โดยแยก items[] mode (ไม่ inherit flat) vs emails[] mode (PR #280) — ยืนยันบน prod Firestore: purchase=user/STTH/[], mnc=moderator/STSB/[finance]
 
 **DESIGN-001 รายละเอียด:**
+
 - **อาการ:** ลบ direct user ออกจาก dashboard แล้ว user ยังเห็น dashboard อยู่ (พบตอนทดสอบ 3.10.2 บน Finance Summary)
 - **Root cause:** `access.company = []` (ว่าง) ถูกตีความว่า "ทุกบริษัทเข้าถึงได้" — มี comment + logic ตรงกัน 3 ที่: [useFirestoreService.ts:720](../../app/composables/useFirestoreService.ts#L720), [useJSONMockService.ts:689](../../app/composables/useJSONMockService.ts#L689), [server/utils/companyAccess.ts:104](../../server/utils/companyAccess.ts#L104). เมื่อ company ว่าง `checkAccess` คืน true ให้ทุกคน — direct user/group grant ถูก override
 - **Blast radius (prod, 2026-07-19):** 7/11 dashboards มี company=[] = public; 2 ตัว (`dash_hr_employee_data`, `dash_project_q1_analytics`) ตั้ง group grant ไว้แต่ถูก override เป็น public
@@ -677,6 +683,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
   - **หมายเหตุ:** บรรทัด useFirestoreService.ts:720 / useMockData.ts:165 / companyAccess.ts:104 ข้างบนเป็นเลขก่อนแก้ — logic ปัจจุบันเปลี่ยนแล้ว
 
 **BUG-005 รายละเอียด:**
+
 - **อาการ:** เปิด modal "รายละเอียดกลุ่ม" ของ operations แสดง "สมาชิกในกลุ่ม 2 คน" แต่ list แสดงแค่ Janine 1 คน + ข้อความ "มีสมาชิก 1 คนที่ไม่พบข้อมูลในระบบ"
 - **Root cause (2 ชั้น):**
   1. **Stale ref:** `group.members = ["user_janine_user", "user_sombat_user"]` — `user_sombat_user` ถูกลบออกจาก `users` collection ไปแล้ว (ลบ user ไม่ล้าง reference ใน `group.members`)
@@ -688,6 +695,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **cleanup แยก:** ลบ orphan UID (`user_sombat_user`) ออกจาก `operations.members[]`
 
 **BUG-008 รายละเอียด:**
+
 - **อาการ:** ที่ `/admin/explorer` กดถังขยะลบโฟลเดอร์ที่ยังมี dashboard/subfolder ข้างใน → modal ยืนยันแบบ generic ("คุณแน่ใจว่าต้องการลบ 'TEST-B'") ไม่มี warning ว่ามีเนื้อหา แล้วลบสำเร็จเงียบ ๆ ไม่มี error (spec TC 3.13.6 คาดหวัง "Error message shown")
 - **Root cause:** [admin/explorer/[[folderId]].vue](../../app/pages/admin/explorer/[[folderId]].vue) ไม่ส่ง `canDeleteFolder` guard เข้า `useExplorer` — [useExplorer.ts](../../app/composables/useExplorer.ts) จะบล็อกก็ต่อเมื่อมี callback นี้ (บรรทัด ~197) admin path เลยเรียก `deleteFolder` ลบ doc ตรง ๆ ไม่เช็คว่าว่างหรือ cascade
 - **ผลกระทบ:** dashboard/subfolder ที่ค้างข้างในกลายเป็น orphan — `folderId`/`parentId` ชี้ไป folder ที่ถูกลบไปแล้ว (data integrity)
@@ -695,6 +703,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **manage explorer ด้วย:** `/manage/explorer` (moderator) มี orphan-risk เดียวกัน — `canDeleteFolder` เดิมเช็คแค่สิทธิ์ เพิ่ม content check (subfolder + dashboard ว่าง) ต่อจากเช็คสิทธิ์แล้วในรอบนี้
 
 **BUG-018 รายละเอียด:**
+
 - **อาการ:** ตั้งวันหมดอายุที่หน้าจัดการสิทธิ์ (แท็บ "ข้อจำกัด" → หมดอายุ) เลือก 18/8/2569 กดบันทึก → ค่าที่เขียนจริงคือ `"2026-08-18T00:00:00.000Z"` = **07:00 น. วันที่ 18 ตามเวลาไทย** สิทธิ์ตัดกลางเช้าแทนที่จะเป็นสิ้นวัน
 - **Root cause 2 จุด:**
   1. [PermissionEditor.vue:780](../../app/components/features/PermissionEditor.vue#L780) `localRestrictions.value.expiry[uid] = new Date(popupExpiryDate.value)` — `new Date('2026-08-18')` คือเที่ยงคืน **UTC** (บั๊กชั้น 3 ตัวเดียวกับ BUG-017 คนละไฟล์)
@@ -707,11 +716,13 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **ยืนยันบน prod ก่อนแก้:** `node scripts/inspect-expiry.mjs dash_1786983449961` ระหว่างทดสอบ BUG-017 ได้ `"2026-08-18T00:00:00.000Z"` (string, เที่ยงคืน UTC) — ค่าทดสอบถูกลบแล้ว
 
 **BUG-019 รายละเอียด:**
+
 - **อาการ:** moderator เปิดแดชบอร์ดแล้วกดปุ่ม Share ในหน้า view → เด้งไป `/admin/permissions` ซึ่ง middleware เป็น `['auth','admin']` เข้าไม่ได้
 - **Root cause:** [view/[id].vue:541](../../app/pages/dashboard/view/[id].vue#L541) hardcode `/admin/permissions` ทั้งที่ปุ่มโชว์ให้ทั้ง admin และ moderator ([:57](../../app/pages/dashboard/view/[id].vue#L57))
 - **แนวทางแก้ (ยังไม่ทำ):** เลือก path ตาม role แบบเดียวกับ [ExplorerPage.vue:101](../../app/components/features/ExplorerPage.vue#L101) (`routePrefix.replace('/explorer','/permissions')` → `/manage/permissions` สำหรับ moderator)
 
 **BUG-020 รายละเอียด:**
+
 - **อาการ:** ลบ `Survey Streamwash` ออกจากสิทธิ์ของแดชบอร์ด กดบันทึก → `access.direct.users` ว่างแล้ว แต่ `restrictions.expiry.<uid>` ยังอยู่ หน้าจอขึ้น `จัดการสิทธิ์ 0` / `ข้อจำกัด 1`
 - **ทำไมไม่ลบอัตโนมัติทั้งหมด:** `restrictions` เป็น **Layer 3** ทำงานทับทุกเส้นทางที่ได้สิทธิ์ ([useFirestoreService.ts:688](../../app/composables/useFirestoreService.ts#L688) เช็ค restrictions ก่อน access; [:509-513](../../app/composables/useFirestoreService.ts#L509) ตัด uid หลังรวมคนจาก group + company) ⇒ ถ้าลบข้อจำกัดทิ้งทุกครั้งที่ลบ direct grant คนที่เข้าถึงผ่าน**บริษัท/กลุ่ม/โฟลเดอร์ที่สืบทอด** จะได้สิทธิ์ที่ถูกจำกัดเวลาไว้คืนแบบเงียบ ๆ = คืนสิทธิ์โดยไม่มีใครสั่ง
 - **Fix (รอบแรก):** ถามด้วย `ConfirmDialog` ตอนลบสิทธิ์ที่ทำให้คนถือข้อจำกัดไม่เหลือทางเข้า ตัดสินด้วย `restrictedWithoutAccess` ใน `app/utils/accessScope.ts` — **ต่อมาถูกแทนที่ด้วยการตรวจตอนกดบันทึก ดู BUG-022** (ไฟล์นั้นถูกลบแล้ว)
@@ -720,6 +731,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **จังหวะเขียนฐานข้อมูล:** dialog กับปุ่ม ✕ แก้แค่ state ในหน้า การเขียนเกิดตอนกด **บันทึก** เท่านั้น ([savePermissions](../../app/components/features/PermissionsPage.vue#L653)) กด "ยกเลิก"/"รีเซ็ต" ก่อนบันทึก = ไม่มีอะไรลง Firestore
 
 **BUG-021 / BUG-022 รายละเอียด:**
+
 - **BUG-021 อาการ:** กดบันทึกที่หน้าจัดการสิทธิ์แล้วไม่มีข้อความยืนยันใด ๆ — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (ทางเข้าปกติทั้งหมด ทั้งปุ่ม 🔑 และลิงก์ที่ส่งต่อกัน) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` ในเทมเพลตไม่มีทางแสดงเลย
 - **BUG-021 fix:** ทั้ง 2 พาธ (dashboard/folder) `showToast` ก่อนแล้วค่อย navigate — toast เป็น `useState` singleton จึงข้าม route ได้ และทางที่ล้มเหลว toast แดงด้วย เดิมตั้งแค่ `errorMessage` ซึ่งอยู่บนสุดของหน้าที่แอดมินเลื่อนผ่านไปแล้ว (PR #387)
 - **BUG-022 อาการ:** สวิตช์ **เข้าถึงสาธารณะ** เขียน `access.public` ตรง ๆ ที่หน้าเพจ ไม่ได้ผ่าน `requestRemoval` ของ `PermissionEditor` ⇒ ปิดสาธารณะทั้งที่มีคนถือข้อจำกัดอยู่ = ทิ้ง orphan เงียบ ๆ เหมือนก่อนแก้ BUG-020
@@ -727,6 +739,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **ถอด guard รายปุ่มออก:** `requestRemoval` กับ `app/utils/accessScope.ts` ถูกลบ — ดักรายปุ่มไม่มีทางครบ (สวิตช์สาธารณะกับสวิตช์สืบทอดอยู่คนละคอมโพเนนต์กับตัวแก้ไขสิทธิ์) และการถาม 2 ที่ในโฟลว์เดียวทำให้คนกดผ่านโดยไม่อ่าน
 
 **BUG-017 รายละเอียด (ปิดด้วยการลบ Quick Share — 2026-08-18):**
+
 - **อาการที่รายงาน:** กด 🔗 ที่การ์ดใน Discover → กด Share → dialog ปิดเหมือนสำเร็จ ไม่มี toast และไม่มีอะไรถูกเขียนลง Firestore
 - **Root cause เดิม (3 ชั้น):** `handleShare` เป็น stub ไม่เคยเรียก `quickShareDashboard`; `availableUsers` ประกาศแล้วไม่เคยถูก assign; `expiryDate` เป็น string แต่ service รับ `Date`
 - **PR #376** ต่อสายครบทั้ง 3 ชั้น (service call + toast ทุกผลลัพธ์ + `endOfDayLocal`) พร้อมเทสต์ 8 เคส
@@ -736,6 +749,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **สิ่งที่เก็บไว้:** `endOfDayLocal` ใน [shared/utils/dates.ts](../../shared/utils/dates.ts) พร้อมเทสต์ — ตอนนั้นยังไม่มีคนเรียก และถูกใช้จริงตอนแก้ BUG-018 ในวันถัดมา; flag `canShareDashboard` ใน permissions store ยังอยู่ในเมทริกซ์ role แต่ไม่มี UI ไหนอ่านแล้ว
 
 **สร้างโฟลเดอร์ที่ sidebar (ปิดด้วยการลบ — 2026-08-19):**
+
 - **สภาพเดิม:** ปุ่ม `+` ใน `FolderSidebar` ผูกกับ stub 2 ตัว — `alert('Create folder functionality coming soon!')` ที่ `/dashboard` และ `console.log` เงียบ ๆ ที่ `/dashboard/discover`
 - **ตรวจแล้วพบว่าไม่มีทางกดถึง:** `PageLayout` ส่ง `:allow-create` ต่อให้ `UnifiedSidebar` ซึ่ง render แค่ `AdminAccordion` 3 อัน ไม่เคย render `FolderSidebar`; ตัว `FolderSidebar` ถูกใช้โดย `FolderAccordion` ที่ไม่มีหน้าไหนเรียก ⇒ prop ตกพื้นกลางทาง แบบเดียวกับ dialog ของ BUG-017
 - **การตัดสินใจ:** ลบทั้งสาย ไม่ต่อให้ทำงาน — Explorer (`/admin/explorer`, `/manage/explorer`) สร้างโฟลเดอร์ได้จริงอยู่แล้ว และเป็นทางเดียวที่ผู้ใช้ใช้อยู่
@@ -743,6 +757,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **สิ่งที่เก็บไว้:** flag `canCreateFolder` ในเมทริกซ์ role ของ permissions store — ไม่มีโค้ดอ่านแล้ว แต่ยังเป็นสเปกที่ [docs/GUIDES/roles-and-permissions.md](../GUIDES/roles-and-permissions.md) อ้างถึง (Explorer ใช้ `canCreateInCurrentFolder` ของตัวเอง ไม่ได้อ่าน flag นี้)
 
 **เมนูโปรไฟล์ / การตั้งค่า ใน UserMenu (2026-08-19):**
+
 - **สภาพเดิม:** ทั้งสองเมนูแสดงกับทุก role กดแล้ว `console.log` เฉย ๆ เพราะไม่มี route `/profile` และ `/settings`
 - **โปรไฟล์ → ทำจริง:** เพิ่มหน้า `/profile` แบบอ่านอย่างเดียว (ตัวตน, บทบาท, บริษัท, สถานะ, วันเข้าร่วม, กลุ่ม, โฟลเดอร์ที่ดูแลสำหรับ moderator) อ่านจาก `users/{uid}` ของตัวเอง + lookup ชื่อบริษัท/กลุ่ม ทั้งหมดอยู่ในสิทธิ์ที่ [firestore.rules](../../firestore.rules) ให้อยู่แล้ว ไม่ต้องแก้ rules — ดู TC 2.4.x
 - **การตั้งค่า → ลบทิ้ง:** ยังไม่มีค่าอะไรให้ผู้ใช้ตั้งเลย (ธีม/ภาษา/การแจ้งเตือน ไม่มีในระบบ) เมนูที่กดแล้วเงียบจึงถูกเอาออกจนกว่าจะมีของจริง
@@ -779,7 +794,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
 | **TOTAL** | **211** | — | 197 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
-> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 211 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]? ` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
+> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 211 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
 
 ---
 
@@ -815,11 +830,11 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 
 | Email | Role | Company | Notes |
 |-------|------|---------|-------|
-| it.streamwash@gmail.com | Admin | STTH | Primary test admin |
-| n.noikaeo@gmail.com | Moderator | STTH | Primary test moderator |
-| nattha@streamwash.com | Moderator | STTH | Secondary moderator |
-| teerak@streamwash.com | User | STTH | Primary test user |
-| survey.streamwash@gmail.com | User | STTH | Secondary test user |
+| <it.streamwash@gmail.com> | Admin | STTH | Primary test admin |
+| <n.noikaeo@gmail.com> | Moderator | STTH | Primary test moderator |
+| <nattha@streamwash.com> | Moderator | STTH | Secondary moderator |
+| <teerak@streamwash.com> | User | STTH | Primary test user |
+| <survey.streamwash@gmail.com> | User | STTH | Secondary test user |
 
 ### Local vs Production — where results match (and where they don't)
 
@@ -835,6 +850,7 @@ real production database. (Always clean up test records.)
 | Auth / OAuth | mostly same | Same Firebase Auth project; prod uses the deployed `authDomain` (see authentication guide's authDomain caveat) |
 
 **Takeaways:**
+
 - §3.3–3.8 results verified locally **are** representative of prod (same code + same DB; the fixes are all deployed to `main`/prod).
 - Server-function-backed sections must still be exercised against the live prod URL.
 - Local is **not** an isolated sandbox — it mutates prod data. A true sandbox would need the Firestore emulator or a second Firebase project (not currently configured).

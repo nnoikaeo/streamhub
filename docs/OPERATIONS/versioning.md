@@ -1,7 +1,3 @@
----
-title: Version Management
----
-
 # Version Management
 
 ## What identifies a build

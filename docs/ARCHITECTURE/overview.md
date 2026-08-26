@@ -1,7 +1,3 @@
----
-title: Architecture Overview
----
-
 # Architecture Overview
 
 StreamHub is a **single-page app**. `nuxt.config.ts` sets `ssr: false`, so Nuxt renders
@@ -10,7 +6,7 @@ app boots in the browser. The Nitro server exists, but only for `/api/**`.
 
 Do not describe this app as SSR. Nothing renders server-side.
 
-```
+```text
 Browser (SPA)
   │
   ├── Firebase SDK ──────────────────────► Firestore

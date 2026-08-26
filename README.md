@@ -10,7 +10,7 @@ A modern, secure, and scalable dashboard solution built with Nuxt 4, Firebase, a
 
 ## 🎯 Quick Navigation
 
-### 👨‍💻 I want to...
+### 👨‍💻 I want to
 
 | Goal | Read This |
 |------|-----------|
@@ -41,7 +41,7 @@ A modern, secure, and scalable dashboard solution built with Nuxt 4, Firebase, a
 
 ## 🛠️ Tech Stack
 
-```
+```text
 Frontend:     Nuxt 4 + Vue 3 + TypeScript
 Styling:      Tailwind CSS + @nuxt/ui
 State:        Pinia
@@ -54,6 +54,7 @@ Deployment:   Firebase Hosting
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or pnpm
 - Firebase account
@@ -117,7 +118,7 @@ We welcome contributions! StreamHub uses **Git Flow Workflow** for organized dev
 
 **Read our [Contributing Guide](docs/CONTRIBUTING/workflow.md) for detailed instructions.**
 
-### Quick Git Flow Steps:
+### Quick Git Flow Steps
 
 ```bash
 # 1. Start from develop (always!)
@@ -143,7 +144,7 @@ git branch -d feat/your-feature
 git push origin --delete feat/your-feature
 ```
 
-### Branch Strategy:
+### Branch Strategy
 
 | Branch | Purpose | Protection |
 |--------|---------|------------|
@@ -151,9 +152,9 @@ git push origin --delete feat/your-feature
 | `develop` | Staging/integration | ✅ PR required, 1+ approvals |
 | `feat/*` | Feature development | ❌ None |
 
-### Commit Message Format:
+### Commit Message Format
 
-```
+```text
 <type>(<scope>): <subject>
 
 feat(dashboard): add dashboard header component
@@ -163,7 +164,8 @@ docs(readme): update installation steps
 
 **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
 
-### More Info:
+### More Info
+
 - 📖 Full workflow: [Contributing Guide](docs/CONTRIBUTING/workflow.md)
 - 🏗️ Architecture: [Architecture Overview](docs/ARCHITECTURE/overview.md)
 - 🛠️ Development: [Development Guides](docs/GUIDES/roles-and-permissions.md)

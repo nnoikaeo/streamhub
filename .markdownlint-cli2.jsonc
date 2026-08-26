@@ -1,0 +1,47 @@
+// Markdown lint for the docs. Baseline is 0 — see CLAUDE.md.
+//
+// Rules are disabled only where the rule fights a deliberate choice in this
+// repo, never to avoid work. Each one says why.
+{
+  "globs": ["**/*.md"],
+  "ignores": [
+    "node_modules",
+    ".claude/skills",   // vendored skill packages, not ours to reformat
+    ".output",
+    ".nuxt",
+    "prompt-*.md"       // gitignored working notes, not part of the docs
+  ],
+  "config": {
+    // Prose here is Thai and English mixed, and the BUG register in
+    // manual-test-plan.md is deliberately one long row per bug. Hard-wrapping
+    // Thai text at a column count also breaks it in the middle of a word.
+    "MD013": false,
+
+    // Wants every table cell padded to a common width. Pure churn on tables
+    // that already render correctly, and it fights any edit to a cell.
+    "MD060": false,
+
+    // Repeated section headings ("Overview", "Example") are normal across the
+    // per-page wireframes. Anchor collisions are caught by `npm run docs:links`,
+    // which resolves cross-file anchors too — this rule only sees one file.
+    "MD024": false,
+
+    // A bold line used as a sub-heading is the house style in the Thai docs,
+    // where a real heading would enter the table of contents.
+    "MD036": false,
+
+    // Blank lines inside a blockquote separate paragraphs in the callout blocks
+    // in manual-test-plan.md and CLAUDE.md.
+    "MD028": false,
+
+    // Anchor checking lives in scripts/check-doc-links.mjs, which knows the
+    // GitHub slug rules this repo relies on (an emoji heading anchors as
+    // `#-tag-permissions`) and checks across files. Two checkers disagreeing
+    // about anchors is worse than one that is right.
+    "MD051": false,
+
+    // `<br>` inside a table cell has no Markdown equivalent, and the wireframes
+    // use it to keep a multi-line cell in one row.
+    "MD033": { "allowed_elements": ["br"] }
+  }
+}

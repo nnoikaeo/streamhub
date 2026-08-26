@@ -1,7 +1,3 @@
----
-title: Tech Stack Details
----
-
 # Tech Stack Details
 
 Versions below are the ranges in [package.json](../../package.json) and the resolved versions

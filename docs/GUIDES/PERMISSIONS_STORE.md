@@ -8,7 +8,7 @@ The **Permissions Store** (`stores/permissions.ts`) manages user access control 
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │            User Authentication                      │
 │  (Google, Firebase, etc.)                           │
@@ -40,7 +40,6 @@ The **Permissions Store** (`stores/permissions.ts`) manages user access control 
 
 ## Role-Based Permissions
 
-
 > ⚠️ **`canShareDashboard` ไม่มีใครอ่านแล้ว (2026-08-18)** — Quick Share ถูกลบทั้งชุด การให้สิทธิ์ทุกกรณีผ่านหน้าจัดการสิทธิ์ (`/admin/permissions`, `/manage/permissions`) ซึ่งคุมด้วย middleware ของหน้า ไม่ใช่ flag นี้ ตัว flag ยังอยู่ในเมทริกซ์เพื่อไม่ให้ชนิดข้อมูลเปลี่ยน และตัวอย่างโค้ดที่มีปุ่ม Share ด้านล่างเป็นภาพประกอบการใช้ store เท่านั้น ไม่ตรงกับ UI จริงแล้ว
 >
 > ⚠️ **`canCreateFolder` ไม่มีใครอ่านแล้วเช่นกัน (2026-08-19)** — ปุ่มสร้างโฟลเดอร์ที่ sidebar ถูกลบ (PR #395) เพราะกดไม่ถึงมาตลอด · การสร้างโฟลเดอร์จริงอยู่ที่ Explorer ซึ่งตัดสินด้วย `canCreateInCurrentFolder` ของตัวเอง (ดูจากตำแหน่งในทรีที่ moderator ได้รับมอบหมาย) ไม่ใช่ flag นี้
@@ -50,7 +49,9 @@ The **Permissions Store** (`stores/permissions.ts`) manages user access control 
 StreamHub has 4 predefined roles:
 
 #### 1. Admin
+
 Full access to all features and settings
+
 ```typescript
 {
   canViewDashboards: true,
@@ -69,9 +70,11 @@ Full access to all features and settings
 ```
 
 #### 2. Moderator (formerly Editor)
+
 Can create and edit content in assigned folders, assign tags, but cannot manage users or create tags.
 Has **dual-view model**: Viewer mode (read-only) and Manager mode (CRUD in assigned folders).
 See [Moderator Dual-View Model](roles-and-permissions.md#-moderator-dual-view-model).
+
 ```typescript
 {
   canViewDashboards: true,
@@ -90,7 +93,9 @@ See [Moderator Dual-View Model](roles-and-permissions.md#-moderator-dual-view-mo
 ```
 
 #### 3. User (Default)
+
 Read-only access. Can view dashboards and filter by tags, but cannot modify anything.
+
 ```typescript
 {
   canViewDashboards: true,
@@ -775,12 +780,14 @@ const canEdit = computed(() => permissions.can('canEditDashboard'))
 ## Best Practices
 
 1. **Initialize on Login**
+
    ```typescript
    // ✅ Call on user login
    permissionsStore.initializePermissions(user)
    ```
 
 2. **Check Permissions at Three Levels**
+
    ```typescript
    // Level 1: Template (UI visibility)
    v-if="can('create')"
@@ -793,6 +800,7 @@ const canEdit = computed(() => permissions.can('canEditDashboard'))
    ```
 
 3. **Use Computed for Multi-Checks**
+
    ```typescript
    // ✅ Cache the result
    const canEdit = computed(() =>
@@ -805,12 +813,14 @@ const canEdit = computed(() => permissions.can('canEditDashboard'))
    ```
 
 4. **Clear on Logout**
+
    ```typescript
    // ✅ Reset on logout
    permissionsStore.initializePermissions(null)
    ```
 
 5. **Document Permission Requirements**
+
    ```typescript
    /**
     * Share dashboard
@@ -827,6 +837,7 @@ const canEdit = computed(() => permissions.can('canEditDashboard'))
 ### Issue: Permissions not updating after role change
 
 **Solution:** Reinitialize permissions when role changes
+
 ```typescript
 const refreshPermissions = () => {
   const authStore = useAuthStore()
@@ -838,6 +849,7 @@ const refreshPermissions = () => {
 ### Issue: Permission checks not working in component
 
 **Solution:** Ensure store is initialized before component renders
+
 ```typescript
 // In middleware or auth composable
 if (!authStore.user) {
@@ -848,6 +860,7 @@ if (!authStore.user) {
 ### Issue: Template shows content for unauthorized user
 
 **Solution:** Use v-if instead of conditional classes for sensitive content
+
 ```vue
 <!-- ❌ Wrong: still renders in DOM -->
 <button :style="{ display: can('delete') ? 'block' : 'none' }">

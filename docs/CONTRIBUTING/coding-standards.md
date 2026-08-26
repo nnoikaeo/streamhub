@@ -1,7 +1,3 @@
----
-title: Coding Standards
----
-
 # Coding Standards
 
 Code style and best practices.
@@ -78,7 +74,7 @@ onMounted(() => {})
 
 ### File Naming
 
-```
+```text
 ✅ GOOD
 app/components/DashboardCard.vue
 app/pages/dashboard/index.vue
@@ -551,12 +547,14 @@ function expectHealth(result: Awaited<ReturnType<typeof healthHandler>>): Health
 ## Security
 
 ✅ **DO:**
+
 - Never commit `.env` files
 - Validate user input
 - Use Firebase security rules
 - Keep dependencies updated
 
 ❌ **DON'T:**
+
 - Store credentials in code
 - Log sensitive data
 - Disable TypeScript checks
@@ -567,12 +565,14 @@ function expectHealth(result: Awaited<ReturnType<typeof healthHandler>>): Health
 ## Performance
 
 ✅ **DO:**
+
 - Use `computed` for expensive calculations
 - Implement virtual lists for large datasets
 - Lazy-load components
 - Optimize bundle size
 
 ❌ **DON'T:**
+
 - Create new objects in render
 - Deeply nest components
 - Unsubscribe from listeners

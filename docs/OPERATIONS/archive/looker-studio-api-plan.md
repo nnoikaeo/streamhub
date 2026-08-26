@@ -15,6 +15,7 @@
 | Step 3: Dashboard Preview Widget | `feat/dashboard-preview-widget` | #99 | ✅ Merged to main |
 
 **Files created:**
+
 - `app/utils/lookerUrl.ts` — URL validation + embed URL conversion
 - `app/components/features/LookerUrlInput.vue` — URL input + live preview component
 - `app/composables/useLookerApi.ts` — Looker API client (status, reports, sync)
@@ -29,7 +30,7 @@
 
 ## Dependencies Flow
 
-```
+```text
 Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Preview Widget)
                                  ↗
                     (ทำได้อิสระหลัง Step 1)
@@ -47,7 +48,7 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - app/types/dashboard.ts (Dashboard interface — โดยเฉพาะ lookerDashboardId, lookerEmbedUrl)
 - app/pages/manage/folders/[folderId].vue (manage page ที่มี DashboardForm)
@@ -157,9 +158,10 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
    }
    ```
 
-2. สร้าง `app/components/features/LookerUrlInput.vue`:
+1. สร้าง `app/components/features/LookerUrlInput.vue`:
 
    **Component props:**
+
    ```typescript
    interface Props {
      modelValue: string      // v-model สำหรับ embed URL
@@ -169,7 +171,8 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
    ```
 
    **Template structure:**
-   ```
+
+   ```text
    ┌─────────────────────────────────────────────────┐
    │ Looker Studio URL                               │
    │ ┌─────────────────────────────────────────────┐ │
@@ -198,6 +201,7 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
    - Emit `update:modelValue` เป็น embed URL (ไม่ใช่ original URL)
 
    **Implementation:**
+
    ```typescript
    const inputUrl = ref(props.modelValue || '')
    const showingPreview = ref(false)
@@ -219,7 +223,7 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
    })
    ```
 
-3. อัปเดต `app/components/manage/DashboardForm.vue` (หรือสร้างใหม่ถ้ายังไม่มี):
+2. อัปเดต `app/components/manage/DashboardForm.vue` (หรือสร้างใหม่ถ้ายังไม่มี):
    - เพิ่ม LookerUrlInput component ในฟอร์ม
    - Field mapping:
      - `lookerEmbedUrl` ← embed URL จาก LookerUrlInput
@@ -234,7 +238,7 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
    />
    ```
 
-4. อัปเดต `app/pages/dashboard/view.vue`:
+3. อัปเดต `app/pages/dashboard/view.vue`:
    - ปัจจุบัน: แสดง placeholder สำหรับ iframe
    - เปลี่ยนเป็น: แสดง iframe จริงจาก `dashboard.lookerEmbedUrl`
    - เพิ่ม loading state ขณะ iframe กำลังโหลด
@@ -269,18 +273,20 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
    </template>
    ```
 
-5. อัปเดต `.data/dashboards.json`:
+4. อัปเดต `.data/dashboards.json`:
    - ตรวจสอบว่าทุก dashboard มี field `lookerEmbedUrl` (ถ้ายังไม่มีให้เพิ่ม)
    - ถ้ามี URL อยู่แล้ว → ตรวจสอบว่าเป็น embed URL format ที่ถูกต้อง
    - เพิ่ม `lookerDashboardId` field ถ้ายังไม่มี (extract จาก URL)
 
 ระวัง:
+
 - iframe sandbox: Looker Studio ต้องการ `allow-scripts allow-same-origin` — ตรวจสอบ CSP headers
 - X-Frame-Options: Looker Studio embed URL ต้องใช้ /embed/ path ถึงจะ embed ได้
 - View URL จะถูก block โดย X-Frame-Options → ต้องแปลงเป็น embed URL เสมอ
 - Preview อาจไม่ทำงานใน localhost ถ้า Looker Studio ต้องการ domain whitelist
 - อย่าเปลี่ยน Dashboard interface — ใช้ field ที่มีอยู่แล้ว (lookerEmbedUrl, lookerDashboardId)
-```
+
+```text
 
 ---
 
@@ -292,7 +298,9 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
 ### Prompt
 
 ```
+
 อ่านไฟล์ต่อไปนี้ก่อน:
+
 - app/types/dashboard.ts (Dashboard interface)
 - app/utils/lookerUrl.ts (URL parser จาก Step 1)
 - server/utils/jsonDatabase.ts (database utility)
@@ -301,25 +309,29 @@ Step 1 (Manual URL + Validation) → Step 2 (Looker API Service) → Step 3 (Pre
 
 เป้าหมาย: สร้าง Looker Studio API integration สำหรับดึง report list + metadata
 
-### Background:
+### Background
+
 Google Looker Studio API ใช้สำหรับ:
+
 - List reports ที่ user มีสิทธิ์เข้าถึง
 - Get report metadata (title, owner, last modified)
 - ไม่สามารถ embed หรือ get thumbnail ผ่าน API ได้โดยตรง
 
-API Endpoint: https://lookerstudio.googleapis.com/v1/assets:search
+API Endpoint: <https://lookerstudio.googleapis.com/v1/assets:search>
 Authentication: OAuth 2.0 (Service Account หรือ User Credentials)
-Docs: https://developers.google.com/looker-studio/api/reference/rest
+Docs: <https://developers.google.com/looker-studio/api/reference/rest>
 
-### สิ่งที่ต้องทำ:
+### สิ่งที่ต้องทำ
 
 1. เพิ่ม dependencies:
+
    ```bash
    npm install googleapis
    ```
 
 2. เพิ่ม environment variables ใน `.env.example` และ `.env`:
-   ```
+
+   ```text
    # Looker Studio API (Optional — ถ้าไม่ตั้ง จะใช้ Manual URL mode)
    GOOGLE_SERVICE_ACCOUNT_EMAIL=streamhub@project.iam.gserviceaccount.com
    GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
@@ -328,6 +340,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    ```
 
 3. อัปเดต `nuxt.config.ts`:
+
    ```typescript
    runtimeConfig: {
      googleServiceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '',
@@ -479,6 +492,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
 5. สร้าง API endpoints:
 
    **`server/api/looker/reports.get.ts`** — Search/list reports:
+
    ```typescript
    export default defineEventHandler(async (event) => {
      if (!isLookerApiEnabled()) {
@@ -500,6 +514,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    ```
 
    **`server/api/looker/reports/[id].get.ts`** — Get report metadata:
+
    ```typescript
    export default defineEventHandler(async (event) => {
      if (!isLookerApiEnabled()) {
@@ -521,6 +536,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    ```
 
    **`server/api/looker/status.get.ts`** — Check API status:
+
    ```typescript
    export default defineEventHandler(async () => {
      return {
@@ -533,6 +549,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    ```
 
    **`server/api/looker/sync.post.ts`** — Sync reports → dashboards:
+
    ```typescript
    export default defineEventHandler(async (event) => {
      if (!isLookerApiEnabled()) {
@@ -574,6 +591,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    ```
 
 6. สร้าง `app/composables/useLookerApi.ts`:
+
    ```typescript
    import type { LookerReport } from '~/server/utils/lookerStudioApi'
 
@@ -660,13 +678,15 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    ```
 
 ระวัง:
+
 - Google Service Account ต้องมีสิทธิ์ Looker Studio Viewer ถึงจะดึง reports ได้
 - Reports ที่ share กับ service account เท่านั้นจะแสดงผล
 - API quota: Looker Studio API มี rate limit → ควร cache ผลลัพธ์
 - googleapis package ค่อนข้างใหญ่ → import เฉพาะ module ที่ใช้
 - ถ้า credentials ไม่ถูกต้อง → API จะ return error → handle gracefully
 - Looker Studio API อาจเปลี่ยน endpoint ได้ → ตรวจสอบ docs ล่าสุด
-```
+
+```text
 
 ---
 
@@ -678,7 +698,9 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
 ### Prompt
 
 ```
+
 อ่านไฟล์ต่อไปนี้ก่อน:
+
 - app/types/dashboard.ts (Dashboard interface)
 - app/utils/lookerUrl.ts (URL parser จาก Step 1)
 - app/components/features/LookerUrlInput.vue (URL input จาก Step 1)
@@ -687,11 +709,12 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
 
 เป้าหมาย: สร้าง Dashboard preview/thumbnail สำหรับแสดงใน card view
 
-### สิ่งที่ต้องทำ:
+### สิ่งที่ต้องทำ
 
 1. สร้าง `app/components/features/DashboardPreview.vue`:
 
    **Component props:**
+
    ```typescript
    interface Props {
      embedUrl?: string          // Looker embed URL
@@ -706,7 +729,8 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    **3 display modes:**
 
    **thumbnail mode (default):** สำหรับ DashboardCard
-   ```
+
+   ```text
    ┌────────────────────────┐
    │  ┌──────────────────┐  │
    │  │   📊             │  │  ← placeholder/thumbnail image
@@ -716,12 +740,14 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    │  [🔍 Quick View]       │  ← hover: แสดง quick view button
    └────────────────────────┘
    ```
+
    - แสดง thumbnail image หรือ gradient placeholder
    - Hover: แสดง overlay + "Quick View" button
    - Click "Quick View" → เปิด modal mode
 
    **modal mode:** Quick view dialog
-   ```
+
+   ```text
    ┌─────────────── Quick View ─────────────────┐
    │ Dashboard Title                    [✕]     │
    │ ┌─────────────────────────────────────────┐│
@@ -732,6 +758,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    │                        [Open Full View →]  │
    └────────────────────────────────────────────┘
    ```
+
    - Dialog/overlay ขนาดใหญ่
    - แสดง iframe ของ Looker dashboard จริง
    - ปุ่ม "Open Full View" → navigate ไป /dashboard/view?id=xxx
@@ -741,6 +768,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    - ใช้ใน dashboard view page
 
    **Implementation:**
+
    ```typescript
    const showModal = ref(false)
    const iframeLoaded = ref(false)
@@ -841,6 +869,7 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    ```
 
 4. เพิ่ม CSS transitions สำหรับ card hover effect:
+
    ```css
    .dashboard-card {
      transition: transform 0.2s, box-shadow 0.2s;
@@ -859,13 +888,15 @@ Docs: https://developers.google.com/looker-studio/api/reference/rest
    ```
 
 ระวัง:
+
 - iframe preview ใน thumbnail mode จะหนักมาก (load ทุก card) → ใช้ placeholder + lazy load
 - Quick View modal: load iframe เฉพาะตอนเปิด modal เท่านั้น
 - SVG placeholder ใช้ text จาก dashboard name → ต้อง escape HTML entities
 - Mobile: Quick View ควรเป็น full-screen modal
 - Performance: ถ้ามี dashboards เยอะ (50+) → ใช้ Intersection Observer load preview เมื่อเห็น
 - อย่าเปลี่ยน DashboardCard layout เดิมมากเกินไป — แค่เพิ่ม preview section ด้านบน
-```
+
+```text
 
 ---
 

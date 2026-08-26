@@ -1,7 +1,3 @@
----
-title: Environment Variables
----
-
 # Environment Variables Reference
 
 All environment variables used in StreamHub.
