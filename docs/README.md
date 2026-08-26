@@ -56,7 +56,6 @@ its row.
 | Company management | [admin-company-management-page.md](DESIGN/wireframes/admin-company-management-page.md) |
 | Permission management | [admin-permission-management-page.md](DESIGN/wireframes/admin-permission-management-page.md) |
 | Admin home | [admin-dashboard-home-page.md](DESIGN/wireframes/admin-dashboard-home-page.md) |
-| System settings | [admin-system-settings-page.md](DESIGN/wireframes/admin-system-settings-page.md) |
 | Tag management + filter | [tag-management-page.md](DESIGN/wireframes/tag-management-page.md) |
 | Moderator quick share | [moderator-quick-share-dialog.md](DESIGN/wireframes/moderator-quick-share-dialog.md) |
 

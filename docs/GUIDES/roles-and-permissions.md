@@ -203,7 +203,7 @@ Moderator: นายหา (STTH)
 - ✅ Change user roles (all companies)
 - ✅ Remove users (all companies)
 - ✅ View activity logs (all companies)
-- ✅ View system settings
+- ✅ View system health (`/admin/health`)
 - ✅ Configure Looker Studio integrations
 
 **Access Scope:**
