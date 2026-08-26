@@ -79,6 +79,54 @@ against a nodejs22 runtime, which happened not to break but was nobody's decisio
 
 Changing the runtime means editing `.nvmrc`, `nitro.firebase.nodeVersion` and `firebase.json` together.
 
+## Major versions deliberately not taken
+
+These have a newer major available. Each is left where it is for a stated reason, so nobody has
+to re-derive it:
+
+| Package | On | Latest | Why not yet |
+|---|---|---|---|
+| `nuxt` | 4.2.2 | 4.4.5 | In-range, but it moves Nitro and the Firebase preset. Deploy is the one thing here with no staging — worth its own PR with a real deploy behind it |
+| `@nuxt/ui` | 4.3.0 | 4.11.0 | Eight minors of a component library. 335 unit tests do not see visual or interaction regressions; needs a human pass over the admin tables and modals |
+| `@nuxt/image` | 2.0.0 | 2.1.0 | 2.1.0 depends on `ipx@4.0.0-beta.1`. A prerelease in the production tree needs a decision, not a version bump |
+| `tailwindcss` | 4.2.1 | 4.3.3 | Preflight changes have bitten before (PR #451). Bump it with the UI pass, not separately |
+| `firebase-admin` | 13.10.0 | 14.3.0 | Major. Closes the nine remaining moderate advisories in the google-cloud chain — the strongest candidate to do next |
+| `pinia` / `@pinia/nuxt` | 3.0.4 / 0.11.3 | 4.0.3 / 1.0.2 | Store API major across four stores |
+| `eslint` | 9.39.5 | 10.9.1 | New majors add rules; expect a non-zero baseline to work through |
+| `typescript` | 5.9.3 | 7.0.2 | Two majors; `vue-tsc` has to support it first |
+| `vue-router` | 4.6.4 | 5.2.0 | Major, and route matching is load-bearing for the `[[folderId]]` pages |
+| `zod` | 3.25.76 | 4.4.3 | Major; schemas are shared between client forms and server routes |
+| `googleapis` | 171.4.0 | 176.0.0 | Five majors of a generated client. Only the Looker Studio surface is used |
+| `@types/node` | 22.20.1 | 26.3.0 | **Pinned on purpose** to the nodejs22 runtime — see above |
+
+## Security overrides in package.json
+
+`overrides` pins seven transitive packages to their first patched release. Each one was a
+**critical or high** advisory that reached the deployed Cloud Function, and each was stuck
+below the fix by a range in a dependency we do not control.
+
+| Pinned | From | Advisory |
+|---|---|---|
+| `protobufjs` ^7.6.5 | 7.5.4 | **critical** — arbitrary code execution |
+| `@grpc/grpc-js` ^1.9.16 | 1.9.15 | high — malformed request crashes the server |
+| `node-forge` ^1.4.0 | 1.3.3 | high — certificate chain bypass, Ed25519 signature forgery |
+| `h3` ^1.15.11 | 1.15.5 | high — path traversal, arbitrary file read in `serveStatic` |
+| `sharp` ^0.35.4 | 0.34.5 | high — four libvips CVEs |
+| `svgo` ^4.1.0 | 4.0.0 | high — billion-laughs DoS |
+| `defu` ^6.1.7 | 6.1.4 | high — prototype pollution via `__proto__` |
+
+**Do not delete these without re-running `npm audit --omit=dev`.** They are not preferences.
+Removing one silently reopens the advisory, because the parent's range still allows the
+vulnerable version.
+
+Drop an override once the parent package's own range has moved past it — check with
+`npm ls <package>` that the pin is no longer doing any work.
+
+The overrides route was chosen over `npm audit fix`, which resolves the same advisories by
+dragging Nuxt from 4.2.2 to 4.5.2 and `ipx` to a **beta**, in a 20,000-line lockfile diff. A
+framework upgrade is a change worth making deliberately, not as a side effect of a security
+patch.
+
 ## package-lock.json
 
 The lock had drifted from `package.json`: 56 entries for `firebase-functions@7.2.2` and the

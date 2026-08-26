@@ -21,6 +21,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "audit:orphans": "tsx scripts/audit-orphans.mjs",
+    "rules:verify": "node scripts/verify-firestore-rules.mjs",
     "docs:links": "node scripts/check-doc-links.mjs",
     "docs:lint": "npx --yes markdownlint-cli2@0.23.2",
     "cloudbuild:status": "node scripts/cloudbuild-status.mjs",
@@ -29,32 +30,41 @@
     "seed:firestore:clean": "tsx scripts/seed-firestore.ts --clean"
   },
   "dependencies": {
-    "@nuxt/eslint": "^1.12.1",
+    "@nuxt/eslint": "^1.17.0",
     "@nuxt/image": "^2.0.0",
     "@nuxt/ui": "^4.3.0",
     "@pinia/nuxt": "^0.11.3",
     "@unhead/vue": "^2.1.2",
     "@vee-validate/zod": "^4.15.1",
-    "@vueuse/core": "^14.1.0",
-    "eslint": "^9.39.2",
-    "firebase": "^12.8.0",
-    "firebase-admin": "^13.7.0",
+    "@vueuse/core": "^14.4.0",
+    "eslint": "^9.39.5",
+    "firebase": "^12.18.0",
+    "firebase-admin": "^13.10.0",
     "googleapis": "^171.4.0",
     "nuxt": "^4.2.2",
     "pinia": "^3.0.4",
-    "resend": "^6.9.4",
+    "resend": "^6.24.0",
     "typescript": "^5.9.3",
     "vee-validate": "^4.15.1",
-    "vue": "^3.5.27",
+    "vue": "^3.5.41",
     "vue-router": "^4.6.4",
-    "zod": "^3.24.0"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@nuxt/test-utils": "^4.0.0",
+    "@nuxt/test-utils": "^4.1.0",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/node": "^22.20.1",
     "tailwindcss": "^4.2.1",
-    "tsx": "^4.21.0",
-    "vitest": "^4.1.2"
+    "tsx": "^4.23.12",
+    "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "protobufjs": "^7.6.5",
+    "@grpc/grpc-js": "^1.9.16",
+    "node-forge": "^1.4.0",
+    "h3": "^1.15.11",
+    "defu": "^6.1.7",
+    "svgo": "^4.1.0",
+    "sharp": "^0.35.4"
   }
 }
