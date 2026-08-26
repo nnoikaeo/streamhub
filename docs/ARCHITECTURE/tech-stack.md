@@ -70,12 +70,18 @@ runtime. Let CI build them.
 | `vitest` | ^4.1.2 | 335 tests, `npm test`. Anything added to `shared/utils/` must also be registered in `tests/setup.ts` — plain Vitest does not run Nuxt auto-imports |
 | `eslint` + `@nuxt/eslint` | ^9.39.2 / ^1.12.1 | `npx eslint .`, config in [eslint.config.mjs](../../eslint.config.mjs) |
 | `tsx` | ^4.21.0 | Runs the `.ts` maintenance scripts in `scripts/` |
-| `@types/node` | ^25.2.0 | |
+| `@types/node` | ^25.2.0 | Typings run **ahead** of the Node 22 runtime. Nothing has bitten yet, but `vue-tsc` will accept an API that Node 22 does not have |
 
-There is no `.nvmrc`, and the two Node versions in play do not match: the deployed function
-runs **nodejs22** ([firebase.json](../../firebase.json)) while CI builds it on **Node 24**
-([.github/workflows/deploy.yml](../../.github/workflows/deploy.yml) line 28). Nothing has
-broken on that gap so far, but it is a gap, not a decision anyone recorded.
+**Node 22 everywhere.** Three places say so and all three must agree — CI once built on Node 24
+against a nodejs22 runtime, which happened not to break but was nobody's decision:
+
+| Where | Value |
+|---|---|
+| [.nvmrc](../../.nvmrc) | `22` — local via `nvm use`, and every workflow reads it with `node-version-file: .nvmrc` rather than pinning its own number |
+| [nuxt.config.ts](../../nuxt.config.ts) → `nitro.firebase.nodeVersion` | `'22'` — what Nitro targets and writes into the function config |
+| [firebase.json](../../firebase.json) → `functions[].runtime` | `nodejs22` — what Cloud Functions actually runs |
+
+Changing the runtime means editing `.nvmrc`, `nitro.firebase.nodeVersion` and `firebase.json` together.
 
 ## Verification baselines
 
