@@ -164,6 +164,20 @@ onMounted(async () => {
       </template>
     </div>
 
+    <!-- Sharing requirements. Shown once the URL parses, because that is when the
+         report is about to be attached and the settings still need checking.
+         The rule exists because Safari blocks the third-party cookies a
+         restricted report authenticates with — see BUG-032 and
+         docs/OPERATIONS/looker-sharing-policy.md -->
+    <div v-if="urlInfo.isValid" class="sharing-reminder">
+      <strong>ก่อนบันทึก ตรวจที่รายงานใน Looker 2 อย่าง</strong>
+      <ol>
+        <li>Share → General access = <strong>ใครมีลิงก์ก็ดูได้ (Viewer)</strong> — ไม่งั้นผู้ใช้ Safari ทุกเครื่องเปิดไม่ได้เลย</li>
+        <li>File → Embed report → <strong>Enable embedding</strong> — ไม่งั้นขึ้น "เจ้าของรายงานปิดใช้การดูในเว็บไซต์อื่น" ทุกเบราว์เซอร์</li>
+      </ol>
+      <span class="sharing-reminder-tip">กด Preview ด้านล่างเพื่อดูผลจริงได้เลย ไม่ต้องบันทึกก่อน</span>
+    </div>
+
     <!-- Action Buttons -->
     <div v-if="urlInfo.isValid" class="action-buttons">
       <button
@@ -278,6 +292,33 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.sharing-reminder {
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-left: 3px solid var(--color-warning, #f59e0b);
+  border-radius: var(--radius-md, 0.375rem);
+  background: #fffbeb;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-primary, #1e293b);
+}
+
+.sharing-reminder ol {
+  margin: 0.375rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.sharing-reminder li + li {
+  margin-top: 0.25rem;
+}
+
+.sharing-reminder-tip {
+  display: block;
+  margin-top: 0.375rem;
+  color: var(--color-text-secondary, #64748b);
+}
+
 .looker-url-input {
   display: flex;
   flex-direction: column;
