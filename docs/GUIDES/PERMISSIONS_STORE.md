@@ -477,7 +477,7 @@ const form = reactive({
     <div v-if="permissions.isAdmin" class="admin-section">
       <h3>Admin</h3>
       <NavItem to="/admin/users">Manage Users</NavItem>
-      <NavItem to="/admin/settings">Settings</NavItem>
+      <NavItem to="/admin/health">System Health</NavItem>
       <NavItem to="/admin/audit">Audit Log</NavItem>
     </div>
   </div>
