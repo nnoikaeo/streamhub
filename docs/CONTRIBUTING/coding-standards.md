@@ -614,7 +614,7 @@ The rule that follows: **a new top-level directory of `.ts` is unchecked until y
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.server.json` | 0 errors |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 errors |
 | `npx vue-tsc --noEmit -p scripts/tsconfig.json` | 0 errors |
-| `npm test` | 243 passing |
+| `npm test` | 335 passing |
 
 Every one of these is at 0, so any error or violation was introduced by your change. There is no backlog left to compare against.
 
@@ -624,6 +624,23 @@ The last two sites were both closed by deleting code rather than typing it, whic
 - **`useAdminResource`'s `[extensionMethod: string]: any`** existed to carry three extension methods. An index signature types every unknown property as `any`, so a typo compiled. The three helpers now live in `useAdminFolders` / `useAdminDashboards` directly, where they read `resource.items.value` and are ordinary typed functions; the composables' public API is unchanged.
 
 Before designing a generic to preserve a mechanism, check what the mechanism is actually worth: this one served three call sites and cost type safety on every property of every admin resource.
+
+## Unused components still ship
+
+Nuxt compiles everything under `app/components/`, used or not. `DashboardHeader.vue` was never
+rendered anywhere — no import, no `<DashboardHeader>` tag, nothing — and still emitted its own
+stylesheet into every production build. It also carried `NuxtLink`s to `/dashboard/users` and
+`/dashboard/settings`, two routes that have never existed, so had anyone wired it up they would
+have shipped two 404s.
+
+An unused component is not free and it is not harmless: it rots without anything failing, because
+nothing renders it and no test covers it. Before adding a component, check whether one already
+does the job; when a page stops using one, delete it rather than leaving it for later.
+
+```bash
+# Is this component actually rendered anywhere?
+grep -rn "MyComponent" app/ --include='*.vue' --include='*.ts' | grep -v "components/.*/MyComponent.vue"
+```
 
 ---
 
