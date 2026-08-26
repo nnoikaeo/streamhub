@@ -66,7 +66,7 @@ runtime. Let CI build them.
 | `vitest` | ^4.1.2 | 335 tests, `npm test`. Anything added to `shared/utils/` must also be registered in `tests/setup.ts` — plain Vitest does not run Nuxt auto-imports |
 | `eslint` + `@nuxt/eslint` | ^9.39.2 / ^1.12.1 | `npx eslint .`, config in [eslint.config.mjs](../../eslint.config.mjs) |
 | `tsx` | ^4.21.0 | Runs the `.ts` maintenance scripts in `scripts/` |
-| `@types/node` | ^25.2.0 | Typings run **ahead** of the Node 22 runtime. Nothing has bitten yet, but `vue-tsc` will accept an API that Node 22 does not have |
+| `@types/node` | ^22.20.1 | Pinned to the **runtime major**. On `^25` the typings described APIs Node 22 does not have, so `vue-tsc` would have accepted code that fails in the deployed function |
 
 **Node 22 everywhere.** Three places say so and all three must agree — CI once built on Node 24
 against a nodejs22 runtime, which happened not to break but was nobody's decision:
