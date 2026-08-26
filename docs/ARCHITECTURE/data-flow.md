@@ -1,382 +1,128 @@
 ---
-title: Data Flow Diagram
-version: 1.0
-updated: 2024-01-21
+title: Data Flow
 ---
 
-# Data Flow Diagram
+# Data Flow
 
-Visual representation of how data moves through StreamHub.
+The paths a request actually takes. Function and route names here are real — grep them.
 
-## 1. Authentication Flow
+Two rules shape every flow below:
 
-```
-┌────────────────────────────────────────────────────┐
-│            User Interaction                         │
-│  1. Open http://localhost:3000/login               │
-│  2. Click "Sign in with Google"                    │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│  login.vue (Component)                             │
-│  ├─ handleGoogleSignIn() called                    │
-│  └─ signInWithGoogle() from useAuth()              │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│  useAuth Composable                                │
-│  ├─ Create GoogleAuthProvider                      │
-│  ├─ Call signInWithPopup()                         │
-│  └─ Wait for OAuth callback                        │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│         Firebase Authentication SDK                │
-│  ├─ Open OAuth popup                              │
-│  ├─ Redirect to Google Sign-in                    │
-│  └─ Return credentials to app                     │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│    Google OAuth Server                             │
-│  ├─ Prompt user to sign in                        │
-│  ├─ Request user permissions                      │
-│  └─ Return tokens to Firebase                     │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│    Firebase Auth State Changed                     │
-│  ├─ onAuthStateChanged() fires                    │
-│  └─ User data available                           │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│  useAuth Composable                                │
-│  ├─ Extract user data (email, uid, etc.)         │
-│  └─ Call authStore.setUser()                      │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│  Pinia Auth Store                                  │
-│  ├─ user.value = { uid, email, ... }             │
-│  ├─ isAuthenticated = true                        │
-│  └─ loading = false                               │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│  Middleware: auth.ts                               │
-│  ├─ Check authStore.isAuthenticated                │
-│  ├─ If true → allow dashboard                     │
-│  └─ If false → redirect to login                  │
-└────────────────────────────────────────────────────┘
-                      ↓
-┌────────────────────────────────────────────────────┐
-│  Router: navigateTo('/dashboard')                  │
-│  ├─ Load dashboard page                           │
-│  └─ Render user data                              │
-└────────────────────────────────────────────────────┘
-                      ↓
-✅ AUTHENTICATED & LOGGED IN
-```
+- The client talks to **Firestore directly**; [firestore.rules](../../firestore.rules) is what
+  stops it. `/api/**` runs with the Admin SDK and must re-check permissions itself.
+- Reads are **one-shot**. There is no `onSnapshot` in the codebase, so nothing updates until
+  something refetches.
 
 ---
 
-## 2. User State Management Flow
+## 1. Sign-in
 
 ```
-┌──────────────────────────────────────────┐
-│   User Logs In (from diagram above)      │
-└──────────────────────────────────────────┘
-                ↓
-        ┌───────────────┐
-        │  Auth Store   │
-        │ ┌───────────┐ │
-        │ │ user      │ │
-        │ │ loading   │ │
-        │ │ computed  │ │
-        │ │ actions   │ │
-        │ └───────────┘ │
-        └───────────────┘
-            ↙     ↓     ↘
-    ┌─────────────────────────┐
-    │  Any Component Can Access │
-    │                           │
-    │  const authStore = useAuthStore()
-    │  {{ authStore.user.email }}
-    │  {{ authStore.isAuthenticated }}
-    │
-    │  Reactive! Auto-updates on change
-    └─────────────────────────┘
+login.vue
+  └─ useAuth().signInWithGoogle()
+       └─ signInWithPopup(auth, GoogleAuthProvider)   ← popup, not redirect
+            └─ Google consent
+                 └─ onAuthStateChanged fires
+                      └─ authStore.setUser()
+                           └─ middleware/auth.ts lets the route through
 ```
 
-### Store Structure
+The popup is the failure surface: a blocked popup gives `auth/popup-blocked` and nothing else
+happens. `browserLocalPersistence` is set in `app/plugins/firebase.ts`, so a refresh restores
+the session without a second popup. Details and the `authDomain` caveat:
+[authentication.md](../GUIDES/authentication.md).
 
-```typescript
-auth.ts (Pinia Store)
-├── State
-│   ├── user: UserData | null
-│   ├── loading: boolean
-│   └── computed: isAuthenticated
-├── Actions
-│   ├── setUser(newUser)
-│   └── setLoading(loading)
-└── Getters
-    └── isAuthenticated (computed)
+## 2. Listing dashboards
+
 ```
+page  →  useDashboardPage()  →  useFirestoreService()  →  getDocs(...)
+                                      │
+                                      └─ canAccessDashboard(dashboardId, userId)
+```
+
+Visibility is default-private plus an `access.public` flag, resolved against the dashboard's
+own grants and inherited from its folder chain. The rules are in
+[roles-and-permissions.md](../GUIDES/roles-and-permissions.md); the same logic exists
+server-side as `checkDashboardAccess` / `filterAccessibleDashboards` in
+`server/utils/companyAccess.ts`, and the two must agree.
+
+`access.restrictions.expiry` is a Firestore `Timestamp` in production and an ISO string in the
+JSON store. Read it with `toDate` / `isExpired` from `shared/utils/dates.ts` — `new Date(value)`
+returns `Invalid Date`, compares false, and grants access that should have expired.
+
+## 3. Opening a Looker dashboard
+
+Two separate requests. This is the flow to understand before touching embeds.
+
+```
+dashboard/view/[id].vue
+  │
+  ├─(1) POST /api/embed/request  { dashboardId }
+  │        ├─ event.context.auth.uid           ← identity, from server middleware
+  │        ├─ user active?  dashboard exists?
+  │        ├─ checkDashboardAccess(user, dashboard, folders)
+  │        ├─ createEmbedToken({ embedUrl, uid, exp })   AES-256-GCM, 5-minute TTL
+  │        └─ setCookie(__session)             ← binds the token to this browser
+  │
+  └─(2) <iframe src="/api/embed/{token}">
+           ├─ decrypt, check exp, match __session
+           └─ 302 → the real Looker URL
+```
+
+The real report URL never reaches the client — it is encrypted inside the token, which is why
+the payload is encrypted rather than merely signed. The token is stateless, so it survives an
+instance change and can be redeemed more than once within its TTL. That is the fix for BUG-031;
+the earlier in-memory `Map` produced random 403s across autoscaled instances.
+
+What this flow cannot fix: Safari blocks Google's third-party cookies inside the iframe, so
+reports shared to named accounts render Looker's own error page. See
+[looker-sharing-policy.md](../OPERATIONS/looker-sharing-policy.md).
+
+## 4. Inviting a user
+
+```
+admin/invitations  →  POST /api/invitations        (or /bulk)
+                        ├─ write the invitation document
+                        └─ server/utils/emailService.ts → Resend
+                             RESEND_API_KEY from Secret Manager
+
+invite/accept.vue  →  GET  /api/invitations/verify  → POST /api/invitations/accept
+                                                        └─ create the user document
+```
+
+`.env.local` holds the **real** Resend key, so an invite sent from localhost sends a real
+email.
+
+## 5. Mock vs Firestore
+
+```
+useServiceMode()  ──  NUXT_PUBLIC_USE_FIRESTORE=true  →  /api/{resource}
+                  └─  otherwise                       →  /api/mock/{resource}
+```
+
+`server/middleware/blockMockApi.ts` returns 404 for `/api/mock/*` in any non-dev build, so the
+flag cannot leak mock data into production.
+
+## 6. Deploy
+
+CI/CD is live, not planned.
+
+```
+push to main
+  └─ .github/workflows/deploy.yml
+       └─ firebase deploy --only hosting,functions --force
+```
+
+Hosting can also go out locally with `bash scripts/deploy-hosting.sh`. Functions cannot —
+a Mac-built `sharp` is the wrong architecture for the Linux runtime. Firestore rules deploy
+manually; the CI service account lacks the permission. Full procedure:
+[deployment.md](../OPERATIONS/deployment.md).
 
 ---
 
-## 3. Page Navigation with Auth
-
-```
-User visits URL
-       ↓
-┌─────────────────────┐
-│ Middleware Runs     │
-│ (before page load)  │
-└─────────────────────┘
-       ↓
-     ┌─┴─┐
-     │   │ Auth state?
-    Yes  No
-     │    │
-     ↓    ↓
-   PAGE  → /login
-   LOAD   (redirect)
-     ↓
-   RENDER
-```
-
-### Route Protection Examples
-
-```
-/login          → Always accessible
-/dashboard      → Requires auth ✓
-/dashboard/users → Requires auth ✓
-/settings       → Requires auth ✓
-```
-
----
-
-## 4. Firestore Real-time Data Flow
-
-```
-Component needs user data
-       ↓
-useComposable.fetchUsers()
-       ↓
-Firebase Query: 
-  db.collection('users')
-    .where('active', '==', true)
-    .onSnapshot()
-       ↓
-Real-time Listener Active
-       ↓
-    ┌──────┬──────┬──────┐
-    │      │      │      │
-   Read   Write  Delete  Update
-    │      │      │      │
-    └──────┴──────┴──────┘
-           ↓
-   Update Pinia Store
-       ↓
-   Component Reactive Data Updates
-       ↓
-   UI Re-renders
-```
-
----
-
-## 5. Component Render Cycle
-
-```
-Component Mounts
-    ↓
-setup() / onMounted()
-    ↓
-Subscribe to data sources:
-- Auth store
-- Firestore listeners
-- Router state
-    ↓
-Template receives reactive data
-    ↓
-User interacts (click, input, etc.)
-    ↓
-Event handler fires
-    ↓
-Update store / DB
-    ↓
-Reactivity triggers update
-    ↓
-Template re-renders
-    ↓
-Component Unmounts
-    ↓
-Cleanup:
-- Unsubscribe listeners
-- Clear state
-```
-
----
-
-## 6. Error Handling Flow
-
-```
-Error Occurs (anywhere)
-        ↓
-    ┌───┴───┐
-    │       │
-Firebase  UI Event
-Error     Error
-  │         │
-  └───┬─────┘
-      ↓
-Error Handler
-  (try-catch block)
-      ↓
-Store error state
-(optional)
-      ↓
-Display to user:
-- Toast message
-- Error banner
-- Console log
-      ↓
-User can retry or navigate away
-```
-
----
-
-## 7. Data Persistence
-
-```
-┌─────────────────┐
-│  Browser Memory │  (Session)
-│                 │  - Fast
-│ - Pinia Store   │  - Lost on refresh
-│ - Component Data│
-└─────────────────┘
-        ↓ (save)
-┌─────────────────┐
-│  Firebase Auth  │  (Persistent)
-│                 │  - Encrypted
-│ - User ID       │  - Survives refresh
-│ - Tokens        │
-└─────────────────┘
-        ↓ (read on load)
-┌─────────────────┐
-│  Pinia Store    │  (Restored)
-│                 │  - Reloaded
-│  - User data    │
-└─────────────────┘
-```
-
----
-
-## 8. API Call Sequence
-
-```
-Component
-  ↓
-[1] User clicks "Load Data"
-  ↓
-[2] Composable receives request
-  ↓
-[3] Show loading state
-  ↓
-[4] Firestore query
-  ↓
-[5] Fetch from Firebase
-  ↓
-[6] Parse response
-  ↓
-[7] Store in Pinia
-  ↓
-[8] Hide loading state
-  ↓
-[9] Show data in UI
-  ↓
-[10] User sees results ✅
-```
-
-**Timing:**
-- Step 1-3: < 10ms
-- Step 4-6: 100-500ms (network)
-- Step 7-10: < 50ms
-
----
-
-## 9. Logout Flow
-
-```
-User clicks "Logout"
-       ↓
-handleLogout() called
-       ↓
-useAuth().logout()
-       ↓
-firebase.auth().signOut()
-       ↓
-Firebase clears session
-       ↓
-onAuthStateChanged() fires
-       ↓
-setUser(null)
-       ↓
-Pinia updated:
-- user = null
-- isAuthenticated = false
-       ↓
-Middleware redirects
-       ↓
-navigateTo('/login')
-       ↓
-✅ Logged Out
-```
-
----
-
-## 10. Deployment Pipeline
-
-```
-Local Code
-    ↓
-git commit + git push
-    ↓
-GitHub receives
-    ↓
-(GitHub Actions) ← Future CI/CD
-    ↓
-npm run build
-    ↓
-.output/ folder created
-    ↓
-firebase deploy
-    ↓
-Upload to Firebase Hosting
-    ↓
-CDN distribution
-    ↓
-Users see new version
-```
-
----
-
-## Performance Metrics
-
-| Operation | Time | Where |
-|-----------|------|-------|
-| Page load | 1-2s | Browser |
-| Auth sign-in | 2-5s | Firebase + Google |
-| Firestore query | 100-500ms | Network |
-| Component render | < 50ms | Browser |
-| State update | < 10ms | Pinia |
-
----
-
-## See Also
+## See also
 
 - [Architecture Overview](overview.md)
 - [Tech Stack Details](tech-stack.md)
 - [Authentication Guide](../GUIDES/authentication.md)
+- [Database Schema](../GUIDES/database-schema.md)
