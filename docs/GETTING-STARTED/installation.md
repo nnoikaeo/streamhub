@@ -1,7 +1,3 @@
----
-title: Installation & Setup
----
-
 # Installation & Setup
 
 Get StreamHub running locally in 5 minutes.
@@ -17,6 +13,7 @@ Before you start, ensure you have:
 - **GitHub Account** - [Sign up here](https://github.com/)
 
 **Check versions:**
+
 ```bash
 node --version    # Should be v18.0.0 or higher
 npm --version     # Should be 9.0.0 or higher
@@ -41,6 +38,7 @@ npm install
 ```
 
 Or if using pnpm:
+
 ```bash
 pnpm install
 ```
@@ -83,7 +81,8 @@ npm run dev
 ```
 
 You should see:
-```
+
+```text
 ✨ Nuxt DevTools Press Shift + Option + D to open DevTools
 ➜ Local:    http://localhost:3000/
 ```
@@ -92,7 +91,7 @@ You should see:
 
 ## Step 5: Open in Browser
 
-Visit **http://localhost:3000** and you should see:
+Visit **<http://localhost:3000>** and you should see:
 
 1. **Login Page** with "Sign in with Google" button
 2. Click button → Google OAuth popup
@@ -116,16 +115,19 @@ Your setup is complete if:
 ## 🐛 Troubleshooting
 
 **Port 3000 already in use?**
+
 ```bash
 npm run dev -- --port 3001
 ```
 
 **Firebase credentials not working?**
+
 - Double-check `.env.local` has correct values
 - Make sure keys don't have extra spaces
 - See [Firebase Setup Guide](setup-firebase.md)
 
 **Dependencies installation fails?**
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install

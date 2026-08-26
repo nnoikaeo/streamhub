@@ -1,7 +1,3 @@
----
-title: Contribution Workflow
----
-
 # Contribution Workflow
 
 How to contribute code to StreamHub using **Git Flow**.
@@ -10,7 +6,7 @@ How to contribute code to StreamHub using **Git Flow**.
 
 StreamHub uses Git Flow branching model:
 
-```
+```text
 main (production)
   └── merge PRs from develop (release cycles)
   
@@ -54,6 +50,7 @@ git checkout -b feat/your-feature-name
 ```
 
 **Branch naming conventions:**
+
 - `feat/feature-name` - New feature
 - `fix/bug-name` - Bug fix
 - `docs/topic` - Documentation
@@ -89,11 +86,13 @@ git commit -m "feat(dashboard): add analytics page"
 ```
 
 **Format:**
-```
+
+```text
 <type>(<scope>): <subject>
 ```
 
 **Types:**
+
 - `feat:` New feature
 - `fix:` Bug fix
 - `docs:` Documentation
@@ -104,6 +103,7 @@ git commit -m "feat(dashboard): add analytics page"
 - `chore:` Dependencies/build
 
 **Examples:**
+
 ```bash
 git commit -m "feat(dashboard): add analytics page"
 git commit -m "fix(auth): handle OAuth timeout correctly"
@@ -158,7 +158,7 @@ Tested locally with `npm run dev`
 - [ ] Tests added (if applicable)
 ```
 
-5. Click **"Create pull request"**
+1. Click **"Create pull request"**
 
 ---
 
@@ -189,6 +189,7 @@ git push origin develop
 ```
 
 **Merge strategies:**
+
 - **Create a merge commit** (recommended) - Preserves feature branch history
 - **Squash and merge** - Single commit, clean history
 - **Rebase and merge** - Linear history, advanced users
@@ -263,6 +264,7 @@ git push origin --delete feat/users-page
 ## Tips for Success
 
 ✅ **DO:**
+
 - Always start from `develop` branch
 - Keep changes focused & small
 - Write clear commit messages
@@ -272,6 +274,7 @@ git push origin --delete feat/users-page
 - Use meaningful branch names
 
 ❌ **DON'T:**
+
 - Push directly to `develop` (PRs required!)
 - Mix multiple features in one PR
 - Ignore linting errors

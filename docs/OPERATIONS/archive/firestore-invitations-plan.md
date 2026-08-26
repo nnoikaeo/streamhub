@@ -82,6 +82,7 @@ cancel, and resend.
 **New file: `server/utils/firestoreAdmin.ts`**
 
 Provides server-side Firestore Admin SDK access:
+
 - `getAdminDb()` — returns Admin Firestore instance (re-uses existing Firebase Admin init)
 - `isFirestoreMode()` — checks `NUXT_PUBLIC_USE_FIRESTORE` env var
 - Helper functions: `fsReadAll`, `fsQuery`, `fsSet`, `fsUpdate`
@@ -106,12 +107,14 @@ but read/write from Firestore using the Admin SDK:
 | `verify.get.ts` | `mock/.../verify.get.ts` | Firestore `invitations` collection (read-only) |
 
 **Side effects preserved in every handler:**
+
 - Email sending via `emailService.ts` (Resend) — shared with mock handlers, no changes needed
 - Audit logging — see Part 6 below
 
 **`[id].put.ts` — Cancel & Resend handler (Gap 1 fix):**
 
 This handler is critical. The mock version does:
+
 - **Resend**: generates new `invitationCode` via `crypto.randomUUID()`, resets `expiresAt`,
   sends email via `sendInvitationEmail()`, writes audit log
 - **Cancel**: updates status to `cancelled`, writes audit log
@@ -121,6 +124,7 @@ The Firestore version must replicate all of this. The client-side code
 server handler instead of using `useAdminResource.update()` directly — see Part 3.
 
 **Security checks preserved** (in `accept.post.ts`):
+
 - Email matching (case-insensitive)
 - Race condition prevention (status check)
 - Server-side expiry validation
@@ -153,13 +157,15 @@ function getApiBase(): string {
 **Cancel / Resend routing change (Gap 1 fix):**
 
 Before (Firestore mode bypasses server):
-```
+
+```text
 cancelInvitation(id) → resource.update(id, { status: 'cancelled' })
                       → useAdminResource.update() → client-side updateDoc() → NO server call
 ```
 
 After (always goes through server for side effects):
-```
+
+```text
 cancelInvitation(id) → $fetch(getApiBase() + '/' + id, { method: 'PUT', body: { status: 'cancelled' } })
                       → server handler → Firestore write + audit log
 ```
@@ -207,6 +213,7 @@ will automatically write to Firestore in production.
 ## Files Summary
 
 ### New files (7 handlers + 1 utility)
+
 - `server/utils/firestoreAdmin.ts` (already created, review and keep)
 - `server/api/invitations/index.post.ts` — create single invitation
 - `server/api/invitations/bulk.post.ts` — create bulk invitations
@@ -217,6 +224,7 @@ will automatically write to Firestore in production.
 - `server/api/invitations/verify.get.ts` — verify invitation by code
 
 ### Modified files
+
 - `server/middleware/auth.ts` — add new protected/public routes
 - `server/utils/auditLog.ts` — add Firestore branch for `logActivity()`
 - `app/composables/useAdminInvitations.ts` — add `getApiBase()`, route all methods, change cancel/resend to use server
@@ -226,6 +234,7 @@ will automatically write to Firestore in production.
 - `app/composables/useAuth.ts` — route to correct API in auto-accept flow
 
 ### Unchanged files
+
 - `server/api/mock/invitations/*` — keep as-is for dev/JSON mode
 - `server/utils/jsonDatabase.ts` — unchanged
 - `server/utils/emailService.ts` — shared by both mock and Firestore handlers
@@ -249,9 +258,11 @@ will automatically write to Firestore in production.
 > **All 6 parts completed — 2026-04-05**
 
 ### Part 1: Firestore server utility — ✅ Done
+
 - `server/utils/firestoreAdmin.ts` — exports `isFirestoreMode()`, `getAdminDb()`, `fsReadAll()`, `fsQuery()`, `fsSet()`, `fsUpdate()`
 
 ### Part 2: Firestore invitation handlers (7/7) — ✅ Done
+
 - `server/api/invitations/index.post.ts` — create single invitation + email + audit
 - `server/api/invitations/bulk.post.ts` — bulk invite with skip logic + parallel emails
 - `server/api/invitations/accept.post.ts` — accept invitation + create user (email match, race-condition, expiry checks)
@@ -261,6 +272,7 @@ will automatically write to Firestore in production.
 - `server/api/invitations/verify.get.ts` — verify invitation code status
 
 ### Part 3: Client-side routing (5/5) — ✅ Done
+
 - `app/composables/useAdminInvitations.ts` — `getApiBase()` switches `/api/invitations` vs `/api/mock/invitations`; `cancelInvitation` and `resendInvitation` use `$fetch` → server handler
 - `app/components/admin/InviteUserModal.vue` — dynamic `apiBase` from `useFirestore` flag
 - `app/components/admin/BulkInviteModal.vue` — dynamic `apiBase` from `useFirestore` flag
@@ -268,16 +280,20 @@ will automatically write to Firestore in production.
 - `app/composables/useAuth.ts` — `invApiBase` switches on `useFirestoreMode` for auto-accept flow
 
 ### Part 4: Auth middleware — ✅ Done
+
 - `server/middleware/auth.ts` — `/api/invitations` in `PROTECTED_PREFIXES`; `/api/invitations/check`, `/verify`, `/accept` in `PUBLIC_ROUTES`
 
 ### Part 5: Dropdown data — ✅ Done
+
 - `InviteUserModal.vue` — uses `useAdminCompanies`, `useAdminFolders`, `useAdminGroups` composables
 - `BulkInviteModal.vue` — uses `useAdminCompanies`, `useAdminGroups` composables
 
 ### Part 6: Audit logging Firestore branch — ✅ Done
+
 - `server/utils/auditLog.ts` — `logActivity()` checks `NUXT_PUBLIC_USE_FIRESTORE`, writes to Firestore `activity_logs` collection, falls back to JSON
 
 ### Production verification (2026-04-05)
+
 - ✅ Email sending via Resend — `noreply@streamwash.com` (verified domain), status 200
 - ✅ CI/CD deploy via GitHub Actions — Secret Manager permissions granted (`Secret Manager Secret Accessor` + `Secret Manager Viewer`)
 - ✅ Resend invitation: new `invitationCode` generated, email delivered to `hlsvstreamwash@gmail.com`
@@ -285,6 +301,7 @@ will automatically write to Firestore in production.
 - ✅ Recipient received email with correct accept link (`https://streamhub-1c27a.web.app/invite/accept?code=...`)
 
 ### Production issues fixed during rollout
+
 | PR | Issue | Fix |
 |----|-------|-----|
 | #185 | RESEND_API_KEY not in Cloud Function | Add `secretEnvironmentVariables` to `firebase.json` |

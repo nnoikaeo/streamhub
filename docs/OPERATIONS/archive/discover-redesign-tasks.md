@@ -24,9 +24,11 @@
 **เป้าหมาย**: เพิ่มปุ่มสลับมุมมอง 3 แบบ (Grid / Compact / List) บนหน้า discover พร้อมบันทึก preference ผู้ใช้
 
 **ไฟล์ที่แก้ไข**:
+
 - `app/pages/dashboard/discover.vue`
 
 **รายละเอียด**:
+
 1. เพิ่ม `viewMode` reactive ref ค่า: `'grid' | 'compact' | 'list'`
 2. อ่านค่าเริ่มต้นจาก `localStorage` (key: `streamhub-discover-view-mode`), default = `'grid'`
 3. เมื่อผู้ใช้เปลี่ยน viewMode ให้บันทึกลง `localStorage` ทันที
@@ -38,7 +40,7 @@
 
 **Wireframe อ้างอิง**: Wireframe 1 (Header Area)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  ☰ พบ 50 แดชบอร์ด ใน 12 โฟลเดอร์           [▦][▤][≡]  📁โฟลเดอร์ 🏢บริษัท │
 │                                              Grid Compact List             │
@@ -46,6 +48,7 @@
 ```
 
 **การตรวจสอบ**:
+
 - [ ] ปุ่มสลับ 3 ปุ่มแสดงผลถูกต้องบน header
 - [ ] คลิกสลับ → viewMode เปลี่ยนค่า
 - [ ] Reload หน้า → viewMode คงเดิมจาก localStorage
@@ -58,6 +61,7 @@
 **เป้าหมาย**: สร้างมุมมอง compact สำหรับ DashboardCard — การ์ดเล็กลงครึ่งหนึ่ง, grid 5-6 คอลัมน์
 
 **ไฟล์ที่แก้ไข**:
+
 - `app/components/features/DashboardCard.vue`
 - `app/components/features/DashboardGrid.vue`
 - `app/components/features/DashboardPreview.vue`
@@ -65,6 +69,7 @@
 **ขึ้นอยู่กับ**: งานย่อยที่ 1 (ต้องมี viewMode prop ส่งมาแล้ว)
 
 **รายละเอียด**:
+
 1. `DashboardCard.vue` — เพิ่ม prop `compact: boolean` (default: false)
    - Compact mode:
      - Thumbnail height: 160px → **80px** (ส่ง height prop ไปยัง DashboardPreview)
@@ -84,7 +89,7 @@
 
 **Wireframe อ้างอิง**: Wireframe 3 (Compact View)
 
-```
+```text
 ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
 │▓▓▓▓▓▓▓▓│ │▒▒▒▒▒▒▒▒│ │░░░░░░░░│ │▓▓▓▓▓▓▓▓│ │▒▒▒▒▒▒▒▒│ │░░░░░░░░│
 │▓ 80px ▓│ │▒ 80px ▒│ │░ 80px ░│ │▓ 80px ▓│ │▒ 80px ▒│ │░ 80px ░│
@@ -95,6 +100,7 @@
 ```
 
 **การตรวจสอบ**:
+
 - [ ] สลับเป็น Compact → การ์ดเล็กลง, thumbnail 80px, 5-6 คอลัมน์
 - [ ] คลิกทั้งการ์ด (compact) → นำทางไป dashboard view
 - [ ] Company badges ซ่อนใน compact, แสดง tooltip เมื่อ hover
@@ -108,6 +114,7 @@
 **เป้าหมาย**: สร้าง component สำหรับ List view — แถวละ dashboard, ~48px ต่อแถว
 
 **ไฟล์ใหม่**:
+
 - `app/components/features/DashboardListItem.vue` (NEW)
 - `app/components/features/DashboardList.vue` (NEW)
 
@@ -134,7 +141,7 @@
 
 **Wireframe อ้างอิง**: Wireframe 4 (List View) — ส่วนแถวข้อมูล
 
-```
+```text
 ├────┬──────────────────┬──────────────┬─────────┬──────┤
 │ 🎨 │ ชื่อ              │ แท็ก          │ บริษัท   │      │
 ├────┼──────────────────┼──────────────┼─────────┼──────┤
@@ -145,6 +152,7 @@
 ```
 
 **การตรวจสอบ**:
+
 - [ ] DashboardList แสดงรายการ dashboard เป็นแถวๆ
 - [ ] แต่ละแถวสูงประมาณ 48px
 - [ ] Hover highlight ทำงาน
@@ -159,9 +167,11 @@
 **เป้าหมาย**: สร้าง GroupedDashboardList และเชื่อมมุมมอง List เข้ากับหน้า discover
 
 **ไฟล์ใหม่**:
+
 - `app/components/features/GroupedDashboardList.vue` (NEW)
 
 **ไฟล์ที่แก้ไข**:
+
 - `app/pages/dashboard/discover.vue`
 
 **ขึ้นอยู่กับ**: งานย่อยที่ 3 (ต้องมี DashboardList component)
@@ -185,6 +195,7 @@
 **Wireframe อ้างอิง**: Wireframe 4 (List View) — ทั้งหมด
 
 **การตรวจสอบ**:
+
 - [ ] สลับเป็น List view → แสดง dashboard เป็นรายการแถว
 - [ ] Grouped mode (ไม่เลือกโฟลเดอร์) → แสดง list จัดกลุ่มตามโฟลเดอร์
 - [ ] Flat mode (เลือกโฟลเดอร์) → แสดง list ธรรมดา
@@ -198,6 +209,7 @@
 **เป้าหมาย**: ให้โฟลเดอร์ย่อ/ขยายได้ทั้ง Grid, Compact, และ List view
 
 **ไฟล์ที่แก้ไข**:
+
 - `app/components/features/GroupedDashboardGrid.vue`
 - `app/components/features/GroupedDashboardList.vue`
 - `app/pages/dashboard/discover.vue`
@@ -225,7 +237,7 @@
 
 **Wireframe อ้างอิง**: Wireframe 5 (Collapsible Folder Behavior)
 
-```
+```text
   ▼ = ขยาย (กำลังแสดงการ์ด/รายการ)
   ▶ = ย่อ (ซ่อนการ์ด/รายการ แสดงเฉพาะ header + จำนวน)
 
@@ -242,6 +254,7 @@
 ```
 
 **การตรวจสอบ**:
+
 - [ ] คลิก folder header → ย่อ/ขยาย smooth animation
 - [ ] Chevron icon หมุนถูกต้อง (▼ ↔ ▶)
 - [ ] เมื่อย่อ → แสดง header + badge จำนวน, ซ่อนการ์ด
@@ -257,6 +270,7 @@
 **เป้าหมาย**: แสดงสูงสุด 1 แถวต่อโฟลเดอร์ (4 การ์ดใน Grid, 6 ใน Compact) พร้อมลิงก์ "ดูทั้งหมด"
 
 **ไฟล์ที่แก้ไข**:
+
 - `app/components/features/GroupedDashboardGrid.vue`
 - `app/components/features/GroupedDashboardList.vue`
 - `app/pages/dashboard/discover.vue`
@@ -286,7 +300,7 @@
 
 **Wireframe อ้างอิง**: Wireframe 2 & 3 (ส่วน "ดูทั้งหมด")
 
-```
+```text
 │ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐           │
 │ │  card 1  │ │  card 2  │ │  card 3  │ │  card 4  │           │
 │ └──────────┘ └──────────┘ └──────────┘ └──────────┘           │
@@ -294,6 +308,7 @@
 ```
 
 **การตรวจสอบ**:
+
 - [ ] Grid grouped view → แสดงสูงสุด 4 การ์ด/โฟลเดอร์
 - [ ] Compact grouped view → แสดงสูงสุด 6 การ์ด/โฟลเดอร์
 - [ ] ลิงก์ "ดูทั้งหมด N แดชบอร์ด →" แสดงเมื่อมีเกิน
@@ -337,6 +352,7 @@
    - Loading state ทำงานถูกต้องทุกมุมมอง
 
 **การตรวจสอบ**:
+
 - [ ] Desktop: ทั้ง 3 มุมมองแสดงผลถูกต้อง
 - [ ] Tablet: ทั้ง 3 มุมมอง responsive ถูกต้อง
 - [ ] Mobile: ทั้ง 3 มุมมอง responsive ถูกต้อง
@@ -349,7 +365,7 @@
 
 ## ลำดับการทำงาน (Dependencies)
 
-```
+```text
 งานย่อยที่ 1 (View Mode Switcher)
     │
     ├── งานย่อยที่ 2 (Compact Card) ──────────┐

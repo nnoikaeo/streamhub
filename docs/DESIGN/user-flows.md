@@ -27,6 +27,7 @@ This document outlines the user flows for StreamHub Dashboard Management System 
 - **ADMIN**: Full system access including company, user, and permission management
 
 **Key Principles:**
+
 - All users must authenticate via Google OAuth
 - Access is permission-based (not company-based for resources)
 - Admins have global cross-company access
@@ -45,7 +46,7 @@ This document outlines the user flows for StreamHub Dashboard Management System 
 
 A regular user (Employee) can view dashboards within their company and those shared with them.
 
-```
+```text
 ┌─────────────┐
 │   START     │
 │  (Browser)  │
@@ -208,7 +209,7 @@ A regular user (Employee) can view dashboards within their company and those sha
 A moderator (Team Lead) has **2 views**: Viewer mode and Manager mode.
 See [Moderator Dual-View Model](../GUIDES/roles-and-permissions.md#-moderator-dual-view-model) for permission details.
 
-```
+```text
 ┌──────────────────────┐
 │   START (Browser)    │
 │  Moderator Login     │
@@ -385,7 +386,7 @@ See [Moderator Dual-View Model](../GUIDES/roles-and-permissions.md#-moderator-du
 
 An admin (System Administrator) has full control over companies, users, folders, and dashboards.
 
-```
+```text
 ┌──────────────────────┐
 │   START (Browser)    │
 │  Admin Login         │
@@ -771,7 +772,7 @@ An admin (System Administrator) has full control over companies, users, folders,
 
 All three roles follow the same authentication flow:
 
-```
+```text
 ┌──────────────────────────┐
 │  User visits /           │
 │  (app/pages/index.vue)   │
@@ -874,7 +875,7 @@ New users without accounts are invited by Admin and access StreamHub via a one-t
 **Layout:** Custom (no default layout)  
 **Middleware:** None — public, no auth required
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  User opens invitation email link       │
 │  /invite/accept?code=ABC123             │
@@ -974,7 +975,7 @@ New users without accounts are invited by Admin and access StreamHub via a one-t
 
 For MODERATOR and ADMIN users who work across companies:
 
-```
+```text
 ┌──────────────────────────┐
 │ User at Dashboard Home   │
 │ (Current company: STTH)  │
@@ -1036,7 +1037,7 @@ For MODERATOR and ADMIN users who work across companies:
 
 ### Scenario 1: USER Tries to View Protected Dashboard
 
-```
+```text
 ┌──────────────────────────┐
 │ User clicks dashboard    │
 │ (No view permission)     │
@@ -1069,7 +1070,7 @@ For MODERATOR and ADMIN users who work across companies:
 
 ### Scenario 2: MODERATOR Tries to Edit Unassigned Folder
 
-```
+```text
 ┌──────────────────────────┐
 │ Moderator views folder   │
 │ (not in assignedFolders) │
@@ -1101,7 +1102,7 @@ For MODERATOR and ADMIN users who work across companies:
 
 ### Scenario 3: MODERATOR Tries to Delete Admin-Only Dashboard
 
-```
+```text
 ┌──────────────────────────┐
 │ Moderator tries to       │
 │ delete dashboard         │

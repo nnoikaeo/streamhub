@@ -17,7 +17,7 @@
 
 ## Dependencies Flow
 
-```
+```text
 Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guards)
 ```
 
@@ -33,7 +33,7 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - server/utils/jsonDatabase.ts (database utility)
 - server/api/mock/users/index.get.ts (ดูโครงสร้าง API handler)
@@ -169,7 +169,7 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
    }
    ```
 
-2. สร้าง `server/utils/apiResponse.ts` — helper สำหรับ standardize error responses:
+1. สร้าง `server/utils/apiResponse.ts` — helper สำหรับ standardize error responses:
 
    ```typescript
    import { H3Event } from 'h3'
@@ -196,10 +196,12 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
    ```
 
 ระวัง:
+
 - ห้ามแก้ไข jsonDatabase.ts — แค่ import ใช้งาน
 - functions ใน server/utils/ จะถูก auto-import โดย Nitro
 - ต้อง import `getQuery`, `setResponseStatus` จาก 'h3'
-```
+
+```text
 
 ---
 
@@ -211,7 +213,9 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
 ### Prompt
 
 ```
+
 อ่านไฟล์ต่อไปนี้ก่อน:
+
 - server/utils/companyAccess.ts (จาก Step 1)
 - server/utils/apiResponse.ts (จาก Step 1)
 - server/utils/jsonDatabase.ts (database utility)
@@ -223,7 +227,7 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
 
 เป้าหมาย: อัปเดต API endpoints ให้ใช้ company access validation
 
-### สิ่งที่ต้องทำ:
+### สิ่งที่ต้องทำ
 
 1. อัปเดต `server/api/mock/dashboards/index.get.ts`:
    - เพิ่ม company validation ด้วย validateCompanyAccess()
@@ -232,6 +236,7 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
    - Admin: ส่ง dashboards ทั้งหมด (หรือ filter ตาม company param ถ้ามี)
 
    ตัวอย่างโครงสร้าง:
+
    ```typescript
    export default defineEventHandler(async (event) => {
      const query = getQuery(event)
@@ -289,11 +294,13 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
      - อื่นๆ: ดูได้เฉพาะ user ใน company เดียวกัน
 
 ระวัง:
+
 - ต้อง backward compatible — endpoint ที่ไม่ส่ง uid ต้องยังทำงานได้ปกติ
 - อย่า break endpoint ที่ admin pages ใช้อยู่ (admin ไม่ส่ง uid บาง endpoint)
 - Admin pages อาจเรียก GET /api/mock/users โดยไม่ส่ง company → ต้อง return all
 - ทดสอบโดย run `npm run dev` แล้วเปิด app → login → ดูว่ายังใช้งานได้ปกติ
-```
+
+```text
 
 ---
 
@@ -305,7 +312,9 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
 ### Prompt
 
 ```
+
 อ่านไฟล์ต่อไปนี้ก่อน:
+
 - app/stores/auth.ts (auth store — UserData interface)
 - app/stores/permissions.ts (permission checking)
 - app/composables/useAuth.ts (auth composable)
@@ -318,9 +327,10 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
 
 เป้าหมาย: เพิ่ม client-side company guards เพื่อให้ UI สอดคล้องกับ server-side enforcement
 
-### สิ่งที่ต้องทำ:
+### สิ่งที่ต้องทำ
 
 1. สร้าง `app/composables/useCompanyAccess.ts`:
+
    ```typescript
    /**
     * Company Access Composable
@@ -378,6 +388,7 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
    - จัดการ 403 error response จาก server (แสดง error message ที่เหมาะสม)
 
    เพิ่ม error handling:
+
    ```typescript
    // ใน getDashboards, getFolders, etc.
    } catch (error: any) {
@@ -400,12 +411,14 @@ Step 1 (Server Middleware) → Step 2 (API Enforcement) → Step 3 (Client Guard
    - เพิ่ม error state สำหรับ access denied
 
 ระวัง:
+
 - อย่าเปลี่ยน interface ของ composables ที่มีอยู่ — แค่เพิ่ม validation
 - 403 errors จาก API ต้องไม่ทำให้ app crash — ควร handle gracefully
 - ทดสอบด้วย user ที่ต่าง company กัน (แก้ .data/users.json เพิ่ม user company อื่น)
 - Admin ต้องยังเห็นข้อมูลทุก company ได้
 - หน้า discover ต้องยังแสดง dashboards ตามปกติสำหรับ user ที่ login
-```
+
+```text
 
 ---
 

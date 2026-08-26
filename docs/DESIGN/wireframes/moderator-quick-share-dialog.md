@@ -11,6 +11,7 @@
 ## 🎯 Key Principle
 
 **Quick Share = Simple, Fast, Modal-Based**
+
 - For Moderators only (own dashboards)
 - Limited to Layer 1: Direct Access only
 - Set expiry dates for temporary access
@@ -22,7 +23,7 @@
 
 ### Modal Dialog (Center Screen)
 
-```
+```text
 ┌──────────────────────────────────────┐
 │ ⚡ Quick Share                    [X]│
 ├──────────────────────────────────────┤
@@ -57,22 +58,26 @@
 ## 🎨 Dialog Features
 
 ### Header
+
 - Quick share icon (⚡)
 - Dashboard name
 - Close button [X]
 
 ### User Search (Auto-Complete)
+
 - Search by name or email
 - Shows matching users/groups
 - Auto-complete as user types
 - Filter active users only
 
 ### Selected Users Section
+
 - Shows all selected items with count
 - Easy removal: Click [X]
 - Shows email for clarity
 
 ### Expiry Options
+
 - **No expiry** - Permanent access
 - **7 days** - Short-term sharing
 - **30 days** - Monthly project access
@@ -80,7 +85,8 @@
 - **Custom date** - Specific end date with date picker
 
 ### Info Banner
-```
+
+```text
 ℹ️  This grants direct access to these users only.
     No changes to company-wide permissions.
     Access shown in Admin > Permission Management.
@@ -88,6 +94,7 @@
 ```
 
 ### Action Buttons
+
 - **[Share]** - Validate and save to Firestore
 - **[Cancel]** - Discard changes
 
@@ -119,11 +126,13 @@
 ## 🔐 Permission Model
 
 ### What Quick Share Does
+
 ✅ Adds users to Layer 1: Direct > Users
 ✅ Sets optional expiry date
 ✅ Moderator remains as owner
 
 ### What Quick Share Does NOT Do
+
 ❌ Modify Layer 2 (company-scoped)
 ❌ Modify Layer 3 (restrictions)
 ❌ Grant admin-level access
@@ -136,13 +145,15 @@
 
 ## 🎯 Moderator Capabilities
 
-### Moderators CAN:
+### Moderators CAN
+
 - Share their own dashboards
 - Grant Layer 1 direct access
 - Set expiry dates (7/30/90 days or custom)
 - View who they've shared with
 
-### Moderators CANNOT:
+### Moderators CANNOT
+
 - Access admin panel
 - Modify company-scoped permissions
 - Revoke others' access
@@ -155,16 +166,19 @@
 ## 💬 Variations
 
 ### Share with Multiple Users
+
 - Select multiple users
 - All get same expiry date
 - Success shows count: "Shared with 3 users"
 
 ### Share with Groups
+
 - Can select user groups
 - "Grants access to 8 members"
 - New members added later also get access
 
 ### Custom Expiry Date
+
 - Select: ○ Custom date
 - Click [📅] to open date picker
 - Shown as: "Custom date: 2024-03-15"
@@ -174,7 +188,8 @@
 ## 🔀 Success & Error States
 
 ### Success: Share Completed
-```
+
+```text
 ✅ Shared with 2 users
 
 Details:
@@ -185,13 +200,15 @@ Details:
 ```
 
 ### Error: No Selection
-```
+
+```text
 ⚠️ Please select at least one user or group to share with.
 [OK]
 ```
 
 ### Error: User Not Found
-```
+
+```text
 🔍 No users found matching "xyz"
 
 Try:

@@ -1,14 +1,10 @@
----
-title: Deployment Guide
----
-
 # Deployment to Production
 
 StreamHub deploys to **Firebase Hosting** (static SPA) + **Cloud Functions for Firebase 2nd gen** (Nitro server API routes).
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  Firebase Hosting (CDN)                     │
 │  Serves: .output/public (SPA, assets)       │
@@ -70,6 +66,7 @@ bash scripts/deploy-hosting.sh
 ```
 
 Script นี้จะ:
+
 1. โหลด env vars จาก `.env.local` อัตโนมัติ
 2. `npm run build`
 3. `node scripts/generate-spa-index.mjs` (พร้อม Firebase config)
@@ -90,6 +87,7 @@ firebase deploy --only firestore:rules --project streamhub-1c27a
 ### Service Account Key หมดอายุ / ไม่ถูกต้อง
 
 ถ้า CI fail ด้วย `Failed to authenticate`:
+
 1. ไปที่ [GCP Console → IAM → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) → `firebase-adminsdk-fbsvc@streamhub-1c27a.iam.gserviceaccount.com`
 2. Tab **Keys** → Add Key → JSON → Download
 3. อัปเดต GitHub Secret `FIREBASE_SERVICE_ACCOUNT` ด้วย JSON content ทั้งหมด

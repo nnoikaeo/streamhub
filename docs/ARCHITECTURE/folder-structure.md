@@ -1,14 +1,10 @@
----
-title: Folder Structure
----
-
 # Folder Structure
 
 Understanding how files are organized in StreamHub.
 
 ## Directory Tree
 
-```
+```text
 streamhub/
 │
 ├── 📁 app/                          # Nuxt application
@@ -281,6 +277,7 @@ See [Documentation Structure](../README.md) for details.
 ### `/public` - Static Files
 
 Served as-is, no processing:
+
 - `favicon.ico`
 - `robots.txt`
 - `sitemap.xml` (future)
@@ -290,35 +287,42 @@ Served as-is, no processing:
 ## Key Files Explained
 
 ### `app.vue`
+
 - Root Vue component
 - Wraps all pages
 - Initialize app-level logic
 
 ### `nuxt.config.ts`
+
 - Nuxt configuration
 - Module imports
 - Build settings
 - Runtime config
 
 ### `package.json`
+
 - Dependencies list
 - Script commands
 - Project metadata
 
 ### `.env`
+
 - Secret credentials (⚠️ gitignored)
 - Never commit this file!
 
 ### `.env.example`
+
 - Template for `.env`
 - Shows required variables
 - **Commit this file!**
 
 ### `.gitignore`
+
 - Files not tracked by Git
 - Dependencies, builds, secrets
 
 ### `tsconfig.json`
+
 - TypeScript compiler options
 - Path aliases (`~` = root)
 
@@ -327,16 +331,19 @@ Served as-is, no processing:
 ## Auto-Generated Folders (Gitignored)
 
 ### `.nuxt/`
+
 - Dev build artifacts
 - Auto-generated types
 - Re-created on `npm run dev`
 
 ### `.output/`
+
 - Production build
 - Created by `npm run build`
 - Deployed to Firebase Hosting
 
 ### `node_modules/`
+
 - Installed dependencies
 - Large (1000+ files)
 - Always gitignored
@@ -346,6 +353,7 @@ Served as-is, no processing:
 ## Naming Conventions
 
 ### Files
+
 - **Components:** PascalCase (e.g., `DataTable.vue`)
 - **Pages:** kebab-case for multi-word (e.g., `accept.vue`, `discover.vue`)
 - **Composables:** camelCase with `use` prefix (e.g., `useAdminGroups.ts`)
@@ -353,6 +361,7 @@ Served as-is, no processing:
 - **Utilities:** camelCase (e.g., `errorMessages.ts`)
 
 ### Folders
+
 - **Parent:** PascalCase (e.g., `GETTING-STARTED/`)
 - **Nested:** kebab-case (e.g., `user-management/`)
 
@@ -360,7 +369,7 @@ Served as-is, no processing:
 
 ## File Relationships
 
-```
+```text
 pages/login.vue
     ↓
 uses middleware auth.ts
@@ -402,12 +411,14 @@ touch docs/GUIDES/users-feature.md
 ## Best Practices
 
 ✅ **DO:**
+
 - Keep components focused & small
 - Use composables for logic reuse
 - Store in Pinia for global state
 - Document new files
 
 ❌ **DON'T:**
+
 - Put logic in components
 - Create deeply nested folders
 - Use app.vue for page content

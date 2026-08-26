@@ -1,7 +1,3 @@
----
-title: Code Review Process
----
-
 # Code Review Process
 
 How we review pull requests **and** keep documentation up-to-date.
@@ -73,7 +69,7 @@ How we review pull requests **and** keep documentation up-to-date.
 
 ### Review Process
 
-```
+```text
 1. Code Review (automated)
    - Linting checks
    - Build validation
@@ -90,7 +86,7 @@ How we review pull requests **and** keep documentation up-to-date.
 
 ### Providing Feedback
 
-```
+```text
 ✅ GOOD FEEDBACK
 "This query could be optimized by adding 
 an index on the email field. See 
@@ -131,7 +127,7 @@ Design docs ต้อง review เป็นรอบๆ เพื่อป้�
 
 ### Review Prompt (ใช้กับ Copilot)
 
-```
+```text
 Review docs/DESIGN/COMPONENT_ARCHITECTURE.md ให้ตรงกับโค้ดจริงใน app/components/:
 - Component ใหม่ที่ยังไม่มีในเอกสาร?
 - Component ที่ถูกลบหรือเปลี่ยนชื่อ?
@@ -139,7 +135,7 @@ Review docs/DESIGN/COMPONENT_ARCHITECTURE.md ให้ตรงกับโค�
 - รัน `npm run docs:links` ก่อนเปิด PR (เอกสารไม่มีช่อง version/Last Updated แล้ว — git log คือวันที่จริง)
 ```
 
-```
+```text
 Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/:
 - CSS variables ที่เพิ่ม/เปลี่ยน?
 - utility class ใหม่ใน theme.css ที่ยังไม่ document?
@@ -162,6 +158,7 @@ Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/:
 **Required:** 1 approval from maintainer
 
 **Merging:**
+
 ```bash
 # Maintainer merges (usually)
 # Ensures clean history with rebase-and-merge

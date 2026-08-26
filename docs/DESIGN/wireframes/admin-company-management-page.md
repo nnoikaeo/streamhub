@@ -9,6 +9,7 @@
 ## 🎯 Key Principle
 
 **Company Management = Multi-Company Support**
+
 - Manage 10+ subsidiary companies (STTH, STTN, STCS, STNR, STPT, STPK, etc.)
 - Activate/deactivate companies
 - View company statistics
@@ -21,11 +22,13 @@
 ### Layout & Components
 
 **Main Layout:**
+
 - Uses: `AdminLayout` with admin navigation sidebar
 - Header: Breadcrumb + page title
 - Content: Company list table + Company details panel
 
 **Key Components:**
+
 - `CompanyTable` - List of all companies
 - `CompanyCard` - Company details and stats
 - `CompanyModal` - Create/edit company modal
@@ -34,7 +37,7 @@
 
 ## 🎨 Page Layout
 
-```
+```text
 ┌──────────────────────────────────────────────────────┐
 │  🏢 Company Management              [➕ Add Company]  │
 ├──────────────────────────────────────────────────────┤
@@ -92,7 +95,7 @@
 
 ## 🪟 Create/Edit Company Modal
 
-```
+```text
 ┌────────────────────────────────────┐
 │  Add Company                   [X] │
 ├────────────────────────────────────┤
@@ -121,6 +124,7 @@
 ```
 
 **Fields:**
+
 - **ชื่อบริษัท (Name):** ชื่อเต็มของบริษัท (required)
 - **รหัสบริษัท (Code):** 2–10 ตัวอักษร, unique, ไม่สามารถเปลี่ยนแปลงได้หลังสร้าง (required)
 - **คำอธิบาย (Description):** Optional
@@ -128,6 +132,7 @@
 - **บทบาท (Region Role):** `Hub` หรือ `Sub` — แสดงเฉพาะเมื่อเลือก Region (conditional)
 
 **Validation:**
+
 - Company Code ต้องไม่ซ้ำกัน
 - Company Code ต้อง 2–10 ตัวอักษร
 - Company Name is required
@@ -137,7 +142,7 @@
 
 ## 📊 Company Details Panel
 
-```
+```text
 ┌────────────────────────────────────┐
 │  COMPANY: Streamwash Thailand      │
 │                                    │
@@ -166,6 +171,7 @@
 ```
 
 **Displays:**
+
 - Company metadata (code, region + role, status)
 - Creation and update dates
 - User/folder/dashboard counts
@@ -196,6 +202,7 @@
 ## 📈 Company Statistics
 
 For each company, track:
+
 - Number of active users
 - Number of moderators
 - Number of dashboards

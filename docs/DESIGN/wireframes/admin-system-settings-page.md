@@ -9,6 +9,7 @@
 ## 🎯 Key Principle
 
 **System Settings = Global Configuration**
+
 - Email notification settings
 - Authentication configuration
 - Integration settings (Looker Studio, Google OAuth)
@@ -22,11 +23,13 @@
 ### Layout & Components
 
 **Main Layout:**
+
 - Uses: `AdminLayout` with settings sidebar navigation
 - Header: Breadcrumb + page title
 - Content: Tabbed settings sections
 
 **Key Sections:**
+
 - Email & Notifications
 - Authentication
 - Integrations
@@ -37,7 +40,7 @@
 
 ## 🎨 Page Layout
 
-```
+```text
 ┌──────────────────────────────────────────────────────┐
 │  ⚙️ System Settings                                  │
 ├────────────────────────┬────────────────────────────┤
@@ -64,7 +67,7 @@
 
 ## 📧 Email & Notifications
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  EMAIL & NOTIFICATIONS                      │
 ├─────────────────────────────────────────────┤
@@ -98,12 +101,14 @@
 ```
 
 **Configuration:**
+
 - SMTP server details (host, port, credentials)
 - Email "From" address and display name
 - TLS/SSL encryption option
 - Test email functionality
 
 **Notification Types:**
+
 - User invitations
 - Permission/access changes
 - Dashboard sharing notifications
@@ -113,7 +118,7 @@
 
 ## 🔐 Authentication Settings
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  AUTHENTICATION                             │
 ├─────────────────────────────────────────────┤
@@ -146,6 +151,7 @@
 ```
 
 **Configuration:**
+
 - Google OAuth credentials
 - Redirect URIs
 - Email verification requirement
@@ -157,7 +163,7 @@
 
 ## 🔗 Integration Settings
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  INTEGRATIONS                               │
 ├─────────────────────────────────────────────┤
@@ -193,11 +199,13 @@
 ```
 
 **Looker Integration:**
+
 - API credentials
 - Auto-sync settings
 - Sync history and logs
 
 **Firestore Configuration:**
+
 - Database selection
 - Backup settings
 - Retention policy
@@ -206,7 +214,7 @@
 
 ## 🛠️ System Maintenance
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  MAINTENANCE                                │
 ├─────────────────────────────────────────────┤
@@ -242,6 +250,7 @@
 ```
 
 **Maintenance Features:**
+
 - Database optimization
 - Auto-cleanup policies
 - Cache management
@@ -252,7 +261,7 @@
 
 ## 📋 Audit & Logging
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  AUDIT & LOGGING                            │
 ├─────────────────────────────────────────────┤
@@ -292,6 +301,7 @@
 ```
 
 **Audit Configuration:**
+
 - Enable/disable audit logging
 - Log retention policy
 - Which actions to log
@@ -301,7 +311,7 @@
 
 ## 🎨 Appearance Settings
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  APPEARANCE                                 │
 ├─────────────────────────────────────────────┤
@@ -328,6 +338,7 @@
 ```
 
 **Appearance Options:**
+
 - Theme (light/dark/auto)
 - Branding (logo, title, colors)
 - Font preferences (optional)

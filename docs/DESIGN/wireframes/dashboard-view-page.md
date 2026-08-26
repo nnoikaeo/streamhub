@@ -11,6 +11,7 @@
 ## 🎯 Key Principle
 
 **Display dashboard with context and related content**
+
 - Embedded dashboard visualization (Looker Studio)
 - Dashboard metadata and access information
 - Related dashboards from same folder for quick switching
@@ -23,11 +24,13 @@
 ### Layout & Components
 
 **Main Layout:**
+
 - Uses: `AppLayout` (no sidebar)
 - Uses: `TwoPaneLayout` (left sidebar + right content)
 - Header: `DashboardViewHeader` (breadcrumb, actions)
 
 **Key Components:**
+
 - `DashboardViewHeader` - Breadcrumb, dashboard title, action buttons
 - `TwoPaneLayout` - Two-pane composition (sidebar + main)
 - `QuickShareDialog` - Share dialog for moderators
@@ -40,7 +43,7 @@
 
 ### Dashboard Metadata Section
 
-```
+```text
 ┌────────────────────────────────┐
 │  Dashboard Info                │
 │                                │
@@ -54,13 +57,14 @@
 ```
 
 **Shows:**
+
 - Description (if available)
 - Owner name
 - Created and updated dates
 
 ### Access Status Section
 
-```
+```text
 ┌────────────────────────────────┐
 │  Access Status                 │
 │                                │
@@ -72,12 +76,13 @@
 ```
 
 **Shows:**
+
 - Public/Restricted badge
 - Access reason (which permission layer granted access)
 
 ### Related Dashboards Section
 
-```
+```text
 ┌────────────────────────────────┐
 │  Related Dashboards            │
 │  (Same Folder)                 │
@@ -91,6 +96,7 @@
 ```
 
 **Features:**
+
 - Shows up to 5 dashboards from same folder
 - Click to switch to another dashboard
 - No page reload (smooth navigation via router.push)
@@ -102,7 +108,7 @@
 
 ### Header Section (DashboardViewHeader)
 
-```
+```text
 🏠 > Sales > Regional > Reports > Regional Performance
 
 Regional Performance Dashboard 📈
@@ -112,6 +118,7 @@ Created by: John Admin | Updated: 1 day ago
 ```
 
 **Elements:**
+
 - Breadcrumb navigation (click to navigate back)
 - Dashboard title with icon
 - Creator info and timestamp
@@ -123,7 +130,7 @@ Created by: John Admin | Updated: 1 day ago
 
 ### Looker Studio Embed
 
-```
+```text
 ┌──────────────────────────────────┐
 │                                  │
 │  [Full Screen ⛶] [Refresh 🔄]   │
@@ -141,6 +148,7 @@ Created by: John Admin | Updated: 1 day ago
 ```
 
 **Features:**
+
 - Embedded iframe (Looker Studio)
 - Interactive visualizations
 - Filters and controls
@@ -150,7 +158,7 @@ Created by: John Admin | Updated: 1 day ago
 
 ### Loading State
 
-```
+```text
 ┌──────────────────────────────┐
 │                              │
 │        [Spinner]             │
@@ -162,7 +170,7 @@ Created by: John Admin | Updated: 1 day ago
 
 ### Error State
 
-```
+```text
 ┌──────────────────────────────┐
 │  ❌ Error Loading Dashboard  │
 │                              │
@@ -189,6 +197,7 @@ Created by: John Admin | Updated: 1 day ago
    - Explicit deny or expiry dates
 
 **Summary:**
+
 - User must have access to view dashboard
 - Access denied → show error state + "Go Back" button
 - Permission re-checked when switching related dashboards
@@ -212,6 +221,7 @@ Created by: John Admin | Updated: 1 day ago
 | Archive | ❌ | ✅ | ✅ |
 
 **Action Details:**
+
 - **View:** Current state, read-only dashboard
 - **Fullscreen:** Native Fullscreen API on the document root — `Esc` or the `ย่อ` button exits
 - **Embed zoom:** Shrinks the Looker embed (40–100%) to fit more of the report on screen for screenshots; the browser's own zoom is a no-op here
@@ -227,7 +237,7 @@ Created by: John Admin | Updated: 1 day ago
 
 ## 🔄 User Flow
 
-```
+```text
 1. User on Dashboard Discover page
    ↓
 2. Clicks [Open] button on dashboard card

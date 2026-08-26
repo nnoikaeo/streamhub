@@ -1,7 +1,3 @@
----
-title: Prompt Playbook — แนวทางการใช้ Prompt ในทุกขั้นตอน
----
-
 # Prompt Playbook
 
 แผนปฏิบัติการใช้ prompt กับ Copilot ในทุกขั้นตอนของ development workflow
@@ -12,7 +8,7 @@ title: Prompt Playbook — แนวทางการใช้ Prompt ในท
 
 ## 📋 สรุปภาพรวม Workflow
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  1. วางแผน (Plan)        → สร้างแผนงาน .md             │
 │  2. เขียนโค้ด (Implement) → เขียน + ตรวจระหว่างทาง      │
@@ -31,7 +27,7 @@ title: Prompt Playbook — แนวทางการใช้ Prompt ในท
 
 ### 1.1 สร้างแผนงาน
 
-```
+```text
 ช่วยสร้างแผนงานสำหรับ [ชื่อ feature] ใน docs/OPERATIONS/:
 - สรุปภาพรวม (เป้าหมาย, ผลลัพธ์ที่คาดหวัง)
 - แบ่งเป็นงานย่อย (1 งาน = 1 PR)
@@ -42,7 +38,7 @@ title: Prompt Playbook — แนวทางการใช้ Prompt ในท
 
 ### 1.2 ประเมินงาน
 
-```
+```text
 ดูแผนงาน docs/OPERATIONS/[plan-file].md แล้วช่วย:
 - ประเมินว่าแต่ละงานย่อยมีขนาดเหมาะสมไหม (ควร 1 session = 1 งาน)
 - มีงานไหนที่ควรแยกย่อยเพิ่ม?
@@ -57,14 +53,14 @@ title: Prompt Playbook — แนวทางการใช้ Prompt ในท
 
 ### 2.1 เริ่มงาน — บอก context
 
-```
+```text
 ทำงานที่ [N] จากแผน docs/OPERATIONS/[plan-file].md
 อ่านแผนงานแล้วเริ่ม implement ตามรายละเอียด
 ```
 
 ### 2.2 ตรวจระหว่างเขียน — Quick Check
 
-```
+```text
 ตรวจไฟล์ [ชื่อไฟล์] ที่เพิ่งแก้:
 - TypeScript types ครบไหม?
 - Vue component structure ถูกไหม? (imports → types → props → emits → state → computed → methods)
@@ -73,7 +69,7 @@ title: Prompt Playbook — แนวทางการใช้ Prompt ในท
 
 ### 2.3 ขอช่วยแก้ปัญหา
 
-```
+```text
 ไฟล์ [ชื่อไฟล์] มีปัญหา: [อธิบายปัญหา]
 ช่วยหาสาเหตุและแก้ไข โดยอ้างอิง coding standards ใน docs/CONTRIBUTING/coding-standards.md
 ```
@@ -86,7 +82,7 @@ title: Prompt Playbook — แนวทางการใช้ Prompt ในท
 
 ### 3.1 Code Review
 
-```
+```text
 Review โค้ดที่เปลี่ยนทั้งหมด ตรวจตาม docs/CONTRIBUTING/coding-standards.md:
 - TypeScript types ครบไหม
 - Vue component structure ถูกต้องไหม
@@ -98,7 +94,7 @@ Review โค้ดที่เปลี่ยนทั้งหมด ตรว
 
 ### 3.2 Doc Impact Check
 
-```
+```text
 ตรวจว่าการเปลี่ยนแปลงล่าสุดกระทบเอกสารไหม:
 - เพิ่ม/ลบ component → ต้องอัปเดต docs/DESIGN/COMPONENT_ARCHITECTURE.md ไหม?
 - เปลี่ยน CSS/theme → ต้องอัปเดต docs/DESIGN/DESIGN_SYSTEM.md ไหม?
@@ -108,7 +104,7 @@ Review โค้ดที่เปลี่ยนทั้งหมด ตรว
 
 ### 3.3 Security Review (สำหรับงาน API / Auth)
 
-```
+```text
 Review โค้ดเรื่อง security:
 - API endpoints มี authentication ไหม?
 - Input validation ครบไหม?
@@ -125,7 +121,7 @@ Review โค้ดเรื่อง security:
 
 ### 4.1 สร้าง PR Body
 
-```
+```text
 ช่วยสร้าง PR description สำหรับ:
 - Branch: [ชื่อ branch]
 - Base: develop
@@ -137,7 +133,7 @@ Review โค้ดเรื่อง security:
 
 ### 4.2 สร้าง PR Body แบบ Release
 
-```
+```text
 ช่วยสร้าง PR description สำหรับ release (develop → main):
 - ดู git log ล่าสุดที่ยังไม่ merge เข้า main
 - สรุป features, fixes, docs ที่เปลี่ยน
@@ -152,7 +148,7 @@ Review โค้ดเรื่อง security:
 
 ### 5.1 อัปเดต Roadmap
 
-```
+```text
 ช่วยอัปเดตไฟล์ที่เกี่ยวข้องกับงานที่ทำล่าสุด:
 - อัปเดต roadmap.md — mark phase เป็น ✅ COMPLETED
 - อัปเดต plan .md — mark checklist เสร็จ
@@ -161,7 +157,7 @@ Review โค้ดเรื่อง security:
 
 ### 5.2 Design Doc Review
 
-```
+```text
 Review docs/DESIGN/COMPONENT_ARCHITECTURE.md ให้ตรงกับโค้ดจริงใน app/components/:
 - Component ใหม่ที่ยังไม่มีในเอกสาร?
 - Component ที่ถูกลบหรือเปลี่ยนชื่อ?
@@ -169,7 +165,7 @@ Review docs/DESIGN/COMPONENT_ARCHITECTURE.md ให้ตรงกับโค�
 - รัน `npm run docs:links` ก่อนเปิด PR (เอกสารไม่มีช่อง version/Last Updated แล้ว — git log คือวันที่จริง)
 ```
 
-```
+```text
 Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/ + tailwind.config.ts:
 - CSS variables ที่เพิ่ม/เปลี่ยน?
 - Tailwind extensions ที่ยังไม่ document?
@@ -178,7 +174,7 @@ Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/ + ta
 
 ### 5.3 Archive แผนงาน
 
-```
+```text
 งานทั้งหมดใน docs/OPERATIONS/[plan-file].md เสร็จครบแล้ว
 ช่วย:
 - ย้ายไปเก็บที่ docs/OPERATIONS/archive/
@@ -193,7 +189,7 @@ Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/ + ta
 
 ### 6.1 Full Doc Review
 
-```
+```text
 ก่อน release ช่วย review เอกสารทุกไฟล์ให้เป็นปัจจุบัน:
 1. docs/DESIGN/COMPONENT_ARCHITECTURE.md — ตรงกับ app/components/ ไหม?
 2. docs/DESIGN/DESIGN_SYSTEM.md — ตรงกับ assets/css/ + tailwind.config.ts ไหม?
@@ -204,7 +200,7 @@ Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/ + ta
 
 ### 6.2 Final Code Quality Sweep
 
-```
+```text
 ตรวจ codebase ทั้งหมดก่อน release:
 - มี console.log / TODO / FIXME / HACK ที่ลืมแก้ไหม?
 - มีไฟล์ที่ import แต่ไม่ได้ใช้ไหม?
@@ -217,7 +213,7 @@ Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/ + ta
 
 ### ถามเรื่อง Architecture
 
-```
+```text
 อธิบาย architecture ของ [feature/component] ใน StreamHub:
 - ไฟล์ไหนเกี่ยวข้อง?
 - data flow เป็นอย่างไร?
@@ -226,14 +222,14 @@ Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/ + ta
 
 ### Debug ปัญหา
 
-```
+```text
 หน้า [ชื่อหน้า] มี error: [ข้อความ error]
 ช่วยหาสาเหตุ ตรวจไฟล์ที่เกี่ยวข้อง แล้วแก้ไข
 ```
 
 ### Refactor
 
-```
+```text
 Refactor [ชื่อไฟล์/component] ตาม coding standards:
 - ดู docs/CONTRIBUTING/coding-standards.md
 - ดู docs/DESIGN/COMPONENT_ARCHITECTURE.md สำหรับ pattern ที่ใช้
