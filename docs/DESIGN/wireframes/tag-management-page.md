@@ -1,5 +1,9 @@
 # Tag Management & Tag Filter Wireframe
 
+> **Current Implementation:** `app/pages/admin/tags/index.vue` — built and in production, using
+> `DataTable` + `FormModal` + `TagForm` + `ConfirmDialog`. `TagCreateDialog` and
+> `TagDeleteDialog` named below were never created as separate components.
+>
 > **Purpose:** Admin tag CRUD management + Tag filter/assignment UI for all roles
 > **Related:** [User Flows](../user-flows.md), [Roles & Permissions](../../GUIDES/roles-and-permissions.md), [Database Schema](../../GUIDES/database-schema.md)
 

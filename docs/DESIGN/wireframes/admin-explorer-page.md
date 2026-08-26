@@ -2,7 +2,8 @@
 
 > **Purpose:** Unified File Explorer for managing folder hierarchy and dashboards in one place
 > **Users:** Admin (full access), Moderator (assigned folders only)
-> **Current Implementation:** `app/pages/admin/explorer/[[folderId]].vue` (to be created)
+> **Current Implementation:** `app/pages/admin/explorer/[[folderId]].vue` — **built and in
+> production.** The page delegates entirely to `ExplorerPage.vue`; there is no `AdminLayout`.
 > **Note:** Unified File Explorer replacing the previous folder management page
 
 ---

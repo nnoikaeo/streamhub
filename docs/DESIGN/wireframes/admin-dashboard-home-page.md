@@ -2,7 +2,14 @@
 
 > **Purpose:** Central hub for admin overview, quick access to management tools, and system status
 > **Users:** Admin role only
-> **Current Implementation:** `app/pages/admin/index.vue` (to be created)
+> ⚠️ **This hub was not built as drawn.** `app/pages/admin/index.vue` exists but is a single
+> `<NuxtRedirect to="/admin/overview" />` — the stats and quick-action cards live on
+> **`/admin/overview`**. Read this file as the design behind that page, not as a description of
+> `/admin/index.vue`.
+>
+> Also stale: the Quick Actions link to `/admin/users/new` and `/admin/companies/new`. Neither
+> route exists — admin create/edit is a `FormModal` on the list page. And `AdminLayout` /
+> `AdminHeader` do not exist; the shell is `PageLayout` → `AppLayout`.
 
 ---
 
