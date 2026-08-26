@@ -79,6 +79,30 @@ against a nodejs22 runtime, which happened not to break but was nobody's decisio
 
 Changing the runtime means editing `.nvmrc`, `nitro.firebase.nodeVersion` and `firebase.json` together.
 
+## package-lock.json
+
+The lock had drifted from `package.json`: 56 entries for `firebase-functions@7.2.2` and the
+`express` tree it pulled, left behind when firebase-functions stopped being a devDependency.
+Nothing declared them, `npm ci` installed them on every CI run, and no code imported them.
+Pruned by regenerating with `npm install --package-lock-only`.
+
+The deployed function is unaffected either way: Nitro writes its own
+`.output/server/package.json` (which declares `firebase-functions` itself), and CI installs
+that separately. The repo lock never reaches Cloud Functions.
+
+**Regenerate the lock with the npm that CI runs, not yours.** Node 22 ships npm 10, and npm 11
+resolves one entry differently: it drops `@nuxt/test-utils/node_modules/crossws`, which npm 10
+requires, and `npm ci` then fails with `Missing: crossws@0.4.12 from lock file`. Both majors
+agree about everything else. So:
+
+```bash
+npx --yes npm@10.9.8 install --package-lock-only --ignore-scripts
+```
+
+A lock written by npm 10 installs cleanly under both; one written by npm 11 breaks CI. If
+`npm install` rewrites the lock when you changed nothing in `package.json`, commit the
+regenerated file on its own rather than letting it ride along in an unrelated diff.
+
 ## Verification baselines
 
 Each of these is **0** on a clean tree. A non-zero count is something you introduced.
