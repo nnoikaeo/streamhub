@@ -1,5 +1,17 @@
 # Deployment to Production
 
+> **Firestore rules do not deploy with anything else.** CI cannot push them — the service
+> account lacks `firebaserules.googleapis.com` — so they go out by hand:
+>
+> ```bash
+> firebase deploy --only firestore:rules --project streamhub-1c27a
+> ```
+>
+> Run **`npm run rules:verify`** afterwards, and any time you want to know where things stand.
+> It compares the ruleset Google is actually enforcing against `firestore.rules` and exits 1 if
+> they differ. Without it, a rules change that was reviewed and merged but never deployed is
+> indistinguishable from one that is live.
+
 StreamHub deploys to **Firebase Hosting** (static SPA) + **Cloud Functions for Firebase 2nd gen** (Nitro server API routes).
 
 ## Architecture
