@@ -13,8 +13,9 @@
 > - The Admin group ships **ten** items, not eight: `ภาพรวม`, `ผู้ใช้`, **`คำเชิญ`**, `Explorer`,
 >   `บริษัท`, **`กลุ่มธุรกิจ/เขตพื้นที่`**, `กลุ่มผู้ใช้`, `แท็ก`, **`Audit Logs`**, **`System Health`**.
 > - **Dashboards** and **Permissions** are drawn here but are *not* in the sidebar. Both pages
->   exist (`/admin/dashboards`, `/admin/permissions`); permissions is reached from Explorer's 🔑
->   button, and `/admin/dashboards` has no entry point at all.
+>   exist and both are reachable — from the quick-action cards on `/admin/overview`, and
+>   permissions additionally from Explorer's 🔑 button. `/admin/folders` is the same case: a
+>   live page reached only from `/admin/overview`.
 >
 > Correct as drawn: accordions are mutually exclusive, and the folder tree really is kept out of
 > the sidebar — `showFolders` is hardcoded `false` in `useSidebarVisibility.ts`.
