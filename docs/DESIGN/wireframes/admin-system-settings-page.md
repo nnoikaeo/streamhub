@@ -3,8 +3,6 @@
 > **Purpose:** Global system configuration and settings (email, authentication, integrations)
 > **Users:** Admin role only (superadmin settings)
 > **Current Implementation:** `app/pages/admin/settings.vue` (to be created)
-> **Last Updated:** 2026-02-14
-> **Version:** 1.0
 
 ---
 
@@ -360,5 +358,4 @@
 ---
 
 **Created:** 2026-02-14
-**Version:** 1.0 (Initial v4.0 consolidated format)
 **Designer:** Development Team

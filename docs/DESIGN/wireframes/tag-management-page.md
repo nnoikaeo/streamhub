@@ -2,8 +2,6 @@
 
 > **Purpose:** Admin tag CRUD management + Tag filter/assignment UI for all roles
 > **Related:** [User Flows](../user-flows.md), [Roles & Permissions](../../GUIDES/roles-and-permissions.md), [Database Schema](../../GUIDES/database-schema.md)
-> **Last Updated:** 2026-03
-> **Version:** 1.0
 
 ---
 
@@ -395,4 +393,3 @@ Tags render as a **second line under the dashboard name**, not as a column — t
 
 **Created:** 2026-03-14
 **Designer:** Development Team
-**Version:** 1.0

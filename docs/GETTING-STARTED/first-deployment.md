@@ -1,7 +1,5 @@
 ---
 title: First Deployment
-version: 1.0
-updated: 2024-01-21
 ---
 
 # First Deployment to Firebase Hosting

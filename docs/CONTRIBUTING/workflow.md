@@ -1,7 +1,5 @@
 ---
 title: Contribution Workflow
-version: 2.0
-updated: 2024-01-21
 ---
 
 # Contribution Workflow

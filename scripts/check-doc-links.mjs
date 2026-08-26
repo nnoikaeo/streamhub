@@ -14,10 +14,16 @@
  * what lets an index drift — a file gets added, the index does not mention it, and
  * no link is broken so nothing complains.
  *
+ * And on a hand-maintained freshness stamp — `Last Updated:` or a doc `Version:`,
+ * in frontmatter or in the header block. Every one of the 33 this repo carried was
+ * wrong, six of them by more than two years, because nobody updates a date they are
+ * not forced to. `git log -1 --format=%as -- <file>` is the date, and it cannot lie.
+ *
  * Usage:
  *   node scripts/check-doc-links.mjs            # files + anchors + orphans
  *   node scripts/check-doc-links.mjs --no-anchors
  *   node scripts/check-doc-links.mjs --no-orphans
+ *   node scripts/check-doc-links.mjs --no-stamps
  *   node scripts/check-doc-links.mjs --json
  *
  * Exit 1 when anything is broken. Baseline is 0.
@@ -30,6 +36,10 @@ const ROOT = resolve(import.meta.dirname, '..')
 const args = process.argv.slice(2)
 const CHECK_ANCHORS = !args.includes('--no-anchors')
 const CHECK_ORPHANS = !args.includes('--no-orphans')
+const CHECK_STAMPS = !args.includes('--no-stamps')
+
+/** `updated: 2024-01-21` in frontmatter, or `> **Last Updated:** ...` in a header block. */
+const STAMP_RE = /^\s*(?:>\s*)?(?:\*\*)?(last updated|updated|version)(?:\*\*)?\s*:/i
 const AS_JSON = args.includes('--json')
 
 /** Vendored skill packages — not ours to fix. */
@@ -138,6 +148,26 @@ for (const file of files) {
   }
 }
 
+if (CHECK_STAMPS) {
+  for (const file of files) {
+    if (!file.startsWith('docs/')) continue
+    const raw = readFileSync(join(ROOT, file), 'utf8').split('\n')
+    const inFrontmatter = raw[0]?.trim() === '---' ? raw.indexOf('---', 1) : 0
+    raw.forEach((line, i) => {
+      // Only the frontmatter block and the header quote block above the first rule.
+      if (i > Math.max(inFrontmatter, 12)) return
+      if (!STAMP_RE.test(line)) return
+      problems.push({
+        file,
+        line: i + 1,
+        target: line.trim(),
+        kind: 'stale-stamp',
+        detail: 'hand-maintained freshness stamp — use `git log -1 --format=%as -- <file>` instead',
+      })
+    })
+  }
+}
+
 if (CHECK_ORPHANS) {
   // docs/README.md is the index itself — it is reached from the repo README, not from docs/.
   for (const file of files) {
@@ -157,7 +187,7 @@ if (CHECK_ORPHANS) {
 if (AS_JSON) {
   console.log(JSON.stringify(problems, null, 2))
 } else if (problems.length === 0) {
-  console.log(`✅ docs OK — 0 broken links, 0 orphans (${files.length} files checked)`)
+  console.log(`✅ docs OK — 0 broken links, 0 orphans, 0 stale stamps (${files.length} files checked)`)
 } else {
   for (const p of problems) {
     console.log(p.target ? `${p.file}:${p.line}  ${p.target}` : p.file)

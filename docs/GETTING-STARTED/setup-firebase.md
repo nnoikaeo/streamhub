@@ -1,7 +1,5 @@
 ---
 title: Firebase Configuration
-version: 1.0
-updated: 2024-01-21
 ---
 
 # Firebase Configuration

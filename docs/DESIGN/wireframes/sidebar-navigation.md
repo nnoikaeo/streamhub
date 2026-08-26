@@ -2,8 +2,6 @@
 
 > **Purpose:** Role-based sidebar navigation design for StreamHub
 > **Related:** [User Flows](../user-flows.md), [Roles & Permissions](../../GUIDES/roles-and-permissions.md)
-> **Last Updated:** 2026-03
-> **Version:** 1.0
 
 ---
 
@@ -298,4 +296,3 @@ function getSidebarMenus(role: string, assignedFolders: Folder[]): SidebarMenuGr
 
 **Created:** 2026-03-14
 **Designer:** Development Team
-**Version:** 1.0

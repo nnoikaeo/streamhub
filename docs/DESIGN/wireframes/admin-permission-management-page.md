@@ -3,8 +3,6 @@
 > **Purpose:** Permission management for dashboards using unified 3-column pattern
 > **Users:** Admin + Moderator
 > **Implementation:** `app/pages/admin/permissions.vue`, `app/pages/manage/permissions.vue`
-> **Last Updated:** 2026-03-18
-> **Version:** 6.0 (Unified 3-Column — No Tabs)
 
 ---
 
@@ -217,4 +215,3 @@ Separate section below the main editor. `v-if="showRestrictions"`
 **Created:** 2024-02-03
 **Updated:** 2026-03-18 (v6.0 — Unified 3-Column, No Tabs)
 **Designer:** Development Team
-**Version:** 6.0

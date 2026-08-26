@@ -5,8 +5,6 @@
 > **Purpose:** Main page for browsing and discovering available dashboards by folder structure
 > **Users:** All roles (USER, MODERATOR, ADMIN)
 > **Current Implementation:** `app/pages/dashboard/discover.vue` using Strategy 4 (Pinia stores + composables)
-> **Last Updated:** 2026-03-24
-> **Version:** 5.0 (Multi-View Modes: Grid / Compact / List)
 
 ---
 
@@ -295,4 +293,3 @@ Features:
 **Created:** 2024-01-27
 **Updated:** 2026-02-13 (v4.0 - Consolidated & Refactored)
 **Designer:** Development Team
-**Version:** 4.0

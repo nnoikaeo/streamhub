@@ -3,8 +3,6 @@
 > **Purpose:** Component hierarchy, architecture strategy, and layout patterns for StreamHub
 > **Strategy:** Strategy 4 (Hybrid Approach) — Pinia stores + composables + permission-based UI
 > **Current Implementation:** `app/components/` directory with 4-layer architecture
-> **Last Updated:** 2026-03-23
-> **Version:** 5.2 (Added AppToast + useAppToast toast system)
 > **Note:** Includes Strategy 4 (Hybrid Approach) content, merged into this single document
 
 ---
@@ -719,4 +717,3 @@ describe('useDashboardPage', () => {
 **Created:** 2024-01-25
 **Updated:** 2026-03-22 (v5.2 — Merged COMPONENT_CONVENTIONS.md into this document)
 **Designer:** Development Team
-**Version:** 5.2

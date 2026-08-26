@@ -1,9 +1,7 @@
 # 🔐 Roles & Permissions Guide
 
 > **Document Status:** Single Source of Truth for Roles & Access Control
-> **Last Updated:** 2026-03-22
 > **Document Owner:** Development Team
-> **Version:** 6.1 (Updated checklist to reflect Phase 1–4 completion)
 
 **StreamHub Role-Based Access Control (RBAC) with Simplified Permissions (Direct + Company-Scoped)**
 
@@ -832,8 +830,3 @@ Effective access for "Budget Report":
 - [Database Schema](./database-schema.md) - For field definitions, **see Permission Structure section above**
 - [Company Management](./company-management.md) - For company setup, **see Use Cases section above**
 - [User Flows](../DESIGN/user-flows.md) - For access flow diagrams
-
----
-
-**Last Updated:** 2026-03-22
-**Version:** 6.1 (Phase 1–4 checklist updated to reflect completed implementation)

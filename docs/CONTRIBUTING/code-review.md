@@ -1,7 +1,5 @@
 ---
 title: Code Review Process
-version: 2.0
-updated: 2026-03-25
 ---
 
 # Code Review Process
@@ -138,7 +136,7 @@ Review docs/DESIGN/COMPONENT_ARCHITECTURE.md ให้ตรงกับโค�
 - Component ใหม่ที่ยังไม่มีในเอกสาร?
 - Component ที่ถูกลบหรือเปลี่ยนชื่อ?
 - Props/slots ที่เพิ่มใหม่?
-- อัปเดต version + Last Updated date
+- รัน `npm run docs:links` ก่อนเปิด PR (เอกสารไม่มีช่อง version/Last Updated แล้ว — git log คือวันที่จริง)
 ```
 
 ```

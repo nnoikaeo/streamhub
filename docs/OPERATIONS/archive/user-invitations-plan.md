@@ -1,7 +1,6 @@
 # User Invitations — Implementation Plan
 
 > **Created:** 2026-03-15
-> **Updated:** 2026-03-21
 > **Purpose:** Step-by-step prompts สำหรับให้ Sonnet/Haiku ดำเนินการ
 > **Strategy:** แต่ละ Step = 1 feature branch → PR → merge to develop
 > **Email:** ใช้ Resend สำหรับส่ง email จริง

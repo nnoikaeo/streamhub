@@ -1,7 +1,5 @@
 ---
 title: Environment Variables
-version: 1.0
-updated: 2024-01-21
 ---
 
 # Environment Variables Reference

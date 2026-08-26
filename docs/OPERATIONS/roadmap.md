@@ -2,7 +2,6 @@
 
 **Project:** Dashboard Management System for Streamwash (150+ employees)
 **Strategy:** Iterative — Features → QA → Deploy
-**Last Updated:** 2026-07-18
 
 ---
 
@@ -357,4 +356,3 @@ Thumbnail API under `server/api/thumbnail/`:
 - [Roles & Permissions](../GUIDES/roles-and-permissions.md) — RBAC rules
 - [Database Schema](../GUIDES/database-schema.md) — Firestore collections
 - [Component Architecture](../DESIGN/COMPONENT_ARCHITECTURE.md) — 4-layer system
-

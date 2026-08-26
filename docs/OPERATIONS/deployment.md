@@ -1,7 +1,5 @@
 ---
 title: Deployment Guide
-version: 3.0
-updated: 2026-04-03
 ---
 
 # Deployment to Production

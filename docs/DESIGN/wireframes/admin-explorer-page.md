@@ -4,8 +4,6 @@
 > **Users:** Admin (full access), Moderator (assigned folders only)
 > **Current Implementation:** `app/pages/admin/explorer/[[folderId]].vue` (to be created)
 > **Note:** Unified File Explorer replacing the previous folder management page
-> **Last Updated:** 2026-03-12
-> **Version:** 2.0
 
 ---
 
@@ -190,5 +188,4 @@ Admin Sidebar:
 ---
 
 **Created:** 2026-03-12
-**Version:** 2.0 (Full File Explorer Style)
 **Decision:** เปลี่ยนจาก Two-pane Folder+Detail เป็น Full File Explorer เพราะ admin/moderator คุ้นเคยกับ mental model นี้อยู่แล้ว

@@ -5,8 +5,6 @@
 > **Purpose:** Display individual dashboard with Looker Studio embed and related dashboards
 > **Users:** All roles with dashboard access (USER, MODERATOR, ADMIN)
 > **Current Implementation:** `app/pages/dashboard/view.vue` using AppLayout + TwoPaneLayout
-> **Last Updated:** 2026-02-13
-> **Version:** 4.0 (Consolidated with Single Source of Truth)
 
 ---
 
@@ -302,4 +300,3 @@ Created by: John Admin | Updated: 1 day ago
 **Created:** 2024-01-28
 **Updated:** 2026-02-13 (v4.0 - Consolidated & Aligned with discover-page.md)
 **Designer:** Development Team
-**Version:** 4.0
