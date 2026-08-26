@@ -142,9 +142,9 @@ Review docs/DESIGN/COMPONENT_ARCHITECTURE.md ให้ตรงกับโค�
 ```
 
 ```
-Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/ + tailwind.config.ts:
+Review docs/DESIGN/DESIGN_SYSTEM.md ให้ตรงกับ assets/css/:
 - CSS variables ที่เพิ่ม/เปลี่ยน?
-- Tailwind extensions ที่ยังไม่ document?
+- utility class ใหม่ใน theme.css ที่ยังไม่ document?
 - สีหรือ design token ใหม่?
 ```
 

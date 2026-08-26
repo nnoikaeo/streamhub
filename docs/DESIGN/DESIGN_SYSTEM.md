@@ -102,7 +102,12 @@ All colors are available as CSS variables in `:root`. Use these in your custom s
 
 ## 🧩 Tailwind Configuration
 
-The project uses Tailwind CSS with custom theme extensions in `tailwind.config.ts`.
+**There is no Tailwind config file.** This project is on Tailwind 4, which is CSS-first:
+`assets/css/main.css` begins with `@import "tailwindcss"` and that is the whole configuration.
+The scales below are Tailwind's own defaults, listed here for reference — they are not
+customisations, and there is no file in which to edit them.
+
+Everything StreamHub actually customises is a CSS variable in `main.css` and `theme.css`.
 ### Typography
 
 **Font Family:**
@@ -384,9 +389,8 @@ font-weight: 500;
 ```
 assets/
   css/
-    main.css          ← Base styles and CSS variables
-    theme.css         ← Component styles and utilities
-tailwind.config.ts    ← Tailwind configuration with custom colors
+    main.css          ← @import "tailwindcss", then the :root CSS variables
+    theme.css         ← Component classes built on those variables
 ```
 
 ---
@@ -395,26 +399,14 @@ tailwind.config.ts    ← Tailwind configuration with custom colors
 
 To change the entire application theme:
 
-### Option 1: Update CSS Variables (Fastest)
-Edit `assets/css/main.css` and change the `:root` variables:
+Edit `assets/css/main.css` and change the `:root` variables. This is the only way — there is
+no Tailwind config to edit:
 
 ```css
 :root {
   --color-primary: #new-color;
   --color-primary-dark: #new-dark-color;
   /* ... update other variables */
-}
-```
-
-### Option 2: Update Tailwind Colors
-Edit `tailwind.config.ts` and update the `extend.colors` section:
-
-```typescript
-colors: {
-  'primary': {
-    500: '#new-primary-color',
-    // ... update other shades
-  },
 }
 ```
 
@@ -532,4 +524,3 @@ The theme includes mobile-first responsive utilities:
 For questions about the design system, refer to:
 - `assets/css/main.css` - Variables and base styles
 - `assets/css/theme.css` - Component classes
-- `tailwind.config.ts` - Tailwind configuration
