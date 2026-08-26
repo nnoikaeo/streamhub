@@ -67,7 +67,7 @@ runtime. Let CI build them.
 | Package | Version | Notes |
 |---|---|---|
 | `vite` | 7.3.1 (via Nuxt) | Dev server and bundler |
-| `vitest` | ^4.1.2 | 334 tests, `npm test`. Anything added to `shared/utils/` must also be registered in `tests/setup.ts` — plain Vitest does not run Nuxt auto-imports |
+| `vitest` | ^4.1.2 | 335 tests, `npm test`. Anything added to `shared/utils/` must also be registered in `tests/setup.ts` — plain Vitest does not run Nuxt auto-imports |
 | `eslint` + `@nuxt/eslint` | ^9.39.2 / ^1.12.1 | `npx eslint .`, config in [eslint.config.mjs](../../eslint.config.mjs) |
 | `tsx` | ^4.21.0 | Runs the `.ts` maintenance scripts in `scripts/` |
 | `@types/node` | ^25.2.0 | |
@@ -88,7 +88,7 @@ Each of these is **0** on a clean tree. A non-zero count is something you introd
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | 0 |
 | `npx vue-tsc --noEmit -p scripts/tsconfig.json` | 0 |
 | `npm run docs:links` | 0 |
-| `npm test` | 334 passing |
+| `npm test` | 335 passing |
 
 ## See also
 

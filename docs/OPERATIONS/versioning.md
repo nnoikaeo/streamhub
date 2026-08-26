@@ -4,36 +4,40 @@ title: Version Management
 
 # Version Management
 
-## What identifies a version today
-
-Nothing semantic. Stating it plainly so nobody goes looking for a scheme that is not there:
+## What identifies a build
 
 | | State |
 |---|---|
-| Git tags | **none** — `git tag` is empty |
-| GitHub releases | **none** |
-| `version` in [package.json](../../package.json) | **absent** |
-| `/api/health` → `version` | reports `process.env.npm_package_version \|\| 'unknown'`, so always **`unknown`** |
+| `version` in [package.json](../../package.json) | **`1.0.0`** — the first value the field has ever had |
+| `/api/health` → `version` | reports that value, baked in at build time |
+| Git tags | none |
+| GitHub releases | none |
 
 A deployed build is identified by **the commit on `main`**, and a change is referred to by its
 **PR number** — which is how [roadmap.md](roadmap.md) and the BUG register in
 [manual-test-plan.md](manual-test-plan.md) already track work ("fixed in PR #351"). That
-convention works and is used consistently. The gap is only that it is invisible from a running
-deployment: open `/admin/health` and the version field says `unknown`.
+convention works; keep using it in bug reports.
 
-## The smallest fix, if this is worth closing
+The version number is now a second, coarser handle: open `/admin/health` and it says which
+release is live. It only tells the truth if someone bumps it.
 
-Add `"version"` to `package.json` and bump it in the back-merge to `main`. `/api/health` picks
-it up with no code change, because it already reads `npm_package_version`. Tags and releases
-can follow later or never.
+## Bumping it
 
-Until someone does that, do not cite a version number in a bug report — cite the commit or the
-PR.
+Edit `version` in `package.json` on the release branch, before the back-merge to `main`.
+Nothing else to do — [nuxt.config.ts](../../nuxt.config.ts) reads the file at build time and
+publishes it as `runtimeConfig.public.appVersion`, and `/api/health` reads that.
 
-## If semantic versioning is adopted
+> Do **not** reintroduce `process.env.npm_package_version`. npm only sets that variable when
+> npm starts the process. The deployed Cloud Function is started by the Functions runtime, so
+> the variable is absent and the endpoint reported `unknown` on every deploy from the day it
+> was written until this was fixed. A regression test in
+> `tests/server/healthEndpoint.test.ts` holds the line.
 
-`MAJOR.MINOR.PATCH`, the ordinary meanings: breaking / feature / fix. Tag on `main` only, after
-the back-merge, never on `develop`:
+`MAJOR.MINOR.PATCH`, the ordinary meanings: breaking / feature / fix.
+
+## Tags and releases
+
+Not adopted. If they are, tag on `main` only, after the back-merge, never on `develop`:
 
 ```bash
 git tag v1.0.0
@@ -41,5 +45,5 @@ git push origin v1.0.0
 ```
 
 Branching and merge order are in [workflow.md](../CONTRIBUTING/workflow.md); deploy behaviour
-is in [deployment.md](deployment.md) — note that any push to `main` deploys both hosting and
-functions, so a tag push on its own is harmless but a version bump commit is a deploy.
+is in [deployment.md](deployment.md) — any push to `main` deploys both hosting and functions,
+so a tag push on its own is harmless but a version bump commit is a deploy.

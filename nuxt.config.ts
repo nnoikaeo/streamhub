@@ -1,5 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
+
+// Read at build time, not runtime. `process.env.npm_package_version` is only set
+// when npm starts the process, and the deployed Cloud Function is started by the
+// Functions runtime — which is why /api/health reported 'unknown' on every deploy.
+const appVersion = JSON.parse(
+  readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'),
+).version as string
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-20',
@@ -170,6 +178,9 @@ export default defineNuxtConfig({
     embedTokenSecret: process.env.EMBED_TOKEN_SECRET || '',
 
     public: {
+      // Baked in from package.json at build time — see the note at the top of this file.
+      appVersion,
+
       // Service Configuration: Firestore (production) vs JSON Mock (development)
       useFirestore: process.env.NUXT_PUBLIC_USE_FIRESTORE === 'true',
       useJsonMock: process.env.NUXT_PUBLIC_USE_JSON_MOCK !== 'false',

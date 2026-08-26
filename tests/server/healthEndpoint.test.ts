@@ -262,6 +262,16 @@ describe('GET /api/health', () => {
 
       expect(result.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/)
     })
+
+    // Regression: the version came from process.env.npm_package_version, which npm
+    // only sets when npm starts the process. The deployed function is started by the
+    // Functions runtime, so /admin/health reported 'unknown' on every deploy.
+    it('reports the version baked into runtime config, not the npm env var', async () => {
+      const result = expectHealth(await healthHandler(makeEvent('admin')))
+
+      expect(result.version).toBe('test-version')
+      expect(result.version).not.toBe('unknown')
+    })
   })
 
   describe('health checks — independent failure isolation', () => {
