@@ -94,7 +94,7 @@ export async function readJSON<T>(filename: string): Promise<T[]> {
 
     if (error instanceof SyntaxError) {
       console.error(`[jsonDatabase] Invalid JSON in ${filename}:`, error.message)
-      throw new Error(`Invalid JSON in ${filename}: ${error.message}`)
+      throw new Error(`Invalid JSON in ${filename}: ${error.message}`, { cause: error })
     }
 
     throw error

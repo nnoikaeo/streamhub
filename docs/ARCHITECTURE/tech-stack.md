@@ -79,6 +79,26 @@ against a nodejs22 runtime, which happened not to break but was nobody's decisio
 
 Changing the runtime means editing `.nvmrc`, `nitro.firebase.nodeVersion` and `firebase.json` together.
 
+## Major versions deliberately not taken
+
+These have a newer major available. Each is left where it is for a stated reason, so nobody has
+to re-derive it:
+
+| Package | On | Latest | Why not yet |
+|---|---|---|---|
+| `nuxt` | 4.2.2 | 4.4.5 | In-range, but it moves Nitro and the Firebase preset. Deploy is the one thing here with no staging — worth its own PR with a real deploy behind it |
+| `@nuxt/ui` | 4.3.0 | 4.11.0 | Eight minors of a component library. 335 unit tests do not see visual or interaction regressions; needs a human pass over the admin tables and modals |
+| `@nuxt/image` | 2.0.0 | 2.1.0 | 2.1.0 depends on `ipx@4.0.0-beta.1`. A prerelease in the production tree needs a decision, not a version bump |
+| `tailwindcss` | 4.2.1 | 4.3.3 | Preflight changes have bitten before (PR #451). Bump it with the UI pass, not separately |
+| `firebase-admin` | 13.10.0 | 14.3.0 | Major. Closes the nine remaining moderate advisories in the google-cloud chain — the strongest candidate to do next |
+| `pinia` / `@pinia/nuxt` | 3.0.4 / 0.11.3 | 4.0.3 / 1.0.2 | Store API major across four stores |
+| `eslint` | 9.39.5 | 10.9.1 | New majors add rules; expect a non-zero baseline to work through |
+| `typescript` | 5.9.3 | 7.0.2 | Two majors; `vue-tsc` has to support it first |
+| `vue-router` | 4.6.4 | 5.2.0 | Major, and route matching is load-bearing for the `[[folderId]]` pages |
+| `zod` | 3.25.76 | 4.4.3 | Major; schemas are shared between client forms and server routes |
+| `googleapis` | 171.4.0 | 176.0.0 | Five majors of a generated client. Only the Looker Studio surface is used |
+| `@types/node` | 22.20.1 | 26.3.0 | **Pinned on purpose** to the nodejs22 runtime — see above |
+
 ## Security overrides in package.json
 
 `overrides` pins seven transitive packages to their first patched release. Each one was a
