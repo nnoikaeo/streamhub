@@ -1,9 +1,3 @@
----
-title: First Deployment
-version: 1.0
-updated: 2024-01-21
----
-
 # First Deployment to Firebase Hosting
 
 Deploy your StreamHub to the internet!
@@ -23,6 +17,7 @@ npm install -g firebase-tools
 ```
 
 Verify installation:
+
 ```bash
 firebase --version
 ```
@@ -56,6 +51,7 @@ firebase init hosting
 ```
 
 When prompted:
+
 - **Use an existing project?** → Yes
 - **Select project** → streamhub
 - **Public directory** → `.output/public`
@@ -71,7 +67,8 @@ firebase deploy
 ```
 
 You should see:
-```
+
+```text
 ✔  Deploy complete!
 
 Project Console: https://console.firebase.google.com/project/streamhub-1234
@@ -135,18 +132,18 @@ service cloud.firestore {
 }
 ```
 
-4. Click **"Publish"**
+1. Click **"Publish"**
 
 ---
 
 ## 📚 Next Steps
 
-1. [Update version](../../OPERATIONS/versioning.md)
-2. [View roadmap](../../OPERATIONS/roadmap.md)
+1. [Update version](../OPERATIONS/versioning.md)
+2. [View roadmap](../OPERATIONS/roadmap.md)
 
 ---
 
 ## 🆘 Deployment Issues?
 
 - Check [Firebase docs](https://firebase.google.com/docs/hosting)
-- See [Troubleshooting guide](../../TROUBLESHOOTING/README.md)
+- See [Troubleshooting guide](../TROUBLESHOOTING/common-issues.md)

@@ -1,7 +1,6 @@
 # User Invitations — Implementation Plan
 
 > **Created:** 2026-03-15
-> **Updated:** 2026-03-21
 > **Purpose:** Step-by-step prompts สำหรับให้ Sonnet/Haiku ดำเนินการ
 > **Strategy:** แต่ละ Step = 1 feature branch → PR → merge to develop
 > **Email:** ใช้ Resend สำหรับส่ง email จริง
@@ -15,39 +14,50 @@
 หลักการสำคัญที่นำมาปรับใช้:
 
 ### Pattern 1: Two-Phase Verification
-```
+
+```text
 Phase 1: verifyToken → ตรวจสอบว่า token ยัง valid + pending อยู่
 Phase 2: finalizeActivation → ยืนยันตัวตน (Google Sign-In) + สร้างบัญชี
 ```
+
 **เหตุผล:** แยก verify กับ finalize เพื่อ security — ไม่ให้ token ถูกใช้ซ้ำ + ตรวจสอบ identity match
 
 ### Pattern 2: Email Matching (Security Critical)
-```
+
+```text
 invitation.email MUST === googleAuth.email
 ```
+
 **เหตุผล:** ป้องกันไม่ให้คนที่ได้ลิงก์ แต่ไม่ใช่เจ้าของ email ที่ถูก invite สร้างบัญชีได้
 
 ### Pattern 3: Secure Token (UUID v4)
-```
+
+```text
 token = crypto.randomUUID()  // ไม่ใช่ random 6 chars
 ```
+
 **เหตุผล:** Token สั้นๆ (6 chars) สามารถ brute force ได้ → ใช้ UUID v4 (128-bit) ที่ปลอดภัย
 
 ### Pattern 4: Reactivation vs New Creation
-```
+
+```text
 checkUserByEmail → FOUND (disabled) → Reactivate existing account
                 → NOT_FOUND → Create new account from invitation
 ```
+
 **เหตุผล:** รองรับ user ที่ถูก deactivate แล้ว admin อยาก invite กลับมา
 
 ### Pattern 5: Audit Logging
-```
+
+```text
 ทุก action สำคัญ → logActivity(action, target, metadata)
 ```
+
 **เหตุผล:** ต้องมี audit trail สำหรับ: INVITE_USER, CANCEL_INVITATION, ACCEPT_INVITATION, REACTIVATE_USER
 
 ### Pattern 6: Server-side Permission Check
-```
+
+```text
 ทุก API endpoint ที่เป็น admin action → ตรวจสอบ role === 'admin'
 ```
 
@@ -55,7 +65,7 @@ checkUserByEmail → FOUND (disabled) → Reactivate existing account
 
 ## Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        ADMIN (Frontend — Nuxt)                      │
 │  /admin/invitations                                                 │
@@ -114,7 +124,7 @@ checkUserByEmail → FOUND (disabled) → Reactivate existing account
 
 ## Data Flow
 
-```
+```text
 .data/invitations.json          .data/users.json
 ┌──────────────────────┐   ┌─────────────────────┐
 │ • email              │   │ • uid               │
@@ -136,7 +146,7 @@ checkUserByEmail → FOUND (disabled) → Reactivate existing account
 
 ## Dependencies Flow
 
-```
+```text
 Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 (Acceptance Flow)
 ```
 
@@ -152,7 +162,7 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - app/types/dashboard.ts (ดู User interface เป็นตัวอย่าง)
 - app/types/admin.ts (ดู Company, AdminGroup interfaces)
@@ -232,7 +242,8 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
      | 'BULK_INVITE'
    ```
 
-2. สร้าง `.data/invitations.json` — mock data 4 invitations:
+1. สร้าง `.data/invitations.json` — mock data 4 invitations:
+
    ```json
    [
      {
@@ -304,7 +315,8 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
    ]
    ```
 
-3. สร้าง `server/utils/auditLog.ts` — Audit Logging utility (Pattern 5):
+2. สร้าง `server/utils/auditLog.ts` — Audit Logging utility (Pattern 5):
+
    ```typescript
    interface AuditEntry {
      action: string
@@ -318,9 +330,10 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
    /** Log to .data/audit-log.json (append) */
    export async function logActivity(entry: Omit<AuditEntry, 'timestamp'>): Promise<void>
    ```
+
    สร้าง `.data/audit-log.json` เป็น `[]` เริ่มต้น
 
-4. สร้าง API endpoints (ดู server/api/mock/tags/ เป็นแบบ):
+3. สร้าง API endpoints (ดู server/api/mock/tags/ เป็นแบบ):
 
    **`server/api/mock/invitations/index.get.ts`** — GET all invitations:
    - Query params: `company` (optional filter), `status` (optional filter)
@@ -408,6 +421,7 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
    - Return: `{ success, data: { created: Invitation[], skipped: string[] } }`
 
 4. สร้าง `app/composables/useAdminInvitations.ts`:
+
    ```typescript
    import type { Invitation } from '~/types/invitation'
    import { useAdminResource } from './useAdminResource'
@@ -534,6 +548,7 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
    ```
 
 ระวัง:
+
 - invitationCode ต้อง unique — **ใช้ `crypto.randomUUID()` (UUID v4)** ไม่ใช่ short random code
 - เช็ค email ซ้ำ: ทั้งใน invitations (pending) และ users (active + inactive)
 - ถ้าเจอ user inactive → return action 'user_exists_inactive' ให้ client เลือก reactivate (Pattern 4)
@@ -541,7 +556,8 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 - ทุก write operation → เขียน audit log (Pattern 5)
 - ไม่ต้องทำ email sending ใน step นี้ — จะทำใน Step 3
 - API ทุกตัวดู pattern จาก server/api/mock/tags/ แล้วใช้ jsonDatabase utility
-```
+
+```text
 
 ---
 
@@ -553,7 +569,9 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 ### Prompt
 
 ```
+
 อ่านไฟล์ต่อไปนี้ก่อน:
+
 - app/types/invitation.ts (จาก Step 1)
 - app/composables/useAdminInvitations.ts (จาก Step 1)
 - app/composables/useAdminResource.ts (generic CRUD pattern)
@@ -568,7 +586,7 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 เป้าหมาย: สร้าง Admin invitation management page + invite form
 ใช้หลักการ: Reactivation confirmation dialog (Pattern 4), Audit-aware actions
 
-### สิ่งที่ต้องทำ:
+### สิ่งที่ต้องทำ
 
 1. สร้าง `app/pages/admin/invitations/index.vue`:
 
@@ -646,19 +664,23 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 
 4. อัปเดต `app/composables/useRoleNavigation.ts`:
    - เพิ่ม menu item ใน Admin section:
-     ```
+
+     ```text
      { label: 'Invitations', icon: 'mdi-email-plus-outline', to: '/admin/invitations' }
      ```
+
    - ใส่ไว้หลัง Users menu item
 
 ระวัง:
+
 - ใช้ @nuxt/ui components (UTable, UModal, UInput, USelect, etc.) ที่ project ใช้อยู่
 - ดู pattern จากหน้า admin ที่มีอยู่แล้ว (users, companies, tags) — ใช้ AdminPanelLayout
 - Invitation code ไม่ต้อง generate ที่ client — server จะ generate UUID v4 ให้
 - Copy link function: ใช้ navigator.clipboard.writeText() + format URL: `/invite/accept?code={invitationCode}`
 - Reactivation dialog: ต้องแสดงเมื่อ API return action: 'user_exists_inactive' (Pattern 4)
 - responsive: table ต้องแสดงได้ดีบน mobile (ใช้ responsive breakpoints)
-```
+
+```text
 
 ---
 
@@ -670,7 +692,9 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 ### Prompt
 
 ```
+
 อ่านไฟล์ต่อไปนี้ก่อน:
+
 - app/types/invitation.ts (Invitation type)
 - server/api/mock/invitations/index.post.ts (create invitation API)
 - server/api/mock/invitations/bulk.post.ts (bulk invite API)
@@ -679,21 +703,24 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 
 เป้าหมาย: เพิ่ม email sending เมื่อสร้าง invitation ผ่าน Resend API
 
-### สิ่งที่ต้องทำ:
+### สิ่งที่ต้องทำ
 
 1. เพิ่ม dependencies:
+
    ```bash
    npm install resend
    ```
 
 2. เพิ่ม environment variables ใน `.env.example` และ `.env`:
-   ```
+
+   ```text
    RESEND_API_KEY=re_xxxxxxxxxxxx
    RESEND_FROM_EMAIL=noreply@streamhub.app
    APP_URL=http://localhost:3000
    ```
 
 3. อัปเดต `nuxt.config.ts` — เพิ่ม server-only runtime config:
+
    ```typescript
    runtimeConfig: {
      // Server-only (ไม่ expose ให้ client)
@@ -705,6 +732,7 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
    ```
 
 4. สร้าง `server/utils/emailService.ts`:
+
    ```typescript
    import { Resend } from 'resend'
 
@@ -840,12 +868,14 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
    - Return: `{ created: [], skipped: [], emailsSent: number, emailsFailed: number }`
 
 ระวัง:
+
 - RESEND_API_KEY ต้องอยู่ใน runtimeConfig (ไม่ใช่ public) — ห้าม expose ให้ client
 - ถ้าไม่มี API key → skip email silently (log warning แต่ไม่ error)
 - Email HTML ต้อง inline CSS (email clients ไม่ support external CSS)
 - Rate limiting: Resend free tier = 100 emails/day → ระวัง bulk invite ขนาดใหญ่
 - ทดสอบ: ตั้ง RESEND_API_KEY ใน .env แล้ว invite email จริง
-```
+
+```text
 
 ---
 
@@ -857,7 +887,9 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 ### Prompt
 
 ```
+
 อ่านไฟล์ต่อไปนี้ก่อน:
+
 - app/types/invitation.ts (Invitation type)
 - app/composables/useAdminInvitations.ts (verifyInvitation, acceptInvitation methods)
 - app/composables/useAuth.ts (auth flow — signInWithGoogle, initAuth)
@@ -872,10 +904,11 @@ Step 1 (Foundation) → Step 2 (Admin UI) → Step 3 (Email Service) → Step 4 
 เป้าหมาย: สร้าง invitation acceptance flow ให้ user ที่ถูก invite เข้าระบบได้
 ใช้หลักการ: Two-Phase Verification, Email Matching (Security Critical), Auto-detect invitation
 
-### Flow ที่ต้องทำ:
+### Flow ที่ต้องทำ
 
 **Flow A — ผ่าน Invitation Link (Two-Phase):**
-```
+
+```text
 User ได้รับ email → คลิก Accept → /invite/accept?code={UUID}
 → Phase 1: verifyToken (GET /verify?code=XXX)
 → แสดงข้อมูล invitation → ปุ่ม Sign in with Google
@@ -889,7 +922,8 @@ User ได้รับ email → คลิก Accept → /invite/accept?code={U
 ```
 
 **Flow B — Auto-detect (Login ปกติ แต่มี pending invitation):**
-```
+
+```text
 User login ด้วย Google → ระบบหา user profile ไม่เจอ
 → เช็คว่า email นี้มี pending invitation ไหม (GET /check?email=XXX)
 → ถ้ามี → auto-accept invitation (POST /accept)
@@ -898,7 +932,7 @@ User login ด้วย Google → ระบบหา user profile ไม่เ�
 → ถ้าไม่มี → แสดง "Contact administrator" error (เหมือนเดิม)
 ```
 
-### สิ่งที่ต้องทำ:
+### สิ่งที่ต้องทำ
 
 1. สร้าง `app/pages/invite/accept.vue`:
 
@@ -925,6 +959,7 @@ User login ด้วย Google → ระบบหา user profile ไม่เ�
    - **already_accepted:** แสดง "Already accepted" + link ไป /dashboard/discover
 
    **Logic (Two-Phase):**
+
    ```typescript
    // 1. อ่าน code จาก query
    const route = useRoute()
@@ -1071,20 +1106,25 @@ User login ด้วย Google → ระบบหา user profile ไม่เ�
 3. อัปเดต `server/api/mock/invitations/accept.post.ts` — เพิ่ม security checks:
    - รับ body: `{ invitationCode, uid, email, displayName, photoURL }`
    - **Security Check 1 — Email Matching (Pattern 2):**
+
      ```typescript
      if (body.email.toLowerCase() !== invitation.email.toLowerCase()) {
        return { success: false, error: 'Email mismatch',
          message: 'The email you signed in with does not match the invitation email' }
      }
      ```
+
    - **Security Check 2 — Race Condition Prevention:**
+
      ```typescript
      if (invitation.status !== 'pending') {
        return { success: false, error: 'Already processed',
          message: 'This invitation has already been ' + invitation.status }
      }
      ```
+
    - **Security Check 3 — Server-side Expiry:**
+
      ```typescript
      if (new Date(invitation.expiresAt) < new Date()) {
        // Update status to expired
@@ -1092,7 +1132,9 @@ User login ด้วย Google → ระบบหา user profile ไม่เ�
        return { success: false, error: 'Expired' }
      }
      ```
+
    - สร้าง user ใน users.json:
+
      ```typescript
      const newUser = {
        uid: body.uid,
@@ -1106,11 +1148,13 @@ User login ด้วย Google → ระบบหา user profile ไม่เ�
        updatedAt: new Date().toISOString()
      }
      ```
+
    - ถ้า role=moderator → set assignedFolders จาก invitation
    - **Audit Log:** logActivity('ACCEPT_INVITATION')
    - Update invitation: status='accepted', acceptedAt, acceptedByUid
 
 4. เพิ่ม route rule ใน `nuxt.config.ts`:
+
    ```typescript
    routeRules: {
      '/admin/**': { ssr: false },
@@ -1119,11 +1163,12 @@ User login ด้วย Google → ระบบหา user profile ไม่เ�
    }
    ```
 
-6. อัปเดต `app/middleware/auth.ts`:
+5. อัปเดต `app/middleware/auth.ts`:
    - เพิ่ม exception สำหรับ `/invite/accept` — ไม่ redirect ไป login ถ้ากำลังอยู่หน้า accept
    - หรือให้ redirect ไป login แต่เก็บ redirect URL ไว้ (redirect back หลัง login)
 
 ระวัง:
+
 - Auth middleware ต้องไม่ block หน้า /invite/accept (user อาจยังไม่ login)
 - **Email Matching (Pattern 2):** ทั้ง client-side และ server-side ต้องเช็ค email ตรงกัน (defense in depth)
 - **Two-Phase Verification:** Phase 1 (verify) = read-only ไม่เปลี่ยน state, Phase 2 (accept) = write + create user
@@ -1132,7 +1177,8 @@ User login ด้วย Google → ระบบหา user profile ไม่เ�
 - Security: invitation code เป็น UUID v4 (128-bit, ไม่สามารถ brute force ได้)
 - หลัง accept แล้ว refresh page → user ต้องยังอยู่ในระบบ (ข้อมูลถูก persist ใน users.json)
 - Auto-detect (Flow B): ใช้ $fetch แทน fetch ใน Nuxt composable
-```
+
+```text
 
 ---
 

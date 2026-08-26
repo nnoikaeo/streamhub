@@ -3,14 +3,13 @@
 > **Purpose:** Manage users across all companies (Edit, Delete, Toggle Active, Filter)
 > **Users:** Admin role only
 > **Current Implementation:** `app/pages/admin/users/index.vue`
-> **Last Updated:** 2026-04-16
-> **Version:** 2.0
 
 ---
 
 ## Key Principle
 
 **User Management = Search, Filter, Edit, Delete, Toggle Active**
+
 - View all users with company/role/status filters
 - Edit user info: name, company, role, groups, moderator folders
 - New users are invited via `/admin/invitations` only (no direct create here)
@@ -20,7 +19,7 @@
 
 ## Page Layout
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │  จัดการผู้ใช้                                               │
 ├──────────────────────────────────────────────────────────────┤
@@ -43,7 +42,7 @@
 
 ## Edit User Modal (v2.0 — Approved 2026-04-16)
 
-```
+```text
 ┌──────────────────────────────────────────────────┐
 │  แก้ไขผู้ใช้                                  ✕ │
 ├──────────────────────────────────────────────────┤
@@ -106,18 +105,21 @@
 เมื่อกด "บันทึก" จะมี write operations แยกกัน 2 ส่วน:
 
 ### Part 1 — Update User document
-```
+
+```text
 users/{uid}  ← updateDoc
   name, company, role, groups
 ```
 
 ### Part 2 — Update Folder documents (moderator only)
-```
+
+```text
 folders/{folderId}  ← updateDoc (for each changed folder)
   assignedModerators: [...] (add/remove uid)
 ```
 
 **Scenarios:**
+
 - Role เปลี่ยนจาก `moderator` → `user`/`admin`: ลบ uid ออกจาก `assignedModerators` ของทุก folder ที่เคย assign
 - Role ยังคงเป็น `moderator`: diff folder checkboxes → เพิ่ม/ลบ uid เฉพาะ folder ที่เปลี่ยน
 - Role ไม่ใช่ `moderator`: ไม่มี folder write
@@ -146,7 +148,7 @@ folders/{folderId}  ← updateDoc (for each changed folder)
 
 | Document | Link |
 |----------|------|
-| Implementation Plan | [edit-user-form-plan.md](../../OPERATIONS/edit-user-form-plan.md) |
+| Implementation Plan | [edit-user-form-plan.md](../../OPERATIONS/archive/edit-user-form-plan.md) |
 | Roles & Permissions Guide | [roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
 | Permission Management Wireframe | [admin-permission-management-page.md](./admin-permission-management-page.md) |
 
@@ -154,4 +156,3 @@ folders/{folderId}  ← updateDoc (for each changed folder)
 
 **Created:** 2026-02-14
 **Updated:** 2026-04-16
-**Version:** 2.0 — Remove create, add groups + moderator folder picker to edit modal

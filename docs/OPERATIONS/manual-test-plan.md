@@ -1,10 +1,9 @@
 # StreamHub — Manual Test Plan
 
-> **Last Updated:** 25 August 2569
 > **Total Test Cases:** 211
 > **Roles Required:** Admin, Moderator, User (unauthenticated)
 
-> ### ⚠️ ของทดสอบถูกล้างออกจาก prod แล้ว (2026-08-25)
+> ## ⚠️ ของทดสอบถูกล้างออกจาก prod แล้ว (2026-08-25)
 >
 > เจ้าของโปรเจกต์ลบแดชบอร์ด/โฟลเดอร์ที่ใช้ทดสอบและบัญชีที่สร้างขึ้นมาทดสอบออกทั้งหมด · เหลือ **users 3 · dashboards 30 · folders 12** และทุกแดชบอร์ดมี `lookerEmbedUrl` จริง · `npm run audit:orphans` = 0 ทั้ง 7 หมวดหลังล้าง
 >
@@ -628,7 +627,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | BUG-026 | กดบันทึกตอนเน็ตหลุด = **เงียบไม่มีที่สิ้นสุด** — ปุ่มค้าง "กำลังบันทึก..." ไม่มีข้อความ ไม่มี timeout ไม่มีทางยกเลิก ผู้ใช้แยกไม่ออกระหว่าง "ช้า" กับ "เน็ตหลุด" (งานไม่หาย SDK ส่งให้เองเมื่อกลับมาออนไลน์ แต่ไม่มีอะไรบอก) | TC 6.3.2 | Low | 🔧 Fixed (แบนเนอร์ออฟไลน์ใน `AppLayout` จาก [useOnlineStatus.ts](../../app/composables/useOnlineStatus.ts) — บอกว่าการบันทึกจะค้างและข้อมูลไม่หาย · ไม่ใส่ timeout เพราะจะไปตัดงานที่ระบบส่งสำเร็จภายหลัง) — **ยืนยันด้วยการกดจริง 2026-08-20** ✅ |
 | BUG-029 | `<select>` ที่ใช้คลาส `.theme-form-select` เตี้ยกว่าที่ออกแบบไว้บน Safari/WebKit — คลาสนี้ตั้ง `padding: 0.5rem 1rem` แต่ไม่เคลียร์ `appearance` ⇒ ยังเป็น native control ที่ **WebKit ไม่สนใจ padding แนวตั้ง** (Blink ใส่ให้) ตัวกรองจึงไม่เท่าช่องค้นหาและปุ่มในแถวเดียวกัน · กระทบ select 13 ตัวใน 11 ไฟล์ · `.form-select` ของ [FormField.vue](../../app/components/forms/FormField.vue) **มีการแก้แบบนี้อยู่แล้ว** — `.theme-form-select` คือเส้นที่ตกหล่นไป | TC 7.1.d | Low | 🔧 Fixed (เคลียร์ `appearance` + วาดลูกศรเอง ใน [theme.css](../../assets/css/theme.css) โดย**ใช้ค่าเดียวกับ `.form-select` ทุกตัว** เพราะ filter bar กับ modal เห็นพร้อมกันได้ ลูกศรคนละทรงจะโป๊ะ — แก้ทีหลังต้องแก้คู่กัน) |
 | BUG-030 | **ปุ่มซูม `+` ของหน้าแดชบอร์ดถูกตัดหายที่จอ ≤~400px กดไม่ได้เลย** — `.header-right` ([[id].vue:787](../../app/pages/dashboard/view/[id].vue#L787)) เป็น flex ที่ไม่มี `flex-wrap` ของ 4 ชิ้นรวม ~395px แต่ที่ 375px มีให้ 343px ⇒ ป้ายข้อความตกบรรทัด และ `.zoom-control` ที่ตั้ง `overflow: hidden` กลืนปุ่ม `+` ทิ้ง ไม่ถูกวาดและกดไม่โดน · หนักกว่าที่เห็นเพราะซูมนี้มีอยู่เนื่องจาก zoom ของเบราว์เซอร์ใช้กับ Looker ไม่ได้ (รายงานรีสเกลตามความกว้าง iframe เอง — PR #351) ⇒ บนมือถือขยายดูแดชบอร์ดไม่ได้เลยสักทาง · media query เดิมของไฟล์มีแค่ `max-width: 768px` ซึ่งจับ `.view-header` ไม่ได้จับ `.header-right` | TC 7.2 (375px) | Medium | 🔧 Fixed (≤640px ซ่อนป้ายข้อความเหลือไอคอน คืนที่ ~150px ทุกปุ่มอยู่แถวเดียว header ไม่กินความสูงเพิ่ม · เติม `aria-label` ให้ปุ่มสลับข้อมูลกับเต็มจอ เพราะเดิมมีแค่ `title` ⇒ ซ่อนข้อความแล้วจะเสียชื่อที่ screen reader อ่าน ส่วนปุ่มซูมมี `aria-label` อยู่แล้ว) — **ยืนยันด้วยการกดจริงที่ 375px 2026-08-21** ✅ ปุ่ม `+` กลับมาเห็นและกดได้ ทุกตัวอยู่แถวเดียว |
-| BUG-031 | **เปิดแดชบอร์ดแล้วได้ `403 Invalid or expired token` เป็นครั้งคราว ทุกเครื่อง ไม่มีรูปแบบ** — token ของ embed เก็บใน `const store = new Map()` ที่อยู่ใน memory ของ instance ([embedTokenStore.ts](../../server/utils/embedTokenStore.ts)) แต่ functions เป็น `gcfv2` ไม่ตั้ง `minInstances` ⇒ autoscale หลาย instance และลงศูนย์ได้ · flow เป็น **2 request แยกกัน**: `POST /api/embed/request` สร้าง token ไว้ที่ instance A แล้ว iframe ยิง `GET /api/embed/{token}` ซึ่งอาจไปโดน instance B ที่ Map ว่าง ⇒ 403 · ซ้ำด้วยอีก 2 ชั้น: `consumeToken` **ลบทิ้งทันทีที่อ่าน** (รีเฟรช/retry/เบราว์เซอร์ยิงซ้ำ = ครั้งที่สอง 403) และ TTL แค่ **30 วินาที** (ค้างหน้าไว้แล้วค่อยโหลด = หมดอายุ) · **พบบน iPad 2026-08-21 แต่ไม่ใช่บั๊กเฉพาะอุปกรณ์** เครื่องอื่นผ่านเพราะโชคของจังหวะ instance | เปิดแดชบอร์ดที่มี Looker | High | 🔧 Fixed (`embedTokenStore.ts` ถูกลบ แทนด้วย [embedToken.ts](../../server/utils/embedToken.ts) — payload `{embedUrl, uid, exp}` ปิดผนึกด้วย **AES-256-GCM** จาก `EMBED_TOKEN_SECRET` ⇒ ไม่มี state ให้หายไปกับ instance, redeem ซ้ำได้, TTL เป็นข้อมูลใน token ไม่ใช่ตัวจับเวลาลบ · ยืด TTL 30 วินาที → **5 นาที** · เลือก encrypt ไม่ใช่ HMAC เพราะ payload แบบเซ็นอย่างเดียวอ่านออกด้วย base64 ⇒ Looker URL ตัวจริงจะหลุดถึง client ซึ่งเป็นสิ่งที่ proxy นี้ตั้งใจกันไว้แต่แรก) — ทดสอบบน dev server: mint 1 ครั้ง redeem 3 ครั้งได้ 302 ทุกครั้ง, token ที่ถูกแก้ 1 ไบต์และ token มั่ว = 403, ถอด base64 แล้วไม่พบ URL · ตามด้วยการผูก token เข้ากับเบราว์เซอร์ด้วย cookie `__session` (ปิดผนึกด้วยกุญแจเดียวกัน) — token ที่ถูกขโมยไปเปิดในเบราว์เซอร์คนอื่นได้ 403 ยืนยันด้วย cookie jar สองใบของ admin กับ user จริง · deploy รอบแรกบน prod ตอบ 500 `Embed tokens are not configured` เพราะ Nitro รับ env override เฉพาะที่ขึ้นต้น `NUXT_` แต่ Secret Manager ฉีดชื่อดิบ ⇒ เพิ่ม `resolveEmbedSecret` อ่าน `process.env` เป็น fallback |
+| BUG-031 | **เปิดแดชบอร์ดแล้วได้ `403 Invalid or expired token` เป็นครั้งคราว ทุกเครื่อง ไม่มีรูปแบบ** — token ของ embed เก็บใน `const store = new Map()` ที่อยู่ใน memory ของ instance (`server/utils/embedTokenStore.ts`) แต่ functions เป็น `gcfv2` ไม่ตั้ง `minInstances` ⇒ autoscale หลาย instance และลงศูนย์ได้ · flow เป็น **2 request แยกกัน**: `POST /api/embed/request` สร้าง token ไว้ที่ instance A แล้ว iframe ยิง `GET /api/embed/{token}` ซึ่งอาจไปโดน instance B ที่ Map ว่าง ⇒ 403 · ซ้ำด้วยอีก 2 ชั้น: `consumeToken` **ลบทิ้งทันทีที่อ่าน** (รีเฟรช/retry/เบราว์เซอร์ยิงซ้ำ = ครั้งที่สอง 403) และ TTL แค่ **30 วินาที** (ค้างหน้าไว้แล้วค่อยโหลด = หมดอายุ) · **พบบน iPad 2026-08-21 แต่ไม่ใช่บั๊กเฉพาะอุปกรณ์** เครื่องอื่นผ่านเพราะโชคของจังหวะ instance | เปิดแดชบอร์ดที่มี Looker | High | 🔧 Fixed (`embedTokenStore.ts` ถูกลบ แทนด้วย [embedToken.ts](../../server/utils/embedToken.ts) — payload `{embedUrl, uid, exp}` ปิดผนึกด้วย **AES-256-GCM** จาก `EMBED_TOKEN_SECRET` ⇒ ไม่มี state ให้หายไปกับ instance, redeem ซ้ำได้, TTL เป็นข้อมูลใน token ไม่ใช่ตัวจับเวลาลบ · ยืด TTL 30 วินาที → **5 นาที** · เลือก encrypt ไม่ใช่ HMAC เพราะ payload แบบเซ็นอย่างเดียวอ่านออกด้วย base64 ⇒ Looker URL ตัวจริงจะหลุดถึง client ซึ่งเป็นสิ่งที่ proxy นี้ตั้งใจกันไว้แต่แรก) — ทดสอบบน dev server: mint 1 ครั้ง redeem 3 ครั้งได้ 302 ทุกครั้ง, token ที่ถูกแก้ 1 ไบต์และ token มั่ว = 403, ถอด base64 แล้วไม่พบ URL · ตามด้วยการผูก token เข้ากับเบราว์เซอร์ด้วย cookie `__session` (ปิดผนึกด้วยกุญแจเดียวกัน) — token ที่ถูกขโมยไปเปิดในเบราว์เซอร์คนอื่นได้ 403 ยืนยันด้วย cookie jar สองใบของ admin กับ user จริง · deploy รอบแรกบน prod ตอบ 500 `Embed tokens are not configured` เพราะ Nitro รับ env override เฉพาะที่ขึ้นต้น `NUXT_` แต่ Secret Manager ฉีดชื่อดิบ ⇒ เพิ่ม `resolveEmbedSecret` อ่าน `process.env` เป็น fallback |
 | BUG-032 | **แดชบอร์ด Looker ไม่แสดงบน Safari ที่เปิด "ป้องกันการติดตามข้ามไซต์" (ค่าปริยาย)** — iframe ไปถึง Looker ได้ แต่ Looker เรนเดอร์หน้า "เข้าถึงรายงานไม่ได้ · เว็บไซต์นี้ใช้คุกกี้จาก Google" ของตัวเองข้างในกรอบ ⇒ **ไม่ใช่ 403 ของเรา ไม่ใช่ embed token** · Looker ใช้คุกกี้ Google ยืนยันว่าผู้ดูมีสิทธิ์ แต่ในกรอบมันเป็นคุกกี้บุคคลที่สาม ซึ่ง Safari ตัดทิ้ง · **หน้าที่พังเป็น cross-origin ⇒ ฝั่งเราไม่มี event ไม่มี error ให้จับ ตรวจด้วย feature detection ก็ไม่ได้** จึงเงียบสนิทสำหรับผู้ใช้ | เปิดแดชบอร์ดที่มี Looker บน Safari/iPadOS ที่ไม่เคยผ่อนคุกกี้ให้ Google | Medium | 🔧 Fixed (บางส่วน — เป็นข้อจำกัดของเบราว์เซอร์ ไม่ใช่ของโค้ด) · **พิสูจน์สาเหตุบน iPad 9 (2026-08-23):** ล็อกอิน `lookerstudio.google.com` แบบ first-party แล้ว **ยังไม่ขึ้น** ⇒ ตัดข้อสันนิษฐาน "ขาด first-party interaction" ทิ้ง · ปิด "ป้องกันการติดตามข้ามไซต์" แล้ว **ขึ้นทันที** ⇒ ตัวบล็อกคือ 3rd-party cookie ล้วน ๆ · **สิ่งที่แก้:** (A) เติม `allow-storage-access-by-user-activation` เข้า `sandbox` ของทุก iframe ที่ฝัง Looker — เดิมเราปิดประตู Storage Access API ไว้เอง (เห็นได้จาก console `requestStorageAccess: Refused to execute request. The document is sandboxed...`) เป็น**เงื่อนไขจำเป็นที่ไม่เพียงพอ — วัดบน prod แล้ว (iPad 9, 2026-08-23):** หลัง deploy เปิด Master List (รายงานที่ยังจำกัดสิทธิ์) โดยเปิด "ป้องกันการติดตามข้ามไซต์" ไว้ ⇒ Looker ยังขึ้นหน้า "เข้าถึงรายงานไม่ได้" เหมือนเดิม และ **Safari ไม่ขึ้นกล่องขออนุญาตคุกกี้เลย** ⇒ Looker ไม่ได้เรียก `requestStorageAccess()` ของมันเอง ⇒ A ไม่ได้แก้อะไรให้ผู้ใช้ในทางปฏิบัติ เก็บไว้เพราะมันถอดเราออกจากสมการ (ถ้า Looker เพิ่มการเรียก API วันหลัง เราไม่ต้องแก้อะไร) แต่ **อย่านับว่าเป็นทางแก้** · (B) แถบคำแนะนำในหน้าแดชบอร์ด แสดงเฉพาะเบราว์เซอร์ WebKit ([browser.ts](../../app/utils/browser.ts)) ปิดแล้วจำถาวร — เพราะตรวจความล้มเหลวไม่ได้ จึงต้องบอกล่วงหน้า · **ยืนยันบน prod แล้ว** แถบขึ้นถูกต้องบน iPad ทั้งรายงานที่พัง (Master List) และรายงานที่ใช้ได้ (Warehouse) — การขึ้นกับตัวที่ใช้ได้ด้วยคือผลข้างเคียงที่ยอมรับไว้แต่แรก เพราะแยกไม่ออก · **(C) ทางแก้ที่ใช้ได้จริงทางเดียว แต่ใช้กับ 30 รายงานเดิมไม่ได้ (เจ้าของโปรเจกต์ไม่ได้เป็นเจ้าของรายงาน — ตกลง 2026-08-25 ว่าบังคับใช้กับแดชบอร์ดใหม่เท่านั้น ของเดิมยอมให้ Safari เปิดไม่ได้ต่อไป) — พิสูจน์แล้ว (iPad 9, 2026-08-23):** รายงานที่แชร์ฝั่ง Looker แบบ "ใครมีลิงก์ก็ดูได้" เปิดบน iPad ขึ้นครบทั้งโหมดปกติและเต็มจอ **โดยที่ "ป้องกันการติดตามข้ามไซต์" เปิดอยู่** — ไม่ต้องใช้คุกกี้บุคคลที่สามเลย · **ระวังการอ่านผลผิด:** รอบแรกทดสอบตอนสวิตช์ยัง*ปิด*อยู่ ซึ่งไม่พิสูจน์อะไร ต้องเปิดสวิตช์ก่อนเสมอจึงจะเป็นการทดสอบ C จริง · **ราคาที่ต้องจ่าย:** ใครถือลิงก์ Looker ก็เปิดได้ ไม่ผ่านสิทธิ์ในแอปเรา — ตัว URL ยังถูกปิดผนึกอยู่ใน embed token ไม่หลุดถึง client แต่ถ้าหลุดทางอื่นก็เปิดได้จริง ⇒ **เลือกใช้เป็นรายรายงาน ตามความอ่อนไหวของข้อมูล ไม่ใช่เปิดหมดทุกตัว** · **ต้องเปิด 2 สวิตช์ที่ Looker ไม่ใช่ตัวเดียว:** แชร์แบบลิงก์ **และ** File > Embed report > Enable embedding — รายงานที่แชร์ลิงก์แต่ไม่เปิด embedding จะขึ้น **"เจ้าของรายงานปิดใช้การดูในเว็บไซต์อื่น"** ทุกเบราว์เซอร์ รวม Chrome บนแมคที่ไม่บล็อกคุกกี้ (ยืนยันด้วยการปิด embedding แล้วลองจริง 2026-08-24) — ข้อความต่างจากอาการคุกกี้ชัดเจน แยกออกได้ทันที · ส่วนกรอบ**ขาวเปล่าไม่มีข้อความ**เป็นอาการที่สาม คนละเรื่องกับทั้งสองอัน (เจอตอนทดสอบและเกือบทำให้สรุปผิดว่า C ใช้ไม่ได้) |
 | BUG-025 | **บนมือถือใช้งานไม่ได้เลย** — ที่จอ ≤768px [AppLayout.vue](../../app/components/layouts/AppLayout.vue) ดัน sidebar ออกนอกจอ (`left: -100%`) แล้วรอคลาส `.sidebar-open` ที่**ไม่มีที่ไหนใส่** และไม่มีปุ่มเปิดในทั้งแอป ⇒ ไปหน้าอื่นไม่ได้; ซ้ำโลโก้สูง 5rem ดัน `UserMenu` ตกขอบขวา ⇒ กดออกจากระบบ/โปรไฟล์ก็ไม่ได้ เหลือแค่หน้าที่เปิดค้างอยู่ | TC 5.2.5 | High | 🔧 Fixed (ปุ่ม ☰ + state `isSidebarOpen` + overlay กดปิด + ปิดเองเมื่อเปลี่ยน route; ย่อโลโก้/ซ่อนชื่อผู้ใช้บนจอเล็ก; ปลด `.menu-toggle` ออกจากกฎ global ที่ทาทุก `button` เป็นน้ำเงิน) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · รอบแรกปิด drawer ด้วย `watch(route.fullPath)` อย่างเดียว ซึ่งค้างเมื่อกดลิงก์ของหน้าที่เปิดอยู่แล้ว (ปลายทางเดิม = ไม่มี navigation) จึงย้ายไปปิดตอนแตะ `<a>` |
 | BUG-023 | **ปิดบัญชีผู้ใช้กลางคัน แล้วเขายังใช้งานต่อได้** — `isActive === false` ถูกเช็คเฉพาะใน `signInWithGoogle` ส่วน `initAuth` (ที่รันทุกครั้งที่รีเฟรช) เช็คแค่ว่า "พบ user ไหม" และ `firestore.rules` ก็ไม่ดู `isActive` ⇒ คนที่ถูกปิดบัญชียังเปิดหน้า อ่านรายการแดชบอร์ด/โครงสร้างโฟลเดอร์ได้จนกว่าจะ sign out เอง (ตัวเนื้อหาแดชบอร์ดถูกกันไว้ที่ server แล้ว — `embed/request.post.ts` เช็ค `isActive`) | TC 6.1.2 | High | 🔧 Fixed (เช็ค `isActive` ใน `initAuth` → `signOut()`) — **ยืนยันด้วยการกดจริง 2026-08-19** ✅ · การเตะออกเกิดก่อนกิ่ง `authError` ของ middleware ผู้ใช้จึงเห็นหน้า login เปล่า ตามมาด้วยแถบเหตุผลบนหน้า login (TC 6.1.4) |
@@ -636,26 +635,31 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | BUG-015 | `PermissionsPage` บันทึก `setByName` เป็นค่าว่างเสมอ — เขียน `user.value?.name` ซึ่งไม่มีใน auth user (มี `displayName`) → provenance ไม่มีชื่อผู้ตั้งสิทธิ์ | TC 3.10 | Medium | 🔧 Fixed (ใช้ `displayName`; PR #353) |
 
 **BUG-001 รายละเอียด:**
+
 - **อาการ:** เมื่อใช้ Group By Folder จะแสดงเฉพาะ dashboard ที่อยู่ใน root folder เท่านั้น dashboard ที่อยู่ใน sub-folder จะหายไปจาก grouped view และคอลัมน์ folder ใน list view จะว่างเปล่า
 - **Root Cause:** `buildFolderTree()` ใน `useFirestoreService.ts` คืนค่าเฉพาะ root folders (sub-folders ถูก nest ไว้ใน `.children`) แต่ `groupedByFolder` และ `folderNameMap` ใน `discover.vue` iterate แค่ level บนสุด ทำให้ sub-folder ID ไม่ถูก map
 - **ไฟล์ที่เกี่ยวข้อง:** `app/pages/dashboard/discover.vue` (computed `groupedByFolder`, `folderNameMap`)
 
 **BUG-002 รายละเอียด:**
+
 - **อาการ:** Admin เปิด toggle "แสดงที่เก็บถาวร" แล้ว archived dashboard ไม่ปรากฏ
 - **Root Cause:** `loadDashboards()` ใน `useDashboardPage.ts` ไม่ได้ส่ง `includeArchived: true` ไปให้ service ทำให้ archived dashboards ไม่ถูก load เข้า `dashboards.value` ตั้งแต่แรก toggle บน UI จึงไม่มีผล
 - **ไฟล์ที่เกี่ยวข้อง:** `app/composables/useDashboardPage.ts` (function `loadDashboards`)
 
 **BUG-003 รายละเอียด:**
+
 - **อาการ:** เลือก tag filter แล้ว URL bar ไม่เปลี่ยน — copy URL ไปเปิด new tab ได้หน้าว่างไม่มี filter
 - **Root Cause:** `handleTagFilterUpdate()` อัปเดตเฉพาะ `tagStore` แต่ไม่ push query param ลง URL ตรงข้ามกับ folder ที่ใช้ `router.push` เสมอ และไม่มี restore tag จาก URL ตอน `onMounted`
 - **ไฟล์ที่เกี่ยวข้อง:** `app/pages/dashboard/discover.vue` (function `handleTagFilterUpdate`, `onMounted`)
 
 **ENV-001 รายละเอียด:**
+
 - **อาการ:** หน้าขาวพร้อม console error: `Failed to load module script: Expected a JavaScript-or-Wasm module script but the server responded with a MIME type of "text/html"`
 - **Root Cause:** Browser cache สาเหตุ — tab ที่เปิดค้างไว้ก่อน deploy ใหม่ถือ `index.html` เก่าที่อ้างอิง JS chunk hash เก่า (เช่น `IhJDMPiJ.js`) ซึ่ง Firebase Hosting ลบออกหลัง deploy Firebase SPA rewrite จึงตอบด้วย `index.html` แทน JS จริง ทำให้ browser ปฏิเสธ
 - **วิธีแก้:** กด **Cmd+Shift+R** (Hard Refresh) หรือ clear cache — error หายทันที ไม่ใช่ app bug
 
 **BUG-004 รายละเอียด:**
+
 - **อาการ:** เชิญหลายคนใส่ role/company/group ต่างกันรายแถว แต่ทุกคนได้ role/company/group ของแถวแรก (เช่น แถว 2 ตั้ง Moderator + Management → ถูกส่งเป็น User + ไม่มีกลุ่ม)
 - **Root Cause:** `server/api/invitations/bulk.post.ts` destructure แค่ flat `{ emails, role, company, assignedGroups }` แล้ว loop `for (const email of emails)` ใช้ค่าเดียวกับทุก email — **เมิน array `items[]`** ที่ client ([BulkInviteModal.vue](../../app/components/admin/BulkInviteModal.vue)) ส่งมาพร้อม role/company/group รายแถว
 - **ไฟล์ที่เกี่ยวข้อง:** `server/api/invitations/bulk.post.ts` (+ `server/api/mock/invitations/bulk.post.ts` น่าจะมีปัญหาเดียวกัน)
@@ -663,8 +667,9 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **🔧 Fixed (2026-07-19):** เพิ่ม `normalizeBulkItems` util + regression tests (PR #279); follow-up ปิด group leak (แถวไม่มี group ดึงของแถวก่อนหน้า) โดยแยก items[] mode (ไม่ inherit flat) vs emails[] mode (PR #280) — ยืนยันบน prod Firestore: purchase=user/STTH/[], mnc=moderator/STSB/[finance]
 
 **DESIGN-001 รายละเอียด:**
+
 - **อาการ:** ลบ direct user ออกจาก dashboard แล้ว user ยังเห็น dashboard อยู่ (พบตอนทดสอบ 3.10.2 บน Finance Summary)
-- **Root cause:** `access.company = []` (ว่าง) ถูกตีความว่า "ทุกบริษัทเข้าถึงได้" — มี comment + logic ตรงกัน 3 ที่: [useFirestoreService.ts:720](../../app/composables/useFirestoreService.ts#L720), [useMockData.ts:165](../../app/composables/useMockData.ts#L165), [server/utils/companyAccess.ts:104](../../server/utils/companyAccess.ts#L104). เมื่อ company ว่าง `checkAccess` คืน true ให้ทุกคน — direct user/group grant ถูก override
+- **Root cause:** `access.company = []` (ว่าง) ถูกตีความว่า "ทุกบริษัทเข้าถึงได้" — มี comment + logic ตรงกัน 3 ที่: [useFirestoreService.ts:720](../../app/composables/useFirestoreService.ts#L720), [useJSONMockService.ts:689](../../app/composables/useJSONMockService.ts#L689), [server/utils/companyAccess.ts:104](../../server/utils/companyAccess.ts#L104). เมื่อ company ว่าง `checkAccess` คืน true ให้ทุกคน — direct user/group grant ถูก override
 - **Blast radius (prod, 2026-07-19):** 7/11 dashboards มี company=[] = public; 2 ตัว (`dash_hr_employee_data`, `dash_project_q1_analytics`) ตั้ง group grant ไว้แต่ถูก override เป็น public
 - **ไม่ใช่ code bug — เป็น design decision ที่เป็น footgun.** ต้องตัดสินใจ: (A) คงไว้ (empty=public by design) แต่เพิ่ม UI cue ว่า dashboard นี้ public / (B) เปลี่ยน semantics — ถ้ามี direct.users หรือ direct.groups แล้ว company=[] ควรหมายถึง "เฉพาะ grant" ไม่ใช่ "ทุกคน" (ต้องแก้ทั้ง 3 ที่ + rule + regression)
 - **ผลต่อการทดสอบ:** 3.10.1/2/3/5 ต้องทดสอบบน dashboard ที่ restricted (company ระบุ) เท่านั้น
@@ -678,6 +683,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
   - **หมายเหตุ:** บรรทัด useFirestoreService.ts:720 / useMockData.ts:165 / companyAccess.ts:104 ข้างบนเป็นเลขก่อนแก้ — logic ปัจจุบันเปลี่ยนแล้ว
 
 **BUG-005 รายละเอียด:**
+
 - **อาการ:** เปิด modal "รายละเอียดกลุ่ม" ของ operations แสดง "สมาชิกในกลุ่ม 2 คน" แต่ list แสดงแค่ Janine 1 คน + ข้อความ "มีสมาชิก 1 คนที่ไม่พบข้อมูลในระบบ"
 - **Root cause (2 ชั้น):**
   1. **Stale ref:** `group.members = ["user_janine_user", "user_sombat_user"]` — `user_sombat_user` ถูกลบออกจาก `users` collection ไปแล้ว (ลบ user ไม่ล้าง reference ใน `group.members`)
@@ -689,6 +695,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **cleanup แยก:** ลบ orphan UID (`user_sombat_user`) ออกจาก `operations.members[]`
 
 **BUG-008 รายละเอียด:**
+
 - **อาการ:** ที่ `/admin/explorer` กดถังขยะลบโฟลเดอร์ที่ยังมี dashboard/subfolder ข้างใน → modal ยืนยันแบบ generic ("คุณแน่ใจว่าต้องการลบ 'TEST-B'") ไม่มี warning ว่ามีเนื้อหา แล้วลบสำเร็จเงียบ ๆ ไม่มี error (spec TC 3.13.6 คาดหวัง "Error message shown")
 - **Root cause:** [admin/explorer/[[folderId]].vue](../../app/pages/admin/explorer/[[folderId]].vue) ไม่ส่ง `canDeleteFolder` guard เข้า `useExplorer` — [useExplorer.ts](../../app/composables/useExplorer.ts) จะบล็อกก็ต่อเมื่อมี callback นี้ (บรรทัด ~197) admin path เลยเรียก `deleteFolder` ลบ doc ตรง ๆ ไม่เช็คว่าว่างหรือ cascade
 - **ผลกระทบ:** dashboard/subfolder ที่ค้างข้างในกลายเป็น orphan — `folderId`/`parentId` ชี้ไป folder ที่ถูกลบไปแล้ว (data integrity)
@@ -696,6 +703,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **manage explorer ด้วย:** `/manage/explorer` (moderator) มี orphan-risk เดียวกัน — `canDeleteFolder` เดิมเช็คแค่สิทธิ์ เพิ่ม content check (subfolder + dashboard ว่าง) ต่อจากเช็คสิทธิ์แล้วในรอบนี้
 
 **BUG-018 รายละเอียด:**
+
 - **อาการ:** ตั้งวันหมดอายุที่หน้าจัดการสิทธิ์ (แท็บ "ข้อจำกัด" → หมดอายุ) เลือก 18/8/2569 กดบันทึก → ค่าที่เขียนจริงคือ `"2026-08-18T00:00:00.000Z"` = **07:00 น. วันที่ 18 ตามเวลาไทย** สิทธิ์ตัดกลางเช้าแทนที่จะเป็นสิ้นวัน
 - **Root cause 2 จุด:**
   1. [PermissionEditor.vue:780](../../app/components/features/PermissionEditor.vue#L780) `localRestrictions.value.expiry[uid] = new Date(popupExpiryDate.value)` — `new Date('2026-08-18')` คือเที่ยงคืน **UTC** (บั๊กชั้น 3 ตัวเดียวกับ BUG-017 คนละไฟล์)
@@ -708,11 +716,13 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **ยืนยันบน prod ก่อนแก้:** `node scripts/inspect-expiry.mjs dash_1786983449961` ระหว่างทดสอบ BUG-017 ได้ `"2026-08-18T00:00:00.000Z"` (string, เที่ยงคืน UTC) — ค่าทดสอบถูกลบแล้ว
 
 **BUG-019 รายละเอียด:**
+
 - **อาการ:** moderator เปิดแดชบอร์ดแล้วกดปุ่ม Share ในหน้า view → เด้งไป `/admin/permissions` ซึ่ง middleware เป็น `['auth','admin']` เข้าไม่ได้
 - **Root cause:** [view/[id].vue:541](../../app/pages/dashboard/view/[id].vue#L541) hardcode `/admin/permissions` ทั้งที่ปุ่มโชว์ให้ทั้ง admin และ moderator ([:57](../../app/pages/dashboard/view/[id].vue#L57))
 - **แนวทางแก้ (ยังไม่ทำ):** เลือก path ตาม role แบบเดียวกับ [ExplorerPage.vue:101](../../app/components/features/ExplorerPage.vue#L101) (`routePrefix.replace('/explorer','/permissions')` → `/manage/permissions` สำหรับ moderator)
 
 **BUG-020 รายละเอียด:**
+
 - **อาการ:** ลบ `Survey Streamwash` ออกจากสิทธิ์ของแดชบอร์ด กดบันทึก → `access.direct.users` ว่างแล้ว แต่ `restrictions.expiry.<uid>` ยังอยู่ หน้าจอขึ้น `จัดการสิทธิ์ 0` / `ข้อจำกัด 1`
 - **ทำไมไม่ลบอัตโนมัติทั้งหมด:** `restrictions` เป็น **Layer 3** ทำงานทับทุกเส้นทางที่ได้สิทธิ์ ([useFirestoreService.ts:688](../../app/composables/useFirestoreService.ts#L688) เช็ค restrictions ก่อน access; [:509-513](../../app/composables/useFirestoreService.ts#L509) ตัด uid หลังรวมคนจาก group + company) ⇒ ถ้าลบข้อจำกัดทิ้งทุกครั้งที่ลบ direct grant คนที่เข้าถึงผ่าน**บริษัท/กลุ่ม/โฟลเดอร์ที่สืบทอด** จะได้สิทธิ์ที่ถูกจำกัดเวลาไว้คืนแบบเงียบ ๆ = คืนสิทธิ์โดยไม่มีใครสั่ง
 - **Fix (รอบแรก):** ถามด้วย `ConfirmDialog` ตอนลบสิทธิ์ที่ทำให้คนถือข้อจำกัดไม่เหลือทางเข้า ตัดสินด้วย `restrictedWithoutAccess` ใน `app/utils/accessScope.ts` — **ต่อมาถูกแทนที่ด้วยการตรวจตอนกดบันทึก ดู BUG-022** (ไฟล์นั้นถูกลบแล้ว)
@@ -721,6 +731,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **จังหวะเขียนฐานข้อมูล:** dialog กับปุ่ม ✕ แก้แค่ state ในหน้า การเขียนเกิดตอนกด **บันทึก** เท่านั้น ([savePermissions](../../app/components/features/PermissionsPage.vue#L653)) กด "ยกเลิก"/"รีเซ็ต" ก่อนบันทึก = ไม่มีอะไรลง Firestore
 
 **BUG-021 / BUG-022 รายละเอียด:**
+
 - **BUG-021 อาการ:** กดบันทึกที่หน้าจัดการสิทธิ์แล้วไม่มีข้อความยืนยันใด ๆ — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (ทางเข้าปกติทั้งหมด ทั้งปุ่ม 🔑 และลิงก์ที่ส่งต่อกัน) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` ในเทมเพลตไม่มีทางแสดงเลย
 - **BUG-021 fix:** ทั้ง 2 พาธ (dashboard/folder) `showToast` ก่อนแล้วค่อย navigate — toast เป็น `useState` singleton จึงข้าม route ได้ และทางที่ล้มเหลว toast แดงด้วย เดิมตั้งแค่ `errorMessage` ซึ่งอยู่บนสุดของหน้าที่แอดมินเลื่อนผ่านไปแล้ว (PR #387)
 - **BUG-022 อาการ:** สวิตช์ **เข้าถึงสาธารณะ** เขียน `access.public` ตรง ๆ ที่หน้าเพจ ไม่ได้ผ่าน `requestRemoval` ของ `PermissionEditor` ⇒ ปิดสาธารณะทั้งที่มีคนถือข้อจำกัดอยู่ = ทิ้ง orphan เงียบ ๆ เหมือนก่อนแก้ BUG-020
@@ -728,6 +739,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **ถอด guard รายปุ่มออก:** `requestRemoval` กับ `app/utils/accessScope.ts` ถูกลบ — ดักรายปุ่มไม่มีทางครบ (สวิตช์สาธารณะกับสวิตช์สืบทอดอยู่คนละคอมโพเนนต์กับตัวแก้ไขสิทธิ์) และการถาม 2 ที่ในโฟลว์เดียวทำให้คนกดผ่านโดยไม่อ่าน
 
 **BUG-017 รายละเอียด (ปิดด้วยการลบ Quick Share — 2026-08-18):**
+
 - **อาการที่รายงาน:** กด 🔗 ที่การ์ดใน Discover → กด Share → dialog ปิดเหมือนสำเร็จ ไม่มี toast และไม่มีอะไรถูกเขียนลง Firestore
 - **Root cause เดิม (3 ชั้น):** `handleShare` เป็น stub ไม่เคยเรียก `quickShareDashboard`; `availableUsers` ประกาศแล้วไม่เคยถูก assign; `expiryDate` เป็น string แต่ service รับ `Date`
 - **PR #376** ต่อสายครบทั้ง 3 ชั้น (service call + toast ทุกผลลัพธ์ + `endOfDayLocal`) พร้อมเทสต์ 8 เคส
@@ -737,6 +749,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **สิ่งที่เก็บไว้:** `endOfDayLocal` ใน [shared/utils/dates.ts](../../shared/utils/dates.ts) พร้อมเทสต์ — ตอนนั้นยังไม่มีคนเรียก และถูกใช้จริงตอนแก้ BUG-018 ในวันถัดมา; flag `canShareDashboard` ใน permissions store ยังอยู่ในเมทริกซ์ role แต่ไม่มี UI ไหนอ่านแล้ว
 
 **สร้างโฟลเดอร์ที่ sidebar (ปิดด้วยการลบ — 2026-08-19):**
+
 - **สภาพเดิม:** ปุ่ม `+` ใน `FolderSidebar` ผูกกับ stub 2 ตัว — `alert('Create folder functionality coming soon!')` ที่ `/dashboard` และ `console.log` เงียบ ๆ ที่ `/dashboard/discover`
 - **ตรวจแล้วพบว่าไม่มีทางกดถึง:** `PageLayout` ส่ง `:allow-create` ต่อให้ `UnifiedSidebar` ซึ่ง render แค่ `AdminAccordion` 3 อัน ไม่เคย render `FolderSidebar`; ตัว `FolderSidebar` ถูกใช้โดย `FolderAccordion` ที่ไม่มีหน้าไหนเรียก ⇒ prop ตกพื้นกลางทาง แบบเดียวกับ dialog ของ BUG-017
 - **การตัดสินใจ:** ลบทั้งสาย ไม่ต่อให้ทำงาน — Explorer (`/admin/explorer`, `/manage/explorer`) สร้างโฟลเดอร์ได้จริงอยู่แล้ว และเป็นทางเดียวที่ผู้ใช้ใช้อยู่
@@ -744,6 +757,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **สิ่งที่เก็บไว้:** flag `canCreateFolder` ในเมทริกซ์ role ของ permissions store — ไม่มีโค้ดอ่านแล้ว แต่ยังเป็นสเปกที่ [docs/GUIDES/roles-and-permissions.md](../GUIDES/roles-and-permissions.md) อ้างถึง (Explorer ใช้ `canCreateInCurrentFolder` ของตัวเอง ไม่ได้อ่าน flag นี้)
 
 **เมนูโปรไฟล์ / การตั้งค่า ใน UserMenu (2026-08-19):**
+
 - **สภาพเดิม:** ทั้งสองเมนูแสดงกับทุก role กดแล้ว `console.log` เฉย ๆ เพราะไม่มี route `/profile` และ `/settings`
 - **โปรไฟล์ → ทำจริง:** เพิ่มหน้า `/profile` แบบอ่านอย่างเดียว (ตัวตน, บทบาท, บริษัท, สถานะ, วันเข้าร่วม, กลุ่ม, โฟลเดอร์ที่ดูแลสำหรับ moderator) อ่านจาก `users/{uid}` ของตัวเอง + lookup ชื่อบริษัท/กลุ่ม ทั้งหมดอยู่ในสิทธิ์ที่ [firestore.rules](../../firestore.rules) ให้อยู่แล้ว ไม่ต้องแก้ rules — ดู TC 2.4.x
 - **การตั้งค่า → ลบทิ้ง:** ยังไม่มีค่าอะไรให้ผู้ใช้ตั้งเลย (ธีม/ภาษา/การแจ้งเตือน ไม่มีในระบบ) เมนูที่กดแล้วเงียบจึงถูกเอาออกจนกว่าจะมีของจริง
@@ -780,7 +794,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
 | **TOTAL** | **211** | — | 197 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
-> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 211 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]? ` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
+> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 211 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
 
 ---
 
@@ -816,11 +830,11 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 
 | Email | Role | Company | Notes |
 |-------|------|---------|-------|
-| it.streamwash@gmail.com | Admin | STTH | Primary test admin |
-| n.noikaeo@gmail.com | Moderator | STTH | Primary test moderator |
-| nattha@streamwash.com | Moderator | STTH | Secondary moderator |
-| teerak@streamwash.com | User | STTH | Primary test user |
-| survey.streamwash@gmail.com | User | STTH | Secondary test user |
+| <it.streamwash@gmail.com> | Admin | STTH | Primary test admin |
+| <n.noikaeo@gmail.com> | Moderator | STTH | Primary test moderator |
+| <nattha@streamwash.com> | Moderator | STTH | Secondary moderator |
+| <teerak@streamwash.com> | User | STTH | Primary test user |
+| <survey.streamwash@gmail.com> | User | STTH | Secondary test user |
 
 ### Local vs Production — where results match (and where they don't)
 
@@ -836,6 +850,7 @@ real production database. (Always clean up test records.)
 | Auth / OAuth | mostly same | Same Firebase Auth project; prod uses the deployed `authDomain` (see authentication guide's authDomain caveat) |
 
 **Takeaways:**
+
 - §3.3–3.8 results verified locally **are** representative of prod (same code + same DB; the fixes are all deployed to `main`/prod).
 - Server-function-backed sections must still be exercised against the live prod URL.
 - Local is **not** an isolated sandbox — it mutates prod data. A true sandbox would need the Firestore emulator or a second Firebase project (not currently configured).

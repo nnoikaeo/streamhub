@@ -1,9 +1,7 @@
 # 🔐 Roles & Permissions Guide
 
 > **Document Status:** Single Source of Truth for Roles & Access Control
-> **Last Updated:** 2026-03-22
 > **Document Owner:** Development Team
-> **Version:** 6.1 (Updated checklist to reflect Phase 1–4 completion)
 
 **StreamHub Role-Based Access Control (RBAC) with Simplified Permissions (Direct + Company-Scoped)**
 
@@ -30,7 +28,7 @@
 
 **StreamHub** uses **Contextual INTERSECT architecture** for role-based access control:
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │          ROLE HIERARCHY                 │
 ├─────────────────────────────────────────┤
@@ -65,6 +63,7 @@
 **Definition:** Regular employee who can view dashboards based on assigned permissions
 
 **Permissions:**
+
 - ✅ View dashboards (with access rights)
 - ✅ View own profile
 - ✅ Update own profile (limited)
@@ -77,12 +76,14 @@
 - ❌ Manage permissions
 
 **Access Scope:**
+
 - **Own Company:** Can view dashboards in their company
 - **Other Companies:** Only if explicitly shared
 - **Folders:** Can browse assigned folders (read-only)
 
 **Example:**
-```
+
+```text
 User: สมชาย (STTH)
 ├── Company: STTH
 ├── Role: User
@@ -98,6 +99,7 @@ User: สมชาย (STTH)
 ```
 
 **Use Cases:**
+
 - 📱 Sales Representative
 - 💰 Accounting Staff
 - 👥 Officer
@@ -110,6 +112,7 @@ User: สมชาย (STTH)
 **Definition:** Team lead or manager with **2 views**: Viewer mode (like User) and Manager mode (like limited Admin)
 
 **View 1 — Viewer Mode (via "Dashboard" menu):**
+
 - ✅ View dashboards (with access rights) — same as User
 - ✅ Search and filter dashboards (by tag, by folder)
 - ✅ View tags on dashboards (read-only)
@@ -117,6 +120,7 @@ User: สมชาย (STTH)
 - ❌ Assign tags
 
 **View 2 — Manager Mode (via "จัดการ" menu → `/manage/explorer`):**
+
 - ✅ Create/Edit/Delete subfolders (in assigned folders) — ลบได้เฉพาะโฟลเดอร์ว่าง (ไม่มี subfolder/dashboard ข้างใน) กัน orphan (BUG-008)
 - ✅ Set subfolder permissions (in assigned folders)
 - ✅ Create/Edit/Delete dashboards (in assigned folders)
@@ -135,6 +139,7 @@ User: สมชาย (STTH)
 - ❌ Access other companies' folders
 
 **Access Scope:**
+
 - **Own Company:** Full management of assigned folders
 - **Assigned Folders:** Only folders explicitly assigned
 - **Other Companies:** No access
@@ -142,7 +147,8 @@ User: สมชาย (STTH)
 - **Tags:** Read all tags, assign only in assigned folders
 
 **Example:**
-```
+
+```text
 Moderator: นายหา (STTH)
 ├── Company: STTH
 ├── Role: Moderator
@@ -171,6 +177,7 @@ Moderator: นายหา (STTH)
 ```
 
 **Use Cases:**
+
 - 🏢 Department Head
 - 📊 Data Analyst
 - 📈 Report Manager
@@ -183,6 +190,7 @@ Moderator: นายหา (STTH)
 **Definition:** System administrator with global access across all companies
 
 **Permissions:**
+
 - ✅ View all dashboards (all companies)
 - ✅ Create/Edit/Delete dashboards (all companies)
 - ✅ Set dashboard permissions (all companies)
@@ -199,6 +207,7 @@ Moderator: นายหา (STTH)
 - ✅ Configure Looker Studio integrations
 
 **Access Scope:**
+
 - **Global:** All companies, all folders, all dashboards
 - **No Restrictions:** Company field doesn't restrict admin access
 - **Full Control:** Can manage everything in the system
@@ -209,7 +218,7 @@ Moderator: นายหา (STTH)
 
 Moderators operate in **2 distinct views**, switching via sidebar navigation:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                      MODERATOR                              │
 │                                                             │
@@ -240,7 +249,8 @@ Moderators operate in **2 distinct views**, switching via sidebar navigation:
 ```
 
 **Permission check flow:**
-```
+
+```text
 Moderator clicks item
     │
     ▼
@@ -350,6 +360,7 @@ const ROLE_PERMISSIONS = {
 > ⚠️ **Feature permissions are derived from the role and nothing else.** `initializePermissions` copies `ROLE_PERMISSIONS[user.role]` field by field ([app/stores/permissions.ts](../../app/stores/permissions.ts)); there is no per-user override, in the store or in Firestore. So "an admin with one capability removed" is not a state this system can be put into — change the role, or change the matrix for every holder of that role.
 >
 > Two consequences worth knowing before you read a page guard:
+>
 > - A guard that re-checks a capability the route's middleware already implies is defense-in-depth with no reachable path. `/admin/tags` checks `canManageTags`, but the `admin` middleware has already turned away anyone without `canAccessAdmin`, and every role that clears that check has `canManageTags: true`. Keep the guard — it is what makes the matrix safe to edit — but do not expect to be able to trigger it.
 > - The matching test case (TC 3.8.7) is recorded ⊘ N/A for exactly this reason. If per-user overrides are ever built, that case becomes runnable again and should go back to ☐.
 
@@ -396,7 +407,7 @@ interface AccessRestrictions {
 
 > Third check retired in PR #372. `useMockData.ts` held one, reached only through `MockDashboardService`, which no branch of `useServiceMode` could select (PR #371). It still carried the pre-DESIGN-001 rule — `access.company.length === 0` meaning "everyone" — so it would have re-opened every private dashboard had anything ever called it. The JSON mock path has no check of its own: it goes through `/api/mock/*`, which uses `companyAccess.ts` like the rest of the server.
 
-```
+```text
 restrictions revoke/expiry matches   → DENY (overrides everything below)
 user.role === 'admin'                → ALLOW (bypass)
 access.public === true               → ALLOW (every logged-in user)
@@ -440,6 +451,7 @@ interface Folder {
 ```
 
 **Changes from v5.0:**
+
 - `direct.roles[]` removed — roles no longer used in direct access
 - `company` changed from `{ [companyId]: { roles, groups } }` → `string[]`
 - Selecting a company grants access to ALL users in that company (no group/role filter)
@@ -447,6 +459,7 @@ interface Folder {
 - New: `Folder.inheritPermissions` for folder-level cascade
 
 **Changes in v6.1 (DESIGN-001, 2026-07):**
+
 - New: `access.public?: boolean` — explicit org-wide public flag (default false)
 - **Default is now PRIVATE.** Empty `company: []` is no longer treated as "all companies"; per-user/group grants now actually restrict access
 - New: moderators can access dashboards in folders they manage (`assignedModerators`), matching their Explorer scope
@@ -466,7 +479,7 @@ Folders can optionally have their own permissions that cascade down to all dashb
 
 ### OR-merge Rule
 
-```
+```text
 Final access = (DashboardPerms OR FolderPerms_ancestor1 OR FolderPerms_ancestor2 ...)
                AND NOT (DashboardRestrictions OR FolderRestrictions_ancestor1 ...)
 ```
@@ -489,7 +502,7 @@ This is displayed in the inherited permissions section as provenance info.
 
 ### Example
 
-```
+```text
 Root Folder (no permissions)
  └── Finance (inheritPermissions: true, company: ["STTH"])
       ├── Budget Dashboard ← inherits STTH access from Finance folder
@@ -528,7 +541,8 @@ Groups are shared across dashboards:
 ### Access Logic (v6.0 — Simplified)
 
 **Layer 1: Direct Access (OR)**
-```
+
+```text
 User CAN ACCESS if:
   userId in access.direct.users
   OR any of user.groups in access.direct.groups
@@ -537,7 +551,8 @@ User CAN ACCESS if:
 ```
 
 **Layer 2: Company-Scoped (simplified)**
-```
+
+```text
 User CAN ACCESS if:
   user.company in access.company
 
@@ -545,13 +560,15 @@ User CAN ACCESS if:
 ```
 
 **Layer 3: Restrictions (Explicit Deny)**
-```
+
+```text
 User CANNOT ACCESS if:
   userId in restrictions.revoke
   OR (userId in restrictions.expiry AND expiry < now())
 ```
 
 **Final Access Decision:**
+
 ```javascript
 allow read: if
   // Layer 1: Direct (OR)
@@ -567,6 +584,7 @@ allow read: if
 ```
 
 **Folder Inheritance:**
+
 ```javascript
 // For each ancestor folder with inheritPermissions === true:
 folderGrant = folderAccess.company.includes(user.company)
@@ -688,7 +706,7 @@ function isExpired(uid, expiryMap) {
 
 ### Example 1: Company-Specific Dashboard (v6.0)
 
-```
+```text
 Dashboard: "STTH Daily Report"
 access: {
   direct: { users: [], groups: [] },
@@ -705,7 +723,7 @@ Access Results:
 
 ### Example 2: Group-Based Access (v6.0)
 
-```
+```text
 Dashboard: "Finance Report"
 access: {
   direct: { users: [], groups: ["finance-team"] },
@@ -722,7 +740,7 @@ Access Results:
 
 ### Example 3: Cross-Company Group (v6.0)
 
-```
+```text
 Dashboard: "Global Metrics"
 access: {
   direct: { users: [], groups: ["executives"] },
@@ -740,7 +758,7 @@ Access Results:
 
 ### Example 4: Individual + Expiry (v6.0)
 
-```
+```text
 Dashboard: "Q1 Audit"
 access: {
   direct: { users: ["uid-auditor"], groups: [] },
@@ -758,7 +776,7 @@ Access Results:
 
 ### Example 5: Folder Inheritance (v6.0)
 
-```
+```text
 Folder: "Finance" (inheritPermissions: true)
 access: {
   direct: { users: [], groups: [] },
@@ -779,6 +797,7 @@ Effective access for "Budget Report":
 ## ✅ Implementation Checklist
 
 ### Phase 1: Database Schema ✅ COMPLETED
+
 - [x] Add `access.direct` to dashboards — `DirectAccess` interface in `types/dashboard.ts`
 - [x] Add `access.company` to dashboards — `CompanyAccess = string[]` in `types/dashboard.ts`
 - [x] Add `restrictions` to dashboards — `AccessRestrictions` interface in `types/dashboard.ts`
@@ -788,7 +807,9 @@ Effective access for "Budget Report":
 - [x] Add `tags: string[]` to dashboards — in `Dashboard` type (`types/dashboard.ts`)
 
 ### Phase 2: Firestore Rules ⏳ PENDING (Real Firebase)
+>
 > Current implementation uses mock JSON API (`server/api/mock/`). Rules below apply when migrating to real Firestore.
+
 - [ ] Implement Layer 1 rules (direct)
 - [ ] Implement Layer 2 rules (company-scoped — simplified string[])
 - [ ] Implement Layer 3 rules (restrictions)
@@ -796,6 +817,7 @@ Effective access for "Budget Report":
 - [ ] Test all scenarios
 
 ### Phase 3: Pinia Stores ✅ COMPLETED
+
 - [x] Create `stores/permissions.ts` — role-based permissions with `can()`, `hasAll()`, `hasAny()`
 - [x] Add `canManageTags` and `canAssignTags` to permissions — defined per role in permissions store
 - [x] Create `stores/tags.ts` — tag CRUD + `selectedTagIds` + filter toggle
@@ -803,6 +825,7 @@ Effective access for "Budget Report":
 - [x] Load user groups on login — handled in `useAuth.ts`
 
 ### Phase 4: UI Components ✅ COMPLETED
+
 - [x] Create permission guard components — permissions store used directly in components
 - [x] Update dashboard list filtering — `TagFilter.vue` component implemented
 - [x] Add permission indicators — role-based UI gating via permissions store
@@ -818,6 +841,7 @@ Effective access for "Budget Report":
 - [x] Add 🔑 shortcut buttons in explorer → permissions page
 
 ### Phase 5: Permission System v6.0 (Completed)
+
 - [x] Part 1: Types (AccessControl simplified, PermissionMetadata), Mock Data
 - [x] Part 2: Permission Algorithm (simplified company check, folder-aware)
 - [x] Part 3: PermissionEditor.vue — Unified 3-Column (no tabs)
@@ -832,8 +856,3 @@ Effective access for "Budget Report":
 - [Database Schema](./database-schema.md) - For field definitions, **see Permission Structure section above**
 - [Company Management](./company-management.md) - For company setup, **see Use Cases section above**
 - [User Flows](../DESIGN/user-flows.md) - For access flow diagrams
-
----
-
-**Last Updated:** 2026-03-22
-**Version:** 6.1 (Phase 1–4 checklist updated to reflect completed implementation)

@@ -7,6 +7,7 @@
 Phase 6 implementation เสร็จแล้ว แต่เมื่อ deploy ขึ้น production พบว่าระบบยังคงทำงานเหมือน local ในหลายจุด เช่น auth bypass ผ่าน query param, localhost fallback ใน email, mock API endpoints ที่ยังถูก deploy ขึ้นไปด้วย — ทำให้ต้อง hotfix อยู่เสมอ
 
 แผนนี้มีเป้าหมาย:
+
 1. **Harden** ขอบเขต dev/production ให้ชัดเจน ไม่ leak ข้าม mode
 2. **Validate** environment ตั้งแต่ startup — fail fast ถ้า config ผิด
 3. **สร้าง Health Check & Testing Tools** เพื่อ verify production readiness ได้ทันที
@@ -63,10 +64,12 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
 ## แผนงาน: แบ่งเป็น 7 Tasks (1 Task = 1 Chat)
 
 ### Task 1: Harden Auth Middleware — ลบ Dev Bypass ออกจาก Production Path ✅ Done
+
 **Priority:** 🔴 Critical | **Effort:** เล็ก | **Dependencies:** ไม่มี
 **Branch:** `fix/harden-auth-middleware` | **PR:** #202 | **Merged:** 2026-04-06
 
 **สิ่งที่ทำ:**
+
 - รวม 3 จุด `process.dev` bypass → early return block เดียว
 - Production path: strict 401, ไม่มี query param fallback
 - เปลี่ยน 15+ `console.log` → `console.debug` (stripped in production)
@@ -77,10 +80,12 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
 ---
 
 ### Task 2: Fix Localhost Fallbacks & Environment Validation ✅ Done
+
 **Priority:** 🔴 Critical | **Effort:** เล็ก | **Dependencies:** ไม่มี
 **Branch:** `fix/localhost-fallbacks-env-validation` | **PR:** #203 | **Merged:** 2026-04-06
 
 **สิ่งที่ทำ:**
+
 - `emailService.ts`: `getAppUrl()` throw ใน production ถ้าไม่มี APP_URL (dev ยังใช้ localhost fallback ได้)
 - `nuxt.config.ts:160`: เปลี่ยน `|| 'http://localhost:3000'` → `|| ''`
 - `.env`: เพิ่ม comment ชี้แจงว่า APP_URL/NUXT_APP_URL เป็น dev-only default
@@ -94,12 +99,14 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
 ---
 
 ### Task 3: Fix Audit Log & Firestore Fallback ✅ Done
+
 **Priority:** 🟠 High | **Effort:** เล็ก | **Dependencies:** ไม่มี
 **Branch:** `fix/audit-log-firestore-fallback` | **PR:** #205 → #206 | **Merged:** 2026-04-06
 
 **เป้าหมาย:** Audit log ต้องไม่หายใน production
 
 **สิ่งที่ทำ:**
+
 - `logAuditEvent`: เพิ่ม Firestore write path — เดิมใช้แค่ JSON เสมอ ไม่เคย check `USE_FIRESTORE`
 - `logActivity`: ลบ silent fallback — เดิม Firestore fail → fall through ไป JSON; ตอนนี้ retry 1 ครั้ง → throw
 - JSON path ยังใช้ได้เมื่อ `NUXT_PUBLIC_USE_FIRESTORE !== 'true'` (dev/mock mode)
@@ -110,17 +117,21 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
 ---
 
 ### Task 4: สร้าง Health Check API + Environment Status Page ✅ Done
+
 **Priority:** 🟠 High | **Effort:** กลาง | **Dependencies:** Task 2
 **Branch:** merged | **PR:** #207 → #208 | **Merged:** 2026-04-06
 
 **เป้าหมาย:** สร้างเครื่องมือตรวจสอบว่า production ทำงานถูกต้อง
 
 **ไฟล์ที่สร้าง/แก้:**
+
 - สร้าง `server/api/health.get.ts` — Health check endpoint
 - สร้าง `app/pages/admin/health.vue` — Admin-only health dashboard page
 
 **สิ่งที่ต้องทำ:**
+
 1. สร้าง `/api/health` endpoint (protected, admin only):
+
    ```typescript
    {
      status: 'ok',
@@ -143,27 +154,32 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
      version: '...'
    }
    ```
+
 2. สร้าง Admin health page ที่แสดง status แบบ visual:
    - ✅ / ❌ สำหรับแต่ละ check
    - Warning ถ้ามี config ที่ผิดปกติ
    - แสดง environment mode ปัจจุบัน
 
 **Verification:**
+
 - เปิด `/admin/health` ใน production → ต้องเห็น status ทุก check เป็น ✅
 - ถ้ามี config ผิด → แสดง ❌ พร้อม description
 
 ---
 
 ### Task 5: Production Readiness Test Suite ✅ Done
+
 **Priority:** 🟠 High | **Effort:** กลาง | **Dependencies:** Task 1, 2
 **Branch:** `fix/production-readiness-tests` | **PR:** #209 → #210 | **Merged:** 2026-04-06
 
 **เป้าหมาย:** สร้าง automated tests ที่ verify production configuration
 
 **ไฟล์ที่สร้าง:**
+
 - `tests/config/productionReadiness.test.ts` — 11 static config assertions (readFileSync + regex, no mocks)
 
 **สิ่งที่ทำ:**
+
 1. **firebase.json — environment variables** (4 tests):
    - `NUXT_PUBLIC_USE_FIRESTORE` = `"true"`
    - `NUXT_PUBLIC_USE_JSON_MOCK` = `"false"`
@@ -187,12 +203,14 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
 ---
 
 ### Task 6: Standardize useFirestore Flag & Clean Up Config Pattern ✅ Done
+
 **Priority:** 🟡 Medium | **Effort:** เล็ก | **Dependencies:** ไม่มี
 **Branch:** `refactor/standardize-service-mode` | **PR:** #211 (develop) → #212 (main) | **Merged:** 2026-04-06
 
 **เป้าหมาย:** ทำให้ทุก file ใช้ pattern เดียวกันในการ check Firestore mode
 
 **สิ่งที่ทำ:**
+
 - สร้าง `app/composables/useServiceMode.ts` — single source of truth สำหรับ `isFirestore`, `isMock`, `apiBase()`
 - แก้ 7 ไฟล์ที่มี inline check ซ้ำ ให้ใช้ `useServiceMode()` แทน:
   - `useAuth.ts`, `useAdminResource.ts`, `useAdminInvitations.ts`
@@ -206,12 +224,14 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
 ---
 
 ### Task 7: Disable Mock API in Production & Clean Up .env ✅ Done
+
 **Priority:** 🟡 Medium | **Effort:** เล็ก | **Dependencies:** Task 6
 **Branch:** `develop` | **Commit:** `53059df` | **Pushed:** 2026-04-06
 
 **เป้าหมาย:** Mock API endpoints ไม่ทำงานใน production build
 
 **สิ่งที่ทำ:**
+
 - สร้าง `server/middleware/blockMockApi.ts` — return 404 สำหรับ `/api/mock/*` ใน production
   - ใช้ `import.meta.dev` แทน `process.dev` → build-time dead code elimination (Nitro best practice)
 - Clean up `.env` — ลบ real Resend API key (`re_Fsyuy...`) → ใส่ placeholder `re_test_xxxxxxxxxxxx`
@@ -230,7 +250,7 @@ Phase 6 implementation เสร็จแล้ว แต่เมื่อ depl
 
 ## ลำดับการทำงาน
 
-```
+```text
 Week 1:
   Task 1 (Auth Harden)     ✅ Done — PR #202 merged 2026-04-06
   Task 2 (Localhost Fix)    ✅ Done — PR #203 merged 2026-04-06
@@ -280,15 +300,18 @@ Week 3:
 หลังปิด 7 Tasks แล้ว พบปัญหาเพิ่มเติมจากการ deploy จริง:
 
 ### Hotfix 1: Preview Workflow Cleanup (PR #216)
+
 - **ปัญหา:** `preview.yml` cleanup job ขาด `actions/checkout` → Firebase CLI หา `firebase.json` ไม่เจอ
 - **แก้ไข:** เพิ่ม `actions/checkout@v5` + `prepare-firebase-deploy.mjs` step
 
 ### Hotfix 2: Cloud Functions .env File (PR #217)
+
 - **ปัญหา:** Firebase CLI ไม่อ่าน `environmentVariables` จาก `functions.yaml` → `NUXT_APP_URL` และ `NUXT_PUBLIC_USE_FIRESTORE` หายจาก Cloud Run runtime → 500 error บน invitation resend
 - **แก้ไข:** เปลี่ยน `prepare-firebase-deploy.mjs` จากเขียน env vars ใน `functions.yaml` → สร้าง `.env` file ใน `.output/server/`
 - **ยืนยัน:** Deploy log แสดง `Loaded environment variables from .env.` + Resend dashboard ยืนยัน email ส่งสำเร็จ
 
 ### บทเรียน
+
 - Firebase CLI อ่าน `secretEnvironmentVariables` จาก `functions.yaml` ✅
 - Firebase CLI **ไม่**อ่าน `environmentVariables` จาก `functions.yaml` ❌ → ต้องใช้ `.env` file
 

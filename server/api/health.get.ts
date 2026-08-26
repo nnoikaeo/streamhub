@@ -145,6 +145,6 @@ export default defineEventHandler(async (event: H3Event) => {
     checks,
     warnings,
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || 'unknown',
+    version: useRuntimeConfig(event).public.appVersion || 'unknown',
   } satisfies HealthResponse
 })

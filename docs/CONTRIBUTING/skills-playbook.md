@@ -1,9 +1,3 @@
----
-title: Skills Playbook — คู่มือใช้งาน AI Skills สำหรับ StreamHub
-version: 1.0
-updated: 2026-04-02
----
-
 # Skills Playbook
 
 คู่มือการใช้งาน **10 AI Skills** ที่ติดตั้งไว้ใน `.claude/skills/`
@@ -39,18 +33,19 @@ updated: 2026-04-02
 
 ### Step 2 — บอก AI ให้เขียน test
 
-```
+```text
 write unit tests for DashboardCard.vue
 ```
 
 AI จะ:
+
 - อ่าน component → วิเคราะห์ behavior ที่ต้อง test
 - ใช้ `createTestingPinia` + `vi.fn` เป็น default
 - สร้าง test file ที่ `tests/components/DashboardCard.test.ts`
 
 ### Step 3 — ถ้าต้องการ test เฉพาะ Pinia store
 
-```
+```text
 write unit tests for the auth store
 ```
 
@@ -72,11 +67,12 @@ it('should login successfully', () => {
 
 ### Step 4 — ถ้าต้องการ review test ที่เขียนเอง
 
-```
+```text
 review my unit test for this component
 ```
 
 AI จะตรวจ:
+
 - test behavior ไม่ใช่ implementation?
 - ใช้ Pinia setup ที่ถูกต้อง?
 - มี coverage gap ไหม?
@@ -97,11 +93,12 @@ git add tests/components/DashboardCard.test.ts
 
 ### Step 2 — ให้ AI สร้าง commit message จาก diff
 
-```
+```text
 commit my changes
 ```
 
 AI จะ:
+
 1. รัน `git diff --staged` เพื่อดูการเปลี่ยนแปลง
 2. วิเคราะห์ type → `feat`, `fix`, `refactor` เป็นต้น
 3. วิเคราะห์ scope → `dashboard`, `auth` เป็นต้น
@@ -109,13 +106,13 @@ AI จะ:
 
 **ผลลัพธ์ตัวอย่าง:**
 
-```
+```text
 feat(dashboard): add DashboardCard component with archive support
 ```
 
 ### Step 3 — ถ้าอยากกำหนดเอง
 
-```
+```text
 commit my changes with type fix and scope auth
 ```
 
@@ -128,23 +125,24 @@ commit my changes with type fix and scope auth
 
 ### Step 1 — สแกนไฟล์เดียว
 
-```
+```text
 security review app/composables/useAuth.ts
 ```
 
 ### Step 2 — สแกนทั้งโฟลเดอร์
 
-```
+```text
 security review the server/ directory
 ```
 
 ### Step 3 — สแกนทั้งโปรเจกต์
 
-```
+```text
 run a full security review
 ```
 
 AI จะทำ 8 ขั้นตอนอัตโนมัติ:
+
 1. ระบุ scope + framework (Nuxt 4, Firebase)
 2. ตรวจ dependencies → หา CVE
 3. สแกน secrets → API keys, env ที่หลุด
@@ -156,7 +154,7 @@ AI จะทำ 8 ขั้นตอนอัตโนมัติ:
 
 **ตัวอย่างผลลัพธ์:**
 
-```
+```text
 🔴 CRITICAL (0)  🟠 HIGH (1)  🟡 MEDIUM (2)  🔵 LOW (1)
 
 HIGH-001: Hardcoded Firebase config exposed in client
@@ -175,13 +173,14 @@ HIGH-001: Hardcoded Firebase config exposed in client
 
 เปิดไฟล์แล้วพิมพ์:
 
-```
+```text
 refactor this composable — the function is too long
 ```
 
 ### Step 2 — AI วิเคราะห์ code smell
 
 AI จะระบุปัญหา เช่น:
+
 - **Long method** → แยก function
 - **Duplicated code** → extract common logic
 - **Nested conditionals** → guard clauses
@@ -191,22 +190,22 @@ AI จะระบุปัญหา เช่น:
 
 สิ่งสำคัญ: AI จะ **ไม่เปลี่ยน behavior** — แค่ปรับโครงสร้าง
 
-```
+```text
 Before: 1 function 200 บรรทัด
 After:  5 functions แต่ละ function ทำหน้าที่เดียว
 ```
 
 ### ตัวอย่างสั่งเฉพาะเจาะจง
 
-```
+```text
 extract the validation logic into a separate function
 ```
 
-```
+```text
 improve type safety in useAdminUsers composable
 ```
 
-```
+```text
 remove dead code in this file
 ```
 
@@ -219,7 +218,7 @@ remove dead code in this file
 
 ### Step 1 — บอก AI ว่าจะทำอะไร
 
-```
+```text
 create an implementation plan for adding user notification system
 ```
 
@@ -268,11 +267,13 @@ date_created: 2026-04-02
 ### ตัวอย่างที่ใช้บ่อย
 
 **สร้าง PR:**
-```
+
+```text
 create a pull request from develop to main with title "Release: Phase 7"
 ```
 
 AI จะรันคำสั่ง:
+
 ```bash
 gh pr create --base main --head develop \
   --title "Release: Phase 7" \
@@ -280,7 +281,8 @@ gh pr create --base main --head develop \
 ```
 
 **ดู PR status:**
-```
+
+```text
 show me all open pull requests
 ```
 
@@ -289,7 +291,8 @@ gh pr list --state open
 ```
 
 **สร้าง issue:**
-```
+
+```text
 create an issue for the login bug
 ```
 
@@ -298,7 +301,8 @@ gh issue create --title "Bug: Login not working" --label bug
 ```
 
 **ดู workflow runs:**
-```
+
+```text
 show me the latest CI runs
 ```
 
@@ -315,13 +319,14 @@ gh run list --limit 5
 
 ### Step 1 — บอก AI ว่าจะเขียนเอกสารอะไร
 
-```
+```text
 write a how-to guide for adding a new dashboard page
 ```
 
 ### Step 2 — AI ถามเพื่อ clarify
 
 AI จะถามกลับมา:
+
 1. **Document Type:** Tutorial / How-to / Reference / Explanation?
 2. **Target Audience:** Developer ระดับไหน?
 3. **Scope:** ครอบคลุมอะไรบ้าง?
@@ -344,11 +349,11 @@ AI จะถามกลับมา:
 
 ### ตัวอย่าง prompt อื่นๆ
 
-```
+```text
 write a reference doc for the useAuth composable
 ```
 
-```
+```text
 write a tutorial for setting up Firebase locally
 ```
 
@@ -361,11 +366,12 @@ write a tutorial for setting up Firebase locally
 
 ### ตัวอย่างที่ 1 — ตรวจ data model
 
-```
+```text
 is this Firestore user schema GDPR compliant?
 ```
 
 AI จะตรวจ:
+
 - ✅ มี `createdAt`, `retentionExpiresAt` ไหม?
 - ✅ collect เฉพาะข้อมูลที่จำเป็นไหม?
 - ✅ มี purpose documented ไหม?
@@ -373,11 +379,12 @@ AI จะตรวจ:
 
 ### ตัวอย่างที่ 2 — ตรวจ API endpoint
 
-```
+```text
 review this API for GDPR compliance
 ```
 
 AI จะตรวจตาม checklist:
+
 - PII ไม่อยู่ใน URL path?
 - Authenticated ทุก endpoint ที่ return personal data?
 - Ownership check มีไหม?
@@ -385,7 +392,7 @@ AI จะตรวจตาม checklist:
 
 ### ตัวอย่างที่ 3 — ตรวจ PR
 
-```
+```text
 GDPR review my changes before I submit this PR
 ```
 
@@ -400,13 +407,14 @@ GDPR review my changes before I submit this PR
 
 ### Step 1 — สั่งสร้าง quality playbook
 
-```
+```text
 generate a quality playbook for this project
 ```
 
 ### Step 2 — AI สำรวจ codebase (Phase 1)
 
 AI จะอ่านทุกอย่างก่อน:
+
 - README, docs, package.json
 - โครงสร้าง directory
 - Test ที่มีอยู่
@@ -415,7 +423,7 @@ AI จะอ่านทุกอย่างก่อน:
 
 ### Step 3 — AI สร้าง 6 ไฟล์ (Phase 2)
 
-```
+```text
 quality/
 ├── QUALITY.md              ← Quality constitution
 ├── test_functional.test.ts ← Functional tests
@@ -427,7 +435,7 @@ AGENTS.md                   ← AI bootstrap file
 
 ### Step 4 — AI แสดงสรุป (Phase 4)
 
-```
+```text
 | File               | Key Metric      | Confidence |
 |--------------------|-----------------|------------|
 | QUALITY.md         | 10 scenarios    | High       |
@@ -444,7 +452,7 @@ AGENTS.md                   ← AI bootstrap file
 
 ### Quick Reference
 
-```
+```text
 <type>(scope): description
 
 [body]
@@ -464,7 +472,7 @@ AGENTS.md                   ← AI bootstrap file
 
 ### ตัวอย่าง prompt
 
-```
+```text
 generate a conventional commit message for my staged changes
 ```
 
@@ -488,7 +496,7 @@ generate a conventional commit message for my staged changes
 
 **ตัวอย่าง: Feature Development Flow**
 
-```
+```text
 1. "create an implementation plan for user notifications"
    → create-implementation-plan
 
@@ -512,12 +520,12 @@ generate a conventional commit message for my staged changes
 
 ### 3. ถ้า AI ไม่เข้าใจ — ให้ context เพิ่ม
 
-```
+```text
 ❌ "test this"
 ✅ "write unit tests for the useAuth composable using Vitest and Pinia"
 ```
 
-```
+```text
 ❌ "make it better"
 ✅ "refactor this function — extract the validation logic into a separate function"
 ```
@@ -537,7 +545,7 @@ generate a conventional commit message for my staged changes
 
 เมื่อรัน test แล้วเจอ bug ให้ทำตาม flow นี้ โดยใช้ skills ร่วมกัน:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │  1. วิเคราะห์ Bug                                        │
 │     → อ่าน error message + stack trace                   │
@@ -564,7 +572,7 @@ generate a conventional commit message for my staged changes
 
 วาง error message ให้ AI แล้วถาม:
 
-```
+```text
 I got this test error, help me analyze:
 
 FAIL tests/composables/useAuth.test.ts
@@ -573,25 +581,26 @@ FAIL tests/composables/useAuth.test.ts
 ```
 
 AI จะ:
+
 - ระบุ root cause (เช่น mock ไม่ครบ, null check ขาด)
 - ชี้ไฟล์และบรรทัดที่ต้องแก้
 - อธิบายว่าทำไมถึง fail
 
 ### Step 2 — แก้ไข Root Cause
 
-```
+```text
 fix this bug based on your analysis
 ```
 
 AI จะแก้โค้ดให้ตรงจุด ถ้าโค้ดรอบข้างซับซ้อน สามารถสั่งเพิ่ม:
 
-```
+```text
 refactor this function while fixing the bug
 ```
 
 > **⚠️ ถ้า bug เกี่ยวกับ auth, permissions, หรือ user data:**
 >
-> ```
+> ```text
 > security review the fix I just made
 > ```
 >
@@ -599,11 +608,12 @@ refactor this function while fixing the bug
 
 ### Step 3 — เขียน Regression Test
 
-```
+```text
 write a regression test that covers this bug
 ```
 
 AI จะใช้ `unit-test-vue-pinia` skill สร้าง test ที่:
+
 - จำลองสถานการณ์ที่ทำให้เกิด bug
 - ยืนยันว่า fix ทำงานถูกต้อง
 - ป้องกันไม่ให้ bug กลับมา
@@ -630,23 +640,24 @@ npx vitest run
 
 หรือสั่ง AI:
 
-```
+```text
 run all tests to check for side effects
 ```
 
 ตรวจสอบว่า:
+
 - ✅ test ที่เขียนใหม่ PASS
 - ✅ test เดิมทั้งหมด PASS (ไม่มี regression)
 
 ### Step 5 — Commit ด้วย fix type
 
-```
+```text
 commit my changes
 ```
 
 AI จะ detect จาก diff ว่าเป็น bug fix แล้วสร้าง commit message:
 
-```
+```text
 fix(auth): handle null user after Firebase login
 
 - Add null check before accessing user.uid
@@ -669,7 +680,7 @@ fix(auth): handle null user after Firebase login
 
 ## �📁 ตำแหน่ง Skills
 
-```
+```text
 .claude/skills/
 ├── unit-test-vue-pinia/
 │   ├── SKILL.md

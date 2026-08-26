@@ -31,6 +31,7 @@ Built with Nuxt 4, TypeScript, Firebase, Tailwind CSS, and @nuxt/ui.
 Dev server running on `http://localhost:3000`
 
 To start dev server:
+
 ```bash
 npm run dev
 ```
@@ -55,4 +56,3 @@ npm run dev
 4. Set up Firestore collections
 5. Add more pages (Users, Settings, Analytics)
 6. Configure Firebase Hosting deployment
-

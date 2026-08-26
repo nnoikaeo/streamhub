@@ -1,7 +1,6 @@
 # Company Management Guide
 
 > **Document Status:** Foundational Guide for Multi-Company Architecture
-> **Last Updated:** 2026-03-15
 > **Document Owner:** Development Team
 
 ---
@@ -22,12 +21,13 @@
 ## 🎯 Overview
 
 **Streamwash** operates as a **holding company** with **10+ subsidiary companies** (บริษัทในเครือ). Each subsidiary:
+
 - Has its own separate **company code** (STTH, STTN, STCS, etc.)
 - Manages its own **folders and dashboards**
 - Has independent **user access control**
 - Maintains **data isolation** from other companies
 
-**Key Principle:** 
+**Key Principle:**
 > Only **users** have a `company` field. **Folders and dashboards DO NOT** have a company field to avoid breaking references when employees move between companies. Access control is determined by **role**, **assignments**, and **permissions**.
 
 ### Quick Reference: Role + Company Field
@@ -39,6 +39,7 @@
 | **ADMIN** | "STTH" | Employee of STTH (home company) - Can access and manage ALL companies, folders, and dashboards regardless of their `company` field value |
 
 **Critical Distinction:**
+
 - `company` field = **organizational assignment** (what company are they in?)
 - **Role** + **Permissions** = **what can they do?** (determined by role + specific permissions)
 
@@ -50,7 +51,7 @@
 
 บริษัทในเครือแบ่งตามกลุ่มภูมิภาค (region groups):
 
-```
+```text
 Streamwash Group
 │
 ├── [ไม่มีภูมิภาค] — สำนักงานใหญ่และบริษัทหลัก
@@ -91,6 +92,7 @@ Streamwash Group
 ```
 
 **Total:**
+
 - **20 บริษัทในเครือ** (active ทั้งหมด)
 - **7 กลุ่มภูมิภาค** (4 ภูมิภาคหลัก + 3 กลุ่มพิเศษ)
 - **100+ dashboards** total
@@ -130,18 +132,21 @@ Streamwash Group
 Admins are responsible for **company-level management**:
 
 ### 1. **Create & Configure Companies**
+
 - Create new subsidiary company in Firestore
 - Set company code (STTH, STTN, etc.)
 - Define company metadata (name, description, region, regionRole)
 - Set up initial folders for the company
 
 ### 2. **Manage Folders**
+
 - Create folders (access controlled via `assignedModerators`, not company field)
 - Assign folders to moderators
 - Manage folder permissions
 - Delete folders when needed
 
 ### 3. **Manage Users**
+
 - Invite users to specific companies
 - Assign role: User, Moderator, or Admin
 - Assign moderators to folders (if applicable)
@@ -149,12 +154,14 @@ Admins are responsible for **company-level management**:
 - Change user roles
 
 ### 4. **Configure Access Control**
+
 - Set up Firestore security rules
 - Configure role-based permissions
 - Manage cross-company access (admins only)
 - Review activity logs for compliance
 
 ### 5. **Monitor System Health**
+
 - View activity logs for all companies
 - Monitor dashboard usage
 - Ensure data isolation between companies
@@ -397,6 +404,7 @@ Admins MUST have `company` field (their home company), but can access all compan
    - ❌ If no → cannot manage
 
 **Benefits:**
+
 - ✅ Folders/Dashboards **NOT tied to company**
 - ✅ Employee changes company? No impact on folder/dashboard structure!
 - ✅ Can share folders across companies if designed that way
@@ -414,13 +422,16 @@ Admins MUST have `company` field (their home company), but can access all compan
 ### Company Field Rules
 
 **MUST BE SET FOR:**
+
 - ✅ Every user (their home company)
 
 **MUST NOT BE SET FOR:**
+
 - ❌ Folders (use assignedModerators instead)
 - ❌ Dashboards (use permissions map instead)
 
 **REPRESENTS (for users only):**
+
 - For USER/MODERATOR: Their company (for filtering lists, context)
 - For ADMIN: Their "home company" (doesn't restrict access - role grants global access)
 
@@ -429,6 +440,7 @@ Admins MUST have `company` field (their home company), but can access all compan
 ## ✅ Implementation Checklist
 
 ### Phase 1: Database Setup
+
 - [ ] Create `companies` collection
 - [ ] Create all company documents (STTH, STTN, STCS, etc.)
 - [ ] Add `company` field to `/users` collection
@@ -440,6 +452,7 @@ Admins MUST have `company` field (their home company), but can access all compan
   - [ ] `/users` - index on: company, role, isActive
 
 ### Phase 2: Firestore Security Rules
+
 - [ ] Create rules that check `user.permissions` instead of company field
 - [ ] Implement rules for user/moderator/admin roles
 - [ ] Test permission-based access control
@@ -447,6 +460,7 @@ Admins MUST have `company` field (their home company), but can access all compan
 - [ ] Document security rules
 
 ### Phase 3: Pinia Store Updates
+
 - [ ] Update auth store to include user.company
 - [ ] Create company store for company list
 - [ ] Update permissions store:
@@ -456,6 +470,7 @@ Admins MUST have `company` field (their home company), but can access all compan
 - [ ] Add permission checking logic
 
 ### Phase 4: UI Component Updates
+
 - [ ] Add company selector to admin pages
 - [ ] Update folder list (no company field, but show who can manage)
 - [ ] Update dashboard list (use permissions map for visibility)
@@ -463,6 +478,7 @@ Admins MUST have `company` field (their home company), but can access all compan
 - [ ] Create company management UI (admin only)
 
 ### Phase 5: Testing & Validation
+
 - [ ] Test user access based on dashboard permissions
 - [ ] Test moderator can manage assigned folders across any company
 - [ ] Test admin cross-company access to all folders/dashboards
@@ -471,6 +487,7 @@ Admins MUST have `company` field (their home company), but can access all compan
 - [ ] Test data migration from old model (if applicable)
 
 ### Phase 6: Documentation & Training
+
 - [ ] Document company codes and structure
 - [ ] Create admin training guide
 - [ ] Document company setup process

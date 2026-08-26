@@ -3,8 +3,6 @@
 > **Purpose:** Component hierarchy, architecture strategy, and layout patterns for StreamHub
 > **Strategy:** Strategy 4 (Hybrid Approach) — Pinia stores + composables + permission-based UI
 > **Current Implementation:** `app/components/` directory with 4-layer architecture
-> **Last Updated:** 2026-03-23
-> **Version:** 5.2 (Added AppToast + useAppToast toast system)
 > **Note:** Includes Strategy 4 (Hybrid Approach) content, merged into this single document
 
 ---
@@ -19,6 +17,7 @@ StreamHub uses a **4-layer component architecture**:
 4. **UI Components** (Building Blocks) - Buttons, cards, modals, forms
 
 **Benefits:**
+
 - ✅ Reusable across pages
 - ✅ Single responsibility (each layer has clear purpose)
 - ✅ Easy to test and maintain
@@ -28,7 +27,7 @@ StreamHub uses a **4-layer component architecture**:
 
 ## 🏗️ Component Hierarchy
 
-```
+```text
 StreamHub Application
 │
 ├── Layout Components (Foundation)
@@ -61,15 +60,18 @@ StreamHub Application
 ## 📐 Layer 1: Layout Components (Foundation)
 
 ### AppLayout
+
 **File:** `app/components/layouts/AppLayout.vue`
 
 **Purpose:** Standard application layout with fixed header/footer
 
 **Props:**
+
 - `showSidebar?: boolean` - Optional sidebar support
 
 **Structure:**
-```
+
+```text
 ┌─────────────────────────┐
 │  offline banner         │ Only when navigator.onLine is false
 ├─────────────────────────┤
@@ -82,6 +84,7 @@ StreamHub Application
 ```
 
 **Also owns:**
+
 - **Mobile drawer state** — below 768px the sidebar leaves the flow; `AppHeader` emits `toggle-sidebar`, an overlay `<div>` closes it on tap, and a click on any `<a>` inside closes it too (a link to the page you are already on triggers no navigation, so a route watcher alone left it stuck open — BUG-025)
 - **Offline banner** — `useOnlineStatus()` drives a strip saying saves will hang while offline and that nothing is lost, because the Firestore SDK queues writes with no timeout (BUG-026)
 
@@ -90,22 +93,26 @@ StreamHub Application
 ---
 
 ### TwoPaneLayout
+
 **File:** `app/components/compositions/TwoPaneLayout.vue`
 
 **Purpose:** Generic two-pane composition (sidebar + main content)
 
 **Props:**
+
 - `sidebarWidth?: number` (default: 280)
 - `showSidebar?: boolean` (default: true)
 - `sidebarBg?: string` (default: #f9fafb)
 - `mainBg?: string` (default: #ffffff)
 
 **Slots:**
+
 - `#sidebar` - Sidebar content
 - `default` - Main content area
 
 **Structure:**
-```
+
+```text
 ┌──────────┬──────────────────┐
 │          │                  │
 │ Sidebar  │  Main Content    │
@@ -117,6 +124,7 @@ StreamHub Application
 ---
 
 ### DiscoverPageLayout
+
 **File:** `app/components/compositions/DiscoverPageLayout.vue`
 
 **Purpose:** Specialized composition for Dashboard Discover page
@@ -128,11 +136,13 @@ StreamHub Application
 ---
 
 ### AdminLayout
+
 **File:** `app/components/layouts/AdminLayout.vue`
 
 **Purpose:** Admin panel layout with dark header and sidebar navigation
 
 **Features:**
+
 - Fixed dark header (#1f2937)
 - Left sidebar navigation
 - Right content area
@@ -141,6 +151,7 @@ StreamHub Application
 ---
 
 ### AuthLayout (To Be Created)
+
 **File:** `app/components/layouts/AuthLayout.vue` (future)
 
 **Purpose:** Simple centered layout for authentication pages (login, register)
@@ -154,11 +165,13 @@ StreamHub Application
 Combine layout components with feature components for specific pages.
 
 ### AdminPanelLayout
+
 **File:** `app/components/compositions/AdminPanelLayout.vue`
 
 **Purpose:** Admin pages combining AdminLayout + TwoPaneLayout
 
 **Usage Example:**
+
 ```vue
 <CompositionAdminPanelLayout>
   <template #sidebar>
@@ -175,11 +188,13 @@ Combine layout components with feature components for specific pages.
 Page-specific components for dashboard functionality.
 
 ### DashboardViewHeader
+
 **File:** `app/components/features/DashboardViewHeader.vue`
 
 **Purpose:** Header for dashboard view page with breadcrumb and actions
 
 **Props:**
+
 - `breadcrumbItems: BreadcrumbItem[]`
 - `dashboardTitle: string`
 - `creatorName: string`
@@ -188,16 +203,19 @@ Page-specific components for dashboard functionality.
 ---
 
 ### FolderSidebar
+
 **File:** `app/components/features/FolderSidebar.vue`
 
 **Purpose:** Hierarchical folder navigation with accordion behavior
 
 **Props:**
+
 - `folders: Folder[]` - Folder tree data
 - `selectedFolderId: string`
 - `allowSearch: boolean`
 
 **Features:**
+
 - Smart collapse for 4-5 level deep hierarchies
 - Search box to find folders
 - Accordion expand/collapse behavior
@@ -209,16 +227,19 @@ Page-specific components for dashboard functionality.
 ---
 
 ### DashboardGrid
+
 **File:** `app/components/features/DashboardGrid.vue`
 
 **Purpose:** Responsive grid display of dashboard cards
 
 **Props:**
+
 - `dashboards: Dashboard[]`
 - `loading: boolean`
 - `emptyMessage: string`
 
 **Features:**
+
 - Infinite scroll pagination
 - Responsive grid (2-3 columns on desktop)
 - Dashboard card with actions
@@ -234,10 +255,12 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 **Purpose:** Modal dialog for moderators to share dashboards
 
 **Props:**
+
 - `dashboardId: string`
 - `availableUsers: User[]`
 
 **Features:**
+
 - User search and multi-select
 - Expiry date options
 - Layer 1 Direct Access only
@@ -247,16 +270,19 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 ---
 
 ### TagBadge
+
 **File:** `app/components/features/TagBadge.vue`
 
 **Purpose:** Display a tag chip on dashboard cards and detail pages
 
 **Props:**
+
 - `tag: Tag` - Tag data (name, color)
 - `size?: 'sm' | 'md'` - Badge size (default: sm)
 - `removable?: boolean` - Show ✕ remove button (for TagSelector)
 
 **Features:**
+
 - Color-coded chip with tag color at 15% opacity background
 - Max 3 tags displayed + "+N more" overflow with tooltip
 
@@ -267,19 +293,23 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 ---
 
 ### TagFilter
+
 **File:** `app/components/features/TagFilter.vue`
 
 **Purpose:** Tag chip multi-select filter on Dashboard "View All" page
 
 **Props:**
+
 - `tags: Tag[]` - All available tags
 - `selectedTags: string[]` - Currently selected tag IDs
 - `loading?: boolean`
 
 **Events:**
+
 - `@update:selectedTags` - Emitted when tag selection changes
 
 **Features:**
+
 - Horizontal chip bar with toggle selection (outline/filled states)
 - AND logic: selecting multiple tags filters for dashboards with ALL selected tags
 - Click active tag to deselect
@@ -289,19 +319,23 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 ---
 
 ### TagSelector
+
 **File:** `app/components/features/TagSelector.vue`
 
 **Purpose:** Add/remove tags when editing a dashboard (Moderator Manager + Admin)
 
 **Props:**
+
 - `dashboardId: string`
 - `currentTags: string[]` - Currently assigned tag IDs
 - `availableTags: Tag[]` - All tags to choose from
 
 **Events:**
+
 - `@update:tags` - Emitted when tags are added/removed
 
 **Features:**
+
 - Dropdown with search and checkbox selection
 - Current tags shown as removable chips
 - Moderator: select from existing tags only
@@ -312,6 +346,7 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 ---
 
 ### TagManager
+
 **File:** `app/components/features/TagManager.vue`
 
 **Purpose:** Admin-only full CRUD management for tags
@@ -319,6 +354,7 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 **Props:** None (uses useTagStore internally)
 
 **Features:**
+
 - Table view of all tags with name, color, dashboard count, status
 - Create/Edit dialog with name, slug, color picker, description
 - Delete confirmation with impact warning (shows affected dashboards)
@@ -333,6 +369,7 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 Basic reusable components (buttons, cards, forms, etc.).
 
 **Theme Classes Available:**
+
 - `.theme-btn` / `.theme-btn--primary` / `.theme-btn--secondary`
 - `.theme-card` / `.theme-card--primary`
 - `.theme-modal` / `.theme-modal__header` / `.theme-modal__body`
@@ -344,6 +381,7 @@ Basic reusable components (buttons, cards, forms, etc.).
 ---
 
 ### DataTable
+
 **File:** `app/components/admin/DataTable.vue`
 
 **Purpose:** Shared table for every `/admin/*` list page — sorting, pagination, row actions, status toggle
@@ -371,6 +409,7 @@ Basic reusable components (buttons, cards, forms, etc.).
 ---
 
 ### ExplorerContentsPanel
+
 **File:** `app/components/admin/ExplorerContentsPanel.vue`
 
 **Purpose:** Right panel of the Explorer page — subfolders first, then dashboards (Windows Explorer convention)
@@ -388,18 +427,21 @@ Basic reusable components (buttons, cards, forms, etc.).
 ## 🔐 State Management (Strategy 4)
 
 **Pinia Stores:**
+
 - `useDashboardStore` - Dashboard data and operations
 - `usePermissionsStore` - Permission checks and role-based access (includes `canManageTags`, `canAssignTags`)
 - `useFolderStore` - Folder hierarchy and navigation
 - `useTagStore` - **(NEW)** Tag CRUD operations, caching, and dashboard-tag relationships
 
 **Composables:**
+
 - `useDashboardPage()` - Encapsulates dashboard page logic
 - `useTags()` - **(NEW)** Tag CRUD logic, tag filtering, tag assignment to dashboards
 - `useRoleNavigation()` - **(NEW)** Role-based sidebar menu generation (see [Sidebar Navigation](wireframes/sidebar-navigation.md))
 - Permission-aware data loading (built into stores)
 
 **Benefits:**
+
 - State shared across app
 - Permissions integrated at data level
 - Tag filtering integrated with dashboard queries
@@ -411,16 +453,19 @@ Basic reusable components (buttons, cards, forms, etc.).
 ## 📱 Responsive Design
 
 **Desktop (>1024px):**
+
 - Two-pane layout with full sidebar
 - 2-3 column grid
 - All navigation visible
 
 **Tablet (768-1024px):**
+
 - Collapsible sidebar
 - 2 column grid
 - Touch-friendly spacing
 
 **Mobile (<768px):**
+
 - Hamburger menu
 - 1 column list
 - Full-width content
@@ -431,7 +476,7 @@ Basic reusable components (buttons, cards, forms, etc.).
 
 ## 📋 Component File Structure
 
-```
+```text
 app/components/
 ├── layouts/
 │  ├── AppLayout.vue              # Standard layout
@@ -545,19 +590,24 @@ import DashboardCard from '~/components/features/DashboardCard.vue'
 ### Debugging Auto-Import
 
 1. **Verify the generated name:**
+
    ```bash
    cat .nuxt/components.d.ts | grep YourComponent
    ```
+
 2. **Clear cache after changing nuxt.config.ts:**
+
    ```bash
    rm -rf .nuxt node_modules/.vite && npm run dev
    ```
+
 3. **Browser console** — look for `[Vue warn]: Failed to resolve component: X`
 
 ### Component Lifecycle Order
 
 Always follow this order inside `<script setup>`:
 git
+
 ```vue
 <script setup lang="ts">
 // 1. Props & emits
@@ -602,6 +652,7 @@ onMounted(() => { /* setup */ })
 ### Creating a New Feature with Strategy 4
 
 **Step 1: Pinia Store** — Centralized state:
+
 ```typescript
 // stores/myFeature.ts
 export const useMyFeatureStore = defineStore('myFeature', () => {
@@ -614,6 +665,7 @@ export const useMyFeatureStore = defineStore('myFeature', () => {
 ```
 
 **Step 2: Composable** — Reusable logic:
+
 ```typescript
 // composables/useMyFeaturePage.ts
 export const useMyFeaturePage = () => {
@@ -626,6 +678,7 @@ export const useMyFeaturePage = () => {
 ```
 
 **Step 3: Page** — Thin presentation:
+
 ```vue
 <template>
   <MyLayout>
@@ -643,7 +696,7 @@ const { items, isLoading } = useMyFeaturePage()
 
 ### Permission Flow
 
-```
+```text
 Auth Change → permissionsStore.initializePermissions(user) → computed permissions
      ↓
 Composable (data level)     →  if (!can('view')) return null
@@ -719,4 +772,3 @@ describe('useDashboardPage', () => {
 **Created:** 2024-01-25
 **Updated:** 2026-03-22 (v5.2 — Merged COMPONENT_CONVENTIONS.md into this document)
 **Designer:** Development Team
-**Version:** 5.2

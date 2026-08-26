@@ -1,9 +1,3 @@
----
-title: Authentication System
-version: 2.1
-updated: 2026-08-20
----
-
 # Authentication System
 
 Complete guide to StreamHub authentication.
@@ -12,7 +6,7 @@ Complete guide to StreamHub authentication.
 
 StreamHub uses **Google OAuth 2.0** as the sole authentication method, through a **popup** (`signInWithPopup`). The popup resolves inline, so there is no return leg to process — the same call that opens the window also returns the credential.
 
-```
+```text
 User → signInWithPopup → หน้าต่าง accounts.google.com → ผู้ใช้เลือกบัญชี → หน้าต่างปิด
      → credential กลับมาที่ promise เดิม → โหลด users/{uid} → Dashboard
 ```
@@ -23,7 +17,7 @@ User → signInWithPopup → หน้าต่าง accounts.google.com → �
 
 ## Files Involved
 
-```
+```text
 app/
 ├── pages/login.vue           # Login UI
 ├── composables/useAuth.ts    # Auth logic
@@ -124,12 +118,14 @@ export default (to, from) => {
 ## Security Considerations
 
 ✅ **Current Security:**
+
 - OAuth 2.0 (industry standard)
 - Google handles credential verification
 - JWT tokens from Firebase
 - Tokens encrypted in browser storage
 
 ⚠️ **Never Do:**
+
 - Store passwords in code
 - Expose Firebase credentials
 - Trust client-side validation alone
@@ -141,7 +137,7 @@ export default (to, from) => {
 
 ### Session Lifecycle
 
-```
+```text
 1. User signs in
 2. Firebase creates JWT token
 3. Token stored in browser
@@ -210,6 +206,7 @@ npm run dev
 > `NUXT_PUBLIC_FIREBASE_AUTH_DOMAIN` = `streamhub-1c27a.web.app` ซึ่ง**เป็น origin เดียวกับตัวแอปบน production** แต่ตอนรัน `npm run dev` แอปอยู่ที่ `localhost:3000` ⇒ กลายเป็น cross-site
 >
 > ต่างกันตรงที่ storage/cookie ของ popup ถูกกันคนละแบบ:
+>
 > - **Chrome บน localhost** — ผ่าน เพราะ popup ส่งผลกลับทาง `postMessage` ไม่ได้พึ่ง third-party cookie (นี่คือเหตุผลที่ย้ายกลับมาใช้ popup ตั้งแต่แรก)
 > - **Safari บน localhost** — ITP กันการเข้าถึง storage ข้าม site ⇒ login อาจล้มด้วยอาการที่ **ไม่มีอยู่จริงบน production** เพราะที่นั่นเป็น origin เดียวกัน
 >
@@ -218,6 +215,7 @@ npm run dev
 ### Test Account
 
 Create a Google test account for development:
+
 1. Go to [Google Account](https://myaccount.google.com/)
 2. Create test email
 3. Use only for development
@@ -236,10 +234,12 @@ console.log(auth.isAuthenticated) // Auth status
 ## Permissions & Scopes
 
 Current OAuth scopes:
+
 - `email` - User email address
 - `profile` - User display name, photo
 
 Adding more scopes:
+
 ```typescript
 const provider = new GoogleAuthProvider()
 provider.addScope('https://www.googleapis.com/auth/calendar')
@@ -250,5 +250,5 @@ provider.addScope('https://www.googleapis.com/auth/calendar')
 ## Next Steps
 
 - [Database Schema](database-schema.md)
-- [Route Protection](../../ARCHITECTURE/overview.md)
-- [Firebase Setup](../../GETTING-STARTED/setup-firebase.md)
+- [Route Protection](../ARCHITECTURE/overview.md)
+- [Firebase Setup](../GETTING-STARTED/setup-firebase.md)

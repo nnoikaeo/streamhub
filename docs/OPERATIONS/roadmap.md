@@ -2,13 +2,13 @@
 
 **Project:** Dashboard Management System for Streamwash (150+ employees)
 **Strategy:** Iterative — Features → QA → Deploy
-**Last Updated:** 2026-07-18
 
 ---
 
 ## Project Overview
 
 ### Organization Structure
+
 - **Group Companies:** 20+ subsidiary companies (STTH, STTN, STCS, STCM, STNR, STPT, STPK, etc.)
 - **Users:** 150+ employees across all companies
 - **Roles:** User, Moderator, Admin
@@ -19,6 +19,7 @@
 ## Development Phases
 
 ### Phase 1: Core Infrastructure ✅ COMPLETED
+
 **Goal:** Foundational multi-company architecture
 
 - [x] Google OAuth Authentication
@@ -33,6 +34,7 @@
 ---
 
 ### Phase 2: Users & Folder Management ✅ COMPLETED
+
 **Goal:** Full CRUD for users + company-scoped folders
 
 - [x] Users list page (`/admin/users`) with DataTable
@@ -51,6 +53,7 @@
 ---
 
 ### Phase 3: Dashboard Management ✅ COMPLETED
+
 **Goal:** Create, edit, manage dashboards + permissions
 
 - [x] Dashboard Discovery Page (`/dashboard/discover`)
@@ -70,6 +73,7 @@
 ---
 
 ### Phase 4: Tag System & Sidebar ✅ COMPLETED
+
 **Goal:** Tag-based categorization, role-based sidebar, Moderator dual-view
 
 - [x] Tag Data Model — `types/tag.ts` + `tags: string[]` on Dashboard
@@ -88,6 +92,7 @@
 ---
 
 ### Phase 5: Looker Integration ✅ COMPLETED
+
 **Goal:** Connect Looker Studio + advanced features
 
 - [x] **Looker Studio Manual URL** — URL input + validation + live preview (`feat/looker-manual-url` → PR #97)
@@ -99,6 +104,7 @@
 ---
 
 ### Phase 5.5: Dashboard View UX ✅ COMPLETED
+
 **Goal:** Improve dashboard view page UX and navigation
 
 - [x] **Dashboard View Page restructure** — moved `view.vue` → `view/[id].vue` (dynamic route), fixed 404
@@ -125,6 +131,7 @@
 ---
 
 ### Phase 5.7: Discover Page Compact & Multi-View Redesign ✅ COMPLETED
+
 **Goal:** Multi-view modes (Grid/Compact/List), collapsible folder groups, card limits
 
 - [x] **View Mode Switcher UI** — 3-mode toggle (Grid/Compact/List) with localStorage persistence
@@ -135,11 +142,12 @@
 - [x] **Card Limit Per Folder** — max 4 (grid), 6 (compact), 8 (list) with "ดูทั้งหมด" link
 - [x] **Responsive Testing** — Desktop/Tablet/Mobile breakpoints, 200ms transitions
 
-**Plan:** ~~[discover-redesign-tasks.md](discover-redesign-tasks.md)~~ *(archived — completed)*
+**Plan:** ~~[discover-redesign-tasks.md](archive/discover-redesign-tasks.md)~~ *(archived — completed)*
 
 ---
 
 ### Phase 5.8: Discover Tree View & Group By System ✅ COMPLETED
+
 **Goal:** Unified tree view, group-by switcher (folder/tag/company/none), slim dividers, adaptive columns
 
 - [x] **Breadcrumb Actions Slot** — `#breadcrumb-actions` slot in PageLayout + search bar moved (PR #120)
@@ -152,11 +160,12 @@
 - [x] **Responsive & Polish** — mobile/tablet breakpoints, accessibility, transitions (PR #127)
 - [x] **Bugfix** — button style overrides, column alignment, default view (PR #128)
 
-**Plan:** [discover-tree-view-groupby-plan.md](discover-tree-view-groupby-plan.md) *(completed)*
+**Plan:** [discover-tree-view-groupby-plan.md](archive/discover-tree-view-groupby-plan.md) *(completed)*
 
 ---
 
 ### Phase 6: Enhancement & Polish ✅ COMPLETED
+
 **Goal:** UX improvements, real Firebase integration, deploy
 
 - [x] **Dashboard Lazy Loading** — Intersection Observer, 12 items/batch
@@ -176,9 +185,10 @@
 ---
 
 ### Phase 7: QA & Bug Fixes ✅ COMPLETED
+
 **Goal:** Manual test plan execution, bug fixes, production stability
 
-- [x] **Pre-launch checklist A–E PASSED** (2026-07-18) — Route Protection, Admin Edit/Delete, Invitations, Permissions, Moderator folder-scoped access — see [pre-launch-checklist.md](pre-launch-checklist.md). App launch-ready at https://streamhub-1c27a.web.app
+- [x] **Pre-launch checklist A–E PASSED** (2026-07-18) — Route Protection, Admin Edit/Delete, Invitations, Permissions, Moderator folder-scoped access — see [pre-launch-checklist.md](pre-launch-checklist.md). App launch-ready at <https://streamhub-1c27a.web.app>
 - [x] **Manual Test Plan** — [manual-test-plan.md](manual-test-plan.md) (145 test cases)
   - [x] Section 1: Authentication & Onboarding (TC 1.1–1.2) ✅
   - [x] Section 2.1: Dashboard Home ✅
@@ -190,12 +200,14 @@
 - [x] **Sidebar folder tree removal documented** — Phase 5 design decision บันทึกแล้ว (PR #243)
 
 **Plans:**
+
 - [archive/phase6-implementation-plan.md](archive/phase6-implementation-plan.md) *(archived — completed)*
 - [archive/user-invitations-plan.md](archive/user-invitations-plan.md) *(archived — completed)*
 
 ---
 
 ### Phase 8: Production Readiness Hardening ✅ COMPLETED
+
 **Goal:** Harden dev/production boundary, automated CI checks
 
 - [x] Harden Auth Middleware (PR #202)
@@ -209,6 +221,7 @@
 ---
 
 ### Phase 9: Lint & Typecheck Debt 🔄 IN PROGRESS
+
 **Goal:** Get the verify commands back to a meaningful signal
 
 - [x] **eslint 716 → 382** (PR #353) — autofix, dead-code removal, and every remaining rule cleared except `no-explicit-any`. Two rules turned off with rationale in `eslint.config.mjs`: `vue/multi-word-component-names` for the `ui/` primitives, `vue/require-default-prop` for type-first props
@@ -252,7 +265,7 @@ Feature stubs, optional — app fully functional without them:
 
 ### Pages (23 pages)
 
-```
+```text
 app/pages/
 ├── index.vue                          Redirect
 ├── login.vue                          Google OAuth login
@@ -308,6 +321,7 @@ app/pages/
 ### Mock API Endpoints
 
 All entities have REST endpoints under `server/api/mock/`:
+
 - **Companies** — GET, POST, PUT/:code, DELETE/:code
 - **Dashboards** — GET, POST, GET/:id, PUT/:id, DELETE/:id
 - **Folders** — GET, POST, GET/:id, PUT/:id, DELETE/:id
@@ -318,12 +332,14 @@ All entities have REST endpoints under `server/api/mock/`:
 - **Users** — GET, POST, GET/:uid, PUT/:uid, DELETE/:uid
 
 Looker Studio API proxy under `server/api/looker/`:
+
 - `GET /api/looker/status` — Check API credential status
 - `GET /api/looker/reports` — List available Looker reports
 - `GET /api/looker/reports/:id` — Get single report metadata
 - `POST /api/looker/sync` — Sync dashboard metadata from Looker
 
 Thumbnail API under `server/api/thumbnail/`:
+
 - `GET /api/thumbnail/:dashboardId` — Generate SVG placeholder thumbnail
 
 ### Mock Data (`.data/`)
@@ -357,4 +373,3 @@ Thumbnail API under `server/api/thumbnail/`:
 - [Roles & Permissions](../GUIDES/roles-and-permissions.md) — RBAC rules
 - [Database Schema](../GUIDES/database-schema.md) — Firestore collections
 - [Component Architecture](../DESIGN/COMPONENT_ARCHITECTURE.md) — 4-layer system
-

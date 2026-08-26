@@ -1,8 +1,5 @@
 # StreamHub Design System
 
-> **Last Updated:** 2026-03-25
-> **Version:** 2.0 (Phase 5.8 design doc review)
-
 ## 📋 Overview
 
 StreamHub uses a **centralized design system** to ensure consistency across all pages and components. This document outlines the theme configuration, color palette, and component styling guidelines.
@@ -14,6 +11,7 @@ StreamHub uses a **centralized design system** to ensure consistency across all 
 ## 🎨 Color Palette
 
 ### Primary Brand Color
+
 - **Primary:** `#2d3389` (Navy Blue)
 - **Primary Dark:** `#1f2461`
 - **Primary Light:** `#5d7eb8`
@@ -21,11 +19,13 @@ StreamHub uses a **centralized design system** to ensure consistency across all 
 - **Primary Lightest:** `#e0e5f3`
 
 ### Secondary Color
+
 - **Secondary:** `#ffffff` (White)
 - **Secondary Light:** `#fafafa`
 - **Secondary Lighter:** `#f5f5f5`
 
 ### Neutral Grays
+
 - **50:** `#fafafa`
 - **100:** `#f5f5f5`
 - **200:** `#eeeeee`
@@ -38,6 +38,7 @@ StreamHub uses a **centralized design system** to ensure consistency across all 
 - **900:** `#212121`
 
 ### Status Colors
+
 - **Success:** `#10b981`
 - **Success Light:** `#d1fae5` (badge/alert backgrounds)
 - **Warning:** `#f59e0b`
@@ -88,6 +89,7 @@ All colors are available as CSS variables in `:root`. Use these in your custom s
 ```
 
 **Example Usage:**
+
 ```css
 .my-component {
   background-color: var(--color-primary);
@@ -102,10 +104,17 @@ All colors are available as CSS variables in `:root`. Use these in your custom s
 
 ## 🧩 Tailwind Configuration
 
-The project uses Tailwind CSS with custom theme extensions in `tailwind.config.ts`.
+**There is no Tailwind config file.** This project is on Tailwind 4, which is CSS-first:
+`assets/css/main.css` begins with `@import "tailwindcss"` and that is the whole configuration.
+The scales below are Tailwind's own defaults, listed here for reference — they are not
+customisations, and there is no file in which to edit them.
+
+Everything StreamHub actually customises is a CSS variable in `main.css` and `theme.css`.
+
 ### Typography
 
 **Font Family:**
+
 ```typescript
 fontFamily: {
   sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -113,6 +122,7 @@ fontFamily: {
 ```
 
 **Font Sizes:**
+
 | Token | Size | Pixels |
 |-------|------|--------|
 | `text-xs` | 0.75rem | 12px |
@@ -165,7 +175,9 @@ fontFamily: {
 ```css
 background: linear-gradient(135deg, #2d3389 0%, #1f2461 100%);
 ```
+
 Available as `bg-primary-gradient` in Tailwind.
+
 ### Using Custom Colors in Templates
 
 ```html
@@ -187,6 +199,7 @@ Available as `bg-primary-gradient` in Tailwind.
 All reusable component styles are defined in `assets/css/theme.css`. Use these classes in your Vue components:
 
 ### Header Styles
+
 ```html
 <header class="page-header">
   <h1 class="page-header__title">Page Title</h1>
@@ -195,6 +208,7 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 ```
 
 ### Card Styles
+
 ```html
 <div class="theme-card">
   <div class="theme-card__header">
@@ -212,6 +226,7 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 ```
 
 ### Button Styles
+
 ```html
 <!-- Primary Button -->
 <button class="theme-btn theme-btn--primary">
@@ -234,6 +249,7 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 ```
 
 ### Badge Styles
+
 ```html
 <span class="theme-badge theme-badge--primary">Primary</span>
 <span class="theme-badge theme-badge--success">Success</span>
@@ -242,6 +258,7 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 ```
 
 ### Breadcrumb Styles
+
 ```html
 <nav class="theme-breadcrumb">
   <span class="theme-breadcrumb__item">
@@ -257,6 +274,7 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 ```
 
 ### Form Styles
+
 ```html
 <div class="theme-form-group">
   <label class="theme-form-label">Label</label>
@@ -280,6 +298,7 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 ```
 
 ### Table Styles
+
 ```html
 <table class="theme-table">
   <thead>
@@ -298,6 +317,7 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 ```
 
 ### Alert/Message Styles
+
 ```html
 <!-- Success Alert -->
 <div class="theme-alert theme-alert--success">
@@ -321,11 +341,13 @@ All reusable component styles are defined in `assets/css/theme.css`. Use these c
 ```
 
 ### Loading Spinner
+
 ```html
 <div class="theme-spinner"></div>
 ```
 
 ### Grid Layouts
+
 ```html
 <!-- Auto-responsive grid -->
 <div class="theme-grid">
@@ -381,12 +403,11 @@ font-weight: 500;
 
 ## 📝 Files Structure
 
-```
+```text
 assets/
   css/
-    main.css          ← Base styles and CSS variables
-    theme.css         ← Component styles and utilities
-tailwind.config.ts    ← Tailwind configuration with custom colors
+    main.css          ← @import "tailwindcss", then the :root CSS variables
+    theme.css         ← Component classes built on those variables
 ```
 
 ---
@@ -395,8 +416,8 @@ tailwind.config.ts    ← Tailwind configuration with custom colors
 
 To change the entire application theme:
 
-### Option 1: Update CSS Variables (Fastest)
-Edit `assets/css/main.css` and change the `:root` variables:
+Edit `assets/css/main.css` and change the `:root` variables. This is the only way — there is
+no Tailwind config to edit:
 
 ```css
 :root {
@@ -406,19 +427,8 @@ Edit `assets/css/main.css` and change the `:root` variables:
 }
 ```
 
-### Option 2: Update Tailwind Colors
-Edit `tailwind.config.ts` and update the `extend.colors` section:
-
-```typescript
-colors: {
-  'primary': {
-    500: '#new-primary-color',
-    // ... update other shades
-  },
-}
-```
-
 ### Option 3: Update Component Styles
+
 For specific component styling, edit `assets/css/theme.css`:
 
 ```css
@@ -433,16 +443,19 @@ For specific component styling, edit `assets/css/theme.css`:
 ## 🎭 Component Architecture
 
 ### Page-Level Components
+
 - Use `theme-card`, `theme-btn`, `theme-alert` classes for consistent styling
 - Apply page layout using grid and flexbox utilities
 - Reference CSS variables for custom colors
 
 ### Feature Components
+
 - Import from `app/components/features/`
 - Use Tailwind classes combined with theme variables
 - Props should control content, not styling
 
 ### UI Components
+
 - Low-level, reusable components in `app/components/ui/`
 - Accept variant props if needed
 - Apply theme classes consistently
@@ -452,30 +465,35 @@ For specific component styling, edit `assets/css/theme.css`:
 ## 🚀 Best Practices
 
 1. **Use CSS Variables** for any custom colors
+
    ```css
    color: var(--color-primary); ✅ Good
    color: #2d3389; ❌ Avoid
    ```
 
 2. **Use Theme Classes** for common patterns
+
    ```html
    <div class="theme-card"> ✅ Good
    <div class="p-6 border rounded-lg"> ❌ Avoid (repetitive)
    ```
 
 3. **Maintain Spacing Consistency**
+
    ```css
    padding: var(--spacing-lg); ✅ Good
    padding: 24px; ❌ Avoid (magic numbers)
    ```
 
 4. **Use Transition Variables** for smooth interactions
+
    ```css
    transition: all var(--transition-base); ✅ Good
    transition: all 0.3s ease-in-out; ❌ Avoid (inconsistent)
    ```
 
 5. **Reference Theme Colors in Tailwind**
+
    ```html
    <button class="bg-primary-500">Click</button> ✅ Good
    <button class="bg-blue-500">Click</button> ❌ Avoid
@@ -530,6 +548,6 @@ The theme includes mobile-first responsive utilities:
 ## 📞 Support
 
 For questions about the design system, refer to:
+
 - `assets/css/main.css` - Variables and base styles
 - `assets/css/theme.css` - Component classes
-- `tailwind.config.ts` - Tailwind configuration

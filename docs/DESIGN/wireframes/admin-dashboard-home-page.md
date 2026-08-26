@@ -3,14 +3,13 @@
 > **Purpose:** Central hub for admin overview, quick access to management tools, and system status
 > **Users:** Admin role only
 > **Current Implementation:** `app/pages/admin/index.vue` (to be created)
-> **Last Updated:** 2026-02-14
-> **Version:** 1.0
 
 ---
 
 ## 🎯 Key Principle
 
 **Admin Hub = Quick Overview + Easy Access**
+
 - Dashboard stats and system health
 - Quick navigation to management areas
 - Recent activity summary
@@ -23,11 +22,13 @@
 ### Layout & Components
 
 **Main Layout:**
+
 - Uses: `AdminLayout` with admin navigation sidebar
 - Header: `AdminHeader` (breadcrumb, admin label)
 - Content: Grid of cards and panels
 
 **Key Sections:**
+
 - Dashboard Stats (top)
 - Quick Actions (cards)
 - Recent Activity Log
@@ -37,7 +38,7 @@
 
 ## 📊 Dashboard Stats Section
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  ADMIN DASHBOARD                            │
 ├─────────────────────────────────────────────┤
@@ -56,6 +57,7 @@
 ```
 
 **Shows:**
+
 - Total users/companies/folders/dashboards
 - Active, pending, archived counts
 - Trends (new this week/month)
@@ -65,7 +67,7 @@
 
 ## 🎯 Quick Actions Section
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  QUICK ACTIONS                              │
 ├─────────────────────────────────────────────┤
@@ -77,6 +79,7 @@
 ```
 
 **Buttons:**
+
 - Add User → Navigate to `/admin/users/new`
 - Add Dashboard → Navigate to `/admin/explorer` (เปิด explorer ที่ root แล้วกด New Dashboard)
 - Add Company → Navigate to `/admin/companies/new`
@@ -90,7 +93,7 @@
 
 ## 📋 Recent Activity Log
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  RECENT ACTIVITY (Last 24 hours)            │
 ├─────────────────────────────────────────────┤
@@ -110,6 +113,7 @@
 ```
 
 **Shows:**
+
 - Last 5-10 important actions
 - Timestamp
 - Actor and action description
@@ -119,7 +123,7 @@
 
 ## 🔐 System Status Panel
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  SYSTEM STATUS                              │
 ├─────────────────────────────────────────────┤
@@ -136,6 +140,7 @@
 ```
 
 **Status Indicators:**
+
 - 🟢 Green: Operational
 - 🟡 Yellow: Warning/Config needed
 - 🔴 Red: Error/Down
@@ -166,5 +171,4 @@
 ---
 
 **Created:** 2026-02-14
-**Version:** 1.0 (Initial v4.0 consolidated format)
 **Designer:** Development Team

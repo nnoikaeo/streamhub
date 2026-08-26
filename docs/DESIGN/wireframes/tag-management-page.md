@@ -2,8 +2,6 @@
 
 > **Purpose:** Admin tag CRUD management + Tag filter/assignment UI for all roles
 > **Related:** [User Flows](../user-flows.md), [Roles & Permissions](../../GUIDES/roles-and-permissions.md), [Database Schema](../../GUIDES/database-schema.md)
-> **Last Updated:** 2026-03
-> **Version:** 1.0
 
 ---
 
@@ -21,7 +19,7 @@ The Tag system has 3 distinct UI surfaces:
 
 Used on `/dashboard/discover` page for filtering dashboards by tags.
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │  Dashboard > View All                                        │
 │                                                              │
@@ -69,7 +67,7 @@ Used on `/dashboard/discover` page for filtering dashboards by tags.
 
 ### Tag Filter Behavior
 
-```
+```text
 User selects tag chips:
     │
     ▼
@@ -91,7 +89,7 @@ User selects tag chips:
 
 ### Tag Chip States
 
-```
+```text
 ┌──────────────────────────────────────────┐
 │                                          │
 │  Unselected (outline):                   │
@@ -122,7 +120,7 @@ Used when creating/editing a dashboard in assigned folders or admin panel.
 
 ### Tag Selector Component
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │  ✏️ Edit Dashboard: Sales Report                             │
 │                                                              │
@@ -166,7 +164,7 @@ Used when creating/editing a dashboard in assigned folders or admin panel.
 
 ### Differences by Role
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │                                                              │
 │  MODERATOR (Manager Mode):                                   │
@@ -186,7 +184,7 @@ Used when creating/editing a dashboard in assigned folders or admin panel.
 
 ### Admin Inline Tag Creation (from Tag Selector)
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │ 🔍 Search tags...  "newtagname"             │
 │                                             │
@@ -214,7 +212,7 @@ Admin-only page at `/admin/tags` for full tag CRUD.
 
 ### Tag List View
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │  Admin > Tags                                                │
 │                                                              │
@@ -242,7 +240,7 @@ Admin-only page at `/admin/tags` for full tag CRUD.
 
 ### Create/Edit Tag Dialog
 
-```
+```text
 ┌──────────────────────────────────────────┐
 │  ✏️ Edit Tag                        [✕]  │
 │                                          │
@@ -277,7 +275,7 @@ Admin-only page at `/admin/tags` for full tag CRUD.
 
 ### Delete Tag Confirmation
 
-```
+```text
 ┌──────────────────────────────────────────┐
 │  ⚠️ Delete Tag                      [✕]  │
 │                                          │
@@ -310,7 +308,7 @@ Admin-only page at `/admin/tags` for full tag CRUD.
 
 Displayed on dashboard cards, dashboard detail pages, and list views.
 
-```
+```text
 ┌──────────────────────────────────────────┐
 │  Dashboard Card:                         │
 │  ┌────────────────────────────┐          │
@@ -349,7 +347,7 @@ Displayed on dashboard cards, dashboard detail pages, and list views.
 
 Tags render as a **second line under the dashboard name**, not as a column — the grid keeps its existing columns, so nothing shifts horizontally and folder rows are unchanged.
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────────────┐
 │ ชื่อ                                  ผู้ดูแล    ประเภท    สถานะ    ⋯     │
 ├────────────────────────────────────────────────────────────────────────────┤
@@ -395,4 +393,3 @@ Tags render as a **second line under the dashboard name**, not as a column — t
 
 **Created:** 2026-03-14
 **Designer:** Development Team
-**Version:** 1.0

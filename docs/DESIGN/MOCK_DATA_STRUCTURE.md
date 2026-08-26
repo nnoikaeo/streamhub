@@ -19,6 +19,7 @@
 ## 📋 Overview
 
 Mock data structure is designed to:
+
 1. **Match API contract exactly** - Same shape as Firebase/Firestore
 2. **Support all 3-layer permissions** - Direct, Company-Scoped, Restrictions
 3. **Enable easy API switching** - Components unchanged when migrating
@@ -28,7 +29,7 @@ Mock data structure is designed to:
 
 ## 🗂️ File Structure
 
-```
+```text
 app/types/dashboard.ts
 ├─ User & Auth types
 ├─ Folder & Hierarchy types
@@ -106,6 +107,7 @@ mockUsers = [
 ```
 
 **Key points:**
+
 - **1 Admin**: Full access, can manage permissions
 - **2 Moderators**: Can create/edit/delete own dashboards, quick share
 - **3 Users**: View only access based on roles/groups
@@ -117,7 +119,7 @@ mockUsers = [
 
 ### Structure (4 Levels Deep)
 
-```
+```text
 STTH Company
 ├─ Sales
 │  ├─ Reports
@@ -138,6 +140,7 @@ STTH Company
 ```
 
 **Features:**
+
 - Tests **deep nesting** (4 levels) - validates sidebar collapse logic
 - Realistic company structure
 - Ready for breadcrumb navigation
@@ -178,6 +181,7 @@ STTH Company
 ```
 
 **Accessible by:**
+
 - ✅ All moderators (layer 1: role)
 - ✅ All users in STTH (layer 2: role)
 - ✅ All sales members in STTH (layer 2: group)
@@ -219,12 +223,14 @@ STTH Company
 ```
 
 **Accessible by:**
+
 - ✅ Somchai (layer 1: direct user)
 - ✅ Teerak (layer 1: direct user, expires 2024-03-15)
 - ✅ All users in STTH (layer 2: role)
 - ✅ All finance members (layer 2: group)
 
 **Demonstrates:**
+
 - Quick sharing (direct users)
 - Expiry dates (time-limited access)
 - Multiple permission layers combined
@@ -255,6 +261,7 @@ STTH Company
 ```
 
 **Accessible by:**
+
 - ✅ Only John (admin)
 - ❌ No one else
 
@@ -288,10 +295,12 @@ STTH Company
 ```
 
 **Accessible by:**
+
 - ✅ Most users (layer 2: role/group)
 - ❌ Teerak is revoked (layer 3 overrides layer 2)
 
 **Demonstrates:**
+
 - Explicit denial (restriction.revoke)
 - Overrides other permission layers
 
@@ -323,6 +332,7 @@ STTH Company
 ```
 
 **Accessible by:**
+
 - ✅ All project_q1 members until 2024-06-30
 - ❌ Access expires on end date (automatic)
 
@@ -356,6 +366,7 @@ STTH Company
 ```
 
 **Accessible by:**
+
 - Layer 1: Somchai (direct), all moderators, all sales
 - Layer 2: All users in STTH, operations group
 - **Total: ~20+ users** (most of the organization)
@@ -387,6 +398,7 @@ STTH Company
 ```
 
 **Tests:**
+
 - Deep folder navigation (Sales > Reports > East)
 - Breadcrumb generation
 - Smart sidebar collapse
@@ -414,6 +426,7 @@ STTH Company
 ```
 
 **Behavior:**
+
 - Hidden from regular users
 - Admin can still see
 - Tests archived dashboard filtering
@@ -606,10 +619,10 @@ const dashboards = await dashboardService.getDashboards(userId, companyId)
 ## 📚 Related Files
 
 - [app/types/dashboard.ts](../../app/types/dashboard.ts) - TypeScript interfaces
-- [app/composables/useMockData.ts](../../app/composables/useMockData.ts) - Mock data
+- [app/composables/useJSONMockService.ts](../../app/composables/useJSONMockService.ts) - JSON-backed mock service
 - [app/composables/useDashboardService.ts](../../app/composables/useDashboardService.ts) - Service interface & implementation
 - [docs/DESIGN/wireframes/dashboard-discover-page.md](./wireframes/dashboard-discover-page.md) - UI design
-- [docs/GUIDES/roles-and-permissions.md](./roles-and-permissions.md) - Permission logic reference
+- [docs/GUIDES/roles-and-permissions.md](../GUIDES/roles-and-permissions.md) - Permission logic reference
 
 ---
 

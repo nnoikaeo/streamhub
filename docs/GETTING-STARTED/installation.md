@@ -1,9 +1,3 @@
----
-title: Installation & Setup
-version: 1.0
-updated: 2024-01-21
----
-
 # Installation & Setup
 
 Get StreamHub running locally in 5 minutes.
@@ -19,6 +13,7 @@ Before you start, ensure you have:
 - **GitHub Account** - [Sign up here](https://github.com/)
 
 **Check versions:**
+
 ```bash
 node --version    # Should be v18.0.0 or higher
 npm --version     # Should be 9.0.0 or higher
@@ -43,6 +38,7 @@ npm install
 ```
 
 Or if using pnpm:
+
 ```bash
 pnpm install
 ```
@@ -85,7 +81,8 @@ npm run dev
 ```
 
 You should see:
-```
+
+```text
 ✨ Nuxt DevTools Press Shift + Option + D to open DevTools
 ➜ Local:    http://localhost:3000/
 ```
@@ -94,7 +91,7 @@ You should see:
 
 ## Step 5: Open in Browser
 
-Visit **http://localhost:3000** and you should see:
+Visit **<http://localhost:3000>** and you should see:
 
 1. **Login Page** with "Sign in with Google" button
 2. Click button → Google OAuth popup
@@ -118,36 +115,39 @@ Your setup is complete if:
 ## 🐛 Troubleshooting
 
 **Port 3000 already in use?**
+
 ```bash
 npm run dev -- --port 3001
 ```
 
 **Firebase credentials not working?**
+
 - Double-check `.env.local` has correct values
 - Make sure keys don't have extra spaces
 - See [Firebase Setup Guide](setup-firebase.md)
 
 **Dependencies installation fails?**
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-**Still stuck?** → [See Troubleshooting Guide](../../TROUBLESHOOTING/README.md)
+**Still stuck?** → [See Troubleshooting Guide](../TROUBLESHOOTING/common-issues.md)
 
 ---
 
 ## 📚 Next Steps
 
-1. **Understand the structure** → [Architecture Overview](../../ARCHITECTURE/overview.md)
-2. **Learn authentication flow** → [Authentication Guide](../../GUIDES/authentication.md)
-3. **Deploy to production** → [Deployment Guide](../../OPERATIONS/deployment.md)
-4. **Start contributing** → [Contributing Guide](../../CONTRIBUTING/workflow.md)
+1. **Understand the structure** → [Architecture Overview](../ARCHITECTURE/overview.md)
+2. **Learn authentication flow** → [Authentication Guide](../GUIDES/authentication.md)
+3. **Deploy to production** → [Deployment Guide](../OPERATIONS/deployment.md)
+4. **Start contributing** → [Contributing Guide](../CONTRIBUTING/workflow.md)
 
 ---
 
 ## 🆘 Need Help?
 
-- Check the [FAQ](../../TROUBLESHOOTING/faq.md)
-- Read [Common Issues](../../TROUBLESHOOTING/common-issues.md)
+- Check the [FAQ](../TROUBLESHOOTING/faq.md)
+- Read [Common Issues](../TROUBLESHOOTING/common-issues.md)
 - Ask in team Slack channel

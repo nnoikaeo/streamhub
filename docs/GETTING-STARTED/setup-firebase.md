@@ -1,9 +1,3 @@
----
-title: Firebase Configuration
-version: 1.0
-updated: 2024-01-21
----
-
 # Firebase Configuration
 
 Set up Firebase project for StreamHub.
@@ -27,6 +21,7 @@ Set up Firebase project for StreamHub.
 5. **Copy your config** (you'll need it next)
 
 Config looks like:
+
 ```javascript
 const firebaseConfig = {
   apiKey: "AIzaSyB...",
@@ -74,8 +69,8 @@ const firebaseConfig = {
 5. Click **"Create"**
 6. Fill form:
    - App name: `StreamHub`
-   - User support email: your@email.com
-   - Developer contact: your@email.com
+   - User support email: <your@email.com>
+   - Developer contact: <your@email.com>
 7. Click **"Save and continue"**
 8. Click **"Save and continue"** (skip scopes)
 9. Click **"Save and continue"** (skip optional info)
@@ -138,7 +133,8 @@ NUXT_PUBLIC_FIREBASE_APP_ID=your_appId
 ## 🔒 Important Security Notes
 
 ⚠️ **Development only:**
-```
+
+```text
 // Current Firestore rules (DEV - INSECURE!)
 rules_version = '2';
 service cloud.firestore {
@@ -151,7 +147,8 @@ service cloud.firestore {
 ```
 
 ✅ **Production rules (SECURE):**
-```
+
+```text
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -169,14 +166,17 @@ We'll update security rules before deploying to production!
 ## 🆘 Common Issues
 
 **"Invalid OAuth Redirect URI"**
+
 - Make sure redirect URIs match exactly
 - Check for trailing slashes
 
 **"Invalid API key"**
+
 - Copy the exact value from Firebase Console
 - No spaces before/after
 
 **"Google Sign-in not working"**
+
 - Verify Google is enabled in Auth methods
 - Check console for error messages
 
@@ -185,5 +185,5 @@ We'll update security rules before deploying to production!
 ## 📚 Next Steps
 
 1. [Test your setup](installation.md)
-2. [Learn authentication flow](../../GUIDES/authentication.md)
-3. [Deploy to production](../../OPERATIONS/deployment.md)
+2. [Learn authentication flow](../GUIDES/authentication.md)
+3. [Deploy to production](../OPERATIONS/deployment.md)

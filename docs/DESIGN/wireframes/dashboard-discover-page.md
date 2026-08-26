@@ -5,14 +5,13 @@
 > **Purpose:** Main page for browsing and discovering available dashboards by folder structure
 > **Users:** All roles (USER, MODERATOR, ADMIN)
 > **Current Implementation:** `app/pages/dashboard/discover.vue` using Strategy 4 (Pinia stores + composables)
-> **Last Updated:** 2026-03-24
-> **Version:** 5.0 (Multi-View Modes: Grid / Compact / List)
 
 ---
 
 ## 🎯 Key Principle
 
 **Only accessible dashboards are shown**
+
 - Approach 2: Show Only Accessible Folders
 - Clean UX, no "locked" states
 - User only sees folders with dashboards they can access
@@ -21,7 +20,7 @@
 
 ## 📐 Page Layout (Two-Pane Model)
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │              STREAMHUB DASHBOARD                    │
 ├──────────────────┬────────────────────────────────┤
@@ -44,6 +43,7 @@
 ```
 
 **Key Features:**
+
 - ✅ Sidebar shows **FOLDERS ONLY** (not dashboards)
 - ✅ Handles 4-5 level folder depth with smart collapse
 - ✅ Dashboard grid in right pane with infinite scroll
@@ -56,15 +56,18 @@
 ### Layout & Components
 
 **Layout:**
+
 - Uses: `DiscoverPageLayout` (composition component, two-pane)
 - Left: `FolderSidebar` with accordion behavior
 - Right: `Breadcrumbs` + `DashboardGrid`
 
 **State Management:**
+
 - Pinia stores: `useDashboardStore`, `usePermissionsStore`
 - Composable: `useDashboardPage()` (encapsulates all page logic)
 
 **Key Components:**
+
 - `FolderSidebar` - Folder tree with search
 - `Breadcrumbs` - Current path navigation
 - `DashboardGrid` - Dashboard cards with infinite scroll
@@ -101,7 +104,7 @@
 
 **Example Flow:**
 
-```
+```text
 User selects: Sales > Regional > East (3 levels)
 
 Sidebar Display (Smart Collapsed):
@@ -121,6 +124,7 @@ Result:
 ```
 
 **Implementation Functions:**
+
 - `shouldExpandFolder(folder, currentPath)` - Check if folder should expand
 - `getSidebarFolders(allFolders, currentPath)` - Return collapsed tree
 - Both are in `FolderSidebar.vue` component
@@ -133,7 +137,7 @@ Result:
 
 ### 1. Breadcrumb Navigation
 
-```
+```text
 🏠 > Sales > Regional > East
 
 Features:
@@ -145,7 +149,7 @@ Features:
 
 ### 2. Dashboard Header
 
-```
+```text
 ☃️ พบ 50 แดชบอร์ด ใน 12 โฟลเดอร์           [▦][▤][≡]  📁โฟลเดอร์ 🏢บริษัท
                                               Grid Compact List
 
@@ -168,6 +172,7 @@ Features:
 ### 4. Dashboard Display
 
 **Grouped View** (no folder selected): Dashboards grouped by folder with:
+
 - Folder header: icon + name + count badge + moderator info
 - Collapsible: click header to expand/collapse (chevron ▼/▶, 200ms animation)
 - Card limit per folder: Grid=4, Compact=6, List=8 with "ดูทั้งหมด N แดชบอร์ด →" link
@@ -199,6 +204,7 @@ Features:
    - Explicit deny or expiry dates
 
 **Summary:**
+
 - Folders shown: Only those with ≥1 accessible dashboard
 - Dashboards shown: Only those with permission granted
 - No "locked" icons - just don't show inaccessible items
@@ -217,6 +223,7 @@ Features:
 | ADMIN | ✅ | ✅ | ✅ Full | ✅ | ✅ |
 
 **Action Details:**
+
 - **[Open]:** View dashboard on Dashboard View page
 - **[Edit]:** Edit dashboard metadata and settings
 - **[Share]:** Opens Quick Share dialog (direct access only)
@@ -230,7 +237,7 @@ Features:
 
 ## 🔄 User Flow
 
-```
+```text
 1. User navigates to /dashboard/discover
    ↓
 2. Load folders + filter for accessible dashboards
@@ -295,4 +302,3 @@ Features:
 **Created:** 2024-01-27
 **Updated:** 2026-02-13 (v4.0 - Consolidated & Refactored)
 **Designer:** Development Team
-**Version:** 4.0

@@ -1,15 +1,13 @@
 # Database Schema Reference
 
 > **Document Status:** Technical Reference for Firestore Data Model
-> **Last Updated:** 2026-03-22
 > **Document Owner:** Development Team
-> **Version:** 5.0 (Sync with actual TypeScript interfaces)
 
 ---
 
 ## Collections Overview (Company-Scoped)
 
-```
+```text
 Firestore Database (Multi-Company)
 ├── companies/           (🏢 Subsidiary companies registry)
 ├── regions/             (🌏 Region groups for company grouping)
@@ -44,6 +42,7 @@ Firestore Database (Multi-Company)
 ```
 
 **Example (HQ company):**
+
 ```json
 {
   "code": "STTH",
@@ -58,6 +57,7 @@ Firestore Database (Multi-Company)
 ```
 
 **Example (Regional branch):**
+
 ```json
 {
   "code": "STCM",
@@ -92,6 +92,7 @@ Firestore Database (Multi-Company)
 ```
 
 **Example:**
+
 ```json
 {
   "code": "NORTH",
@@ -102,6 +103,7 @@ Firestore Database (Multi-Company)
 ```
 
 **Current Regions:**
+
 | Code | Name |
 |------|------|
 | NORTH | กลุ่มภาคเหนือ |
@@ -134,6 +136,7 @@ Firestore Database (Multi-Company)
 ```
 
 **Example:**
+
 ```json
 {
   "id": "sales",
@@ -148,7 +151,8 @@ Firestore Database (Multi-Company)
 **Current Groups:** `sales`, `finance`, `operations`, `hr`
 
 **Relationship with Dashboards:**
-```
+
+```text
 Group (1) ──── access given to ────► (many) Dashboards
   - Dashboard.access.direct.groups[] stores group IDs
   - User belongs to multiple groups
@@ -184,6 +188,7 @@ Group (1) ──── access given to ────► (many) Dashboards
 > ⚠️ **Timestamps are ISO strings on the wire.** `User` in `app/types/dashboard.ts` declares `createdAt`/`updatedAt` as `Date` — the hydrated client shape — while Firestore returns `Timestamp` and the JSON store holds ISO strings. Anything describing a row as it is written or returned uses `StoredUser` (`app/types/invitation.ts`), not `User`. `jsonDatabase`'s `JsonRecord` constraint types them as `unknown` for the same reason, so both shapes satisfy it.
 
 **Example Regular User:**
+
 ```json
 {
   "uid": "uid_somchai",
@@ -200,6 +205,7 @@ Group (1) ──── access given to ────► (many) Dashboards
 ```
 
 **Example Moderator:**
+
 ```json
 {
   "uid": "uid_moderator1",
@@ -215,6 +221,7 @@ Group (1) ──── access given to ────► (many) Dashboards
 ```
 
 **Example Admin:**
+
 ```json
 {
   "uid": "uid_admin1",
@@ -232,6 +239,7 @@ Group (1) ──── access given to ────► (many) Dashboards
 **Important:** Admins MUST have a `company` field (representing their home company). Their `admin` role grants them access to all companies and folders via `canAccessAdmin` permission.
 
 **Firestore Rules:**
+
 ```firestore
 match /users/{userId} {
   allow read: if request.auth.uid == userId || isAdmin();
@@ -287,6 +295,7 @@ match /users/{userId} {
 ```
 
 **Example:**
+
 ```json
 {
   "id": "folder_sales",
@@ -323,7 +332,7 @@ match /users/{userId} {
 **Path:** `/dashboards/{dashboardId}`  
 **Purpose:** Dashboard metadata and configuration
 
-**⚠️ IMPORTANT:** For complete access control logic, **see [Roles & Permissions Guide > Permission Structure](./roles-and-permissions.md#permission-structure)**
+**⚠️ IMPORTANT:** For complete access control logic, **see [Roles & Permissions Guide > Permission Structure](./roles-and-permissions.md#-permission-structure)**
 
 **Document Structure:**
 
@@ -373,6 +382,7 @@ match /users/{userId} {
 ```
 
 **Example:**
+
 ```json
 {
   "id": "dash_sales_daily",
@@ -402,6 +412,7 @@ match /users/{userId} {
 **Note:** No `company` field — access is controlled exclusively via the 3-layer `access`/`restrictions` model.
 
 **Firestore Rules:**
+
 ```firestore
 match /dashboards/{dashboardId} {
   allow read: if hasPermission(request.auth.uid, "view");
@@ -445,6 +456,7 @@ match /dashboards/{dashboardId} {
 ```
 
 **Example:**
+
 ```json
 {
   "id": "inv_001",
@@ -466,14 +478,14 @@ match /dashboards/{dashboardId} {
 ```
 
 **Status Lifecycle:**
-```
+
+```text
 pending → accepted   (user clicks invite link and accepts)
 pending → expired    (expiresAt date passed)
 pending → cancelled  (admin cancels the invitation)
 ```
 
 ---
-
 
 ## 7. Tags Collection
 
@@ -496,6 +508,7 @@ pending → cancelled  (admin cancels the invitation)
 ```
 
 **Example:**
+
 ```json
 {
   "name": "Sales",
@@ -510,11 +523,13 @@ pending → cancelled  (admin cancels the invitation)
 ```
 
 **Access Rules:**
+
 - **Admin:** Full CRUD (create, read, update, delete)
 - **Moderator:** Read all tags + assign/unassign tags to dashboards in `assignedFolders`
 - **User:** Read only (for filtering)
 
 **Firestore Rules:**
+
 ```firestore
 match /tags/{tagId} {
   allow read: if request.auth != null;
@@ -523,7 +538,8 @@ match /tags/{tagId} {
 ```
 
 **Relationship with Dashboards:**
-```
+
+```text
 Tag (1) ←──── tagged by ────→ (many) Dashboards
   - Dashboard.tags[] stores tag IDs
   - One dashboard can have multiple tags (many-to-many)
@@ -535,32 +551,39 @@ Tag (1) ←──── tagged by ────→ (many) Dashboards
 ## Composite Indexes
 
 **Folders Index:**
+
 - Collection: `folders`
 - Fields: `isActive` (Asc), `createdAt` (Desc)
 - *(Folders have no `company` field)*
 
 **Dashboards Index:**
+
 - Collection: `dashboards`
 - Fields: `folderId` (Asc), `isArchived` (Asc), `createdAt` (Desc)
 - *(Dashboards have no `company` field)*
 
 **Users Index:**
+
 - Collection: `users`
 - Fields: `company` (Asc), `role` (Asc), `isActive` (Asc)
 
 **Invitations Index:**
+
 - Collection: `invitations`
 - Fields: `company` (Asc), `status` (Asc), `createdAt` (Desc)
 
 **Dashboards by Tag Index:**
+
 - Collection: `dashboards`
 - Fields: `tags` (Array Contains), `createdAt` (Desc)
 
 **Tags Index:**
+
 - Collection: `tags`
 - Fields: `isActive` (Asc), `name` (Asc)
 
 **Groups Index:**
+
 - Collection: `groups`
 - Fields: `isActive` (Asc), `name` (Asc)
 
@@ -568,7 +591,7 @@ Tag (1) ←──── tagged by ────→ (many) Dashboards
 
 ## Data Relationships
 
-```
+```text
 Region (1)
   └─ groups (many) Companies
       └─ Company.region stores region code (code reference)
@@ -609,6 +632,7 @@ Tags (cross-company, shared)
 ## Querying Examples
 
 ### Get all users in a company
+
 ```typescript
 const users = await db.collection('users')
   .where('company', '==', 'STTH')
@@ -617,6 +641,7 @@ const users = await db.collection('users')
 ```
 
 ### Get all dashboards in a folder
+
 ```typescript
 const dashboards = await db.collection('dashboards')
   .where('folderId', '==', 'folder_sales')
@@ -626,6 +651,7 @@ const dashboards = await db.collection('dashboards')
 ```
 
 ### Get root folders
+
 ```typescript
 // Folders have no company field; filter by parentId for root level
 const folders = await db.collection('folders')
@@ -635,6 +661,7 @@ const folders = await db.collection('folders')
 ```
 
 ### Get subfolders for a parent
+
 ```typescript
 const subfolders = await db.collection('folders')
   .where('parentId', '==', 'folder_sales')
@@ -642,6 +669,7 @@ const subfolders = await db.collection('folders')
 ```
 
 ### Get moderators in a company
+
 ```typescript
 const mods = await db.collection('users')
   .where('company', '==', 'STTH')
@@ -650,6 +678,7 @@ const mods = await db.collection('users')
 ```
 
 ### Get all active tags
+
 ```typescript
 const tags = await db.collection('tags')
   .where('isActive', '==', true)
@@ -658,6 +687,7 @@ const tags = await db.collection('tags')
 ```
 
 ### Get dashboards by tag
+
 ```typescript
 const dashboards = await db.collection('dashboards')
   .where('tags', 'array-contains', 'tag_sales')
@@ -667,11 +697,13 @@ const dashboards = await db.collection('dashboards')
 ```
 
 ### Get group members
+
 ```typescript
 const group = await db.collection('groups').doc('sales').get()
 const memberUids = group.data()?.members  // string[]
 ```
-```
+
+```text
 
 ---
 

@@ -1,4 +1,4 @@
-git # Discover Page: Tree View & Group By System
+# Discover Page: Tree View & Group By System
 
 **Branch:** `feat/discover-tree-view-groupby`  
 **Base:** `develop`  
@@ -37,17 +37,20 @@ git # Discover Page: Tree View & Group By System
 **เป้าหมาย:** เพิ่ม slot ใน PageLayout เพื่อให้หน้าต่างๆ inject content เข้าแถว breadcrumb ได้ แล้วย้าย search bar จาก discover page ไปใส่ใน slot นั้น
 
 **ไฟล์ที่แก้ไข:**
+
 - `app/components/compositions/PageLayout.vue` — เพิ่ม `#breadcrumb-actions` slot
 - `app/pages/dashboard/discover.vue` — ย้าย search bar ไปใช้ slot ใหม่
 
 **รายละเอียด:**
+
 - Breadcrumb row เป็น flex container: Breadcrumbs ชิดซ้าย, slot ชิดขวา
 - Search bar มี `max-width: 320px` บน desktop
 - Responsive (≤768px): search bar ตกลงแถวใหม่ด้วย `flex-wrap: wrap`
 - ไม่กระทบหน้า admin ที่ใช้ PageLayout เหมือนกัน (slot ว่างก็ไม่แสดงอะไร)
 
 **Wireframe:**
-```
+
+```text
 Desktop:
 ┌─ Breadcrumb Row ──────────────────────────────────────────────┐
 │  รายการแดชบอร์ด               🔍 ค้นหาแดชบอร์ด...       [✕]  │
@@ -69,12 +72,15 @@ Mobile (≤768px):
 **เป้าหมาย:** สร้าง component ใหม่สำหรับเปลี่ยนโหมดการจัดกลุ่ม
 
 **ไฟล์ที่สร้าง:**
+
 - `app/components/features/GroupBySwitcher.vue`
 
 **ไฟล์ที่แก้ไข:**
+
 - `app/pages/dashboard/discover.vue` — เพิ่ม GroupBySwitcher ในแถว dashboard header
 
 **รายละเอียด:**
+
 - 4 ปุ่ม icon-only: 📁 โฟลเดอร์ | 🏷️ แท็ก | 🏢 บริษัท | ─ ไม่จัดกลุ่ม
 - Styling คล้าย ViewModeSwitcher ที่มีอยู่ (pill container, active=primary bg)
 - แต่ละปุ่มมี `title` tooltip ภาษาไทย
@@ -85,7 +91,8 @@ Mobile (≤768px):
 - Emit: `update:modelValue`
 
 **Layout ใน dashboard header row:**
-```
+
+```text
 ≡ พบ 10 แดชบอร์ด   ขยายทั้งหมด|ย่อทั้งหมด   [📁][🏷][🏢][─]  ┃  [▦][⊞][☰]
 ├── count (flex:1)   ├── collapse ctrl          ├─ group ─┤  ┃  ├─ view ─┤
                                                  divider ──────┘
@@ -100,9 +107,11 @@ Mobile (≤768px):
 **เป้าหมาย:** สร้าง logic สำหรับจัดกลุ่มแดชบอร์ดตาม groupBy mode ที่เลือก
 
 **ไฟล์ที่แก้ไข:**
+
 - `app/pages/dashboard/discover.vue` — เพิ่ม computed properties สำหรับ group by
 
 **รายละเอียด:**
+
 - เพิ่ม `groupBy` ref: `'folder' | 'tag' | 'company' | 'none'`
 - สร้าง `groupedByTag` computed: จัดกลุ่มตาม tag (dashboard ที่มีหลาย tag ปรากฏหลายกลุ่ม + กลุ่ม "ไม่มีแท็ก")
 - สร้าง `groupedByCompany` computed: จัดกลุ่มตาม access.company (+ "🌐 สาธารณะ" เมื่อ `access.public` + "🔒 จำกัดสิทธิ์" เมื่อ company ว่างและไม่ public) — *อัปเดตหลัง DESIGN-001: empty company ไม่ใช่ "ทุกบริษัท" อีกต่อไป*
@@ -112,6 +121,7 @@ Mobile (≤768px):
 - Collapse controls (ขยาย/ย่อทั้งหมด) ซ่อนเมื่อ `groupBy === 'none'`
 
 **Group interface ที่ต้องสร้าง:**
+
 ```typescript
 interface DisplayGroup {
   id: string
@@ -132,6 +142,7 @@ interface DisplayGroup {
 **เป้าหมาย:** คอลัมน์ที่ใช้เป็นกลุ่มจะถูกซ่อน และแสดงคอลัมน์ที่มีประโยชน์แทน
 
 **ไฟล์ที่แก้ไข:**
+
 - `app/components/features/DashboardList.vue` — รับ prop `columns` เพื่อกำหนดว่าจะแสดงคอลัมน์ไหน
 - `app/components/features/DashboardListItem.vue` — แสดง/ซ่อนคอลัมน์ตาม prop
 
@@ -157,12 +168,15 @@ interface DisplayGroup {
 **เป้าหมาย:** แทนที่ GroupedDashboardList ด้วย Tree Table layout ที่ประหยัดพื้นที่
 
 **ไฟล์ที่สร้าง:**
+
 - `app/components/features/TreeDashboardList.vue` — component ใหม่
 
 **ไฟล์ที่แก้ไข:**
+
 - `app/pages/dashboard/discover.vue` — ใช้ TreeDashboardList แทน GroupedDashboardList (เมื่อ viewMode=list)
 
 **รายละเอียด:**
+
 - ตารางเดียว sticky header (36px) — แสดง 1 ครั้ง
 - Group rows: 36px, bg สีอ่อน, คลิก collapse/expand ได้
   - Group by folder: 📁 icon + ชื่อ + count + moderator
@@ -174,7 +188,8 @@ interface DisplayGroup {
 - รับ `DisplayGroup[]` เป็น prop (generic — ใช้ได้ทุก group by mode)
 
 **Wireframe:**
-```
+
+```text
 │  ชื่อ                                │ แท็ก          │ บริษัท│  ← sticky header
 │══════════════════════════════════════════════════════════════│
 │ ▼ 📁 2024 (1)  ─ Nattha (STTH)                             │  ← group row: 36px, bg
@@ -194,12 +209,15 @@ interface DisplayGroup {
 **เป้าหมาย:** แทนที่ folder header ใน Grid/Compact ด้วย slim divider bar ที่ประหยัดพื้นที่
 
 **ไฟล์ที่สร้าง:**
+
 - `app/components/features/GroupDivider.vue` — slim divider component ใช้ร่วมกันทุก group by mode
 
 **ไฟล์ที่แก้ไข:**
+
 - `app/components/features/GroupedDashboardGrid.vue` — ใช้ GroupDivider แทน folder header เดิม, ลด gap
 
 **รายละเอียด:**
+
 - GroupDivider เป็น generic — รับ `DisplayGroup` object
 - Grid view: divider h=28px, gap ระหว่างกลุ่ม 12px (เดิม 32px)
 - Compact view: divider h=24px, gap 8px, ซ่อน subtitle (แสดง tooltip แทน)
@@ -208,7 +226,8 @@ interface DisplayGroup {
 - คลิก divider → collapse/expand กลุ่ม
 
 **Wireframe (Grid):**
-```
+
+```text
 ▼ 📁 2024 (1) ─ Nattha (STTH) ────────────────────────  ← h=28px
 ┌──────────┐
 │ ░░░░░░░░ │  ← card ปกติ
@@ -219,7 +238,8 @@ interface DisplayGroup {
 ```
 
 **Wireframe (Compact):**
-```
+
+```text
 ▼ 🟠 Sales (3) ────────────────────────────────────────  ← h=24px, tag color accent
 ┌───────┐ ┌───────┐ ┌───────┐
 │░░░░░░░│ │░░░░░░░│ │░░░░░░░│   ← 6-col compact cards
@@ -237,9 +257,11 @@ interface DisplayGroup {
 **เป้าหมาย:** เมื่อเลือก "ไม่จัดกลุ่ม" แสดง flat table/grid โดยไม่มี group header ใดเลย
 
 **ไฟล์ที่แก้ไข:**
+
 - `app/pages/dashboard/discover.vue` — เพิ่ม condition สำหรับ flat mode ในแต่ละ view
 
 **รายละเอียด:**
+
 - List view: ใช้ `DashboardList` เดิม (ไม่มี tree grouping) แต่ใช้ adaptive columns (แสดง folder + tags + company)
 - Grid/Compact: ใช้ `DashboardGrid`/`DashboardCard` โดยตรง ไม่มี divider
 - ซ่อน "ขยายทั้งหมด | ย่อทั้งหมด" controls
@@ -254,9 +276,11 @@ interface DisplayGroup {
 **เป้าหมาย:** ทดสอบและปรับปรุง responsive ทุก breakpoint + polish UX
 
 **ไฟล์ที่แก้ไข:**
+
 - ไฟล์ทุกไฟล์ที่แก้ในงานก่อนหน้า — ปรับ responsive styles
 
 **รายละเอียด:**
+
 - **≤768px (mobile):**
   - Search bar ตกแถวใหม่ใน breadcrumb row
   - GroupBySwitcher + ViewModeSwitcher ยังอยู่แถวเดียว (icons เล็กพอ)
@@ -276,7 +300,7 @@ interface DisplayGroup {
 
 ## ลำดับการทำงาน (Dependency Graph)
 
-```
+```text
 งานที่ 1 ─────────────────────────────────────────────► (อิสระ)
 งานที่ 2 ─────────────────────────────────────────────► (อิสระ)
 งานที่ 3 ──── ต้องทำหลังงานที่ 2 ─────────────────────► (ใช้ GroupBySwitcher)
@@ -294,6 +318,7 @@ interface DisplayGroup {
 ## สรุปไฟล์ที่เกี่ยวข้อง
 
 ### ไฟล์ที่สร้างใหม่ (3)
+
 | ไฟล์ | งานที่ |
 |---|---|
 | `app/components/features/GroupBySwitcher.vue` | 2 |
@@ -301,6 +326,7 @@ interface DisplayGroup {
 | `app/components/features/GroupDivider.vue` | 6 |
 
 ### ไฟล์ที่แก้ไข (5)
+
 | ไฟล์ | งานที่ |
 |---|---|
 | `app/components/compositions/PageLayout.vue` | 1 |
@@ -310,6 +336,7 @@ interface DisplayGroup {
 | `app/components/features/GroupedDashboardGrid.vue` | 6 |
 
 ### ไฟล์ที่ไม่แก้ไข (คงเดิม)
+
 | ไฟล์ | เหตุผล |
 |---|---|
 | `DashboardCard.vue` | Card ยังใช้ตามเดิม ไม่ต้องแก้ |

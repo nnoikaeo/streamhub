@@ -3,7 +3,8 @@
 **Branch:** TBD  
 **Base:** `develop`  
 **Created:** 2026-03-25  
-**Status:** Planned (ยังไม่เริ่ม)
+**Status:** ✅ Shipped — เก็บไว้เป็นบันทึกประวัติ
+> ทำจริงเป็นส่วนหนึ่งของ BUG-031: proxy `POST /api/embed/request` + `GET /api/embed/{token}` กับ token ที่ปิดผนึกด้วย AES-256-GCM ใน [`server/utils/embedToken.ts`](../../../server/utils/embedToken.ts) — ดูรายละเอียดที่ BUG-031 ใน [manual-test-plan.md](../manual-test-plan.md) และข้อจำกัดฝั่ง Looker ที่ [looker-sharing-policy.md](../looker-sharing-policy.md)
 
 ---
 
@@ -41,11 +42,13 @@
 **แนวคิด:** เพิ่ม Firebase ID Token verification ให้ทุก API endpoint — ปัจจุบัน `/api/mock/*` และ `/api/looker/*` ไม่มี auth เลย
 
 **สิ่งที่ต้องทำ:**
+
 - สร้าง `server/middleware/auth.ts` — verify Firebase ID token จาก `Authorization: Bearer <token>` header
 - Apply กับทุก `/api/mock/*` และ `/api/looker/*` routes
 - Client ส่ง `Authorization` header พร้อม Firebase token ทุก API call
 
 **ไฟล์ที่เกี่ยวข้อง:**
+
 - `server/middleware/auth.ts` (สร้างใหม่)
 - `server/utils/firebaseAdmin.ts` (สร้างใหม่)
 - `app/composables/useAuth.ts` — เพิ่ม token getter
@@ -66,11 +69,13 @@
 **แนวคิด:** ไม่คืน `lookerEmbedUrl` ใน API response ของรายการแดชบอร์ด แยกเป็น endpoint เฉพาะที่ต้อง authenticate ก่อนถึงจะได้ URL
 
 **สิ่งที่ต้องทำ:**
+
 - แก้ `server/api/mock/dashboards.get.ts` — ตัด `lookerEmbedUrl` ออกจาก response
 - สร้าง `server/api/mock/dashboards/[id]/embed-url.get.ts` — ต้อง Firebase token + permission check ถึงจะคืน URL
 - แก้ client ให้ fetch embed URL แยกเฉพาะตอนจะดู
 
 **ไฟล์ที่เกี่ยวข้อง:**
+
 - `server/api/mock/dashboards.get.ts`
 - `server/api/mock/dashboards/[id]/embed-url.get.ts` (สร้างใหม่)
 - `app/pages/dashboard/view/[id].vue`
@@ -94,6 +99,7 @@
 **แนวคิด:** เพิ่ม HTTP security headers เพื่อป้องกัน clickjacking, referrer leakage, และจำกัด resource origins
 
 **สิ่งที่ต้องทำ:**
+
 - เพิ่ม CSP header: `frame-src https://lookerstudio.google.com https://datastudio.google.com`
 - เพิ่ม `frame-ancestors 'self'` — ป้องกัน StreamHub ถูก embed ในเว็บอื่น
 - เพิ่ม `Referrer-Policy: strict-origin`
@@ -101,6 +107,7 @@
 - เพิ่ม `referrerpolicy="no-referrer"` ใน Looker iframe
 
 **ไฟล์ที่เกี่ยวข้อง:**
+
 - `nuxt.config.ts` — เพิ่ม security headers
 - `app/pages/dashboard/view/[id].vue` — เพิ่ม referrerpolicy ใน iframe
 
@@ -120,14 +127,16 @@
 **แนวคิด:** ไม่ส่ง Looker URL จริงไปที่ client เลย สร้าง one-time token (TTL 30 วินาที) → iframe โหลดจาก `/api/embed/{token}` → server ตรวจสิทธิ์แล้ว 302 redirect ไป Looker
 
 **สิ่งที่ต้องทำ:**
+
 - สร้าง `server/api/embed/request.post.ts` — รับ dashboardId + Firebase token → ตรวจสิทธิ์ → สร้าง one-time token
 - สร้าง `server/api/embed/[token].get.ts` — ตรวจ token validity → 302 redirect ไป Looker URL จริง
 - ~~สร้าง `server/utils/embedTokenStore.ts` — in-memory token store พร้อม TTL cleanup~~
 - แก้ `app/pages/dashboard/view/[id].vue` — iframe src ใช้ proxy URL แทน Looker URL ตรง
 
-> **ทำจริงแล้วและเปลี่ยนจากแผนตรงนี้ (BUG-031, PR #434–#436, 2026-08-23)** — in-memory store ใช้ไม่ได้จริงบน `gcfv2`: token ถูกสร้างที่ instance หนึ่งแต่ iframe ไปโดนอีก instance ที่ Map ว่าง ⇒ `403` เป็นครั้งคราวทุกเครื่องแบบไม่มีรูปแบบ · แทนที่ด้วย [embedToken.ts](../../server/utils/embedToken.ts) ซึ่ง**ไม่มี state เลย**: payload `{embedUrl, uid, exp}` ปิดผนึกด้วย AES-256-GCM จาก `EMBED_TOKEN_SECRET` · เลือก encrypt ไม่ใช่ HMAC เพราะ payload ที่แค่เซ็นจะอ่านออกด้วย base64 ซึ่งทำให้ URL หลุด — ขัดกับเป้าหมายของข้อนี้ทั้งข้อ · TTL 30 วินาที → **5 นาที** และ redeem ซ้ำได้ (retry/refresh ไม่พังอีก) · ผูก token กับเบราว์เซอร์ที่ขอด้วยคุกกี้ `__session` ที่ปิดผนึกด้วยกุญแจเดียวกัน
+> **ทำจริงแล้วและเปลี่ยนจากแผนตรงนี้ (BUG-031, PR #434–#436, 2026-08-23)** — in-memory store ใช้ไม่ได้จริงบน `gcfv2`: token ถูกสร้างที่ instance หนึ่งแต่ iframe ไปโดนอีก instance ที่ Map ว่าง ⇒ `403` เป็นครั้งคราวทุกเครื่องแบบไม่มีรูปแบบ · แทนที่ด้วย [embedToken.ts](../../../server/utils/embedToken.ts) ซึ่ง**ไม่มี state เลย**: payload `{embedUrl, uid, exp}` ปิดผนึกด้วย AES-256-GCM จาก `EMBED_TOKEN_SECRET` · เลือก encrypt ไม่ใช่ HMAC เพราะ payload ที่แค่เซ็นจะอ่านออกด้วย base64 ซึ่งทำให้ URL หลุด — ขัดกับเป้าหมายของข้อนี้ทั้งข้อ · TTL 30 วินาที → **5 นาที** และ redeem ซ้ำได้ (retry/refresh ไม่พังอีก) · ผูก token กับเบราว์เซอร์ที่ขอด้วยคุกกี้ `__session` ที่ปิดผนึกด้วยกุญแจเดียวกัน
 
 **ไฟล์ที่เกี่ยวข้อง:**
+
 - `server/api/embed/request.post.ts` (สร้างใหม่)
 - `server/api/embed/[token].get.ts` (สร้างใหม่)
 - `server/utils/embedTokenStore.ts` (สร้างใหม่)
@@ -155,12 +164,14 @@
 **แนวคิด:** บันทึกทุกครั้งที่มีคนดูแดชบอร์ด (userId, dashboardId, timestamp, IP, userAgent) → ตรวจพบ anomaly → แจ้ง admin
 
 **สิ่งที่ต้องทำ:**
+
 - สร้าง `server/api/audit/log.post.ts` — บันทึก dashboard view events
 - เพิ่ม Firestore collection `audit_logs`
 - แก้ client ให้ส่ง audit event เมื่อโหลดแดชบอร์ด
 - (Optional) สร้างหน้า admin สำหรับดู access logs
 
 **ไฟล์ที่เกี่ยวข้อง:**
+
 - `server/api/audit/log.post.ts` (สร้างใหม่)
 - `app/pages/dashboard/view/[id].vue` — ส่ง audit event on load
 - `app/pages/admin/audit.vue` (สร้างใหม่, optional)
@@ -181,11 +192,13 @@
 **แนวคิด:** แสดงอีเมลผู้ใช้แบบ semi-transparent ทับบน iframe (pointer-events: none) → ถ้ามี screenshot ไปแชร์ สามารถติดตามต้นทางได้
 
 **สิ่งที่ต้องทำ:**
+
 - เพิ่ม CSS overlay div ทับบน iframe แสดงอีเมลผู้ใช้
 - ใช้ `pointer-events: none` เพื่อให้ iframe ยังใช้งานได้
 - (Optional) เปลี่ยนตำแหน่ง watermark เป็นระยะ เพื่อป้องกันการ crop
 
 **ไฟล์ที่เกี่ยวข้อง:**
+
 - `app/pages/dashboard/view/[id].vue` — เพิ่ม watermark overlay div
 
 | ข้อดี | ข้อเสีย |
@@ -219,6 +232,7 @@
 Browser ต้องโหลด iframe จาก `lookerstudio.google.com` อยู่ดี — ผู้ใช้ที่มีความรู้ทาง technical สามารถเห็น URL ใน Network tab ได้เสมอ
 
 วิธีที่จะล็อกได้สมบูรณ์:
+
 - **Looker Studio Pro** — มี embedded SSO ที่ Google ตรวจสอบตัวตนก่อนแสดงผล
 - **ตั้งแดชบอร์ดเป็น Private** — แต่ต้องจัดการสิทธิ์ซ้ำซ้อนทั้ง Looker Studio และ StreamHub
 - **ใช้ Looker ตัวเต็ม** — มี signed embed URL พร้อม user-level auth
@@ -229,7 +243,7 @@ Browser ต้องโหลด iframe จาก `lookerstudio.google.com` อ�
 
 นี่ทำให้ **"ตั้งแดชบอร์ดเป็น Private" ในลิสต์ข้างบนแลกมาด้วยราคาที่แผนนี้ไม่ได้คิดไว้ตอนแรก**: มันปลอดภัยขึ้นก็จริง แต่ผู้ใช้ Safari เปิดไม่ได้จนกว่าจะไปปิดการป้องกันความเป็นส่วนตัวของเบราว์เซอร์เอง ซึ่งเป็นสิ่งที่ไม่ควรขอจากผู้ใช้
 
-ทางที่ใช้ได้จริงคือแชร์ "ใครมีลิงก์ก็ดูได้" **+ เปิด Enable embedding** แล้วให้ชั้นสิทธิ์อยู่ที่ StreamHub กับ embed proxy แทน — ซึ่งแปลว่า **ความปลอดภัยของรายงานพิงอยู่กับการที่ URL ไม่หลุด** พอดีกับที่ข้อ 4 ออกแบบไว้ · รายละเอียดและสิ่งที่ตัดทิ้งไปแล้วอยู่ใน [common-issues.md](../TROUBLESHOOTING/common-issues.md)
+ทางที่ใช้ได้จริงคือแชร์ "ใครมีลิงก์ก็ดูได้" **+ เปิด Enable embedding** แล้วให้ชั้นสิทธิ์อยู่ที่ StreamHub กับ embed proxy แทน — ซึ่งแปลว่า **ความปลอดภัยของรายงานพิงอยู่กับการที่ URL ไม่หลุด** พอดีกับที่ข้อ 4 ออกแบบไว้ · รายละเอียดและสิ่งที่ตัดทิ้งไปแล้วอยู่ใน [common-issues.md](../../TROUBLESHOOTING/common-issues.md)
 
 **เป้าหมาย:** ทำให้ยากพอที่คนทั่วไปเข้าไม่ได้ + ตรวจจับได้ถ้ามีการเข้าถึงผิดปกติ
 

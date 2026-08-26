@@ -1,7 +1,6 @@
 # Phase 6: Enhancement & Polish — Implementation Plan
 
 > **Created:** 2026-03-25
-> **Updated:** 2026-04-02
 > **Strategy:** 1 งานย่อย = 1 แชท = 1 feature branch → PR → merge to develop
 > **Backend:** Firestore (production) + Mock JSON API (dev/local)
 > **Status:** ✅ Completed (Tasks 1–15 ทั้งหมดเสร็จแล้ว)
@@ -12,7 +11,7 @@
 
 | ไฟล์ | สถานะ | หมายเหตุ |
 |------|--------|----------|
-| `server/utils/companyAccess.ts` | ✅ มีแล้ว | validateCompanyAccess, getInheritingAncestors |giut
+| `server/utils/companyAccess.ts` | ✅ มีแล้ว | validateCompanyAccess, getInheritingAncestors |
 | `server/utils/apiResponse.ts` | ✅ มีแล้ว | sendForbidden, sendUnauthorized, sendNotFound, sendBadRequest |
 | `app/composables/useCompanyAccess.ts` | ✅ มีแล้ว | canAccessCompany, filterByCompany, getCompanyLabel |
 | `server/middleware/auth.ts` | ✅ มีแล้ว | verify Firebase ID Token, DEV fallback to query uid |
@@ -22,7 +21,7 @@
 
 ## Dependencies Flow
 
-```
+```text
 Task 1 (Server Auth Middleware)
   ├──→ Task 2 (ซ่อน Embed URL)
   ├──→ Task 4 (Company API Enforcement)
@@ -41,7 +40,7 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ## ลำดับการทำงานที่แนะนำ
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  🔴 P0 Critical — Security Foundation                      │
 │  Task 1 → Task 2 → Task 3                                  │
@@ -70,11 +69,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 เพิ่ม Firebase ID Token verification ให้ทุก API endpoint — ปัจจุบัน `/api/mock/*` และ `/api/looker/*` ไม่มี auth เลย
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม)
 - docs/OPERATIONS/looker-embed-security-plan.md (แผน security — ดูข้อ 1)
@@ -140,11 +140,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 ไม่คืน `lookerEmbedUrl` ใน API response ของ dashboard listing — สร้าง endpoint เฉพาะที่ต้อง authenticate
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 2)
 - docs/OPERATIONS/looker-embed-security-plan.md (แผน security — ดูข้อ 2)
@@ -200,11 +201,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 เพิ่ม HTTP security headers เพื่อป้องกัน clickjacking, referrer leakage, และจำกัด resource origins
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 3)
 - docs/OPERATIONS/looker-embed-security-plan.md (แผน security — ดูข้อ 3)
@@ -249,11 +251,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 อัปเดต API endpoints ให้ใช้ company access validation จาก `server/utils/companyAccess.ts` ที่มีอยู่แล้ว
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 4)
 - docs/OPERATIONS/company-access-control-plan.md (แผน company access — ดู Step 2)
@@ -315,11 +318,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 เชื่อม client-side composable (`useCompanyAccess` ที่มีอยู่แล้ว) กับ API layer ที่อัปเดตใหม่
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 5)
 - docs/OPERATIONS/company-access-control-plan.md (แผน company access — ดู Step 3)
@@ -376,11 +380,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 ไม่ส่ง Looker URL จริงไปที่ client — ใช้ one-time token + redirect แทน
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 6)
 - docs/OPERATIONS/looker-embed-security-plan.md (แผน security — ดูข้อ 4)
@@ -438,6 +443,7 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 บันทึกทุกครั้งที่มีคนดูแดชบอร์ด → ตรวจจับ anomaly → แจ้ง admin
 
 ### Volume Analysis (150 คน × 50 แดชบอร์ด)
@@ -480,7 +486,7 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ### Admin Audit Logs Page — Wireframe
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │  📋 Audit Logs — ประวัติการใช้งานระบบ            [ 📥 Export CSV ] │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -515,7 +521,7 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 7)
 - docs/OPERATIONS/looker-embed-security-plan.md (แผน security — ดูข้อ 5)
@@ -582,11 +588,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 แสดงอีเมลผู้ใช้แบบ semi-transparent ทับบน Looker iframe
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 8)
 - docs/OPERATIONS/looker-embed-security-plan.md (แผน security — ดูข้อ 6)
@@ -624,13 +631,13 @@ Task 13-15 (Production) — ทำหลังสุด
 **Effort:** 1 วัน
 **Status:** ✅ Completed
 
-
 ### เป้าหมาย
+
 โหลด dashboard cards ทีละ batch ด้วย Intersection Observer
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 9)
 - app/pages/dashboard/discover.vue (discover page)
@@ -677,10 +684,9 @@ Task 13-15 (Production) — ทำหลังสุด
 **Effort:** 1 วัน
 **Status:** ✅ Completed
 
-
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 10)
 - app/pages/dashboard/view/[id].vue (dashboard view page — ดู handleEditInfo)
@@ -721,7 +727,7 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 11)
 - app/pages/dashboard/view/[id].vue (dashboard view page — ดู handleArchive)
@@ -764,7 +770,7 @@ Task 13-15 (Production) — ทำหลังสุด
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 12)
 - app/pages/dashboard/view/[id].vue (dashboard view page — ดู handleDownload)
@@ -803,11 +809,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 เปลี่ยนจาก mock JSON API เป็น Firestore จริง
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 13)
 - docs/GUIDES/database-schema.md (Firestore collections)
@@ -846,6 +853,7 @@ Task 13-15 (Production) — ทำหลังสุด
 **Status:** ✅ Completed
 
 ### เป้าหมาย
+
 ทดสอบ cross-browser + optimize ให้ page load < 2 seconds
 
 ### สิ่งที่ทำ
@@ -870,7 +878,8 @@ Task 13-15 (Production) — ทำหลังสุด
 
 5. **`package.json`** — เพิ่ม `browserslist` targets + `build:analyze` script
 
-### Verification:
+### Verification
+
 - [x] `npm run build` ผ่านโดยไม่มี error
 - [x] Build output แยก vendor chunks: firebase (~600KB), pinia, forms, vendor
 - [x] `server/utils/jsonDatabase.ts` มี in-memory cache พร้อม auto-invalidate
@@ -889,11 +898,12 @@ Task 13-15 (Production) — ทำหลังสุด
 **Effort:** 1 วัน
 
 ### เป้าหมาย
+
 Deploy StreamHub ขึ้น Firebase Hosting
 
 ### Prompt
 
-```
+```text
 อ่านไฟล์ต่อไปนี้ก่อน:
 - docs/OPERATIONS/phase6-implementation-plan.md (แผนงานรวม — ดู Task 15)
 - docs/OPERATIONS/deployment.md
@@ -942,13 +952,15 @@ Deploy StreamHub ขึ้น Firebase Hosting
 แต่ละ Task = 1 แชท ใช้ prompt ที่กำหนดไว้ในแต่ละ Task
 
 **เริ่มแชทใหม่ แปะ prompt:**
-```
+
+```text
 ทำงาน Task [N] จากแผน docs/OPERATIONS/phase6-implementation-plan.md
 [วาง prompt ที่กำหนดไว้]
 ```
 
 **เมื่อ Task เสร็จ:**
-```
+
+```text
 อัปเดต docs/OPERATIONS/phase6-implementation-plan.md
 - Mark Task [N] เป็น ✅ Completed
 - อัปเดต roadmap.md ถ้าจำเป็น

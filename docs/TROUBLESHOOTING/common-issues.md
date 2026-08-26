@@ -1,9 +1,3 @@
----
-title: Common Issues
-version: 1.1
-updated: 2026-08-14
----
-
 # Common Issues & Solutions
 
 ## Issue: "Port 3000 already in use"
@@ -11,6 +5,7 @@ updated: 2026-08-14
 **Error:** `EADDRINUSE: address already in use :::3000`
 
 **Solution:**
+
 ```bash
 # Use different port
 npm run dev -- --port 3001
@@ -31,6 +26,7 @@ taskkill /PID <PID> /F
 **Error:** `Invalid API Key` or authentication fails
 
 **Solution:**
+
 1. Check `.env.local` file exists
 2. Verify all keys are correct (copy-paste from Firebase Console)
 3. Ensure no extra spaces or quotes
@@ -42,7 +38,7 @@ taskkill /PID <PID> /F
 
 **อาการ** — หน้าแดชบอร์ดขึ้น placeholder "Looker dashboard embed URL not configured" ทั้งที่แดชบอร์ดตัวนั้นมี `lookerEmbedUrl` และ**เปิดบน production ได้ปกติ** ใน console:
 
-```
+```text
 POST http://localhost:3000/api/embed/request?uid=... 500 (Server Error)
 ❌ [FirestoreService] getDashboardEmbedUrl error: FetchError: [POST] "/api/embed/request?uid=...": 500 Server Error
 ```
@@ -65,7 +61,7 @@ POST http://localhost:3000/api/embed/request?uid=... 500 (Server Error)
 
 **อาการ** — เปิดแดชบอร์ดบน Safari (macOS / iPhone / iPad รวมถึง Chrome และ Firefox บน iOS ซึ่งเป็น WebKit เหมือนกัน) แล้วในกรอบ iframe ขึ้นหน้าของ Looker เองว่า
 
-```
+```text
 Data Studio
 เข้าถึงรายงานไม่ได้
 เว็บไซต์นี้ใช้คุกกี้จาก Google  อนุญาตคุกกี้ของบุคคลที่สาม เพื่อดำเนินการต่อ
@@ -117,6 +113,7 @@ Data Studio
 **Solution:** เปลี่ยนเป็น `signInWithRedirect` + `getRedirectResult` (ทำแล้วตั้งแต่ Phase 7)
 
 โปรเจกต์นี้ใช้ redirect flow ดังนี้:
+
 1. กด "ลงชื่อเข้าด้วย Google" → navigate ไปยัง Google โดยตรง
 2. Google redirect กลับมาที่ `/login`
 3. `onMounted` เรียก `handleRedirectResult()` → ดึง credential → navigate ไป `/dashboard`
@@ -130,6 +127,7 @@ Data Studio
 **Cause:** `authDomain` ใน Firebase config ถูกเปลี่ยนเป็น `web.app` แต่ Google Cloud Console ยังไม่มี redirect URI ใหม่
 
 **Solution:**
+
 1. ไปที่ [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials)
 2. แก้ OAuth 2.0 Client ID ที่ใช้อยู่
 3. ใต้ **Authorized redirect URIs** → เพิ่ม `https://streamhub-1c27a.web.app/__/auth/handler`
@@ -142,6 +140,7 @@ Data Studio
 **Error:** "Popup blocked" in browser
 
 **Solution:**
+
 - localhost ใช้ popup ได้ตามปกติ (ปัญหานี้เกิดเฉพาะ production ดูหัวข้อด้านบน)
 - ถ้าถูกบล็อกบน localhost → Allow popups for localhost:3000 ใน browser settings
 
@@ -150,6 +149,7 @@ Data Studio
 ## Issue: "Page shows blank/white screen"
 
 **Solution:**
+
 1. Check browser console (F12) for errors
 2. Verify dev server is running (`npm run dev`)
 3. Hard refresh: Ctrl+Shift+R (or Cmd+Shift+R)
@@ -161,6 +161,7 @@ Data Studio
 ## Issue: TypeScript Errors in IDE
 
 **Solution:**
+
 ```bash
 # Restart TypeScript server (VS Code)
 Cmd+Shift+P → "TypeScript: Restart TS Server"
@@ -177,6 +178,7 @@ npm run dev
 **Error:** Changes don't auto-reload
 
 **Solution:**
+
 1. Check dev server terminal
 2. Restart: `npm run dev`
 3. Clear `.nuxt/` folder: `rm -rf .nuxt`
@@ -187,6 +189,7 @@ npm run dev
 ## Issue: Build Fails: "Cannot find module"
 
 **Solution:**
+
 ```bash
 # Clear build cache
 rm -rf .nuxt .output node_modules
@@ -205,6 +208,7 @@ npm run build
 **Error:** Can access dashboard without logging in
 
 **Solution:**
+
 - Check middleware is defined in page: `definePageMeta({ middleware: 'auth' })`
 - Verify auth store has correct state
 - Check browser console for middleware logs
@@ -218,12 +222,15 @@ npm run build
 **สาเหตุ:** Firebase Firestore ใช้ "30-day trial rules" ที่หมดอายุอัตโนมัติ และ project ไม่มีไฟล์ `firestore.rules`
 
 **วิธีแก้:**
+
 1. ตรวจสอบ rules ปัจจุบันใน Firebase Console → Firestore → Rules
 2. ถ้า rules มีข้อความ `allow read, write: if request.time < timestamp.date(...)` และวันที่ผ่านไปแล้ว → rules หมดอายุ
 3. Deploy rules จาก `firestore.rules` ใน project root:
+
    ```bash
    firebase deploy --only firestore:rules --project streamhub-1c27a
    ```
+
 4. CI **ไม่สามารถ** deploy rules ได้ (SA ขาดสิทธิ์ `firebaserules.googleapis.com`) ต้อง deploy มือเสมอ
 
 ---
@@ -232,7 +239,7 @@ npm run build
 
 **อาการ:** งาน Deploy to Firebase ล้ม ท้าย log เป็น
 
-```
+```text
 i  functions: updating Node.js 22 (2nd Gen) function server(us-central1)...
 Build failed with status: EXPIRED and message: An unexpected error occurred.
 ⚠  functions: Deploys failed. Skipping deletes.
@@ -267,6 +274,7 @@ gh run watch <run-id> --exit-status
 ```
 
 **ตรวจว่า functions ยังมีชีวิต:**
+
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" https://streamhub-1c27a.web.app/
 curl -s https://streamhub-1c27a.web.app/api/health    # 401 Unauthorized = function ตอบอยู่ ปกติ
@@ -283,6 +291,7 @@ curl -s https://streamhub-1c27a.web.app/api/health    # 401 Unauthorized = funct
 **สาเหตุ:** Vite chunk hash บน Linux (CI) กับ macOS (local) ต่างกัน บางครั้ง CI produce chunk ชื่อเดิมแต่ content ต่างกัน หรือ Firebase CDN ยังไม่ propagate
 
 **วิธีตรวจสอบ:**
+
 ```bash
 # เปรียบเทียบ entry chunk ระหว่าง production กับ local build
 curl -s "https://streamhub-1c27a.web.app/" | grep -o '"#entry":"[^"]*"'
@@ -292,6 +301,7 @@ cat .output/public/index.html | grep -o '"#entry":"[^"]*"'
 ถ้า hash ไม่ตรงกัน → production ยังใช้โค้ดเก่า
 
 **วิธีแก้:** Deploy hosting จาก local:
+
 ```bash
 bash scripts/deploy-hosting.sh
 ```
@@ -321,6 +331,7 @@ npm run build && firebase deploy --only hosting
 **Error:** "Permission denied" when accessing Firestore
 
 **Solution:**
+
 1. Go to Firebase Console → Firestore
 2. Click "Rules" tab
 3. Ensure rules match your use case
@@ -333,6 +344,7 @@ npm run build && firebase deploy --only hosting
 **Error:** `No 'Access-Control-Allow-Origin'`
 
 **Solution:**
+
 - This shouldn't happen with Firebase (handles CORS)
 - Check if using custom API endpoint
 - Verify origin is whitelisted
@@ -342,6 +354,7 @@ npm run build && firebase deploy --only hosting
 ## Issue: Slow Performance / Lag
 
 **Solution:**
+
 1. Check network throttling in DevTools
 2. Profile with Chrome DevTools (Performance tab)
 3. Check Firestore queries are indexed
@@ -354,6 +367,7 @@ npm run build && firebase deploy --only hosting
 **Error:** `Permission denied (publickey)`
 
 **Solution:**
+
 ```bash
 # Generate SSH key
 ssh-keygen -t ed25519 -C "your@email.com"
@@ -374,6 +388,7 @@ ssh -T git@github.com
 **Error:** Logout button doesn't work
 
 **Solution:**
+
 - Check browser console for errors
 - Verify `logout()` function is called
 - Check Firebase session cleared
@@ -614,5 +629,5 @@ npm run dev
 ## See Also
 
 - [FAQ](faq.md)
-- [Installation Guide](../../GETTING-STARTED/installation.md)
-- [Setup Guide](../../GETTING-STARTED/setup-firebase.md)
+- [Installation Guide](../GETTING-STARTED/installation.md)
+- [Setup Guide](../GETTING-STARTED/setup-firebase.md)

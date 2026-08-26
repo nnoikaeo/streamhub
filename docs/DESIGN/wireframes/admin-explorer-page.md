@@ -4,14 +4,13 @@
 > **Users:** Admin (full access), Moderator (assigned folders only)
 > **Current Implementation:** `app/pages/admin/explorer/[[folderId]].vue` (to be created)
 > **Note:** Unified File Explorer replacing the previous folder management page
-> **Last Updated:** 2026-03-12
-> **Version:** 2.0
 
 ---
 
 ## 🎯 Key Principle
 
 **Full File Explorer Style = One place for everything**
+
 - Admin และ Moderator คุ้นเคยกับ mental model นี้อยู่แล้ว (macOS Finder / Windows Explorer / Google Drive)
 - ไม่ต้องสลับหน้าระหว่าง "จัดการ folder" กับ "จัดการ dashboard"
 - Navigate ด้วย folder tree ซ้าย, ดูและจัดการ contents ขวา
@@ -23,11 +22,13 @@
 ### Layout & Components
 
 **Main Layout:**
+
 - Uses: `AdminLayout` with admin navigation sidebar
 - Header: Breadcrumb แสดง path ปัจจุบัน (clickable)
 - Content: Two-pane — FolderTree (left) + Contents Panel (right)
 
 **Key Components:**
+
 - `FolderTree` — Hierarchical folder navigation (existing component)
 - `ExplorerContentsPanel` — แสดง subfolders + dashboards ของ folder ที่เลือก
 - `FolderForm` — Modal สำหรับ create/edit folder (existing)
@@ -38,7 +39,7 @@
 
 ## 🎨 Page Layout
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────┐
 │  🏠 Root  >  📂 Sales  >  📂 Regional  >  📂 East               │
 ├──────────────────────────────────────────────────────────────────┤
@@ -69,6 +70,7 @@
 - Selected folder highlight ด้วย active state
 
 **สิทธิ์:**
+
 - Admin: เห็นทุก folder
 - Moderator: เห็นเฉพาะ folder ที่ถูก assign (`assignedModerators` contains UID)
 
@@ -77,9 +79,11 @@
 ## 📋 Contents Panel (Right)
 
 ### Toolbar
-```
+
+```text
 [➕ New Folder]  [➕ New Dashboard]         [🔍 ค้นหา...]
 ```
+
 - "New Folder" → pre-fill `parentId = currentFolderId`
 - "New Dashboard" → pre-fill `folderId = currentFolderId`
 
@@ -87,7 +91,7 @@
 
 แสดง 2 ประเภทในตารางเดียว โดย **folder แสดงก่อน** ตามด้วย dashboards:
 
-```
+```text
 ชื่อ                    ประเภท      สถานะ       Actions
 ────────────────────────────────────────────────────────────
 📂 Budget Reports       Folder      Active      [✏️] [🗑️]
@@ -112,7 +116,8 @@
 > **Delete guard (BUG-008):** ลบโฟลเดอร์ได้เฉพาะตอนว่างเท่านั้น ถ้ายังมี subfolder หรือ dashboard ข้างใน จะโชว์ block dialog ("ไม่สามารถลบได้" + OK) แทนการลบ — กัน orphan (`folderId`/`parentId` ค้าง) ใช้ทั้ง admin + moderator explorer
 
 ### Empty State
-```
+
+```text
 📂 ยังไม่มีเนื้อหาใน folder นี้
 [➕ New Folder]  [➕ New Dashboard]
 ```
@@ -121,17 +126,19 @@
 
 ## 🧭 Navigation & URL
 
-```
+```text
 /admin/explorer              → Root view (แสดง top-level folders)
 /admin/explorer/folder_001   → เข้า folder "Sales"
 /admin/explorer/folder_042   → เข้า "Sales > Regional > East"
 ```
 
 **Breadcrumb:**
+
 - แต่ละ segment คลิกได้ → navigate กลับขึ้นไปได้
 - "🏠 Root" → `/admin/explorer`
 
 **Browser back/forward:**
+
 - ทำงานได้ตามปกติเพราะ URL เปลี่ยนตาม navigation
 
 ---
@@ -158,7 +165,7 @@
 
 **เปรียบเทียบ:** Google Drive มีทั้ง "My Drive" (explorer) และ "Search results" (global list)
 
-```
+```text
 Admin Sidebar:
 ├── Explorer      → /admin/explorer       (browse by folder)
 ├── Dashboards    → /admin/dashboards     (all dashboards, global view)
@@ -190,5 +197,4 @@ Admin Sidebar:
 ---
 
 **Created:** 2026-03-12
-**Version:** 2.0 (Full File Explorer Style)
 **Decision:** เปลี่ยนจาก Two-pane Folder+Detail เป็น Full File Explorer เพราะ admin/moderator คุ้นเคยกับ mental model นี้อยู่แล้ว
