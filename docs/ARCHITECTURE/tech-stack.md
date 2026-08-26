@@ -79,6 +79,34 @@ against a nodejs22 runtime, which happened not to break but was nobody's decisio
 
 Changing the runtime means editing `.nvmrc`, `nitro.firebase.nodeVersion` and `firebase.json` together.
 
+## Security overrides in package.json
+
+`overrides` pins seven transitive packages to their first patched release. Each one was a
+**critical or high** advisory that reached the deployed Cloud Function, and each was stuck
+below the fix by a range in a dependency we do not control.
+
+| Pinned | From | Advisory |
+|---|---|---|
+| `protobufjs` ^7.6.5 | 7.5.4 | **critical** — arbitrary code execution |
+| `@grpc/grpc-js` ^1.9.16 | 1.9.15 | high — malformed request crashes the server |
+| `node-forge` ^1.4.0 | 1.3.3 | high — certificate chain bypass, Ed25519 signature forgery |
+| `h3` ^1.15.11 | 1.15.5 | high — path traversal, arbitrary file read in `serveStatic` |
+| `sharp` ^0.35.4 | 0.34.5 | high — four libvips CVEs |
+| `svgo` ^4.1.0 | 4.0.0 | high — billion-laughs DoS |
+| `defu` ^6.1.7 | 6.1.4 | high — prototype pollution via `__proto__` |
+
+**Do not delete these without re-running `npm audit --omit=dev`.** They are not preferences.
+Removing one silently reopens the advisory, because the parent's range still allows the
+vulnerable version.
+
+Drop an override once the parent package's own range has moved past it — check with
+`npm ls <package>` that the pin is no longer doing any work.
+
+The overrides route was chosen over `npm audit fix`, which resolves the same advisories by
+dragging Nuxt from 4.2.2 to 4.5.2 and `ipx` to a **beta**, in a 20,000-line lockfile diff. A
+framework upgrade is a change worth making deliberately, not as a side effect of a security
+patch.
+
 ## package-lock.json
 
 The lock had drifted from `package.json`: 56 entries for `firebase-functions@7.2.2` and the
