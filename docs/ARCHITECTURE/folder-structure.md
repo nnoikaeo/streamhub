@@ -64,7 +64,6 @@ streamhub/
 │   │   ├── 📁 features/             # Feature components
 │   │   │   ├── DashboardCard.vue    # Dashboard card with preview thumbnail + hover overlay
 │   │   │   ├── DashboardGrid.vue    # Responsive dashboard grid
-│   │   │   ├── DashboardHeader.vue  # Dashboard discover page header
 │   │   │   ├── DashboardPreview.vue # Quick view modal with live Looker iframe
 │   │   │   ├── DashboardViewHeader.vue # Top nav for dashboard view (breadcrumb + actions)
 │   │   │   ├── FolderSidebar.vue    # Folder tree sidebar for discover page
