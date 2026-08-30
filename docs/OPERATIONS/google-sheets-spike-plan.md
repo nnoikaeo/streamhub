@@ -39,6 +39,19 @@ Google Sheets **ไม่จำเป็นต้องรับข้อจำ�
 | S0.6 | เครื่อง | macOS Safari, iPhone Safari, Chrome เดสก์ท็อป (อย่างน้อย 3) |
 | S0.7 | นับของจริง | มีชีตกี่ใบที่จะเอาเข้า StreamHub และ**เราเป็นเจ้าของกี่ใบ** — ตัวเลขนี้อาจตัดทางเลือก 3 ทิ้งไปเลย |
 
+### ไฟล์ทดสอบที่สร้างแล้ว (2026-08-30)
+
+เจ้าของทั้ง 4 ใบ: `dc.streamwash@gmail.com` (Drive ส่วนตัว ไม่ใช่ Workspace — ดูข้อจำกัดที่ S3.2/S3.6) · ทั้ง 4 เป็น**ไฟล์แยกกัน** ไม่ใช่แท็บในไฟล์เดียว เพราะการแชร์เป็นระดับไฟล์
+
+| ใบ | ชื่อไฟล์ | id |
+|---|---|---|
+| A | `SPIKE-A-private` | `11YaVVepT-NyPfzQgQ09LBV6hJ0oOIBwem7Sfq-KsJD4` |
+| B | `SPIKE-B-sa` | `101LffW_2dOTvU57SeZKrXExlBmkf0-1Dk6W6LxfkUKI` |
+| C | `SPIKE-C-published` | `1hey_rTzYyYIhX1SPz0Rbu_W0luo2yHhV6obXClFWBe4` |
+| D | `SPIKE-D-large` | `1-1U77Eet3EeqPlWVNj9q1FlkbYEyLoeMR64T2H6QoB4` |
+
+ใบ D นำเข้าจาก CSV ที่ generate ขึ้นมา 3,300 แถว × 15 คอลัมน์ (~624 KB) ข้อมูลปลอมทั้งหมด
+
 ## ทางเลือก 1 — iframe (ท่าเดียวกับ Looker)
 
 เก็บท่าปัจจุบันไว้ทั้งหมด เปลี่ยนแค่ URL ที่ผนึกใน embed token
