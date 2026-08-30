@@ -60,10 +60,13 @@ if (!key) {
 }
 
 const credentials = JSON.parse(key)
-const auth = new google.auth.GoogleAuth({
-  credentials,
-  scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-})
+// `/export?format=csv` is a Drive endpoint, not a Sheets one — the Sheets
+// scope alone answers it with a 401 login page. `--drive` adds the Drive read
+// scope to find out whether that is the whole story (S2.6).
+const scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+if (flags.includes('--drive')) scopes.push('https://www.googleapis.com/auth/drive.readonly')
+
+const auth = new google.auth.GoogleAuth({ credentials, scopes })
 const sheets = google.sheets({ version: 'v4', auth })
 
 const kb = (obj) => `${(Buffer.byteLength(JSON.stringify(obj)) / 1024).toFixed(1)} KB`
@@ -119,6 +122,24 @@ if (meta && wantGrid) {
   }
 }
 
+// --- grid data, trimmed: the 31 MB full grid is unusable, so measure what a
+// field mask costs when it asks only for the structure a renderer needs
+// (frozen rows, conditional-format rules, charts, merges) and no cell payload.
+if (meta && flags.includes('--grid-lite')) {
+  const t0 = Date.now()
+  try {
+    const res = await sheets.spreadsheets.get({
+      spreadsheetId,
+      includeGridData: false,
+      fields: 'sheets(properties(title,gridProperties),conditionalFormats,charts,merges)',
+    })
+    const sheet0 = res.data.sheets[0]
+    console.log(`  grid lite: ✅ ${Date.now() - t0} ms — ${kb(res.data)} · charts ${sheet0.charts?.length || 0} · conditional formats ${sheet0.conditionalFormats?.length || 0} · merges ${sheet0.merges?.length || 0}`)
+  } catch (error) {
+    fail('grid lite', error)
+  }
+}
+
 // --- CSV export with the SA's own bearer token: the cheap path, if it works at all
 if (meta && wantCsv) {
   const t0 = Date.now()
@@ -134,6 +155,20 @@ if (meta && wantCsv) {
   } catch (error) {
     fail('csv export', error)
   }
+}
+
+// --- burst: 20 reads at once, to see whether the per-project read quota is a
+// real ceiling for a proxy that serves one API call per page view (S2.4).
+if (meta && flags.includes('--burst')) {
+  const tab = meta.sheets[0].properties.title
+  const t0 = Date.now()
+  const results = await Promise.allSettled(
+    Array.from({ length: 20 }, () => sheets.spreadsheets.values.get({ spreadsheetId, range: tab }))
+  )
+  const ok = results.filter(r => r.status === 'fulfilled').length
+  const errs = [...new Set(results.filter(r => r.status === 'rejected')
+    .map(r => `${r.reason?.status || r.reason?.code}: ${String(r.reason?.message).slice(0, 80)}`))]
+  console.log(`  burst: ${ok === 20 ? '✅' : '⚠️'} ${ok}/20 ok in ${Date.now() - t0} ms${errs.length ? ` · ${errs.join(' | ')}` : ''}`)
 }
 
 console.log('')
