@@ -64,7 +64,10 @@ jobs:
 
   # ── Preview deploy: build + deploy on open/push ───────────────────────────
   preview:
-    if: github.event.action != 'closed'
+    # `github.event.action` is undefined on a schedule event, so a bare
+    # `!= 'closed'` is true there and this job would try to deploy a preview
+    # channel for a pull request that does not exist.
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
