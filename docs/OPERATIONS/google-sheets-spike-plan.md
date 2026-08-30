@@ -48,9 +48,17 @@ Google Sheets **ไม่จำเป็นต้องรับข้อจำ�
 | A | `SPIKE-A-private` | `11YaVVepT-NyPfzQgQ09LBV6hJ0oOIBwem7Sfq-KsJD4` |
 | B | `SPIKE-B-sa` | `101LffW_2dOTvU57SeZKrXExlBmkf0-1Dk6W6LxfkUKI` |
 | C | `SPIKE-C-published` | `1hey_rTzYyYIhX1SPz0Rbu_W0luo2yHhV6obXClFWBe4` |
-| D | `SPIKE-D-large` | `1-1U77Eet3EeqPlWVNj9q1FlkbYEyLoeMR64T2H6QoB4` |
+| D | `SPIKE-D-large` | `1gDsTbRfnmO-CkBrenlxSGFbNnfv2rEfQ5-ZQF8_ggWk` |
 
-ใบ D นำเข้าจาก CSV ที่ generate ขึ้นมา 3,300 แถว × 15 คอลัมน์ (~624 KB) ข้อมูลปลอมทั้งหมด
+ใบ D นำเข้าจาก CSV ที่ generate ขึ้นมา 3,300 แถว × 15 คอลัมน์ (~624 KB) ข้อมูลปลอมทั้งหมด · ตรึงแถวหัว 1 แถว · conditional format บน `status = expired` · chart 1 ตัว
+
+ใบ C เผยแพร่แล้ว URL ที่ Google ออกให้คือ
+
+```text
+https://docs.google.com/spreadsheets/d/e/2PACX-1vShmrFx35RtYdfEeHDCEzsZNSyaPYxqdjAb77CR030Gdr064_kSBSS3P_LkI3ovtIjbVRdclV5zswxT/pubhtml
+```
+
+**URL เผยแพร่ใช้ id คนละตัวกับ file id** (`/d/e/2PACX-…` ไม่ใช่ `/d/{fileId}`) ⇒ ประกอบ `pubhtml` เองจาก file id ไม่ได้ ต้องเอา URL ที่ Google ออกให้ตอนกดเผยแพร่มาเก็บไว้ · มีผลกับการออกแบบ: ถ้าเลือกทาง 1 แบบเผยแพร่ ฟิลด์ที่เก็บใน Firestore ต้องเป็น URL เต็ม ไม่ใช่ id
 
 ## ทางเลือก 1 — iframe (ท่าเดียวกับ Looker)
 
@@ -138,7 +146,11 @@ StreamHub สั่ง Drive API เพิ่ม/ถอนอีเมลผู�
 
 | id | ผล | บันทึก |
 |---|---|---|
-| — | ☐ | ยังไม่เริ่ม |
+| S0.1–S0.7 | ✅ | สร้างครบ 4 ไฟล์ 2026-08-30 · ยังไม่ได้ทำ S0.7 (นับว่าเราเป็นเจ้าของชีตจริงกี่ใบ) |
+| S1.1 | ✅ | **Google ไม่บล็อกการฝัง Sheets ที่ระดับ header** — ทั้ง `/preview`, `/edit?rm=minimal`, `/pubhtml`, `/gviz` ไม่มี `X-Frame-Options` และ CSP ไม่มี `frame-ancestors` เลย ⇒ ไม่มีสวิตช์แบบ "Enable embedding" ของ Looker ให้ต้องกด · สิ่งที่ตัดสินว่าเห็นข้อมูลไหมคือ **สิทธิ์ของผู้ดู** ล้วน ๆ ⇒ S1.3 (Safari) ยังเป็นเคสชี้ขาดเหมือนเดิม |
+| S1.6 | ✅ | **URL เผยแพร่อ่านได้โดยไม่ต้องล็อกอิน และอ่านด้วยเครื่องได้** — `…/pub?output=csv` คืน CSV ครบทุกแถวให้ curl ที่ไม่มี cookie เลย (200, ข้อมูลจริงทั้ง 5 แถว) · `pubhtml` เองคืนแค่หน้าเปล่าที่ให้ JS ไปดึงข้อมูลทีหลัง จึงดูเหมือนไม่มีข้อมูล — อย่าใช้เป็นหลักฐานว่าปลอดภัย · **ทาง 1 แบบเผยแพร่ = ข้อมูลสาธารณะเต็มรูป ไม่ใช่แค่ "คนมีลิงก์"** |
+| S2.1 | ⛔ | ติดที่ **Sheets API ยังไม่ได้เปิดในโปรเจกต์ `streamhub-1c27a`** (403 `Google Sheets API has not been used in project 677155297409 before or it is disabled`) — ต้องเปิดก่อนถึงจะทดสอบทาง 2 ได้ทั้งหมด |
+| ที่เหลือ | ☐ | ยังไม่กด |
 
 ## ไม่อยู่ในขอบเขตการทดสอบนี้
 
