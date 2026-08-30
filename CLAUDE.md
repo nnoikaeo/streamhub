@@ -21,6 +21,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - **Functions from local**: never — a mac-built `sharp` is the wrong arch for the linux runtime; let CI build them
 - **Firestore rules**: must deploy manually — `firebase deploy --only firestore:rules --project streamhub-1c27a` — CI service account lacks permission. **Check whether that actually happened with `npm run rules:verify`** — a rules file that was merged but never deployed looks exactly like one that is live
 - Never run `node scripts/generate-spa-index.mjs` directly without env vars (produces blank Firebase config → login broken)
+- A workflow that goes red with **step count 0** and `The job was not acquired by Runner of type hosted` is **GitHub, not us** — no runner picked the job up. Check [githubstatus.com](https://www.githubstatus.com/), wait for recovery, then `gh workflow run "Build & Deploy to Firebase" --ref main`. Do not deploy by hand as a workaround when the change touches `server/`. Full runbook: [deployment.md](docs/OPERATIONS/deployment.md)
 - See: [docs/OPERATIONS/deployment.md](docs/OPERATIONS/deployment.md)
 
 ### Error Handling & `any`

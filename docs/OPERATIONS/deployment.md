@@ -96,6 +96,50 @@ firebase deploy --only firestore:rules --project streamhub-1c27a
 
 > **หมายเหตุ:** rules ไฟล์อยู่ที่ `firestore.rules` ใน root เพิ่ม section `"firestore"` ใน firebase.json ถ้าต้องการ (**แต่ CI จะ fail** เพราะ SA ไม่มีสิทธิ์ `firebaserules.googleapis.com`)
 
+### Workflow แดงโดยไม่มี step ไหนรันเลย — ปัญหาฝั่ง GitHub ไม่ใช่โค้ด
+
+อาการ: run เป็น **`startup_failure`** หรือ job ถูก **cancelled** โดยที่ **step count = 0** และ
+annotation เขียนว่า
+
+```text
+The job was not acquired by Runner of type hosted even after multiple attempts
+```
+
+แปลว่า **ไม่มี runner มารับงาน** — ไม่ใช่โค้ดพัง ไม่ใช่ workflow ผิด อย่าเสียเวลาไล่หาบั๊ก
+
+**แยกให้ออกจากของจริง:**
+
+| สัญญาณ | อ่านว่า |
+|---|---|
+| step count = **0** | ไม่เคยเริ่มรัน ⇒ ฝั่ง GitHub |
+| มี step ที่รันแล้ว fail | ของเราจริง อ่าน log ต่อ |
+| workflow ไฟล์เดิมเพิ่งผ่านเมื่อครู่ | ยิ่งชัดว่าเป็นฝั่ง GitHub |
+| run ค้าง `queued` นานผิดปกติ | คิว/ความจุของ Actions |
+
+**ทำอย่างไร:**
+
+1. เช็ค <https://www.githubstatus.com/> ดูว่ามี incident ของ Actions ตรงกับเวลาที่ push ไหม
+2. ถ้าใช่ **รอให้ GitHub ประกาศ recovery ก่อน** — re-run ระหว่าง incident ก็เข้าคิวเดิม
+3. run ที่ค้างข้ามคืนจะไม่เริ่มเอง และ `gh run cancel` อาจตอบ `Cannot cancel a workflow run
+   that is completed` ทั้งที่ยังแสดง `queued` — สถานะไม่ตรงกันเองเป็นเศษจาก incident ปล่อยไว้
+4. ยิงใหม่ด้วย dispatch แทนการ push commit เปล่า:
+
+   ```bash
+   gh workflow run "Build & Deploy to Firebase" --ref main
+   gh run watch <run-id> --exit-status
+   ```
+
+**อย่า deploy มือแทน** ถ้าการเปลี่ยนแปลงแตะฝั่ง server — `scripts/deploy-hosting.sh` ส่งแค่
+hosting และ functions build บนแมคไม่ได้ (`sharp` ผิด architecture) ⇒ จะได้ hosting กับ functions
+คนละรุ่น ซึ่งแย่กว่ารอ
+
+**เกิดขึ้นจริง 2026-08-26:** push `584ec03` เวลา 15:20 UTC ตกอยู่กลาง incident
+"degraded availability for Actions" (15:11–18:01 UTC) · Docs 3 run กับ Preview 1 run แดงหมด
+โดยไม่มี step ไหนรัน และ deploy ค้างคิว 10 ชั่วโมง · หลัง GitHub ยืนยัน recovery ยิง
+`gh workflow run --ref main` ใหม่ ผ่านทุก step ทันที เนื้อหา commit เดิมไม่ได้แก้อะไรเลย
+· ตรวจว่า prod เปลี่ยนจริงด้วย entry chunk: `curl -s <url>/ | grep -o '"#entry":"[^"]*"'`
+ต้องเปลี่ยนจากค่าเดิม
+
 ### Service Account Key หมดอายุ / ไม่ถูกต้อง
 
 ถ้า CI fail ด้วย `Failed to authenticate`:
