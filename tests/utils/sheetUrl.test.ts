@@ -1,5 +1,5 @@
 /**
- * Tests for app/utils/sheetUrl.ts
+ * Tests for shared/utils/sheetUrl.ts
  *
  * Two shapes go in — a document URL and a "publish to the web" URL — and the
  * pair are not interchangeable: the published id under `/d/e/…` is a different
@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { parseSheetUrl, toSheetEmbedUrl, extractSheetId, isValidSheetUrl } from '../../app/utils/sheetUrl'
+import { parseSheetUrl, toSheetEmbedUrl, extractSheetId, isValidSheetUrl, sheetProbeUrl } from '../../shared/utils/sheetUrl'
 
 const FILE_ID = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
 const PUBLISHED_ID = '2PACX-1vShmrFx35RtYdfEeHDCEzsZNSyaPYxqdjAb77CR030Gdr064_kSBSS3P_LkI3ovtIjbVRdclV5zswxT'
@@ -107,6 +107,29 @@ describe('parseSheetUrl — rejections', () => {
     expect(result.embedUrl).toBeNull()
     expect(result.sheetId).toBeNull()
     expect(result.error).toContain('docs.google.com/spreadsheets')
+  })
+})
+
+describe('sheetProbeUrl', () => {
+  it('probes CSV export for a document URL — 401 before link sharing, 200 after (S1.10)', () => {
+    expect(sheetProbeUrl(docUrl()))
+      .toBe(`https://docs.google.com/spreadsheets/d/${FILE_ID}/export?format=csv`)
+  })
+
+  it('probes /pub?output=csv for a published URL, which has no /export', () => {
+    expect(sheetProbeUrl(publishedUrl()))
+      .toBe(`https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}/pub?output=csv`)
+  })
+
+  it('returns null for a URL that does not parse — never probe an unvalidated host', () => {
+    expect(sheetProbeUrl('https://docs.google.com.evil.test/spreadsheets/d/abc/edit')).toBeNull()
+    expect(sheetProbeUrl('')).toBeNull()
+  })
+
+  it('always builds the probe on docs.google.com, whatever came in', () => {
+    for (const url of [docUrl(), publishedUrl(), docUrl('/edit?usp=sharing')]) {
+      expect(new URL(sheetProbeUrl(url)!).origin).toBe('https://docs.google.com')
+    }
   })
 })
 

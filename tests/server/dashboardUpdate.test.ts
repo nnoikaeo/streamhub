@@ -115,6 +115,42 @@ describe('PUT /api/mock/dashboards/:id', () => {
         }))
     })
 
+    it('should save the sheet fields', async () => {
+        // `type`, `sheetEmbedUrl` and `sheetEmbedMode` were not in allowedFields
+        // when Sheets support landed. A field missing from that list is dropped
+        // silently — the PUT returns 200 and the change is simply gone.
+        const body = {
+            type: 'sheet',
+            sheetEmbedUrl: 'https://docs.google.com/spreadsheets/d/file_id/edit?rm=minimal&widget=true&headers=false',
+            sheetEmbedMode: 'interactive',
+        }
+        const event = createMockEvent('dash_001', body)
+
+        vi.mocked(findById)
+            .mockResolvedValueOnce(existingDashboard)
+            .mockResolvedValueOnce(auditUser)
+        vi.mocked(updateItem).mockResolvedValue({ ...existingDashboard, ...body })
+
+        await handler(event)
+
+        expect(updateItem).toHaveBeenCalledWith('dashboards.json', 'dash_001', expect.objectContaining(body))
+    })
+
+    it('should still ignore fields outside the allowed list', async () => {
+        const event = createMockEvent('dash_001', { name: 'New Name', id: 'dash_hijack', createdAt: 'nope' })
+
+        vi.mocked(findById)
+            .mockResolvedValueOnce(existingDashboard)
+            .mockResolvedValueOnce(auditUser)
+        vi.mocked(updateItem).mockResolvedValue(existingDashboard)
+
+        await handler(event)
+
+        const updates = vi.mocked(updateItem).mock.calls[0]![2] as Record<string, unknown>
+        expect(updates).not.toHaveProperty('id')
+        expect(updates).not.toHaveProperty('createdAt')
+    })
+
     it('should set updatedAt timestamp', async () => {
         const body = { name: 'Updated' }
         const event = createMockEvent('dash_001', body)

@@ -1,7 +1,12 @@
 /**
  * Google Sheets URL Validation & Parsing Utility
  *
- * Parallel to lookerUrl.ts, with one difference that drove the design: the
+ * In shared/ rather than app/utils next to lookerUrl.ts because the server
+ * parses these too: the sharing check (POST /api/sheet/check-sharing) probes a
+ * URL built from the same parse, and a second copy of that regex is exactly
+ * how a host check drifts.
+ *
+ * One difference from lookerUrl.ts drove the design: the
  * embed URL is stored whole, never rebuilt from an id. A published sheet is
  * served under `/d/e/2PACX-…`, which is not the file id and cannot be derived
  * from it (spike S1.6).
@@ -105,6 +110,25 @@ export function toSheetEmbedUrl(url: string, mode: SheetEmbedMode = 'interactive
  */
 export function extractSheetId(url: string): string | null {
   return parseSheetUrl(url).sheetId
+}
+
+/**
+ * The URL to probe when checking whether a sheet is link-shared.
+ *
+ * CSV export rather than the embed URL itself: measured unauthenticated, it
+ * answers 401 before the sheet is link-shared and 200 after, for both URL
+ * shapes (S1.10, S1.6). The embed URL answers 200 either way and renders the
+ * refusal inside the frame, which is unreadable from the server.
+ *
+ * `null` for a URL that does not parse — never probe an unvalidated host.
+ */
+export function sheetProbeUrl(url: string): string | null {
+  const info = parseSheetUrl(url)
+  if (!info.isValid || !info.sheetId) return null
+
+  return info.isPublished
+    ? `https://docs.google.com/spreadsheets/d/e/${info.sheetId}/pub?output=csv`
+    : `https://docs.google.com/spreadsheets/d/${info.sheetId}/export?format=csv`
 }
 
 /**
