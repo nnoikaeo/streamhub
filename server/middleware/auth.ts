@@ -5,10 +5,12 @@ import { sendUnauthorized } from '../utils/apiResponse'
 
 /**
  * Routes that require authentication.
- * All /api/mock/* and /api/looker/* routes are protected.
+ * All /api/mock/*, /api/looker/* and /api/sheet/* routes are protected —
+ * /api/sheet/check-sharing makes an outbound request, so leaving it open would
+ * hand anyone a URL prober running on our IP.
  * /api/invitations/* are the Firestore-native invitation handlers (production).
  */
-const PROTECTED_PREFIXES = ['/api/mock/', '/api/looker/', '/api/embed/request', '/api/audit', '/api/invitations', '/api/health']
+const PROTECTED_PREFIXES = ['/api/mock/', '/api/looker/', '/api/embed/request', '/api/sheet/', '/api/audit', '/api/invitations', '/api/health']
 
 /**
  * Routes to skip auth even if they match protected prefixes.

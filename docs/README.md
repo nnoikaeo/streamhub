@@ -76,9 +76,9 @@ its row.
 | [deployment.md](OPERATIONS/deployment.md) | Deploy procedures, CI/CD, rollback |
 | [manual-test-plan.md](OPERATIONS/manual-test-plan.md) | Manual QA cases by role, and the BUG-0xx register |
 | [pre-launch-checklist.md](OPERATIONS/pre-launch-checklist.md) | A–E test groups, launch sign-off |
-| [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md) | Sharing rules for new Looker reports, and why the 30 existing ones cannot be fixed (BUG-032) |
-| [google-sheets-spike-plan.md](OPERATIONS/google-sheets-spike-plan.md) | Test plan for the three ways to support Google Sheets — run it on `feat/google-sheets-spike`, then decide |
-| [google-sheets-embed-plan.md](OPERATIONS/google-sheets-embed-plan.md) | Implementation plan for embedding link-shared Google Sheets (the option the spike picked) |
+| [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md) | Sharing rules for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
+| [google-sheets-spike-plan.md](OPERATIONS/google-sheets-spike-plan.md) | What was measured about the three ways to support Google Sheets — every option, every number |
+| [google-sheets-embed-plan.md](OPERATIONS/google-sheets-embed-plan.md) | The plan Sheets embeds were built from, and what the build did differently — P1–P5 done |
 | [versioning.md](OPERATIONS/versioning.md) | Version numbering policy |
 
 ### archive/ — finished plans, kept as history
@@ -129,7 +129,7 @@ the snippets predate the current types.
 | change styling | [DESIGN_SYSTEM.md](DESIGN/DESIGN_SYSTEM.md) |
 | understand the data model | [database-schema.md](GUIDES/database-schema.md) |
 | ship a change | [workflow.md](CONTRIBUTING/workflow.md), then [deployment.md](OPERATIONS/deployment.md) |
-| debug a Looker embed | [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md), [common-issues.md](TROUBLESHOOTING/common-issues.md) |
+| debug a Looker or Sheets embed | [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md), [common-issues.md](TROUBLESHOOTING/common-issues.md) |
 
 ---
 

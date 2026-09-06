@@ -31,6 +31,7 @@ export default defineEventHandler((event: H3Event) => {
     event,
     'Content-Security-Policy',
     "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com " +
+      "https://docs.google.com " +
       `https://*.firebaseapp.com https://*.googleapis.com${authFrameSrc}; frame-ancestors 'self'`
   )
 

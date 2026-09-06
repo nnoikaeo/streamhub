@@ -29,6 +29,7 @@ function storedDashboard(id: string, company: string[], folderId = 'folder_001')
     access: { direct: { users: [], groups: [] }, company },
     restrictions: { revoke: [], expiry: {} },
     lookerEmbedUrl: `https://lookerstudio.google.com/embed/${id}`,
+    sheetEmbedUrl: `https://docs.google.com/spreadsheets/d/${id}/edit?rm=minimal`,
   }
 }
 
@@ -97,13 +98,18 @@ describe('GET /api/mock/dashboards — no-uid fallback', () => {
     expect(result.data).toHaveLength(4)
   })
 
-  it('strips lookerEmbedUrl from the listing', async () => {
+  it('strips every embed URL from the listing', async () => {
+    // A sheet URL leaking here is worse than a looker one: a link-shared sheet
+    // answers export?format=csv|xlsx|pdf to anyone holding the URL with no
+    // login, so the URL is the whole file rather than a rendered report.
     vi.stubGlobal('getQuery', () => ({ company: 'STTH' }))
 
     const result = expectListing(await handler(makeEvent()))
 
+    expect(result.data).not.toHaveLength(0)
     for (const dashboard of result.data) {
       expect(dashboard).not.toHaveProperty('lookerEmbedUrl')
+      expect(dashboard).not.toHaveProperty('sheetEmbedUrl')
     }
   })
 
