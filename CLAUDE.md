@@ -111,7 +111,7 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | [docs/OPERATIONS/manual-test-plan.md](docs/OPERATIONS/manual-test-plan.md) | Manual QA test cases by role |
 | [docs/OPERATIONS/looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) | Sharing policy for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
 | [docs/OPERATIONS/google-sheets-spike-plan.md](docs/OPERATIONS/google-sheets-spike-plan.md) | What was measured about embedding Google Sheets — every option, every number |
-| [docs/OPERATIONS/google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md) | The plan Sheets embeds were built from — P1–P4 done, P5 is manual Safari testing |
+| [docs/OPERATIONS/google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md) | The plan Sheets embeds were built from, and what the build did differently — P1–P5 done |
 
 ### Reference
 

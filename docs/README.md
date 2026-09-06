@@ -78,7 +78,7 @@ its row.
 | [pre-launch-checklist.md](OPERATIONS/pre-launch-checklist.md) | A–E test groups, launch sign-off |
 | [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md) | Sharing rules for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
 | [google-sheets-spike-plan.md](OPERATIONS/google-sheets-spike-plan.md) | What was measured about the three ways to support Google Sheets — every option, every number |
-| [google-sheets-embed-plan.md](OPERATIONS/google-sheets-embed-plan.md) | Implementation plan for embedding link-shared Google Sheets — P1–P4 built, P5 is manual Safari testing |
+| [google-sheets-embed-plan.md](OPERATIONS/google-sheets-embed-plan.md) | The plan Sheets embeds were built from, and what the build did differently — P1–P5 done |
 | [versioning.md](OPERATIONS/versioning.md) | Version numbering policy |
 
 ### archive/ — finished plans, kept as history
