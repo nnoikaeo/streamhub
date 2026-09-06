@@ -23,13 +23,12 @@
         {{ dashboard.name }}
         <span v-if="dashboard.isArchived" class="archived-badge">เก็บถาวร</span>
       </h3>
-      <div class="card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7" />
-          <rect x="14" y="3" width="7" height="7" />
-          <rect x="14" y="14" width="7" height="7" />
-          <rect x="3" y="14" width="7" height="7" />
-        </svg>
+      <div
+        class="card-icon"
+        :class="{ 'card-icon--sheet': dashboard.type === 'sheet' }"
+        :title="dashboard.type === 'sheet' ? 'Google Sheets' : 'Looker Studio'"
+      >
+        <DashboardTypeIcon :type="dashboard.type" variant="outline" />
       </div>
     </div>
 
@@ -94,6 +93,7 @@ import type { Tag } from '../../types/tag'
 import { useTagStore } from '~/stores/tags'
 import TagBadge from './TagBadge.vue'
 import DashboardPreview from './DashboardPreview.vue'
+import DashboardTypeIcon from './DashboardTypeIcon.vue'
 
 /**
  * DashboardCard - Individual dashboard card component
@@ -242,6 +242,12 @@ const companyTooltip = computed(() => {
   color: var(--color-neutral-400);
 }
 
+.card-icon--sheet {
+  /* Google Sheets green. The card's icon is otherwise a neutral grey mark, so
+     colour is what makes the type readable without hovering for the title. */
+  color: #0f9d58;
+}
+
 .card-icon svg {
   width: 1.5rem;
   height: 1.5rem;
@@ -354,7 +360,13 @@ const companyTooltip = computed(() => {
     height: 1.5rem;
   }
 
-  .card-icon svg {
+  .card-icon--sheet {
+  /* Google Sheets green. The card's icon is otherwise a neutral grey mark, so
+     colour is what makes the type readable without hovering for the title. */
+  color: #0f9d58;
+}
+
+.card-icon svg {
     width: 1.25rem;
     height: 1.25rem;
   }
@@ -385,7 +397,13 @@ const companyTooltip = computed(() => {
   height: 1.25rem;
 }
 
-.dashboard-card--compact .card-icon svg {
+.dashboard-card--compact .card-icon--sheet {
+  /* Google Sheets green. The card's icon is otherwise a neutral grey mark, so
+     colour is what makes the type readable without hovering for the title. */
+  color: #0f9d58;
+}
+
+.card-icon svg {
   width: 1rem;
   height: 1rem;
 }
