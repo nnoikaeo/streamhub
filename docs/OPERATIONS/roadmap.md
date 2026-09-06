@@ -241,6 +241,20 @@
 - [x] **Two unreachable code paths deleted** (PR #371) — `MockDashboardService` (~510 lines) sat behind `else` in `useDashboardService`, but `useServiceMode` exposes exactly two modes (`isMock = !isFirestore`), so the `else if (useJsonMock)` before it was already exhaustive and the branch could never run. It was not inert: its access check read `if (access.company.length === 0) return true` — "no company means everyone" — the pre-DESIGN-001 rule, so wiring it back up would have handed out public access to every private dashboard. `useAdminInvitations`' `fetchByCompany` / `fetchByStatus` went too: both `GET /api/invitations`, which has no handler (`server/api/invitations/` has no `index.get.ts`), and nothing called either — the list page reads Firestore through `useAdminResource.fetch`
 - [x] **`scripts/` brought under a compiler** (PR #370) — the same gap `tests/` had before #357: none of the four generated `.nuxt/tsconfig.*` projects covers `scripts/`, so `seed-firestore.ts` had never been typechecked and carried a real `TS2345` (`convertDatesToTimestamps` took `Record<string, unknown>` but its own recursive call passes a value narrowed to `object`, which has no index signature). Covers `.ts` only — `allowJs` + `checkJs` over the five `.mjs` scripts reports 70 errors, every one of them inference noise rather than a defect
 
+### Phase 10: Google Sheets Embeds ✅ COMPLETED
+
+**Goal:** Let a dashboard be a link-shared Google Sheet, not only a Looker report
+
+Decided 2026-09-06 after the measurement spike ([google-sheets-spike-plan.md](google-sheets-spike-plan.md)); built to [google-sheets-embed-plan.md](google-sheets-embed-plan.md).
+
+- [x] **Sheets through the existing embed-token pipe** (PR #472) — `Dashboard.type` widened to `'looker' | 'sheet'`; the URL is stored whole (`sheetEmbedUrl`) because a published sheet is served under `/d/e/2PACX-…`, a different id from the file id and not derivable from it. The AES-256-GCM seal, the session cookie and the 302 needed no change — none of them knew about domains
+- [x] **The response strip became one list** — `lookerEmbedUrl` had been stripped at three sites with the field name spelled out in each. One missed `sheetEmbedUrl` leaks the URL out of the API listing and voids the embed token, so `EMBED_URL_FIELDS` in `shared/utils/embedUrl.ts` holds the list. A **fourth site the plan had not listed** (`[id]/embed-url.get.ts`) named the looker field directly and would have answered `null` for every sheet dashboard
+- [x] **`POST /api/sheet/check-sharing`** — probes the sheet's CSV export from the server with no credentials attached (200 = link-shared, 401 = not). Admin/moderator only, and the probe URL is rebuilt from the parsed sheet id rather than taken from the request body, so it cannot be used as a URL prober on our IP
+- [x] **Type icons in every list** (PR #473) — `DashboardTypeIcon.vue` holds the type→glyph mapping once, used by the admin explorer, the search dropdown, `DashboardCard` and `DashboardListItem`. Before it, the workaround for telling a sheet from a report was writing the type into the dashboard's name
+- [x] **Manual testing found two bugs nothing automated could see** — the segmented pickers showed no selection at all (BUG-033: `main.css` forces background and colour onto every `button` not named in its exclusion list, which is exactly how those controls mark the selected option), and the sharing check was advisory rather than a guard (BUG-034: it reported 401 and the form saved anyway, producing the Safari dead-end it exists to prevent)
+
+**Not done, deliberately:** Drive permission sync, writing back to a sheet, Google Docs/Slides. A type filter on Discover was considered and deferred — the icons answer the question a filter would, and one sheet among thirty dashboards does not need one yet.
+
 ---
 
 ## Remaining Backlog (non-blocking)
@@ -354,6 +368,7 @@ Thumbnail API under `server/api/thumbnail/`:
 - [x] Users Management functional (CRUD + invitations)
 - [x] Dashboard Management working (CRUD + permissions)
 - [x] Looker Studio URL input, validation, and live embed preview
+- [x] Google Sheets embeds: link-shared sheets through the same embed-token pipe, with an automatic sharing check that blocks saving an unshared sheet
 - [x] Role-based access control working (permissions store)
 - [x] Tag system: Admin CRUD, Moderator assign, User filter
 - [x] Sidebar navigation: role-based menus

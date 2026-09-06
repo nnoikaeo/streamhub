@@ -269,6 +269,27 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 
 ---
 
+### DashboardTypeIcon
+
+**File:** `app/components/features/DashboardTypeIcon.vue`
+
+**Purpose:** Draw the glyph for a dashboard's embed type, so a Google Sheet and a Looker report are distinguishable in a list
+
+**Props:**
+
+- `type?: DashboardType` - `'looker'` (four-panel report grid) or `'sheet'` (table with a header row); defaults to `looker`, which is what every dashboard predating Sheets support is
+- `variant?: 'solid' | 'outline'` - default `solid`
+
+**Why a component and not an inline `<svg>`:** the mapping from type to glyph must be identical everywhere. A sheet that looks like a Looker report in one list but not another is worse than all of them showing the same icon, which is exactly what happened before this existed — the workaround was writing the type into the dashboard's own name.
+
+**Why `variant`:** the surrounding icons differ. The explorer lists sit beside a solid folder glyph; `DashboardCard` draws outline icons. Neither has to adopt the other's style to share the mapping.
+
+**Shape changes as well as colour** (blue/grey for Looker, Google Sheets green for a sheet) — green alone is not readable for someone who cannot separate it from blue.
+
+**Used by:** `ExplorerContentsPanel` (admin explorer rows), `ExplorerPage` (search-results dropdown), `DashboardCard` (`variant="outline"`), and `DashboardListItem`, which covers both the flat and grouped list views on Discover. On Discover's list view the swatch is a gradient derived from the dashboard's name and says nothing about the type, so the glyph is drawn on the swatch in white — readable on every colour the name hash can produce.
+
+---
+
 ### TagBadge
 
 **File:** `app/components/features/TagBadge.vue`
