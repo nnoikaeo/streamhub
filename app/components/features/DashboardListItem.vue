@@ -6,8 +6,16 @@
     @click="$emit('view')"
     @keydown.enter="$emit('view')"
   >
-    <!-- Color Swatch -->
-    <div class="list-item__swatch" :style="{ background: swatchGradient }" />
+    <!-- Colour swatch, with the embed type drawn on it. The gradient is derived
+         from the name and says nothing about the type, so on its own a sheet
+         and a Looker report were indistinguishable in this view. -->
+    <div
+      class="list-item__swatch"
+      :style="{ background: swatchGradient }"
+      :title="dashboard.type === 'sheet' ? 'Google Sheets' : 'Looker Studio'"
+    >
+      <DashboardTypeIcon :type="dashboard.type" />
+    </div>
 
     <!-- Name -->
     <span class="list-item__name">
@@ -55,6 +63,7 @@ import type { Tag } from '~/types/tag'
 import type { ListColumn } from './DashboardList.vue'
 import { useTagStore } from '~/stores/tags'
 import TagBadge from './TagBadge.vue'
+import DashboardTypeIcon from './DashboardTypeIcon.vue'
 
 const props = defineProps<{
   dashboard: Dashboard
@@ -142,9 +151,21 @@ const swatchGradient = computed(() => {
 /* ---- Color Swatch ---- */
 .list-item__swatch {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
   border-radius: var(--radius-sm, 6px);
+}
+
+.list-item__swatch svg {
+  width: 18px;
+  height: 18px;
+  /* White on every gradient the hash can produce — the swatch colours are all
+     60%/40% lightness, so a mid-tone glyph would vanish on some of them. */
+  color: #fff;
+  opacity: 0.95;
 }
 
 /* ---- Name ---- */

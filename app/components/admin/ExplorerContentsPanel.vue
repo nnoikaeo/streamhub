@@ -227,10 +227,12 @@ const gridColumns = computed(() =>
       >
         <span class="col-name col-name--stacked">
           <span class="name-line">
-            <span class="item-icon item-icon--dashboard">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-              </svg>
+            <span
+              class="item-icon"
+              :class="dashboard.type === 'sheet' ? 'item-icon--sheet' : 'item-icon--dashboard'"
+              :title="dashboard.type === 'sheet' ? 'Google Sheets' : 'Looker Studio'"
+            >
+              <DashboardTypeIcon :type="dashboard.type" />
             </span>
             <span class="item-name">{{ dashboard.name }}</span>
           </span>
@@ -419,6 +421,12 @@ const gridColumns = computed(() =>
 
 .item-icon--dashboard {
   color: #3b82f6;
+}
+
+.item-icon--sheet {
+  /* Google Sheets green — the point is telling the two apart at a glance, so
+     the glyph and the colour both change. */
+  color: #0f9d58;
 }
 
 .item-name {
