@@ -77,6 +77,8 @@ its row.
 | [manual-test-plan.md](OPERATIONS/manual-test-plan.md) | Manual QA cases by role, and the BUG-0xx register |
 | [pre-launch-checklist.md](OPERATIONS/pre-launch-checklist.md) | A–E test groups, launch sign-off |
 | [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md) | Sharing rules for new Looker reports, and why the 30 existing ones cannot be fixed (BUG-032) |
+| [google-sheets-spike-plan.md](OPERATIONS/google-sheets-spike-plan.md) | Test plan for the three ways to support Google Sheets — run it on `feat/google-sheets-spike`, then decide |
+| [google-sheets-embed-plan.md](OPERATIONS/google-sheets-embed-plan.md) | Implementation plan for embedding link-shared Google Sheets (the option the spike picked) |
 | [versioning.md](OPERATIONS/versioning.md) | Version numbering policy |
 
 ### archive/ — finished plans, kept as history
