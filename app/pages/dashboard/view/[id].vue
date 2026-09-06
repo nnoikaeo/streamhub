@@ -1079,6 +1079,13 @@ onUnmounted(() => {
   color: var(--color-primary);
 }
 
+.badge-sheet {
+  /* Without this the sidebar's Type badge renders as bare text for every sheet
+     dashboard — `.badge` alone sets no background or colour. */
+  background: var(--color-bg-success);
+  color: var(--color-success);
+}
+
 .badge-custom {
   background: var(--color-bg-warning);
   color: var(--color-warning);
