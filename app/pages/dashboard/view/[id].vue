@@ -153,7 +153,10 @@
         </DashboardViewHeader>
 
         <!-- Third-party cookie hint (Safari only) -->
-        <div v-if="showCookieHint && embedUrl && !immersive" class="cookie-hint" role="note">
+        <!-- Looker only. A sheet that passed the sharing check opens on Safari
+             like anywhere else, so showing the bar there would teach the user a
+             restriction that does not apply to what is on screen. -->
+        <div v-if="showCookieHint && isLookerEmbed && embedUrl && !immersive" class="cookie-hint" role="note">
           <span class="cookie-hint-text">
             รายงานไม่แสดง? Safari บล็อกคุกกี้ข้ามไซต์ที่ Looker ใช้ยืนยันสิทธิ์ —
             ปิด "ป้องกันการติดตามข้ามไซต์" ที่ ตั้งค่า &gt; แอป &gt; Safari
@@ -263,7 +266,7 @@
                 :src="embedUrl"
                 class="embed-iframe"
                 :style="embedZoomStyle"
-                title="Looker Dashboard"
+                :title="embedTitle"
                 frameborder="0"
                 referrerpolicy="no-referrer"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation allow-storage-access-by-user-activation"
@@ -283,8 +286,8 @@
                 <line x1="3" y1="9" x2="21" y2="9" />
                 <line x1="9" y1="3" x2="9" y2="21" />
               </svg>
-              <h2>Looker Dashboard</h2>
-              <p>Looker dashboard embed URL not configured</p>
+              <h2>{{ embedTitle }}</h2>
+              <p>{{ isLookerEmbed ? 'Looker dashboard embed URL not configured' : 'Google Sheets embed URL not configured' }}</p>
               <div class="placeholder-info">
                 <strong>Dashboard ID:</strong> {{ dashboard.id }}
               </div>
@@ -414,6 +417,11 @@ const initCookieHint = () => {
 
 // Computed properties
 const dashboardId = computed(() => route.params.id as string)
+
+// `type` is optional on older stored rows, so absent means looker — that is
+// what every dashboard was before Sheets existed.
+const isLookerEmbed = computed(() => dashboard.value?.type !== 'sheet')
+const embedTitle = computed(() => (isLookerEmbed.value ? 'Looker Dashboard' : 'Google Sheet'))
 const currentUserId = computed(() => user.value?.uid || '')
 const currentUserRole = computed(() => user.value?.role || 'user')
 
@@ -423,19 +431,9 @@ const watermarkStyle = computed(() => ({
   transform: `translate(${watermarkOffset.value.x}px, ${watermarkOffset.value.y}px)`,
 }))
 
-// Keep the iframe as wide as the pane but proportionally taller, then scale the
-// whole thing back down: the report keeps fitting the (unchanged) iframe width,
-// so the extra height translates into more visible rows. `left` re-centres the
-// now-narrower result inside the pane.
-const embedZoomStyle = computed(() => {
-  const zoom = embedZoom.value
-  if (zoom === 1) return {}
-  return {
-    height: `${100 / zoom}%`,
-    transform: `scale(${zoom})`,
-    left: `${(1 - zoom) * 50}%`,
-  }
-})
+// Zoom geometry differs per embed type — see app/utils/embedZoom.ts for why the
+// two formulas are opposites.
+const embedZoomStyle = computed(() => getEmbedZoomStyle(embedZoom.value, dashboard.value?.type))
 
 const ownerName = computed(() => {
   if (owner.value) {

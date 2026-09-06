@@ -4,17 +4,18 @@
  * Form for creating and editing dashboards in admin panel
  *
  * Features:
- * - Fields: Name, Description, Folder, Looker Dashboard ID, Looker Embed URL, Archived
- * - All dashboards are Looker type
+ * - Fields: Name, Description, Folder, type-specific embed URL, Archived
+ * - Type is looker or sheet; the URL input swaps with it
  * - Uses FormField component for consistent styling
  */
 
-import type { Dashboard, Folder, User } from '~/types/dashboard'
+import type { Dashboard, DashboardType, Folder, SheetEmbedMode, User } from '~/types/dashboard'
 import type { Tag } from '~/types/tag'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAuthStore } from '~/stores/auth'
 import { createObjectValidator, validators } from '~/utils/formValidators'
 import LookerUrlInput from '~/components/features/LookerUrlInput.vue'
+import SheetUrlInput from '~/components/features/SheetUrlInput.vue'
 import { onMounted } from 'vue'
 
 interface Props {
@@ -83,10 +84,12 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     id: props.dashboard?.id || `dash_${Date.now()}`,
     name: props.dashboard?.name || '',
     description: props.dashboard?.description || '',
-    type: 'looker' as const,
+    type: (props.dashboard?.type || 'looker') as DashboardType,
     folderId: props.lockedFolderId || props.dashboard?.folderId || props.defaultFolderId || '',
     lookerDashboardId: props.dashboard?.lookerDashboardId || '',
     lookerEmbedUrl: props.dashboard?.lookerEmbedUrl || '',
+    sheetEmbedUrl: props.dashboard?.sheetEmbedUrl || '',
+    sheetEmbedMode: (props.dashboard?.sheetEmbedMode || 'interactive') as SheetEmbedMode,
     isArchived: props.dashboard?.isArchived ?? false,
     owner: props.dashboard?.owner || authStore.user?.uid || '',
     tags: props.dashboard?.tags ?? [],
@@ -100,6 +103,18 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
 })
 
 const isEditMode = computed(() => !!props.dashboard)
+
+const typeOptions: { label: string, value: DashboardType, hint: string }[] = [
+  { label: 'Looker Studio', value: 'looker', hint: 'รายงาน Looker' },
+  { label: 'Google Sheets', value: 'sheet', hint: 'ชีตที่แชร์ลิงก์' },
+]
+
+// The other type's URL is deliberately kept, not cleared: switching type by
+// mistake and switching back should not have thrown the URL away. The server
+// reads only the field matching `type`, so the leftover is inert.
+const setType = (type: DashboardType) => {
+  formData.type = type
+}
 
 const ownerDisplayName = computed(() => {
   if (!formData.owner) return '-'
@@ -174,13 +189,41 @@ onMounted(async () => {
       />
     </div>
 
-    <!-- Looker URL Input -->
+    <!-- Embed type -->
+    <div class="form-field-group">
+      <label class="form-label">ชนิดแดชบอร์ด</label>
+      <div class="type-options" role="group" aria-label="ชนิดแดชบอร์ด">
+        <button
+          v-for="option in typeOptions"
+          :key="option.value"
+          type="button"
+          class="type-button"
+          :class="{ 'type-button--active': formData.type === option.value }"
+          @click="setType(option.value)"
+        >
+          {{ option.label }}
+          <span class="type-hint">{{ option.hint }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Embed URL input, by type -->
     <LookerUrlInput
+      v-if="formData.type === 'looker'"
       :model-value="formData.lookerEmbedUrl"
       :show-preview="true"
       :preview-height="300"
       @update:model-value="formData.lookerEmbedUrl = $event"
       @update:report-id="formData.lookerDashboardId = $event || ''"
+    />
+    <SheetUrlInput
+      v-else
+      :model-value="formData.sheetEmbedUrl"
+      :mode="formData.sheetEmbedMode"
+      :show-preview="true"
+      :preview-height="300"
+      @update:model-value="formData.sheetEmbedUrl = $event"
+      @update:mode="formData.sheetEmbedMode = $event"
     />
 
     <!-- Edit-only fields -->
@@ -226,6 +269,41 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs, 0.25rem);
+}
+
+.type-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.type-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--color-text-secondary, #6b7280);
+  background: var(--color-bg-secondary, #f3f4f6);
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: var(--radius-md, 0.375rem);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.type-button--active {
+  color: var(--color-primary, #3b82f6);
+  background: var(--color-bg-info, #eff6ff);
+  border-color: var(--color-primary, #3b82f6);
+}
+
+.type-hint {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--color-text-secondary, #94a3b8);
 }
 
 .form-label {
