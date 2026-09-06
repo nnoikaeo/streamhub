@@ -1,8 +1,8 @@
 # แผนทดสอบ: รองรับ Google Sheets ใน StreamHub
 
-> **สถานะ: ยังไม่ตัดสินใจ** — เอกสารนี้คือแผนทดสอบ 3 ทางเลือก เพื่อเก็บข้อมูลจริงมาตัดสินใจ ไม่ใช่แผน implement
+> **สถานะ: ทดสอบจบแล้ว ตัดสินใจแล้ว** — เอกสารนี้คือบันทึกการวัด 3 ทางเลือก ไม่ใช่แผน implement (แผนอยู่ที่ [google-sheets-embed-plan.md](google-sheets-embed-plan.md))
 >
-> branch สำหรับทดสอบ: `feat/google-sheets-spike` (แตกจาก `develop`) · โค้ด spike ทุกชิ้น**อยู่แค่บน branch นี้** ไม่ merge เข้า `develop` จนกว่าจะเลือกทางได้
+> เดิมตั้งใจให้โค้ด spike อยู่แค่บน `feat/google-sheets-spike` · **เปลี่ยนเป็น merge เข้ามาด้วย** เพราะ `spike-sheets-iframe.html` เป็นของที่ P5 ใช้ทดสอบมือจริง และสคริปต์อ่านชีตเป็น read-only ทั้งคู่
 >
 > พื้นหลัง: [looker-sharing-policy.md](looker-sharing-policy.md) · [BUG-032](manual-test-plan.md)
 
