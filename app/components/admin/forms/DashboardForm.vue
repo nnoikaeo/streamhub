@@ -10,13 +10,14 @@
  */
 
 import type { Dashboard, DashboardType, Folder, SheetEmbedMode, User } from '~/types/dashboard'
+import { sheetSaveBlockReason, type SheetSharingStatus } from '~/utils/sheetSharingGuard'
 import type { Tag } from '~/types/tag'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAuthStore } from '~/stores/auth'
 import { createObjectValidator, validators } from '~/utils/formValidators'
 import LookerUrlInput from '~/components/features/LookerUrlInput.vue'
 import SheetUrlInput from '~/components/features/SheetUrlInput.vue'
-import { onMounted } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 
 interface Props {
   dashboard?: Dashboard | null
@@ -79,6 +80,12 @@ const baseValidate = createObjectValidator({
   folderId: [(value) => validators.required(value, 'โฟลเดอร์')],
 })
 
+// What SheetUrlInput's sharing check last found. Held here rather than inside
+// the input because it decides whether the form may be submitted at all: a
+// sheet that is not link-shared opens for nobody on Safari or iOS, and the
+// check is only advice unless saving stops.
+const sheetSharing = ref<SheetSharingStatus>('unknown')
+
 const { formData, errors, handleSubmit, setFieldTouched } = useForm({
   initialValues: {
     id: props.dashboard?.id || `dash_${Date.now()}`,
@@ -95,11 +102,25 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     tags: props.dashboard?.tags ?? [],
   },
   validate: (values) => {
-    return baseValidate(values)
+    const errors = baseValidate(values)
+    const blocked = sheetSaveBlockReason(values.type, sheetSharing.value)
+    if (blocked) {
+      errors.sheetEmbedUrl = blocked
+    }
+    return errors
   },
   onSubmit: async (values) => {
     emit('submit', values)
   },
+})
+
+// useForm re-validates on formData changes only, and `sheetSharing` lives
+// outside it — without this, the block message stayed on screen after the user
+// shared the sheet and re-checked, even though saving already worked again.
+watch(sheetSharing, (status) => {
+  if (errors.value.sheetEmbedUrl && !sheetSaveBlockReason(formData.type, status)) {
+    errors.value.sheetEmbedUrl = undefined
+  }
 })
 
 const isEditMode = computed(() => !!props.dashboard)
@@ -216,15 +237,18 @@ onMounted(async () => {
       @update:model-value="formData.lookerEmbedUrl = $event"
       @update:report-id="formData.lookerDashboardId = $event || ''"
     />
-    <SheetUrlInput
-      v-else
-      :model-value="formData.sheetEmbedUrl"
-      :mode="formData.sheetEmbedMode"
-      :show-preview="true"
-      :preview-height="300"
-      @update:model-value="formData.sheetEmbedUrl = $event"
-      @update:mode="formData.sheetEmbedMode = $event"
-    />
+    <div v-else class="form-field-group">
+      <SheetUrlInput
+        :model-value="formData.sheetEmbedUrl"
+        :mode="formData.sheetEmbedMode"
+        :show-preview="true"
+        :preview-height="300"
+        @update:model-value="formData.sheetEmbedUrl = $event"
+        @update:mode="formData.sheetEmbedMode = $event"
+        @update:sharing="sheetSharing = $event"
+      />
+      <p v-if="errors.sheetEmbedUrl" class="form-error">{{ errors.sheetEmbedUrl }}</p>
+    </div>
 
     <!-- Edit-only fields -->
     <template v-if="isEditMode">
@@ -269,6 +293,13 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs, 0.25rem);
+}
+
+.form-error {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--color-error, #ef4444);
 }
 
 .type-options {

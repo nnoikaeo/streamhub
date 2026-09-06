@@ -18,8 +18,9 @@
  * public does not belong here at all.
  */
 
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import type { SheetEmbedMode } from '~/types/dashboard'
+import type { SheetSharingStatus } from '~/utils/sheetSharingGuard'
 import { useAuth } from '~/composables/useAuth'
 
 // parseSheetUrl comes from shared/utils, auto-imported into app and server
@@ -41,6 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:modelValue': [value: string]
   'update:mode': [value: SheetEmbedMode]
+  'update:sharing': [value: SheetSharingStatus]
 }>()
 
 interface SharingResult {
@@ -56,6 +58,9 @@ const iframeLoading = ref(false)
 const sharingChecking = ref(false)
 const sharingResult = ref<SharingResult | null>(null)
 const sharingError = ref('')
+
+/** Mirrors the three refs above into the one value the form guards on. */
+const setSharing = (status: SheetSharingStatus) => emit('update:sharing', status)
 
 // Resolved at setup, not inside the handler — a composable called from an async
 // callback is outside the component instance.
@@ -75,9 +80,26 @@ watch([urlInfo, () => props.mode], ([info]) => {
 
 // A new URL invalidates the previous answer. Leaving it on screen is how an
 // admin reads "shared" about a sheet that was never checked.
-watch(() => urlInfo.value.sheetId, () => {
+//
+// The check then runs on its own rather than waiting for the button. A check
+// nobody clicks blocks nothing, and this is the one failure the person adding
+// the dashboard cannot see for themselves. Debounced so typing a URL does not
+// fire a request per keystroke.
+let autoCheckTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(() => urlInfo.value.sheetId, (sheetId) => {
   sharingResult.value = null
   sharingError.value = ''
+  setSharing('unknown')
+
+  if (autoCheckTimer) clearTimeout(autoCheckTimer)
+  if (!sheetId) return
+
+  autoCheckTimer = setTimeout(() => { void checkSharing() }, 800)
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (autoCheckTimer) clearTimeout(autoCheckTimer)
 })
 
 // Sync from parent
@@ -97,6 +119,7 @@ const checkSharing = async () => {
   sharingChecking.value = true
   sharingResult.value = null
   sharingError.value = ''
+  setSharing('checking')
 
   try {
     const token = await getIdToken()
@@ -111,11 +134,14 @@ const checkSharing = async () => {
 
     if (response.success && response.data) {
       sharingResult.value = response.data
+      setSharing(response.data.isLinkShared ? 'shared' : 'not-shared')
     } else {
       sharingError.value = response.message || 'ตรวจสอบไม่สำเร็จ'
+      setSharing('error')
     }
   } catch (error: unknown) {
     sharingError.value = getErrorDataMessage(error) || getErrorMessage(error, 'ตรวจสอบไม่สำเร็จ')
+    setSharing('error')
   } finally {
     sharingChecking.value = false
   }
