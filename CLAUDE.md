@@ -50,6 +50,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - `allow-storage-access-by-user-activation` is on every Looker iframe, but measured on prod it changes nothing — Looker never calls `requestStorageAccess()`. Keep it, don't count on it
 - Sharing by link means anyone holding the Looker URL can open the report without passing StreamHub's permission checks. The URL stays sealed inside the embed token — weigh that against how sensitive the report is
 - **New dashboards: require link sharing + Enable embedding before the report goes in.** Agreed 2026-08-25
+- **Google Sheets embeds are decided but not built** (2026-09-06). Sheets hits the same Safari wall as Looker, and it was measured: a sheet that needs a Google session shows a cookie prompt in the frame, and the prompt's own "allow cookies" button dead-ends — from `http://localhost` too, so it is not a harness artifact. **A sheet must be shared "anyone with the link (viewer)" to be embeddable at all.** Unlike Looker there is no separate embedding switch — Google sets no `X-Frame-Options` on Sheets. The price is bigger than Looker's: a link-shared sheet answers `export?format=csv|xlsx|pdf` and `gviz` to anyone holding the URL with no login, so a leaked link is the whole file, not a rendered report. Plan and the two things easiest to get wrong (three field-strip lists, two CSP files): [google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md)
 - **The 30 reports already in use cannot be changed — we do not own them.** Safari users cannot open those at all; the hint bar is the permanent answer for them, not a stopgap, so do not remove it. Closing the gap for real means asking the report owners, which is a cross-team conversation and not a code change
 
 ---
@@ -98,6 +99,8 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | [docs/OPERATIONS/versioning.md](docs/OPERATIONS/versioning.md) | Version numbering policy |
 | [docs/OPERATIONS/manual-test-plan.md](docs/OPERATIONS/manual-test-plan.md) | Manual QA test cases by role |
 | [docs/OPERATIONS/looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) | Looker sharing policy for new dashboards, and why the 30 existing reports cannot be fixed (BUG-032) |
+| [docs/OPERATIONS/google-sheets-spike-plan.md](docs/OPERATIONS/google-sheets-spike-plan.md) | What was measured about embedding Google Sheets — every option, every number |
+| [docs/OPERATIONS/google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md) | The plan for building Sheets embeds (decided 2026-09-06, not built yet) |
 
 ### Reference
 

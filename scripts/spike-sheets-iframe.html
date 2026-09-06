@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPIKE — Google Sheets ใน iframe</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 16px; line-height: 1.5; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { opacity: .7; font-size: 13px; margin-bottom: 20px; }
+  section { border: 1px solid rgba(128,128,128,.4); border-radius: 10px; padding: 12px; margin-bottom: 20px; }
+  h2 { font-size: 16px; margin: 0 0 2px; }
+  .id { font-size: 12px; opacity: .6; word-break: break-all; margin-bottom: 6px; }
+  .expect { font-size: 13px; background: rgba(128,128,128,.12); padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; }
+  iframe { width: 100%; height: 420px; border: 1px solid rgba(128,128,128,.4); border-radius: 6px; background: #fff; }
+  .why { font-size: 13px; opacity: .85; margin-top: 8px; }
+  b.hit { color: #b00020; }
+</style>
+</head>
+<body>
+
+<h1>SPIKE — Google Sheets ใน iframe</h1>
+<p class="sub">
+  เปิดหน้านี้บน <b>Chrome เดสก์ท็อป</b>, <b>Safari macOS</b> และ <b>Safari บน iPhone</b> แล้วจดว่ากรอบไหนขึ้นข้อมูล กรอบไหนไม่ขึ้น<br>
+  ⚠️ ตอนทดสอบให้ <b>ล็อกอิน Google ด้วยบัญชี dc.streamwash</b> ไม่งั้นบล็อก 2 จะไม่ได้ทดสอบสิ่งที่ตั้งใจ<br>
+  ⚠️ อย่าปิด "ป้องกันการติดตามข้ามเว็บไซต์" ของ Safari — ค่าเริ่มต้นคือสิ่งที่ต้องวัด
+</p>
+
+<section>
+  <h2>1 · ใบ E — แชร์แบบ "ทุกคนที่มีลิงก์" (S1.3 ตัวชี้ขาด)</h2>
+  <div class="id">17tVllF92cAhn9ymGo9xIWqW84-vs4gtkaYie4CLb12g · /preview</div>
+  <div class="expect">คาดว่า <b>ขึ้นทุกเบราว์เซอร์</b> เพราะไม่ต้องใช้คุกกี้ Google · ถ้าขึ้นบน Safari จริง = ทางเลือก 1 ใช้ได้</div>
+  <iframe src="https://docs.google.com/spreadsheets/d/17tVllF92cAhn9ymGo9xIWqW84-vs4gtkaYie4CLb12g/preview" referrerpolicy="no-referrer"></iframe>
+</section>
+
+<section>
+  <h2>2 · ใบ D — แชร์แบบระบุบัญชี (อาการเดียวกับ BUG-032)</h2>
+  <div class="id">1gDsTbRfnmO-CkBrenlxSGFbNnfv2rEfQ5-ZQF8_ggWk · /preview</div>
+  <div class="expect">
+    ต้องล็อกอินเป็น dc.streamwash ถึงจะมีสิทธิ์ · Chrome คาดว่าขึ้น ·
+    <b class="hit">Safari คาดว่าไม่ขึ้น</b> เพราะคุกกี้ Google เป็นคุกกี้บุคคลที่สามใน iframe
+  </div>
+  <iframe src="https://docs.google.com/spreadsheets/d/1gDsTbRfnmO-CkBrenlxSGFbNnfv2rEfQ5-ZQF8_ggWk/preview" referrerpolicy="no-referrer"></iframe>
+</section>
+
+<section>
+  <h2>3 · ใบ C — เผยแพร่ไปยังเว็บ</h2>
+  <div class="id">/d/e/2PACX-…/pubhtml</div>
+  <div class="expect">คาดว่าขึ้นทุกเบราว์เซอร์ · แต่ข้อมูลเป็นสาธารณะเต็มรูป ค้นเจอใน Google ได้ (S1.6)</div>
+  <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vShmrFx35RtYdfEeHDCEzsZNSyaPYxqdjAb77CR030Gdr064_kSBSS3P_LkI3ovtIjbVRdclV5zswxT/pubhtml?widget=true&amp;headers=false" referrerpolicy="no-referrer"></iframe>
+</section>
+
+<section>
+  <h2>4 · ใบ E — โหมด /edit (S1.7 ดูว่าได้ UI เนทีฟแค่ไหน)</h2>
+  <div class="id">/edit?rm=minimal&amp;widget=true&amp;headers=false</div>
+  <div class="expect">เทียบกับบล็อก 1: มีแถบเครื่องมือ ตัวกรอง แท็บล่างไหม · แก้ไขได้ไหม (ลิงก์เป็นผู้ดู จึงไม่ควรแก้ได้)</div>
+  <iframe src="https://docs.google.com/spreadsheets/d/17tVllF92cAhn9ymGo9xIWqW84-vs4gtkaYie4CLb12g/edit?rm=minimal&amp;widget=true&amp;headers=false" referrerpolicy="no-referrer"></iframe>
+</section>
+
+<section>
+  <h2>5 · ใบ A — ไม่มีสิทธิ์เลย (S1.8 หน้าตาของ "ปฏิเสธ")</h2>
+  <div class="id">11YaVVepT-NyPfzQgQ09LBV6hJ0oOIBwem7Sfq-KsJD4 · /preview</div>
+  <div class="expect">จดข้อความที่ขึ้นในกรอบ · ต้องแยกออกจากอาการคุกกี้ในบล็อก 2 ให้ได้ ไม่งั้นวินิจฉัยหน้างานไม่ได้</div>
+  <iframe src="https://docs.google.com/spreadsheets/d/11YaVVepT-NyPfzQgQ09LBV6hJ0oOIBwem7Sfq-KsJD4/preview" referrerpolicy="no-referrer"></iframe>
+</section>
+
+<p class="why">
+  หน้านี้ไม่มี CSP ของ StreamHub ครอบอยู่ จึงวัดพฤติกรรมของ Google ล้วน ๆ ·
+  ในแอปจริงต้องเพิ่ม <code>https://docs.google.com</code> ใน <code>frame-src</code> ก่อน ไม่งั้นกรอบว่างเพราะเราบล็อกเอง
+</p>
+
+</body>
+</html>
