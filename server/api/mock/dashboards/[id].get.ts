@@ -38,8 +38,8 @@ export default defineEventHandler(async (event) => {
       }
     }
 
-    // Strip lookerEmbedUrl from response (security: use /embed-url endpoint instead)
-    const { lookerEmbedUrl, ...sanitized } = dashboard
+    // Strip embed URLs from response (security: use /api/embed/request instead)
+    const sanitized = stripEmbedUrls(dashboard)
 
     return { success: true, data: sanitized }
   } catch (error: unknown) {

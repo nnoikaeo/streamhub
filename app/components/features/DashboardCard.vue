@@ -10,7 +10,7 @@
   >
     <!-- Dashboard Preview Thumbnail -->
     <DashboardPreview
-      :embed-url="dashboard.lookerEmbedUrl"
+      :embed-url="embedUrl"
       :title="dashboard.name"
       :dashboard-id="dashboard.id"
       mode="thumbnail"
@@ -111,6 +111,10 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const MAX_VISIBLE_TAGS = computed(() => props.compact ? 2 : 3)
+
+// By type — the thumbnail used to read lookerEmbedUrl directly and would show
+// the empty placeholder for every sheet dashboard.
+const embedUrl = computed(() => getEmbedUrl(props.dashboard))
 
 defineEmits<{
   view: []

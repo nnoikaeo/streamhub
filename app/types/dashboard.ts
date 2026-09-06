@@ -87,16 +87,32 @@ export interface FolderPath {
 // DASHBOARD TYPES
 // ============================================================================
 
+/** What the dashboard embeds. */
+export type DashboardType = 'looker' | 'sheet'
+
+/**
+ * How a Google Sheet is framed.
+ * - `interactive` — `/edit?rm=minimal`, native Sheets UI, cells are selectable
+ * - `view` — `/preview`, a flat read-only table with none of Google's chrome
+ */
+export type SheetEmbedMode = 'view' | 'interactive'
+
 export interface Dashboard {
   id: string
   name: string
   folderId: string // Which folder this dashboard belongs to
-  type: 'looker' // Only Looker dashboards are supported
+  type: DashboardType
   description?: string
 
   // Looker-specific fields
   lookerDashboardId?: string
   lookerEmbedUrl?: string
+
+  // Sheet-specific fields
+  // Full URL, not an id: a published sheet uses a different id (/d/e/2PACX-…)
+  // than the file id, so the embed URL cannot be rebuilt from one (spike S1.6).
+  sheetEmbedUrl?: string
+  sheetEmbedMode?: SheetEmbedMode
 
   // Metadata
   owner: string // uid of creator

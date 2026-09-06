@@ -24,7 +24,9 @@ export default defineEventHandler(async (event) => {
     }
 
     const updates: Record<string, unknown> = {}
-    const allowedFields = ['name', 'folderId', 'description', 'lookerDashboardId', 'lookerEmbedUrl', 'owner', 'tags', 'isArchived', 'access', 'restrictions']
+    // `type` and the sheet fields are here so a Sheets dashboard can be saved
+    // at all — a field missing from this list is dropped without an error.
+    const allowedFields = ['name', 'folderId', 'description', 'type', 'lookerDashboardId', 'lookerEmbedUrl', 'sheetEmbedUrl', 'sheetEmbedMode', 'owner', 'tags', 'isArchived', 'access', 'restrictions']
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {

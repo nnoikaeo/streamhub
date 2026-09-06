@@ -24,7 +24,7 @@
           },
           {
             "key": "Content-Security-Policy",
-            "value": "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com https://*.firebaseapp.com https://*.googleapis.com; frame-ancestors 'self'"
+            "value": "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com https://docs.google.com https://*.firebaseapp.com https://*.googleapis.com; frame-ancestors 'self'"
           },
           {
             "key": "Cache-Control",

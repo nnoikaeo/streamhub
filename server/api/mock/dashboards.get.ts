@@ -25,8 +25,8 @@ export default defineEventHandler(async (event) => {
         filtered = filtered.filter((d) => d.folderId === query.folderId)
       }
 
-      // Strip lookerEmbedUrl from listing response (security: hide embed URLs)
-      const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }) => rest)
+      // Strip embed URLs from listing response (security: hide embed URLs)
+      const sanitized = filtered.map(stripEmbedUrls)
 
       return { success: true, data: sanitized, total: sanitized.length }
     }
@@ -47,8 +47,8 @@ export default defineEventHandler(async (event) => {
       filtered = filtered.filter((d) => d.folderId === query.folderId)
     }
 
-    // Strip lookerEmbedUrl from listing response (security: hide embed URLs)
-    const sanitized = filtered.map(({ lookerEmbedUrl, ...rest }) => rest)
+    // Strip embed URLs from listing response (security: hide embed URLs)
+    const sanitized = filtered.map(stripEmbedUrls)
 
     return { success: true, data: sanitized, total: sanitized.length }
   } catch {

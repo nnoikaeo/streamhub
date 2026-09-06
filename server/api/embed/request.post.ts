@@ -74,7 +74,10 @@ export default defineEventHandler(async (event) => {
     return sendForbidden(event, access.reason)
   }
 
-  const embedUrl = dashboard.lookerEmbedUrl
+  // Which field holds the URL depends on the dashboard type. Everything below
+  // — the AES-256-GCM seal, the session cookie, the 302 — is domain-agnostic
+  // and needs no change for Sheets.
+  const embedUrl = getEmbedUrl(dashboard)
   if (!embedUrl) {
     throw createError({ statusCode: 404, message: 'No embed URL configured for this dashboard' })
   }

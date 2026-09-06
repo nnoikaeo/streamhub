@@ -36,7 +36,9 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       data: {
-        embedUrl: dashboard.lookerEmbedUrl || null,
+        // By type — a sheet dashboard has no lookerEmbedUrl and would have
+        // answered null here forever.
+        embedUrl: getEmbedUrl(dashboard) || null,
       },
     }
   } catch (error: unknown) {
