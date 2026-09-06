@@ -50,8 +50,19 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - `allow-storage-access-by-user-activation` is on every Looker iframe, but measured on prod it changes nothing — Looker never calls `requestStorageAccess()`. Keep it, don't count on it
 - Sharing by link means anyone holding the Looker URL can open the report without passing StreamHub's permission checks. The URL stays sealed inside the embed token — weigh that against how sensitive the report is
 - **New dashboards: require link sharing + Enable embedding before the report goes in.** Agreed 2026-08-25
-- **Google Sheets embeds are decided but not built** (2026-09-06). Sheets hits the same Safari wall as Looker, and it was measured: a sheet that needs a Google session shows a cookie prompt in the frame, and the prompt's own "allow cookies" button dead-ends — from `http://localhost` too, so it is not a harness artifact. **A sheet must be shared "anyone with the link (viewer)" to be embeddable at all.** Unlike Looker there is no separate embedding switch — Google sets no `X-Frame-Options` on Sheets. The price is bigger than Looker's: a link-shared sheet answers `export?format=csv|xlsx|pdf` and `gviz` to anyone holding the URL with no login, so a leaked link is the whole file, not a rendered report. Plan and the two things easiest to get wrong (three field-strip lists, two CSP files): [google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md)
 - **The 30 reports already in use cannot be changed — we do not own them.** Safari users cannot open those at all; the hint bar is the permanent answer for them, not a stopgap, so do not remove it. Closing the gap for real means asking the report owners, which is a cross-team conversation and not a code change
+
+### Google Sheets Embeds
+
+- **A sheet must be shared "anyone with the link (viewer)" to be embeddable at all.** A sheet that needs a Google session shows a cookie prompt in the frame whose own "allow cookies" button dead-ends — measured from `http://localhost` too, so it is not a harness artifact. Unlike Looker there is no separate embedding switch: Google sets no `X-Frame-Options` on Sheets
+- The price is bigger than Looker's: a link-shared sheet answers `export?format=csv|xlsx|pdf` and `gviz` to anyone holding the URL with no login, so a **leaked link is the whole file**, not a rendered report. A sheet holding `Master List`-grade data does not belong here at all — that is the data owner's call, not one to make while adding a dashboard
+- `POST /api/sheet/check-sharing` probes that from the server with **no credentials attached** (200 = shared, 401 = not) and [SheetUrlInput.vue](app/components/features/SheetUrlInput.vue) calls it from the form. It exists because the failure is invisible to whoever builds the dashboard: an unshared sheet still renders for the sheet's own owner in Chrome and dead-ends on every Safari and iOS browser. The endpoint is admin/moderator-only and rebuilds the probe URL from the parsed sheet id — never from the request body — so it cannot be used as a URL prober on our IP
+- **Every field holding an embed URL is listed once, in [embedUrl.ts](shared/utils/embedUrl.ts).** The strip used to be written out at three sites with the field name spelled in each; one missed `sheetEmbedUrl` leaks the URL out of the API listing and voids the embed token entirely. Add a new embed type to `EMBED_URL_FIELDS` first
+- **CSP lives in two files** — [securityHeaders.ts](server/middleware/securityHeaders.ts) and the static copy in [firebase.json](firebase.json) for assets Hosting serves itself. Change one without the other and some pages get a blank frame with no error
+- Store the **whole URL**, never an id: a published sheet is served under `/d/e/2PACX-…`, a different id from the file id and not derivable from it
+- Zoom is **not** the Looker formula. A Looker report rescales itself to its iframe width, so zoom grows height only and scales down; a Sheet's grid is fixed pixels and needs both axes ([embedZoom.ts](app/utils/embedZoom.ts))
+- The WebKit hint bar is **Looker-only**. A sheet that passed the sharing check opens on Safari normally, and showing the bar there teaches a restriction that does not apply
+- Policy for new sheets: [looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) § Google Sheets · what was measured: [google-sheets-spike-plan.md](docs/OPERATIONS/google-sheets-spike-plan.md) · the build plan: [google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md)
 
 ---
 
@@ -98,9 +109,9 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | [docs/OPERATIONS/roadmap.md](docs/OPERATIONS/roadmap.md) | Feature roadmap and priorities |
 | [docs/OPERATIONS/versioning.md](docs/OPERATIONS/versioning.md) | Version numbering policy |
 | [docs/OPERATIONS/manual-test-plan.md](docs/OPERATIONS/manual-test-plan.md) | Manual QA test cases by role |
-| [docs/OPERATIONS/looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) | Looker sharing policy for new dashboards, and why the 30 existing reports cannot be fixed (BUG-032) |
+| [docs/OPERATIONS/looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) | Sharing policy for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
 | [docs/OPERATIONS/google-sheets-spike-plan.md](docs/OPERATIONS/google-sheets-spike-plan.md) | What was measured about embedding Google Sheets — every option, every number |
-| [docs/OPERATIONS/google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md) | The plan for building Sheets embeds (decided 2026-09-06, not built yet) |
+| [docs/OPERATIONS/google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md) | The plan Sheets embeds were built from — P1–P4 done, P5 is manual Safari testing |
 
 ### Reference
 

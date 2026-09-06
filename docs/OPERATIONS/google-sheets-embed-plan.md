@@ -3,6 +3,16 @@
 > **ตัดสินใจแล้ว 2026-09-06 — เลือกทางเลือก 1** หลังทดสอบครบใน [google-sheets-spike-plan.md](google-sheets-spike-plan.md)
 >
 > branch: แตกใหม่จาก `develop` เป็น `feat/sheets-embed` — งาน spike ทั้งหมด merge เข้า `develop` แล้ว
+>
+> **สถานะ 2026-09-06: P1–P4 ทำแล้วบน `feat/sheets-embed`** · เหลือ **P5 ทดสอบด้วยมือบน Safari/iPhone** ซึ่งรันแทนกันไม่ได้ ต้องเปิดเครื่องจริง
+>
+> สิ่งที่ต่างจากแผนตอนลงมือจริง 3 ข้อ — เขียนไว้เพราะแผนนี้ยังถูกอ่านต่อ:
+>
+> 1. `sheetUrl.ts` อยู่ที่ **`shared/utils/`** ไม่ใช่ `app/utils/` ตามที่เขียนไว้ใน P1 · เซิร์ฟเวอร์ต้อง parse URL เดียวกันเพื่อประกอบ probe ของ 2.4 และ `server/` ไม่มีที่ไหน runtime-import จาก `~/` เลย · สำเนา regex ตรวจ host ชุดที่สองคือทางที่การตรวจ host จะเพี้ยน
+> 2. รายการฟิลด์ที่ต้องตัด (2.2) **ไม่ได้แก้ทีละจุด** แต่รวมไว้ที่ `EMBED_URL_FIELDS` ใน [embedUrl.ts](../../shared/utils/embedUrl.ts) แล้วให้ทั้ง 3 จุดเรียก `stripEmbedUrls` — ต้นเหตุของกับดักคือชื่อฟิลด์ถูกสะกดซ้ำหลายที่ ไม่ใช่จำนวนจุด
+> 3. **มีจุดที่ 4 ที่แผนไม่ได้ระบุ** — [`[id]/embed-url.get.ts`](../../server/api/mock/dashboards/[id]/embed-url.get.ts) อ่าน `lookerEmbedUrl` ตรง ๆ · ไม่ใช่การรั่ว (ผ่าน access check) แต่จะคืน `null` ให้แดชบอร์ดชนิด sheet ทุกใบตลอดไป
+>
+> zoom (P3) แยกออกมาเป็น [embedZoom.ts](../../app/utils/embedZoom.ts) พร้อมเทสต์ เพราะหน้า `[id].vue` ไม่มี harness ทดสอบ component (ไม่มี `@vue/test-utils` และ environment เป็น `node`) การแยกจึงเป็นทางเดียวที่ทดสอบสูตรได้โดยไม่เพิ่ม dependency
 
 ## เริ่มงานจากศูนย์ต้องรู้อะไรบ้าง
 
