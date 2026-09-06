@@ -528,11 +528,7 @@ const filteredDashboards = computed<Dashboard[]>(() => {
   // Company filter (admin only)
   const companyCode = selectedCompanyCode.value
   if (companyCode) {
-    result = result.filter((d) => {
-      const companyAccess = d.access?.company
-      if (!companyAccess) return false
-      return companyCode in companyAccess
-    })
+    result = result.filter((d) => matchesCompanyFilter(d, companyCode))
   }
 
   // Tag filter (AND logic)

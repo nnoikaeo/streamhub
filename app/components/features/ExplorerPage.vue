@@ -14,6 +14,7 @@ import ExplorerContentsPanel from '~/components/admin/ExplorerContentsPanel.vue'
 import ModeratorAssignmentModal from '~/components/admin/ModeratorAssignmentModal.vue'
 import FolderForm from '~/components/admin/forms/FolderForm.vue'
 import DashboardForm from '~/components/admin/forms/DashboardForm.vue'
+import DashboardTypeIcon from '~/components/features/DashboardTypeIcon.vue'
 import type { Folder, Dashboard, User } from '~/types/dashboard'
 import type { Tag } from '~/types/tag'
 import type { useExplorer } from '~/composables/useExplorer'
@@ -97,6 +98,15 @@ const handleManageModerators = (folder: Folder) => {
 
 // Navigate to permissions page with dashboard pre-selected
 const router = useRouter()
+/**
+ * Search results mix folders and dashboards, and dashboards now split by embed
+ * type. Kept as a function rather than three ternaries in the template.
+ */
+const searchResultIconClass = (result: { type: string, item: Folder | Dashboard }) => {
+  if (result.type === 'folder') return 'result-icon--folder'
+  return (result.item as Dashboard).type === 'sheet' ? 'result-icon--sheet' : 'result-icon--dashboard'
+}
+
 const handleManagePermissions = (dashboard: Dashboard) => {
   const permissionsPath = props.explorer.routePrefix.replace('/explorer', '/permissions')
   router.push({ path: permissionsPath, query: { dashboard: dashboard.id } })
@@ -166,13 +176,11 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
             class="search-result-item"
             @mousedown.prevent="explorer.handleSearchSelect(result)"
           >
-            <span :class="['result-icon', result.type === 'folder' ? 'result-icon--folder' : 'result-icon--dashboard']">
+            <span :class="['result-icon', searchResultIconClass(result)]">
               <svg v-if="result.type === 'folder'" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
               </svg>
-              <svg v-else viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-              </svg>
+              <DashboardTypeIcon v-else :type="(result.item as Dashboard).type" />
             </span>
             <span class="result-details">
               <span class="result-name">{{ result.item.name }}</span>
@@ -520,6 +528,7 @@ const handleSaveModerators = async (folderId: string, moderatorUids: string[]) =
 
 .result-icon--folder   { color: #f59e0b; }
 .result-icon--dashboard { color: #3b82f6; }
+.result-icon--sheet { color: #0f9d58; }
 
 .result-details {
   flex: 1;
