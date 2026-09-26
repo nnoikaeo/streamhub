@@ -229,6 +229,17 @@ const openInNewTab = () => {
           View
           <span class="mode-hint">ตารางแบน คลิกไม่ได้</span>
         </button>
+        <!-- SPIKE: the menu-bar measurement, not a supported mode yet
+             (docs/OPERATIONS/google-sheets-menubar-spike.md). -->
+        <button
+          type="button"
+          class="mode-button"
+          :class="{ 'mode-button--active': mode === 'full' }"
+          @click="setMode('full')"
+        >
+          Full (spike)
+          <span class="mode-hint">มีเมนูบาร์ + ทูลบาร์ของ Google</span>
+        </button>
       </div>
     </div>
 

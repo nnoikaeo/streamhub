@@ -94,8 +94,11 @@ export type DashboardType = 'looker' | 'sheet'
  * How a Google Sheet is framed.
  * - `interactive` — `/edit?rm=minimal`, native Sheets UI, cells are selectable
  * - `view` — `/preview`, a flat read-only table with none of Google's chrome
+ * - `full` — `/edit` with no `rm`, Google's menu bar, toolbar and formula bar
+ *   included. SPIKE: exists to measure what that chrome does inside our frame
+ *   (docs/OPERATIONS/google-sheets-menubar-spike.md), not a supported mode yet
  */
-export type SheetEmbedMode = 'view' | 'interactive'
+export type SheetEmbedMode = 'view' | 'interactive' | 'full'
 
 export interface Dashboard {
   id: string

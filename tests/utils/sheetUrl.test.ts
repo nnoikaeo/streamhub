@@ -35,6 +35,11 @@ describe('parseSheetUrl — document URL', () => {
       .toBe(`https://docs.google.com/spreadsheets/d/${FILE_ID}/preview`)
   })
 
+  it('full mode frames /edit with no rm — the menu bar comes back only without it', () => {
+    expect(parseSheetUrl(docUrl('/edit?rm=minimal#gid=5'), 'full').embedUrl)
+      .toBe(`https://docs.google.com/spreadsheets/d/${FILE_ID}/edit`)
+  })
+
   it('accepts the URL forms a user can paste from the address bar', () => {
     for (const suffix of ['/edit', '/edit#gid=123', '/view', '/', '', '?usp=sharing']) {
       const result = parseSheetUrl(docUrl(suffix))

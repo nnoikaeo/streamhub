@@ -37,6 +37,19 @@ const SHEET_DOC_PATTERN = /^https:\/\/docs\.google\.com\/spreadsheets\/d\/(?!e\/
 /** `/spreadsheets/d/e/{publishedId}/pubhtml` — the "publish to the web" URL. */
 const SHEET_PUBLISHED_PATTERN = /^https:\/\/docs\.google\.com\/spreadsheets\/d\/e\/([a-zA-Z0-9_-]+)\/pub(?:html)?(?:\/|\?|#|$)/
 
+/**
+ * What each mode frames for a document URL. A record rather than a ternary so
+ * adding a mode is a type error here until it is given a URL.
+ *
+ * `full` drops `rm` entirely: that is what brings the menu bar back. It also
+ * drops `widget` and `headers`, which only mean anything alongside `rm`.
+ */
+const SHEET_DOC_EMBED_PATH: Record<SheetEmbedMode, (base: string) => string> = {
+  view: base => `${base}/preview`,
+  interactive: base => `${base}/edit?rm=minimal&widget=true&headers=false`,
+  full: base => `${base}/edit`,
+}
+
 export interface SheetUrlInfo {
   isValid: boolean
   /** File id, or the published id for a `/d/e/…` URL. */
@@ -81,9 +94,7 @@ export function parseSheetUrl(url: string, mode: SheetEmbedMode = 'interactive')
       isValid: true,
       sheetId,
       isPublished: false,
-      embedUrl: mode === 'view'
-        ? `${base}/preview`
-        : `${base}/edit?rm=minimal&widget=true&headers=false`,
+      embedUrl: SHEET_DOC_EMBED_PATH[mode](base),
       originalUrl: trimmedUrl,
     }
   }
