@@ -34,7 +34,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  mode: 'interactive',
+  mode: 'full',
   showPreview: true,
   previewHeight: 400,
 })
@@ -206,11 +206,21 @@ const openInNewTab = () => {
       </template>
     </div>
 
-    <!-- Embed mode. Interactive is the default because it is the only mode
-         where cells can be selected (S1.7); the published URL has one form. -->
+    <!-- Embed mode. Full is the default because the menu bar was asked for on
+         every sheet (2026-09-26); the other two stay for sheets that should
+         not carry Google's chrome. The published URL has one form. -->
     <div v-if="urlInfo.isValid && !urlInfo.isPublished" class="mode-row">
       <span class="mode-label">โหมดแสดงผล</span>
       <div class="mode-options" role="group" aria-label="โหมดแสดงผล">
+        <button
+          type="button"
+          class="mode-button"
+          :class="{ 'mode-button--active': mode === 'full' }"
+          @click="setMode('full')"
+        >
+          Full
+          <span class="mode-hint">มีเมนูบาร์ · แก้ไขได้เฉพาะบน Chrome</span>
+        </button>
         <button
           type="button"
           class="mode-button"
@@ -218,7 +228,7 @@ const openInNewTab = () => {
           @click="setMode('interactive')"
         >
           Interactive
-          <span class="mode-hint">UI ของ Sheets เลือกเซลล์ได้</span>
+          <span class="mode-hint">ไม่มีเมนูบาร์ เลือกเซลล์ได้</span>
         </button>
         <button
           type="button"
@@ -228,17 +238,6 @@ const openInNewTab = () => {
         >
           View
           <span class="mode-hint">ตารางแบน คลิกไม่ได้</span>
-        </button>
-        <!-- SPIKE: the menu-bar measurement, not a supported mode yet
-             (docs/OPERATIONS/google-sheets-menubar-spike.md). -->
-        <button
-          type="button"
-          class="mode-button"
-          :class="{ 'mode-button--active': mode === 'full' }"
-          @click="setMode('full')"
-        >
-          Full (spike)
-          <span class="mode-hint">มีเมนูบาร์ + ทูลบาร์ของ Google</span>
         </button>
       </div>
     </div>

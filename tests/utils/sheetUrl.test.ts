@@ -18,16 +18,21 @@ const docUrl = (suffix = '/edit?gid=0#gid=0') => `https://docs.google.com/spread
 const publishedUrl = (suffix = '/pubhtml') => `https://docs.google.com/spreadsheets/d/e/${PUBLISHED_ID}${suffix}`
 
 describe('parseSheetUrl — document URL', () => {
-  it('defaults to interactive: /edit?rm=minimal, the only mode where cells are selectable', () => {
+  it('defaults to full: /edit with no rm, so the menu bar shows', () => {
     const result = parseSheetUrl(docUrl())
 
     expect(result).toEqual({
       isValid: true,
       sheetId: FILE_ID,
       isPublished: false,
-      embedUrl: `https://docs.google.com/spreadsheets/d/${FILE_ID}/edit?rm=minimal&widget=true&headers=false`,
+      embedUrl: `https://docs.google.com/spreadsheets/d/${FILE_ID}/edit`,
       originalUrl: docUrl(),
     })
+  })
+
+  it('interactive mode frames /edit?rm=minimal — cells selectable, no menu bar', () => {
+    expect(parseSheetUrl(docUrl(), 'interactive').embedUrl)
+      .toBe(`https://docs.google.com/spreadsheets/d/${FILE_ID}/edit?rm=minimal&widget=true&headers=false`)
   })
 
   it('view mode drops Google chrome for a flat /preview table', () => {
@@ -35,7 +40,7 @@ describe('parseSheetUrl — document URL', () => {
       .toBe(`https://docs.google.com/spreadsheets/d/${FILE_ID}/preview`)
   })
 
-  it('full mode frames /edit with no rm — the menu bar comes back only without it', () => {
+  it('full mode ignores an rm= carried in the pasted URL — the menu bar comes back only without it', () => {
     expect(parseSheetUrl(docUrl('/edit?rm=minimal#gid=5'), 'full').embedUrl)
       .toBe(`https://docs.google.com/spreadsheets/d/${FILE_ID}/edit`)
   })
@@ -50,7 +55,7 @@ describe('parseSheetUrl — document URL', () => {
   it('drops the query and fragment of the pasted URL rather than carrying them into the frame', () => {
     // `gid` selects a tab, but `rm=minimal` has to win the query string; a
     // merged one is how the embed silently loses its minimal chrome.
-    expect(parseSheetUrl(docUrl('/edit?gid=99#gid=99')).embedUrl)
+    expect(parseSheetUrl(docUrl('/edit?gid=99#gid=99'), 'interactive').embedUrl)
       .toBe(`https://docs.google.com/spreadsheets/d/${FILE_ID}/edit?rm=minimal&widget=true&headers=false`)
   })
 })

@@ -94,9 +94,10 @@ export type DashboardType = 'looker' | 'sheet'
  * How a Google Sheet is framed.
  * - `interactive` — `/edit?rm=minimal`, native Sheets UI, cells are selectable
  * - `view` — `/preview`, a flat read-only table with none of Google's chrome
- * - `full` — `/edit` with no `rm`, Google's menu bar, toolbar and formula bar
- *   included. SPIKE: exists to measure what that chrome does inside our frame
- *   (docs/OPERATIONS/google-sheets-menubar-spike.md), not a supported mode yet
+ * - `full` — `/edit` with no `rm`: Google's menu bar, toolbar and formula bar.
+ *   The default. Editing through it works only where the browser sends
+ *   Google's cookies into the frame — Chrome, not Safari or anything on iOS
+ *   (docs/OPERATIONS/google-sheets-menubar-spike.md)
  */
 export type SheetEmbedMode = 'view' | 'interactive' | 'full'
 
