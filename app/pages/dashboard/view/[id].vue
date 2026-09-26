@@ -172,6 +172,26 @@
           </button>
         </div>
 
+        <!-- Sheet menu-bar hint (Safari only). A different fact from the Looker
+             bar above: the sheet does open here, but Safari never sends
+             Google's cookies into the frame, so everyone is anonymous and the
+             menu bar is read-only — the owner included (spike M3). -->
+        <div v-if="showSheetHint && isFullSheetEmbed && embedUrl && !immersive" class="cookie-hint" role="note">
+          <span class="cookie-hint-text">
+            บน Safari, iPhone และ iPad ชีตนี้เปิดดูได้อย่างเดียว —
+            แก้ไขผ่านเมนูได้เฉพาะบน Google Chrome บนคอมพิวเตอร์
+          </span>
+          <button
+            type="button"
+            class="cookie-hint-close"
+            aria-label="ปิดคำแนะนำ"
+            title="ปิดคำแนะนำ"
+            @click="dismissSheetHint"
+          >
+            ✕
+          </button>
+        </div>
+
         <!-- Main Content with TwoPane -->
         <TwoPaneLayout :sidebar-width="320" :show-sidebar="showInfoSidebar">
           <!-- Left Pane: Dashboard Info -->
@@ -269,7 +289,7 @@
                 :title="embedTitle"
                 frameborder="0"
                 referrerpolicy="no-referrer"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation allow-storage-access-by-user-activation"
+                :sandbox="embedSandbox"
                 @load="iframeLoading = false"
                 @error="iframeError = true"
               />
@@ -415,6 +435,31 @@ const initCookieHint = () => {
   showCookieHint.value = true
 }
 
+// A sheet in `full` mode does open on Safari, but read-only for everyone: the
+// frame never gets Google's cookies, so even the owner is anonymous in it.
+// Its own key, because dismissing the Looker bar says nothing about this one.
+const SHEET_HINT_STORAGE_KEY = 'streamhub:sheet-menubar-hint-dismissed'
+const showSheetHint = ref(false)
+
+const dismissSheetHint = () => {
+  showSheetHint.value = false
+  try {
+    localStorage.setItem(SHEET_HINT_STORAGE_KEY, '1')
+  } catch {
+    // Private mode — the hint comes back next visit, which is harmless
+  }
+}
+
+const initSheetHint = () => {
+  if (!isSafariLike(navigator.userAgent)) return
+  try {
+    if (localStorage.getItem(SHEET_HINT_STORAGE_KEY) === '1') return
+  } catch {
+    // Storage unreadable — better to show the hint than to hide it
+  }
+  showSheetHint.value = true
+}
+
 // Computed properties
 const dashboardId = computed(() => route.params.id as string)
 
@@ -422,6 +467,26 @@ const dashboardId = computed(() => route.params.id as string)
 // what every dashboard was before Sheets existed.
 const isLookerEmbed = computed(() => dashboard.value?.type !== 'sheet')
 const embedTitle = computed(() => (isLookerEmbed.value ? 'Looker Dashboard' : 'Google Sheet'))
+
+// Rows saved before the mode existed carry no `sheetEmbedMode`; what they frame
+// is whatever URL was stored, so only an explicit `full` counts here.
+const isFullSheetEmbed = computed(() =>
+  dashboard.value?.type === 'sheet' && dashboard.value.sheetEmbedMode === 'full',
+)
+
+// A sheet frame loses `allow-top-navigation-by-user-activation`. With it,
+// Safari's in-frame "Sign in" button took the whole tab to docs.google.com —
+// out of StreamHub, no watermark, the sheet's real URL in the address bar —
+// and signing in there never reached the frame anyway (spike M5). Without it
+// the button opens the sheet in a new tab through `allow-popups`, so StreamHub
+// stays open. Dropping `allow-popups` as well would also break hyperlinks in
+// cells, which is why the new tab was accepted.
+const EMBED_SANDBOX_BASE = 'allow-scripts allow-same-origin allow-popups allow-forms allow-storage-access-by-user-activation'
+const embedSandbox = computed(() =>
+  isLookerEmbed.value
+    ? `${EMBED_SANDBOX_BASE} allow-top-navigation-by-user-activation`
+    : EMBED_SANDBOX_BASE,
+)
 const currentUserId = computed(() => user.value?.uid || '')
 const currentUserRole = computed(() => user.value?.role || 'user')
 
@@ -783,6 +848,7 @@ const restoreZoom = () => {
 onMounted(async () => {
   restoreZoom()
   initCookieHint()
+  initSheetHint()
   document.addEventListener('keydown', onImmersiveKeydown)
   document.addEventListener('fullscreenchange', handleFullscreenChange)
   document.addEventListener('webkitfullscreenchange', handleFullscreenChange)

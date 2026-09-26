@@ -410,7 +410,25 @@ export function toExpiryTimestamps<T>(
 Files following this shape: `expiryWrite.ts` (expiry normalisation on save),
 `effectiveAccess.ts` (who reaches an item and why — read by the picker badges,
 the effective-access bar, and the save-time check for restrictions left with no
-grant to act on), `groupSync.ts`.
+grant to act on), `groupSync.ts`, `embedZoom.ts` (the two embed types need
+opposite zoom formulas), `sheetSharingGuard.ts` (which sharing states block a
+save), `companyFilter.ts` (which dashboards a company code reaches).
+
+The last three were all extracted **out of** a page or a component, because the
+page had no component test harness and the rule was worth pinning:
+
+- `embedZoom.ts` — a wrong formula is a subtle visual bug, not an error: a sheet
+  given Looker's formula still renders, just narrower than its pane
+- `sheetSharingGuard.ts` — the sharing check reported HTTP 401 correctly and the
+  form saved anyway, producing exactly the Safari failure the check exists to
+  prevent (BUG-034). The tests pin which states block and, just as importantly,
+  which must not: a probe that could not reach Google does not block, because
+  refusing a save over our own outage is worse
+- `companyFilter.ts` — `access.company` is a **list**, and the Discover filter
+  read it with `in`, which checks array indices, so it returned nothing for
+  every company. The identical mistake had already been fixed server-side in
+  PR #359 (BUG-035). A rule that has now been got wrong twice belongs in a
+  tested function, not in a third copy
 
 Two rules follow from it:
 

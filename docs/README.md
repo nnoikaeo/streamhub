@@ -79,6 +79,7 @@ its row.
 | [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md) | Sharing rules for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
 | [google-sheets-spike-plan.md](OPERATIONS/google-sheets-spike-plan.md) | What was measured about the three ways to support Google Sheets — every option, every number |
 | [google-sheets-embed-plan.md](OPERATIONS/google-sheets-embed-plan.md) | The plan Sheets embeds were built from, and what the build did differently — P1–P5 done |
+| [google-sheets-menubar-spike.md](OPERATIONS/google-sheets-menubar-spike.md) | Why sheets frame with Google's menu bar by default, and what it can and cannot do there — Chrome-only editing, no download, no in-frame sign-in |
 | [versioning.md](OPERATIONS/versioning.md) | Version numbering policy |
 
 ### archive/ — finished plans, kept as history

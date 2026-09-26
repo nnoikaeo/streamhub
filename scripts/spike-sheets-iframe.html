@@ -65,6 +65,20 @@
   <iframe src="https://docs.google.com/spreadsheets/d/11YaVVepT-NyPfzQgQ09LBV6hJ0oOIBwem7Sfq-KsJD4/preview" referrerpolicy="no-referrer"></iframe>
 </section>
 
+<section>
+  <h2>6 · ใบ E — /edit ไม่มี rm (M1 เมนูบาร์เต็ม)</h2>
+  <div class="id">/edit</div>
+  <div class="expect">นับว่ามี เมนูบาร์ / ทูลบาร์ / แถบสูตร / ปุ่ม Share / ปุ่ม Sign in ไหม · เทียบกับบล็อก 4 · กรอบนี้<b>ไม่มี sandbox</b> ต่างจากในแอป</div>
+  <iframe src="https://docs.google.com/spreadsheets/d/17tVllF92cAhn9ymGo9xIWqW84-vs4gtkaYie4CLb12g/edit" referrerpolicy="no-referrer"></iframe>
+</section>
+
+<section>
+  <h2>7 · ใบ E — /edit?rm=embedded (M1 ค่ากลาง)</h2>
+  <div class="id">/edit?rm=embedded</div>
+  <div class="expect">ค่า <code>rm</code> ที่ไม่มีเอกสารรับรอง · จดว่าได้ chrome แค่ไหนเทียบกับบล็อก 4 และ 6</div>
+  <iframe src="https://docs.google.com/spreadsheets/d/17tVllF92cAhn9ymGo9xIWqW84-vs4gtkaYie4CLb12g/edit?rm=embedded" referrerpolicy="no-referrer"></iframe>
+</section>
+
 <p class="why">
   หน้านี้ไม่มี CSP ของ StreamHub ครอบอยู่ จึงวัดพฤติกรรมของ Google ล้วน ๆ ·
   ในแอปจริงต้องเพิ่ม <code>https://docs.google.com</code> ใน <code>frame-src</code> ก่อน ไม่งั้นกรอบว่างเพราะเราบล็อกเอง

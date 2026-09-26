@@ -33,9 +33,16 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - Anything new in `shared/utils/` must also be registered as a global in `tests/setup.ts` — plain Vitest does not run Nuxt auto-import
 - Generic constraints: `T extends object`, **not** `Record<string, unknown>` (interfaces have no index signature, so it rejects `User`, `Dashboard`, …)
 - Always pass the type argument to `readJSON<T>` / `findById<T>` / `updateItem<T>`. Leaving it bare falls back to the constraint and invites an `as any[]` cast — that is how the `?company=` filter bug survived (PR #359)
+- `access.company` is a **list of company codes**, read with `.includes()`. Both `access.company[code]` and `code in access.company` type-check and are always wrong — `in` tests array indices, so `'STTH' in ['STTH']` is `false`. It has been got wrong twice (server PR #359, client PR #474); the tested predicate is [companyFilter.ts](app/utils/companyFilter.ts), and `ALL` is a real wildcard meaning every active company
 - Never "fix" an `any` with `as any` or `@ts-ignore`. If the real type is unclear, skip the site and say why. Sometimes the right fix is deleting the code: two of the last three sites guarded logic that could never run (PR #366)
 - The backlog is closed — `npx eslint .` is **0**. Any `any` you add is a regression the lint run catches
 - See: [docs/CONTRIBUTING/coding-standards.md](docs/CONTRIBUTING/coding-standards.md) § Error Handling, § Avoiding `any`
+
+### Global Button Style
+
+- [assets/css/main.css](assets/css/main.css) forces `background-color`, `color`, `border`, `radius`, `padding` and `font-weight` onto **every `<button>`** whose class is not named in that rule's `:not()` list, and it outranks any scoped component style. A component cannot opt out by styling its own button — it has to be registered there
+- The test is not "does it look broken" but **"does the component set any property that rule sets"**. A segmented picker marking its selection with background and colour showed no selection at all until `.type-button` / `.mode-button` were added (BUG-033), the same way `.zoom-button` swallowed the `+` control (BUG-030) and `.menu-toggle` painted the mobile drawer button blue (BUG-025)
+- Nothing catches this: lint, typecheck and the test suite all pass. Look at any new button in the browser
 
 ### Firestore / Nitro Plugins
 
@@ -61,7 +68,10 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - **CSP lives in two files** — [securityHeaders.ts](server/middleware/securityHeaders.ts) and the static copy in [firebase.json](firebase.json) for assets Hosting serves itself. Change one without the other and some pages get a blank frame with no error
 - Store the **whole URL**, never an id: a published sheet is served under `/d/e/2PACX-…`, a different id from the file id and not derivable from it
 - Zoom is **not** the Looker formula. A Looker report rescales itself to its iframe width, so zoom grows height only and scales down; a Sheet's grid is fixed pixels and needs both axes ([embedZoom.ts](app/utils/embedZoom.ts))
-- The WebKit hint bar is **Looker-only**. A sheet that passed the sharing check opens on Safari normally, and showing the bar there teaches a restriction that does not apply
+- **Default mode is `full`** — `/edit` with no `rm`, Google's menu bar included (asked for on every sheet, 2026-09-26). Editing through it works **on Chrome only**: Safari and every iOS browser never send Google's cookies into the frame, so the owner is as anonymous as anyone and the menu is read-only. Download and Print in that menu do nothing — the `sandbox` has no `allow-downloads` / `allow-modals` — which only closes the in-app path, not the export URL. Measured: [google-sheets-menubar-spike.md](docs/OPERATIONS/google-sheets-menubar-spike.md)
+- A sheet iframe has **no `allow-top-navigation-by-user-activation`**, and must not get it back: with it, Google's in-frame "Sign in" on Safari took the whole tab out of StreamHub to the raw sheet — no watermark, real URL in the address bar — and the sign-in never reached the frame anyway. Without it the button opens the sheet in a **new tab** via `allow-popups` — the StreamHub tab survives; dropping `allow-popups` too would also kill hyperlinks in cells, so that was accepted. Looker keeps the flag
+- The WebKit hint bar shows for **every Looker** dashboard and for **sheets in `full` mode only**, with its own text and its own dismissal key. A sheet in `interactive`/`view` gets no bar — nothing on screen promises editing, so the bar would teach a restriction that does not apply
+- The type→glyph mapping lives once in [DashboardTypeIcon.vue](app/components/features/DashboardTypeIcon.vue), used by four lists. Before it existed the workaround for telling a sheet from a report was writing the type into the dashboard's name
 - Policy for new sheets: [looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) § Google Sheets · what was measured: [google-sheets-spike-plan.md](docs/OPERATIONS/google-sheets-spike-plan.md) · the build plan: [google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md)
 
 ---
@@ -163,10 +173,11 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | `node scripts/qa-cascade-user.mjs status\|seed\|restore [--apply]` | QA fixture สำหรับ TC 3.2.11 — สร้าง user ปลอม (`uid_qa_cascade`) ที่ถูกอ้างอิงจาก **ทั้งสองฝั่ง** ของ cascade (`groups.members[]` + `folders.assignedModerators[]`) เพื่อให้มีบัญชีที่ลบทิ้งได้ · ระบบสร้างบัญชีได้ทางคำเชิญทางเดียว และ 6 บัญชีบน prod ใช้งานอยู่หมด · ปฏิเสธ uid ที่ไม่ขึ้นต้น `uid_qa_` (restore ลบ user doc จริง) และปฏิเสธ group/folder ที่มีสมาชิก/ผู้ดูแลจริง · `restore` เป็นทางล้างทั้งกรณีที่ลบสำเร็จและกรณีเลิกกลางคัน และคืน `assignedModerators` เป็น "ไม่มีฟิลด์" ด้วย `FieldValue.delete()` เพราะ cascade เขียน `[]` ค้างไว้ · **ต้องใส่ `--folder <id>` เสมอ** ไม่มีค่าเริ่มต้นแล้ว — TEST-E ที่เคยจองไว้ถูกลบพร้อมของทดสอบอื่นทั้งหมด (2026-08-25) และการ seed เขียนลง `folders.assignedModerators[]` การมีค่าเริ่มต้นจึงแปลว่าเผลอแตะโฟลเดอร์จริงได้ |
 | `node scripts/inspect-expiry.mjs [dashboardId] [--all]` | Read-only ตรวจ **ร่างจริง** ของ `dashboards.restrictions.expiry` — Firebase console แสดง Timestamp กับ ISO string เกือบเหมือนกัน สคริปต์นี้แยกให้ (`object<Timestamp>` vs `string`) พร้อมบอกว่า `new Date(value)` แบบก่อน PR #364 อ่านออกไหม; ใส่ dashboard id เพื่อดู `access`/`restrictions` + folder chain |
 | `npm run cloudbuild:status` | Read-only Cloud Build history for the functions deploy — tells queue expiry (`EXPIRED`, queued ~600s, ran 0s → Google-side, just rerun) apart from a real build failure. Pass a build id for details |
+| `node scripts/migrate-sheet-full-mode.mjs [--apply]` | Move sheet dashboards still on `interactive` (the old default) to `full`, rewriting `sheetEmbedUrl` with `sheetEmbedMode` since the stored URL *is* the framed one. Rewrites only the exact `/edit?rm=minimal&widget=true&headers=false` shape; `view`, published and hand-edited URLs are listed and skipped. Dry run without `--apply`, one batch, leaves `updatedAt` alone. **Run only after the code that renders `full` is live** — before that, prod frames the menu bar with the old sandbox and no hint |
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite. **Baseline is 335 passing** |
+| `npm test` | Vitest suite. **Baseline is 399 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). **Baseline is 0 — any problem is yours** |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |
