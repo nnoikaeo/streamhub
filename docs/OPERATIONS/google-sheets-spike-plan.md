@@ -5,6 +5,8 @@
 > เดิมตั้งใจให้โค้ด spike อยู่แค่บน `feat/google-sheets-spike` · **เปลี่ยนเป็น merge เข้ามาด้วย** เพราะ `spike-sheets-iframe.html` เป็นของที่ P5 ใช้ทดสอบมือจริง และสคริปต์อ่านชีตเป็น read-only ทั้งคู่
 >
 > พื้นหลัง: [looker-sharing-policy.md](looker-sharing-policy.md) · [BUG-032](manual-test-plan.md)
+>
+> รอบต่อมา (2026-09-26): เมนูบาร์ของ Sheets ในกรอบ ⇒ [google-sheets-menubar-spike.md](google-sheets-menubar-spike.md)
 
 ## ✅ ตัดสินใจแล้ว — ทางเลือก 1 (2026-09-06)
 

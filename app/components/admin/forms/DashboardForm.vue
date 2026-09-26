@@ -96,7 +96,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     lookerDashboardId: props.dashboard?.lookerDashboardId || '',
     lookerEmbedUrl: props.dashboard?.lookerEmbedUrl || '',
     sheetEmbedUrl: props.dashboard?.sheetEmbedUrl || '',
-    sheetEmbedMode: (props.dashboard?.sheetEmbedMode || 'interactive') as SheetEmbedMode,
+    sheetEmbedMode: (props.dashboard?.sheetEmbedMode || 'full') as SheetEmbedMode,
     isArchived: props.dashboard?.isArchived ?? false,
     owner: props.dashboard?.owner || authStore.user?.uid || '',
     tags: props.dashboard?.tags ?? [],
