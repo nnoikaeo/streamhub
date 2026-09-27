@@ -426,6 +426,10 @@
 | 3.13.7 | Breadcrumb navigation | 1. Navigate deep 2. Click breadcrumb segment | Jumps to that folder level | Low | ✅ |
 | 3.13.8 | Assign tags to a dashboard | 1. Click Edit on a dashboard 2. Click "+ Add tag" 3. Tick a tag 4. Click "บันทึก" | Dropdown stays open, tag becomes a removable badge, modal closes only on Save | Medium | 🐛 BUG-013 — first click saved and closed the modal (fixed; re-verified on prod 2026-08-04) |
 | 3.13.9 | Tags shown in the list | 1. Open a folder holding tagged and untagged dashboards | Tagged rows show TagBadge chips on a second line under the name; untagged rows and folder rows are unchanged; columns do not shift | Low | ✅ (prod 2026-08-04 — 5 dashboards × 2 tags each, งบทดลอง/ภาคตะวันออกเฉียงเหนือ) |
+| 3.13.10 | Sheet ที่ยังไม่แชร์ลิงก์บันทึกไม่ได้ (BUG-034) | 1. สร้าง Google Sheet ใหม่ **ไม่แชร์** 2. "+ แดชบอร์ดใหม่" → ชนิด Google Sheets → วาง URL 3. รอตรวจอัตโนมัติ 4. กด "บันทึก" | ขึ้น "ยังไม่ได้แชร์ลิงก์ (HTTP 401)" พร้อมวิธีแชร์ · บันทึกแล้วขึ้น "ชีตนี้ยังไม่ได้แชร์…" และ**ไม่มี**แดชบอร์ดใหม่ในรายการ · แชร์ลิงก์แล้วกด "ตรวจการแชร์" ใหม่ ต้องบันทึกได้ | High | ✅ (prod Chrome 2026-09-27 — 401 + ข้อความปฏิเสธ รายการยัง 6 แดชบอร์ด · ขั้นแชร์แล้วบันทึกได้ยังไม่ได้กด) |
+| 3.13.11 | ซูมชีตได้ทั้งแถวและคอลัมน์ | 1. เปิดแดชบอร์ดชีต 2. กด − ไป 50% 3. กด + ไป 150% | 50%: เห็นแถว**และ**คอลัมน์มากขึ้น ตัวเล็กลง (Looker ได้แถวเพิ่มอย่างเดียว) · 150%: ตารางขยาย มีแถบเลื่อนในกรอบ — [embedZoom.ts](../../app/utils/embedZoom.ts) | Medium | ☐ |
+| 3.13.12 | เปลี่ยนโหมดแล้ว URL ที่เก็บเปลี่ยนตาม | 1. ✏️ แดชบอร์ดชีตทดสอบ 2. โหมดแสดงผล → View → บันทึก → เปิดดู 3. ทำซ้ำกับ Interactive และ Full | ตัวที่เลือกเป็นช่องทึบในแถบ มีคำอธิบายของโหมดนั้นใต้แถบ · View = ตารางแบนคลิกไม่ได้ · Interactive = ไม่มีเมนูบาร์ เลือกเซลล์ได้ · Full = เมนูบาร์ครบ · `sheetEmbedUrl` ใน Firestore เป็น `/preview` · `/edit?rm=minimal&widget=true&headers=false` · `/edit` ตามลำดับ | High | ☐ — ใช้แดชบอร์ดทดสอบจาก `SPIKE-E-link` ไม่ใช่ของจริง |
+| 3.13.13 | แถบเหลืองของชีตขึ้นเฉพาะมือถือ | 1. เปิดแดชบอร์ดชีตบน iPhone 2. กด × 3. reload 4. เปิดบน iPad และเดสก์ท็อป | iPhone: แถบ "บนมือถือ Google แสดงชีตแบบอ่านอย่างเดียว…" · หลังกด × แล้ว reload แถบไม่กลับมา (`localStorage`) · iPad / เดสก์ท็อป: ไม่มีแถบ | Medium | ☐ — iPad ไม่มีแถบ ยืนยันแล้วใน 7.1.i |
 
 ---
 
@@ -794,15 +798,15 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | Admin Permissions | 23 | High | ✅ (23/23 — 3.10.11–3.10.23 verified on prod 2026-08-19) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
-| Admin Explorer | 9 | High | ✅ (7/9 ✅ / 2 🐛 BUG-008 + BUG-013 fixed และ re-verified) |
+| Admin Explorer | 13 | High | 🔍 (8/13 ✅ / 2 🐛 BUG-008 + BUG-013 fixed และ re-verified / 3 ☐ เคสชีต 3.13.11–3.13.13) |
 | Moderator Explorer | 6 | High | ✅ (6/6) |
 | Moderator Permissions | 5 | High | ✅ (5/5) |
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **211** | — | 197 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **215** | — | 198 ✅ / 1 🔍 / 3 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
-> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 211 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
+> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 215 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
 
 ---
 
