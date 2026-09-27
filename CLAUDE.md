@@ -41,7 +41,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 ### Global Button Style
 
 - [assets/css/main.css](assets/css/main.css) forces `background-color`, `color`, `border`, `radius`, `padding` and `font-weight` onto **every `<button>`** whose class is not named in that rule's `:not()` list, and it outranks any scoped component style. A component cannot opt out by styling its own button — it has to be registered there
-- The test is not "does it look broken" but **"does the component set any property that rule sets"**. A segmented picker marking its selection with background and colour showed no selection at all until `.type-button` / `.mode-button` were added (BUG-033), the same way `.zoom-button` swallowed the `+` control (BUG-030) and `.menu-toggle` painted the mobile drawer button blue (BUG-025)
+- The test is not "does it look broken" but **"does the component set any property that rule sets"**. A segmented picker marking its selection with background and colour showed no selection at all until `.type-button` / `.mode-button` were added (BUG-033; both pickers are now [SegmentedControl.vue](app/components/ui/SegmentedControl.vue), registered as `segmented-control__*` — reuse it for any pick-one control), the same way `.zoom-button` swallowed the `+` control (BUG-030) and `.menu-toggle` painted the mobile drawer button blue (BUG-025)
 - Nothing catches this: lint, typecheck and the test suite all pass. Look at any new button in the browser
 
 ### Firestore / Nitro Plugins
@@ -178,7 +178,7 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite. **Baseline is 410 passing** |
+| `npm test` | Vitest suite. **Baseline is 416 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). **Baseline is 0 — any problem is yours** |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |

@@ -109,6 +109,15 @@ watch(() => props.modelValue, (val) => {
   }
 })
 
+// Hints say where editing works as measured on prod after #477: desktop Chrome
+// and desktop Safari alike; phones get Google's read-only mobile page whatever
+// the mode (docs/REFERENCE/google-sheets-embeds.md).
+const modeOptions: { label: string, value: SheetEmbedMode, hint: string }[] = [
+  { label: 'Full', value: 'full', hint: 'มีเมนูบาร์ · แก้ไขได้บนคอมพิวเตอร์ (Chrome และ Safari) · มือถืออ่านอย่างเดียว' },
+  { label: 'Interactive', value: 'interactive', hint: 'ไม่มีเมนูบาร์ เลือกเซลล์ได้' },
+  { label: 'View', value: 'view', hint: 'ตารางแบน คลิกไม่ได้' },
+]
+
 const setMode = (mode: SheetEmbedMode) => {
   emit('update:mode', mode)
 }
@@ -211,35 +220,12 @@ const openInNewTab = () => {
          not carry Google's chrome. The published URL has one form. -->
     <div v-if="urlInfo.isValid && !urlInfo.isPublished" class="mode-row">
       <span class="mode-label">โหมดแสดงผล</span>
-      <div class="mode-options" role="group" aria-label="โหมดแสดงผล">
-        <button
-          type="button"
-          class="mode-button"
-          :class="{ 'mode-button--active': mode === 'full' }"
-          @click="setMode('full')"
-        >
-          Full
-          <span class="mode-hint">มีเมนูบาร์ · แก้ไขได้เฉพาะบน Chrome</span>
-        </button>
-        <button
-          type="button"
-          class="mode-button"
-          :class="{ 'mode-button--active': mode === 'interactive' }"
-          @click="setMode('interactive')"
-        >
-          Interactive
-          <span class="mode-hint">ไม่มีเมนูบาร์ เลือกเซลล์ได้</span>
-        </button>
-        <button
-          type="button"
-          class="mode-button"
-          :class="{ 'mode-button--active': mode === 'view' }"
-          @click="setMode('view')"
-        >
-          View
-          <span class="mode-hint">ตารางแบน คลิกไม่ได้</span>
-        </button>
-      </div>
+      <SegmentedControl
+        :model-value="mode"
+        :options="modeOptions"
+        aria-label="โหมดแสดงผล"
+        @update:model-value="setMode"
+      />
     </div>
 
     <!-- Sharing check. The one thing that cannot be verified by looking at the
@@ -410,40 +396,9 @@ const openInNewTab = () => {
   color: var(--color-text-secondary, #64748b);
 }
 
-.mode-options {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
 
-.mode-button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.125rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-align: left;
-  color: var(--color-text-secondary, #6b7280);
-  background: var(--color-bg-secondary, #f3f4f6);
-  border: 1px solid var(--color-border, #d1d5db);
-  border-radius: var(--radius-md, 0.375rem);
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.mode-button--active {
-  color: var(--color-primary, #3b82f6);
-  background: var(--color-bg-info, #eff6ff);
-  border-color: var(--color-primary, #3b82f6);
-}
 
-.mode-hint {
-  font-size: 0.7rem;
-  font-weight: 400;
-  color: var(--color-text-secondary, #94a3b8);
-}
 
 .sharing-check {
   display: flex;
