@@ -220,13 +220,13 @@
 
 ---
 
-### Phase 9: Lint & Typecheck Debt 🔄 IN PROGRESS
+### Phase 9: Lint & Typecheck Debt ✅ COMPLETED
 
 **Goal:** Get the verify commands back to a meaningful signal
 
 - [x] **eslint 716 → 382** (PR #353) — autofix, dead-code removal, and every remaining rule cleared except `no-explicit-any`. Two rules turned off with rationale in `eslint.config.mjs`: `vue/multi-word-component-names` for the `ui/` primitives, `vue/require-default-prop` for type-first props
 - [x] **vue-tsc 44 → 0** (PR #353) — surfaced two live bugs: `QuickShareDialog` read `user.id` on a type that only has `uid` (share from Discover emitted `userIds: [undefined]`), and `PermissionsPage` wrote `setByName: user.value?.name`, recording provenance blank
-- [x] **`no-explicit-any` 382 → 85** — six reviewed PRs. #354–#358 are on `main`; **#359 is merged to `develop` and not yet back-merged**:
+- [x] **`no-explicit-any` 382 → 85** — reviewed PRs, all on `main`:
   - **#354** — added `shared/utils/errors.ts` (auto-imported into both `app/` and `server/`) and moved all 71 `catch (e: any)` to `unknown`. 382 → 311
   - **#355** — validators, type guards, debug logs, `PermissionsPage` props, and casts that were covering nothing. 311 → 268
   - **#356** — reused types that already existed elsewhere; `($firebase as any).db` turned out to be four leftover casts. 268 → 245
@@ -259,16 +259,16 @@ Decided 2026-09-06 after the measurement spike ([google-sheets-spike-plan.md](ar
 
 **Not done, deliberately:** Drive permission sync, writing back to a sheet, Google Docs/Slides. A type filter on Discover was considered and deferred — the icons answer the question a filter would, and one sheet among thirty dashboards does not need one yet.
 
-### Phase 11: Sheets Follow-ups 🔜 PLANNED
+### Phase 11: Sheets Follow-ups 🔄 IN PROGRESS
 
 **Goal:** Close what the Sheets work (#472–#479) left open, and make sure BUG-036 cannot come back quietly
 
 Listed 2026-09-27. Background for every item: [google-sheets-embeds.md](../REFERENCE/google-sheets-embeds.md).
 
-**Next PR — items 1 and 2 together** (small, no user-facing change):
+**Items 1 and 2 together** (small, no user-facing change):
 
-- [ ] **1. Guard the CSP with a test** — assert that `frame-src` in [securityHeaders.ts](../../server/middleware/securityHeaders.ts) **and** [firebase.json](../../firebase.json) both contain `https://docs.google.com` and `https://accounts.google.com`, and that the two lists agree apart from the runtime `authDomain` the middleware appends. BUG-036 shipped because nothing checked this: lint, typecheck and the suite all passed while every sheet on prod Safari was blank. Remember to register any new `shared/utils/` helper in `tests/setup.ts`
-- [ ] **2. Fix the stale Phase 9 marker** — Phase 9 still reads 🔄 IN PROGRESS although every item is `[x]` and the `any` backlog is closed; its `#359 … not yet back-merged` line is also long out of date
+- [x] **1. Guard the CSP with a test** ✅ DONE — [securityHeaders.test.ts](../../tests/server/securityHeaders.test.ts) runs the middleware for real and reads the static copy out of `firebase.json`. It asserts that `frame-src` in [securityHeaders.ts](../../server/middleware/securityHeaders.ts) **and** [firebase.json](../../firebase.json) both contain `https://docs.google.com`, `https://accounts.google.com` and `https://lookerstudio.google.com`, and that the two lists agree apart from the runtime `authDomain` the middleware appends. Removing `accounts.google.com` from either file fails two tests. BUG-036 shipped because nothing checked this: lint, typecheck and the suite all passed while every sheet on prod Safari was blank
+- [x] **2. Fix the stale Phase 9 marker** ✅ DONE — Phase 9 read 🔄 IN PROGRESS although every item was `[x]` and the `any` backlog closed; its `#359 … not yet back-merged` line was dropped too (#359 reached `main` on 2026-08-14)
 
 **When a device is at hand:**
 
