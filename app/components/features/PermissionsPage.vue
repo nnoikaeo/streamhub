@@ -144,6 +144,10 @@ const originalPermissions = ref<{
 // ─── Edit Mode ──────────────────────────────────────────────────────────
 
 const editMode = ref<'dashboard' | 'folder'>('dashboard')
+const modeOptions: { label: string, value: 'dashboard' | 'folder' }[] = [
+  { label: '📊 แดชบอร์ด', value: 'dashboard' },
+  { label: '📁 โฟลเดอร์', value: 'folder' },
+]
 
 // ─── Folder Mode State ──────────────────────────────────────────────────
 
@@ -820,25 +824,14 @@ watch(() => props.allFolders, (folders) => {
       <template #filters>
         <!-- Filter bar hidden when arriving from Explorer — target is already chosen -->
         <div v-if="!cameFromExplorer" class="filter-bar">
-          <!-- Mode Toggle (Button Group) -->
-          <div class="mode-toggle">
-            <button
-              type="button"
-              class="mode-toggle__btn"
-              :class="{ 'mode-toggle__btn--active': editMode === 'dashboard' }"
-              @click="switchMode('dashboard')"
-            >
-              📊 แดชบอร์ด
-            </button>
-            <button
-              type="button"
-              class="mode-toggle__btn"
-              :class="{ 'mode-toggle__btn--active': editMode === 'folder' }"
-              @click="switchMode('folder')"
-            >
-              📁 โฟลเดอร์
-            </button>
-          </div>
+          <!-- Mode toggle — the shared pick-one control (ui/SegmentedControl) -->
+          <SegmentedControl
+            class="mode-toggle"
+            :model-value="editMode"
+            :options="modeOptions"
+            aria-label="แก้ไขสิทธิ์ของ"
+            @update:model-value="switchMode"
+          />
 
           <!-- Dashboard Selector (dashboard mode) -->
           <div v-if="editMode === 'dashboard'" class="filter-search dashboard-search-wrapper">
@@ -1283,43 +1276,9 @@ watch(() => props.allFolders, (folders) => {
   min-width: 0;
 }
 
-/* Mode Toggle (Button Group — Bootstrap btn-outline-primary style) */
+/* The mode toggle is ui/SegmentedControl; only its place in the bar is set here. */
 .mode-toggle {
-  display: inline-flex;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--color-primary, #2d3389);
   flex-shrink: 0;
-}
-
-.mode-toggle__btn {
-  position: relative;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  border-right: 1px solid var(--color-primary, #2d3389);
-  background: var(--color-bg-primary, white);
-  color: var(--color-primary, #2d3389);
-  transition: background-color 0.15s ease, color 0.15s ease;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.mode-toggle__btn:last-child {
-  border-right: none;
-}
-
-.mode-toggle__btn:hover:not(.mode-toggle__btn--active) {
-  background: var(--color-primary-lightest, #e0e5f3);
-}
-
-.mode-toggle__btn--active {
-  background: var(--color-primary);
-  color: white;
-  z-index: 1;
 }
 
 /* Filter Hint */
@@ -1965,12 +1924,12 @@ watch(() => props.allFolders, (folders) => {
     align-items: stretch;
   }
 
-  .mode-toggle {
-    width: 100%;
-    display: flex;
+  /* Full-width toggle on phones: the strip and each option stretch. */
+  .mode-toggle :deep(.segmented-control__strip) {
+    align-self: stretch;
   }
 
-  .mode-toggle__btn {
+  .mode-toggle :deep(.segmented-control__option) {
     flex: 1;
   }
 
