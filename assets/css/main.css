@@ -233,10 +233,11 @@ button:disabled {
  * like two identical buttons rather than one of them being active.
  *
  * Both pickers are now one shared component, ui/SegmentedControl.vue, and its
- * `segmented-control__*` classes replace the two entries. A tab that had loaded
- * this file before #472 still showed every option filled after the fix had
- * shipped — the SPA never refetches this stylesheet on in-app navigation, so
- * check a new button after a hard reload.
+ * `segmented-control__*` classes replace the two entries. Every option still
+ * rendered filled on prod after that — not this rule, but an *old* copy of this
+ * file re-injected by a stale cached chunk (BUG-038, see the
+ * streamhub:drop-entry-css-from-deps plugin in nuxt.config.ts). If a button
+ * looks wrong, check which entry.*.css the winning rule comes from first.
  *
  * Adding a class here restores what its component already asked for.
  */

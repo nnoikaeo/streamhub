@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
+import { dropEntryCssFromDeps } from './scripts/build/entryCssDeps'
 
 // Read at build time, not runtime. `process.env.npm_package_version` is only set
 // when npm starts the process, and the deployed Cloud Function is started by the
@@ -156,6 +157,50 @@ export default defineNuxtConfig({
       // Strip console.log / console.debug in production builds
       minify: 'esbuild',
     },
+    plugins: [
+      {
+        // Never let a dynamic import pull in the entry stylesheet. It is
+        // already in <head> (scripts/generate-spa-index.mjs), so listing it
+        // adds nothing — and listing it is how an old build's global button
+        // rule came back on prod (2026-09-27, the segmented control rendered
+        // every option filled after a trip to a dashboard and back).
+        //
+        // Vite writes CSS file names into a chunk's `__vite__mapDeps` after
+        // the chunk is hashed, so a CSS-only change renames entry.*.css while
+        // the chunk that lists it keeps its name. Reproduced: one rule
+        // appended to main.css, rebuilt, 7RjvMAmn.js kept its name and now
+        // pointed at the new CSS. A browser that had cached that chunk as
+        // `immutable` kept the old list and, on the next dynamic import,
+        // appended the old entry.*.css from its own cache after the current
+        // one — later in the cascade, so the old rule won.
+        //
+        // `build.modulePreload.resolveDependencies` looked like the place for
+        // this but never saw the CSS entry, so it is replaced here instead,
+        // after Vite has written the lists (scripts/build/entryCssDeps.ts).
+        name: 'streamhub:drop-entry-css-from-deps',
+        apply: 'build',
+        enforce: 'post',
+        generateBundle: {
+          // Vite fills the lists in its own generateBundle; run after it.
+          order: 'post',
+          handler(_options, bundle) {
+            for (const file of Object.values(bundle)) {
+              if (file.type === 'chunk') file.code = dropEntryCssFromDeps(file.code, file.fileName)
+            }
+          },
+        },
+      },
+      {
+        // One-time rename of every chunk, so browsers that already cached a
+        // chunk carrying an old entry.*.css in its deps list fetch a fresh
+        // one. The plugin above stops new stale lists from forming; this
+        // clears the ones already out there. Change the value only to force
+        // another rename.
+        name: 'streamhub:chunk-hash-salt',
+        apply: 'build',
+        augmentChunkHash: () => 'stale-entry-css-2026-09-28',
+      },
+    ],
     esbuild: {
       // Drop only debugger statements in production.
       // Do NOT drop console — server-side console.error/warn must remain
