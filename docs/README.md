@@ -77,9 +77,6 @@ its row.
 | [manual-test-plan.md](OPERATIONS/manual-test-plan.md) | Manual QA cases by role, and the BUG-0xx register |
 | [pre-launch-checklist.md](OPERATIONS/pre-launch-checklist.md) | A–E test groups, launch sign-off |
 | [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md) | Sharing rules for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
-| [google-sheets-spike-plan.md](OPERATIONS/google-sheets-spike-plan.md) | What was measured about the three ways to support Google Sheets — every option, every number |
-| [google-sheets-embed-plan.md](OPERATIONS/google-sheets-embed-plan.md) | The plan Sheets embeds were built from, and what the build did differently — P1–P5 done |
-| [google-sheets-menubar-spike.md](OPERATIONS/google-sheets-menubar-spike.md) | Why sheets frame with Google's menu bar by default, and what it can and cannot do there — Chrome-only editing, no download, no in-frame sign-in |
 | [versioning.md](OPERATIONS/versioning.md) | Version numbering policy |
 
 ### archive/ — finished plans, kept as history
@@ -89,6 +86,9 @@ the snippets predate the current types.
 
 | Plan | Shipped as |
 |---|---|
+| [google-sheets-spike-plan.md](OPERATIONS/archive/google-sheets-spike-plan.md) | Spike: three ways to support Google Sheets, every number — iframe chosen 2026-09-06 |
+| [google-sheets-embed-plan.md](OPERATIONS/archive/google-sheets-embed-plan.md) | Sheets embeds P1–P5 (#472–#475) |
+| [google-sheets-menubar-spike.md](OPERATIONS/archive/google-sheets-menubar-spike.md) | Spike: Google's menu bar in the frame (M0–M9) and what prod showed after (P1–P6) — `full` default, CSP fix (#476–#478) |
 | [looker-embed-security-plan.md](OPERATIONS/archive/looker-embed-security-plan.md) | Embed proxy + AES-256-GCM token (BUG-031) |
 | [company-access-control-plan.md](OPERATIONS/archive/company-access-control-plan.md) | `server/utils/companyAccess.ts` |
 | [edit-user-form-plan.md](OPERATIONS/archive/edit-user-form-plan.md) | Groups multi-select + moderator folder picker in `UserForm.vue` |
@@ -115,6 +115,7 @@ the snippets predate the current types.
 | Doc | Contents |
 |---|---|
 | [environment-variables.md](REFERENCE/environment-variables.md) | Every env var and where it is set |
+| [google-sheets-embeds.md](REFERENCE/google-sheets-embeds.md) | ⭐ Sheets embeds as measured: modes, what edits on which browser, CSP/sandbox values that must stay, console noise, how to test |
 | [common-issues.md](TROUBLESHOOTING/common-issues.md) | Known issues and their fixes |
 | [faq.md](TROUBLESHOOTING/faq.md) | Frequently asked questions |
 

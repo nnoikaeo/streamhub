@@ -122,9 +122,27 @@ Data Studio
 
 > ⚠️ **ราคาที่ต้องจ่าย หนักกว่าของ Looker** — ลิงก์ที่แชร์แล้วตอบ `export?format=csv|xlsx|pdf` และ `gviz` ให้คนที่ไม่ล็อกอิน ⇒ ลิงก์หลุด = **ได้ทั้งไฟล์** ไม่ใช่แค่รายงานที่ render แล้ว · ชีตที่มีข้อมูลอ่อนไหวต้องให้เจ้าของข้อมูลตัดสินก่อน ไม่ใช่ตัดสินตอนเพิ่มแดชบอร์ด — ดู [looker-sharing-policy.md](../OPERATIONS/looker-sharing-policy.md)
 
-> ⚠️ **โหมด `interactive` ฝัง `/edit`** ⇒ คนที่มีสิทธิ์แก้ไขบนชีตนั้นแก้ได้จริงผ่านกรอบ · ชีตที่แชร์ลิงก์เป็น "ผู้ดู" แก้ไม่ได้ แต่เจ้าของที่เปิดแดชบอร์ดเองจะแก้ได้ — ตั้งใจให้เป็นแบบนั้น ถ้าไม่ต้องการให้เลือกโหมด `view`
+> ⚠️ **โหมด `full` (ค่าเริ่มต้น) และ `interactive` ฝัง `/edit`** ⇒ คนที่มีสิทธิ์แก้ไขบนชีตนั้นแก้ได้จริงผ่านกรอบ บน Chrome และ Safari เดสก์ท็อป · มือถืออ่านอย่างเดียว · ถ้าไม่ต้องการให้แก้ผ่านกรอบเลย ให้เลือกโหมด `view` — ตารางว่าอะไรทำได้ที่ไหนอยู่ใน [google-sheets-embeds.md](../REFERENCE/google-sheets-embeds.md)
 
-**แถบเตือน WebKit ไม่ขึ้นกับแดชบอร์ดชนิด sheet** — ต่างจาก Looker เพราะชีตที่ผ่านการตรวจแล้วเปิดบน Safari ได้ตามปกติ ขึ้นแถบทั้งที่ใช้งานได้จะสอนผู้ใช้ผิด
+**แถบเตือนของชีตขึ้นเฉพาะบนมือถือ** — ต่างจาก Looker ที่ขึ้นบน WebKit ทั้งหมด เพราะชีตที่แชร์ลิงก์แล้วเปิดและแก้ได้บน Safari เดสก์ท็อปตามปกติ (หลัง #477) · สิ่งเดียวที่อ่านอย่างเดียวคือมือถือ ซึ่ง Google ส่งหน้าเวอร์ชันมือถือให้
+
+---
+
+## Issue: Google Sheets ที่ฝังเป็นกรอบขาวว่างบน Safari / iPhone แต่ Chrome ปกติ (BUG-036, แก้แล้ว PR #477)
+
+**อาการ** — แดชบอร์ดชนิดชีตเป็นกรอบขาว ไม่มีข้อความอะไรในกรอบ เฉพาะ Safari และทุกเบราว์เซอร์บน iPhone · Chrome เปิดได้ปกติ · Web Inspector แสดง:
+
+```text
+Refused to load https://accounts.google.com/ServiceLogin?service=wise&passive=1209600&…&continue=https://docs.google.com/spreadsheets/d/…/edit… because it does not appear in the frame-src directive of the Content Security Policy.
+```
+
+**สาเหตุ** — กรอบที่ยังไม่มีเซสชัน Google ถูก Google พาผ่าน `accounts.google.com/ServiceLogin?passive=…` ก่อนเปิดชีต · CSP ตรวจ `frame-src` ทุกช่วงของ redirect และ `accounts.google.com` ไม่อยู่ในลิสต์ ⇒ กรอบหยุดอยู่ตรงนั้น · Chrome ไม่เจอเพราะส่งคุกกี้ Google เข้ากรอบได้ ไม่ต้องเช็ก
+
+**ทางแก้** — `https://accounts.google.com` ต้องอยู่ใน `frame-src` **ทั้งสองที่**: [securityHeaders.ts](../../server/middleware/securityHeaders.ts) และ [firebase.json](../../firebase.json) · ถ้าอาการกลับมา ให้ `curl -sI https://streamhub-1c27a.web.app/dashboard/view/<id> | grep -i content-security` ดูว่าโดเมนนี้ยังอยู่ไหม
+
+> ⚠️ **ทดสอบบน prod เท่านั้น** — localhost ไม่ถูกพาไป passive sign-in แม้ CSP จะเหมือนกัน · preview URL ของ PR ก็ใช้ไม่ได้ เพราะล็อกอินบน preview ไม่ได้
+
+> **อ่านผิดได้ง่าย** — ถ้าหลังแก้แล้ว Safari เปิดได้แต่แก้ไขไม่ได้ ให้ลองบัญชีเดียวกันบน Chrome ก่อน: แท็บที่มีแม่กุญแจ หรือบัญชีที่เป็นผู้ดูบนชีต แก้ไม่ได้ทุกเบราว์เซอร์ · error `frame-ancestors` ของ `drivesharing` / `hovercard` / `RotateCookiesPage` และฟอนต์ `filesystem:` เป็นเสียงรบกวน ไม่ใช่สาเหตุ
 
 ---
 

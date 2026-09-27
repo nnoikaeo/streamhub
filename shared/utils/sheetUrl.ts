@@ -44,7 +44,7 @@ const SHEET_PUBLISHED_PATTERN = /^https:\/\/docs\.google\.com\/spreadsheets\/d\/
  * `full` drops `rm` entirely: that is what brings the menu bar back. It also
  * drops `widget` and `headers`, which only mean anything alongside `rm`.
  * It is the default because the menu bar was asked for on every sheet
- * (2026-09-26) — see docs/OPERATIONS/google-sheets-menubar-spike.md for what
+ * (2026-09-26) — see docs/REFERENCE/google-sheets-embeds.md for what
  * it can and cannot do inside our frame.
  */
 const SHEET_DOC_EMBED_PATH: Record<SheetEmbedMode, (base: string) => string> = {
