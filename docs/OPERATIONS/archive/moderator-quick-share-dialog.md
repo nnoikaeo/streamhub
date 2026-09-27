@@ -1,6 +1,6 @@
 # Moderator Quick Share Dialog
 
-> ⛔ **ยกเลิกแล้ว (2026-08-18)** — Quick Share ถูกลบออกจากแอปทั้งชุด การให้สิทธิ์ทุกกรณีผ่านหน้าจัดการสิทธิ์ (เข้าจาก Explorer ปุ่ม 🔑) เอกสารนี้เก็บไว้เป็นประวัติการออกแบบ ดู BUG-017 ใน [manual-test-plan.md](../../OPERATIONS/manual-test-plan.md)
+> ⛔ **ยกเลิกแล้ว (2026-08-18)** — Quick Share ถูกลบออกจากแอปทั้งชุด การให้สิทธิ์ทุกกรณีผ่านหน้าจัดการสิทธิ์ (เข้าจาก Explorer ปุ่ม 🔑) เอกสารนี้เก็บไว้เป็นประวัติการออกแบบ ดู BUG-017 ใน [manual-test-plan.md](../manual-test-plan.md)
 
 > **Purpose:** Quick sharing dialog for moderators to grant temporary direct access to dashboards
 > **Users:** Moderators (own dashboards only)
@@ -225,7 +225,7 @@ Try:
 - **Tablet (768-1024px):** Drawer from right, 70% width
 - **Mobile (<768px):** Full-screen modal, 90% width
 
-**Details:** See [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md)
+**Details:** See [DESIGN_SYSTEM.md](../../DESIGN/DESIGN_SYSTEM.md)
 
 ---
 
@@ -233,10 +233,10 @@ Try:
 
 | Document | Purpose | Link |
 |----------|---------|------|
-| **Discover Page** | Where [Share] button lives | [dashboard-discover-page.md](./dashboard-discover-page.md) |
-| **Admin Permissions** | Full permission management (admin only) | [admin-permission-management-page.md](./admin-permission-management-page.md) |
+| **Discover Page** | Where [Share] button lives | [dashboard-discover-page.md](../../DESIGN/wireframes/dashboard-discover-page.md) |
+| **Admin Permissions** | Full permission management (admin only) | [admin-permission-management-page.md](../../DESIGN/wireframes/admin-permission-management-page.md) |
 | **Permissions Guide** | Complete permission logic | [roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
-| **Design System** | Colors, spacing, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
+| **Design System** | Colors, spacing, responsive | [DESIGN_SYSTEM.md](../../DESIGN/DESIGN_SYSTEM.md) |
 
 ---
 

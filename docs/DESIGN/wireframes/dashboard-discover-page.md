@@ -278,7 +278,6 @@ Features:
 | **Components** | Component architecture & hierarchy | [COMPONENT_ARCHITECTURE.md](../COMPONENT_ARCHITECTURE.md) |
 | **Permissions** | 3-layer permission logic | [docs/GUIDES/roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
 | **View Page** | What happens after clicking "Open" | [dashboard-view-page.md](./dashboard-view-page.md) |
-| **Quick Share** | Share dialog details | [moderator-quick-share-dialog.md](./moderator-quick-share-dialog.md) |
 | **Design System** | Colors, typography, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
 | **Mock Data** | Test data structure | [MOCK_DATA_STRUCTURE.md](../MOCK_DATA_STRUCTURE.md) |
 | **User Flows** | Complete user journey diagrams | [user-flows.md](../user-flows.md) |

@@ -265,7 +265,7 @@ Quick Share ถูกถอดออกทั้งชุด การให้�
 - Expiry date options
 - Layer 1 Direct Access only
 
-**See:** [moderator-quick-share-dialog.md](wireframes/moderator-quick-share-dialog.md)
+**See:** [moderator-quick-share-dialog.md](../OPERATIONS/archive/moderator-quick-share-dialog.md) (archived)
 
 ---
 
@@ -401,6 +401,20 @@ Basic reusable components (buttons, cards, forms, etc.).
 
 ---
 
+### SegmentedControl
+
+**File:** `app/components/ui/SegmentedControl.vue` (global, no prefix)
+
+**Purpose:** Pick exactly one of a few options — one joined strip, chosen option filled, its hint shown once under the strip
+
+**Props:** `modelValue: T`, `options: { value: T, label: string, hint?: string }[]`, `ariaLabel: string` (generic `T extends string`) · **Events:** `update:modelValue`
+
+**Used by:** `DashboardForm` (Looker / Sheets), `SheetUrlInput` (Full / Interactive / View). Registered in the global button rule as `segmented-control__*`; reuse it rather than writing another row of toggle buttons.
+
+**See:** [DESIGN_SYSTEM.md > SegmentedControl](DESIGN_SYSTEM.md#-segmentedcontrol--pick-one-of-a-few)
+
+---
+
 ### DataTable
 
 **File:** `app/components/admin/DataTable.vue`
@@ -437,7 +451,7 @@ Basic reusable components (buttons, cards, forms, etc.).
 
 **Props:** `subfolders`, `dashboards`, `isAdmin`, `loading`, `currentFolderId`, `allUsers?`, `availableTags?`, `showModeratorColumn?`, `dashboardCounts?`
 
-**Layout:** CSS grid, not a table. `gridColumns` switches between two templates depending on `showModeratorColumn`, and **every row must declare the same number of cells** — that is why folder rows carry an empty `<span>` where the moderator column sits.
+**Layout:** CSS grid, not a table. The templates live in CSS (`.contents-table--moderators` adds the moderator column), and **every row must declare the same number of cells** — that is why folder rows carry an empty `<span>` where the moderator column sits. The name column is `minmax(12rem, 1fr)`: a bare `1fr` next to 520px of fixed columns resolved to 0 on an iPad and every name vanished (BUG-037). Below 720px of panel width a container query hides the type column — the row icon already says folder, report or sheet.
 
 **Dashboard tags:** rendered as a second line under the name (`TagBadge` size sm), so no column is added and folder rows are untouched. `getDashboardTags()` resolves the ids stored on the dashboard and drops two kinds of bad data: ids whose tag was deleted (orphan refs, the kind `npm run audit:orphans` reports) and tags with `isActive: false`. Both still appear in the edit modal, so nothing is silently unassigned.
 
@@ -512,6 +526,7 @@ app/components/
 │  ├── Input.vue
 │  ├── Select.vue
 │  ├── Breadcrumb.vue
+│  ├── SegmentedControl.vue       # Pick-one strip (dashboard type, sheet mode)
 │  └── Badge.vue
 │
 ├── compositions/                 # Composition patterns
@@ -663,7 +678,6 @@ onMounted(() => { /* setup */ })
 | **Sidebar Navigation** | Role-based sidebar wireframe | [sidebar-navigation.md](wireframes/sidebar-navigation.md) |
 | **Tag Management Page** | Tag CRUD + filter + assignment UI | [tag-management-page.md](wireframes/tag-management-page.md) |
 | **Admin Permissions** | Admin permission management page | [admin-permission-management-page.md](wireframes/admin-permission-management-page.md) |
-| **Quick Share Dialog** | Moderator share dialog | [moderator-quick-share-dialog.md](wireframes/moderator-quick-share-dialog.md) |
 | **Design System** | CSS tokens, colors, spacing, theme variables | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) |
 
 ---

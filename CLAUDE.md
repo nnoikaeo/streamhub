@@ -43,6 +43,14 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - [assets/css/main.css](assets/css/main.css) forces `background-color`, `color`, `border`, `radius`, `padding` and `font-weight` onto **every `<button>`** whose class is not named in that rule's `:not()` list, and it outranks any scoped component style. A component cannot opt out by styling its own button — it has to be registered there
 - The test is not "does it look broken" but **"does the component set any property that rule sets"**. A segmented picker marking its selection with background and colour showed no selection at all until `.type-button` / `.mode-button` were added (BUG-033; both pickers are now [SegmentedControl.vue](app/components/ui/SegmentedControl.vue), registered as `segmented-control__*` — reuse it for any pick-one control), the same way `.zoom-button` swallowed the `+` control (BUG-030) and `.menu-toggle` painted the mobile drawer button blue (BUG-025)
 - Nothing catches this: lint, typecheck and the test suite all pass. Look at any new button in the browser
+- A pick-one control (type, mode, view) is [SegmentedControl.vue](app/components/ui/SegmentedControl.vue) — already registered, keyboard-accessible, used by the dashboard form. Do not hand-roll another row of toggle buttons
+
+### Build & Browser Cache
+
+- Hosting serves `/_nuxt/**` as `immutable, max-age=1y`, so **a file name must change whenever its content does**. Vite breaks that in one place: it writes file names into a chunk's `__vite__mapDeps` list *after* hashing the chunk, so the chunk keeps its name while the list changes
+- That let a cached chunk re-inject an **old `entry.*.css`** after the current one — the old global button rule won and every segmented option rendered filled, only after visiting a dashboard and coming back (BUG-038). The plugin `streamhub:drop-entry-css-from-deps` in [nuxt.config.ts](nuxt.config.ts) replaces the entry-CSS slot in every list ([entryCssDeps.ts](scripts/build/entryCssDeps.ts)); `streamhub:chunk-hash-salt` renamed every chunk once to flush caches — change its value only to force another full rename
+- **A UI screenshot that contradicts the code: open DevTools → Styles and read which `entry.*.css` the winning rule comes from** before reading any code. If it differs from `curl -s https://streamhub-1c27a.web.app/ | grep -o 'entry[.][^"]*css'`, the browser is running stale files, not the current build
+- A hard reload hides the problem instead of proving a fix — test a cache fix with a normal reload (Cmd+R) on a browser that showed the bug
 
 ### Firestore / Nitro Plugins
 

@@ -285,7 +285,6 @@ Created by: John Admin | Updated: 1 day ago
 | **Implementation** | Actual Vue component | `app/pages/dashboard/view.vue` |
 | **Discover Page** | Dashboard discovery page | [dashboard-discover-page.md](./dashboard-discover-page.md) |
 | **Permissions** | 3-layer permission logic | [docs/GUIDES/roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
-| **Quick Share** | Share dialog details | [moderator-quick-share-dialog.md](./moderator-quick-share-dialog.md) |
 | **Design System** | Colors, typography, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
 | **Components** | Component architecture | [COMPONENT_ARCHITECTURE.md](../COMPONENT_ARCHITECTURE.md) |
 | **User Flows** | Complete user journeys | [user-flows.md](../user-flows.md) |
