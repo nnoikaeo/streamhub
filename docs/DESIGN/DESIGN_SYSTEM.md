@@ -399,6 +399,32 @@ font-weight: 500;
 
 **รอบกวาด 2026-08-23** เติมอีก 6 ตัว: `.quick-view-btn` `.browse-btn` `.select-btn` `.back-to-explorer-btn` (4 ตัวนี้หน้าตาผิดอยู่บน prod โดยไม่มีใครรายงาน — ปุ่ม outline/ghost กลายเป็นสี่เหลี่ยมทึบน้ำเงิน) และ `.open-button` `.open-full-btn` (สองตัวนี้เป็นปุ่มหลักจริงและดูถูกต้อง แต่ `padding` กับ `font-weight: 600` ที่เขียนไว้ไม่เคยมีผล)
 
+**Pick-one controls** (2026-09-27) — ปุ่มเลือกชนิดแดชบอร์ดกับโหมดชีตเคยเป็น `.type-button` / `.mode-button` สองชุดแยกกัน ตอนนี้เป็น [SegmentedControl.vue](../../app/components/ui/SegmentedControl.vue) ตัวเดียว ลงทะเบียนในลิสต์เป็น `[class*="segmented-control__"]` แล้ว ⇒ ตัวเลือกแบบ "เลือกได้อย่างเดียว" ใหม่ใช้ตัวนี้ ไม่ต้องเขียนปุ่มแล้วมาเติมลิสต์อีก
+
+**ถ้าปุ่มผิดทั้งที่อยู่ในลิสต์แล้ว** — ดู DevTools → Styles ว่ากฎที่ชนะมาจาก `entry.*.css` **ไฟล์ไหน** · ถ้าไม่ใช่ไฟล์ที่ prod ส่งอยู่ตอนนี้ แปลว่าเบราว์เซอร์ใช้ CSS เก่าจาก cache (BUG-038) ไม่ใช่ลิสต์ผิด — ดู CLAUDE.md § Build & Browser Cache
+
+---
+
+## 🧭 SegmentedControl — pick one of a few
+
+[app/components/ui/SegmentedControl.vue](../../app/components/ui/SegmentedControl.vue) · auto-import ไม่มี prefix
+
+```vue
+<SegmentedControl
+  v-model="mode"
+  :options="[
+    { label: 'Full', value: 'full', hint: 'มีเมนูบาร์ · แก้ไขได้บนคอมพิวเตอร์' },
+    { label: 'View', value: 'view', hint: 'ตารางแบน คลิกไม่ได้' },
+  ]"
+  aria-label="โหมดแสดงผล"
+/>
+```
+
+- แถบเดียว กรอบ `--color-primary` ตัวที่เลือกพื้น `--color-primary` ตัวอักษร `--color-text-inverse` · ตัวอื่นพื้นขาว ตัวอักษรสีหลัก — ภาษาเดียวกับปุ่ม "+ Add tag"
+- `hint` ของตัวที่เลือกขึ้น**ใต้แถบบรรทัดเดียว** ไม่อยู่ในปุ่ม — ปุ่มจึงสั้นพอให้ 3 ตัวอยู่แถวเดียว
+- `role="radiogroup"` / `role="radio"` / `aria-checked` + roving tabindex ⇒ Tab เข้าแถบที่ตัวที่เลือก, ←→ ↑↓ Home End เปลี่ยนตัวเลือก (ตรรกะอยู่ใน [segmentedKeys.ts](../../app/utils/segmentedKeys.ts) มีเทสต์)
+- ใช้อยู่ที่ [DashboardForm.vue](../../app/components/admin/forms/DashboardForm.vue) (ชนิดแดชบอร์ด) และ [SheetUrlInput.vue](../../app/components/features/SheetUrlInput.vue) (โหมดชีต) · ยืนยันบน prod 2026-09-27 (แถว BUG-033 ใน [manual-test-plan.md](../OPERATIONS/manual-test-plan.md))
+
 ---
 
 ## 📝 Files Structure
@@ -540,6 +566,7 @@ The theme includes mobile-first responsive utilities:
 
 ## 📝 Changelog
 
+- **v2.1** (2026-09-28): SegmentedControl; stale-CSS check for buttons (BUG-038)
 - **v2.0** (2026-03-25): Phase 5.8 review — added typography, extended radius/shadows/transitions, gradient, status light tints
 - **v1.0** (2024-01-21): Initial design system
 

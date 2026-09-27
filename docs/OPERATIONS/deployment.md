@@ -30,6 +30,15 @@ StreamHub deploys to **Firebase Hosting** (static SPA) + **Cloud Functions for F
 └─────────────────────────────────────────────┘
 ```
 
+### Browser caching of `/_nuxt/**`
+
+[firebase.json](../../firebase.json) serves every file under `/_nuxt/` as `public, max-age=31536000, immutable`, and the SPA HTML as `no-cache, no-store`. That is only safe while every content change also renames the file. Vite does not quite guarantee it: file names written into a chunk's `__vite__mapDeps` list do not affect that chunk's hash. A cached chunk from an older build could then re-inject an old `entry.*.css` (BUG-038). Two plugins in [nuxt.config.ts](../../nuxt.config.ts) handle this:
+
+- `streamhub:drop-entry-css-from-deps` — keeps the entry stylesheet out of every deps list. It is already in `<head>`
+- `streamhub:chunk-hash-salt` — a constant mixed into every chunk hash. Changing it renames every chunk on the next deploy, which is the one way to flush every browser's cache of old chunks. It was used once, on 2026-09-28 (#486)
+
+**Checking a UI fix after deploy:** test on a browser that showed the bug, with a normal reload (Cmd+R), not a hard reload. A hard reload bypasses the cache and hides the problem.
+
 ## CI/CD (Automated)
 
 Deployment is automated via GitHub Actions:

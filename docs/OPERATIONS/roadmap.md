@@ -259,21 +259,29 @@ Decided 2026-09-06 after the measurement spike ([google-sheets-spike-plan.md](ar
 
 **Not done, deliberately:** Drive permission sync, writing back to a sheet, Google Docs/Slides. A type filter on Discover was considered and deferred — the icons answer the question a filter would, and one sheet among thirty dashboards does not need one yet.
 
-### Phase 11: Sheets Follow-ups 🔄 IN PROGRESS
+### Phase 11: Sheets Follow-ups ✅ COMPLETED
 
 **Goal:** Close what the Sheets work (#472–#479) left open, and make sure BUG-036 cannot come back quietly
 
 Listed 2026-09-27. Background for every item: [google-sheets-embeds.md](../REFERENCE/google-sheets-embeds.md).
+
+All four code/QA items done 2026-09-28 (#481–#487). What is left below needs a person or a decision, not code.
 
 **Items 1 and 2 together** (small, no user-facing change):
 
 - [x] **1. Guard the CSP with a test** ✅ DONE — [securityHeaders.test.ts](../../tests/server/securityHeaders.test.ts) runs the middleware for real and reads the static copy out of `firebase.json`. It asserts that `frame-src` in [securityHeaders.ts](../../server/middleware/securityHeaders.ts) **and** [firebase.json](../../firebase.json) both contain `https://docs.google.com`, `https://accounts.google.com` and `https://lookerstudio.google.com`, and that the two lists agree apart from the runtime `authDomain` the middleware appends. Removing `accounts.google.com` from either file fails two tests. BUG-036 shipped because nothing checked this: lint, typecheck and the suite all passed while every sheet on prod Safari was blank
 - [x] **2. Fix the stale Phase 9 marker** ✅ DONE — Phase 9 read 🔄 IN PROGRESS although every item was `[x]` and the `any` backlog closed; its `#359 … not yet back-merged` line was dropped too (#359 reached `main` on 2026-08-14)
 
+**Found and fixed while running items 1–4** (all on prod, verified by hand):
+
+- [x] **BUG-037** (#482) — `/admin/explorer` on iPad showed no folder or dashboard names: a bare `1fr` next to 520px of fixed columns resolved to 0. The name column now has a floor; below 720px a container query hides the type column
+- [x] **`SegmentedControl`** (#484) — one `ui/` component for the dashboard type and sheet mode pickers: a joined strip, the chosen option filled, keyboard-accessible. It also removed the stale "edits on Chrome only" hint
+- [x] **BUG-038** (#486) — cached chunks re-injected an old `entry.*.css` after a trip to a dashboard, because Vite writes file names into `__vite__mapDeps` after hashing. Two build plugins in `nuxt.config.ts` fix it — see [deployment.md § Browser caching](deployment.md#browser-caching-of-_nuxt)
+
 **When a device is at hand:**
 
 - [x] **3. Measure sheets on iPad** ✅ DONE 2026-09-27 — as expected: `SAI` in `full` mode on iPad Safari got the desktop page with the menu bar, a typed cell saved (deleted at once), and no sheet hint bar. Recorded in manual-test-plan 7.1.i and the reference doc. The same session found **BUG-037** (admin Explorer showed no names on iPad), fixed in the same PR. Planned as: open a `full`-mode sheet (e.g. SAI) with an account that can edit it, type into an empty cell and delete it at once. Expected: iPadOS asks for the desktop site, so it edits like macOS Safari and shows **no** sheet hint bar (`isPhone` excludes iPad). Record the result in [manual-test-plan.md](manual-test-plan.md) 7.1.i and the reference doc. **Android: no device available** — stays unmeasured; expected to behave like iPhone (read-only mobile page, hint bar shown)
-- [ ] **4. Numbered test cases for sheet dashboards** — **written as [manual-test-plan.md](manual-test-plan.md) 3.13.10–3.13.13 (2026-09-27); 3.13.10 and 3.13.12 passed on prod (3.13.12 surfaced BUG-038, stale chunks re-injecting an old `entry.*.css`), 3.13.11 and 3.13.13 still to press.** Running 3.13.10 also led to replacing both pickers in the dashboard form with one `SegmentedControl`. Planned as: the P5 pass was ad hoc. Add to [manual-test-plan.md](manual-test-plan.md): an unshared sheet is refused at save (BUG-034 guard), zoom on a sheet grows rows *and* columns, switching mode rewrites the stored URL, and the phone hint bar
+- [x] **4. Numbered test cases for sheet dashboards** ✅ DONE 2026-09-28 — [manual-test-plan.md](manual-test-plan.md) 3.13.10–3.13.13, all four passed on prod (Chrome + iPhone Safari). 3.13.12 surfaced **BUG-038** (stale chunks re-injecting an old `entry.*.css`, fixed in #486); 3.13.11's first draft asked for 150% zoom, but zoom stops at 100% by design (#351). Running 3.13.10 also led to replacing both pickers in the dashboard form with one `SegmentedControl`. Planned as: the P5 pass was ad hoc. Add to [manual-test-plan.md](manual-test-plan.md): an unshared sheet is refused at save (BUG-034 guard), zoom on a sheet grows rows *and* columns, switching mode rewrites the stored URL, and the phone hint bar
 
 **Waiting on a person, not code** — do not start these without the decision:
 

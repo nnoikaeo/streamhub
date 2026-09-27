@@ -57,7 +57,6 @@ its row.
 | Permission management | [admin-permission-management-page.md](DESIGN/wireframes/admin-permission-management-page.md) |
 | Admin home | [admin-dashboard-home-page.md](DESIGN/wireframes/admin-dashboard-home-page.md) |
 | Tag management + filter | [tag-management-page.md](DESIGN/wireframes/tag-management-page.md) |
-| Moderator quick share | [moderator-quick-share-dialog.md](DESIGN/wireframes/moderator-quick-share-dialog.md) |
 
 ## ARCHITECTURE — system shape
 
@@ -99,6 +98,7 @@ the snippets predate the current types.
 | [firestore-invitations-plan.md](OPERATIONS/archive/firestore-invitations-plan.md) | Invitations moved onto Firestore |
 | [phase6-implementation-plan.md](OPERATIONS/archive/phase6-implementation-plan.md) | Phase 6 enhancement & polish |
 | [production-readiness-plan.md](OPERATIONS/archive/production-readiness-plan.md) | Prod/dev boundary hardening |
+| [moderator-quick-share-dialog.md](OPERATIONS/archive/moderator-quick-share-dialog.md) | ⛔ Not shipped as designed — Quick Share was removed 2026-08-18 (BUG-017); sharing goes through the permissions page |
 
 ## CONTRIBUTING — working on it
 
