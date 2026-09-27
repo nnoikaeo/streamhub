@@ -74,13 +74,6 @@ const getDashboardTags = (dashboard: Dashboard): Tag[] => {
     .map(id => props.availableTags.find(t => t.id === id))
     .filter((tag): tag is Tag => !!tag && tag.isActive)
 }
-
-/** Dynamic grid columns based on whether moderator column is shown */
-const gridColumns = computed(() =>
-  props.showModeratorColumn
-    ? '1fr 160px 130px 110px 120px'
-    : '1fr 130px 110px 100px'
-)
 </script>
 
 <template>
@@ -137,9 +130,13 @@ const gridColumns = computed(() =>
     </div>
 
     <!-- Contents Table -->
-    <div v-else class="contents-table">
+    <div
+      v-else
+      class="contents-table"
+      :class="{ 'contents-table--moderators': showModeratorColumn }"
+    >
       <!-- Header -->
-      <div class="table-header" :style="{ gridTemplateColumns: gridColumns }">
+      <div class="table-header">
         <span class="col-name">ชื่อ</span>
         <span v-if="showModeratorColumn" class="col-moderators">ผู้ดูแล</span>
         <span class="col-type">ประเภท</span>
@@ -152,7 +149,6 @@ const gridColumns = computed(() =>
         v-for="folder in subfolders"
         :key="folder.id"
         class="table-row table-row--folder"
-        :style="{ gridTemplateColumns: gridColumns }"
         @dblclick="emit('navigate-folder', folder)"
       >
         <span class="col-name">
@@ -222,7 +218,6 @@ const gridColumns = computed(() =>
         v-for="dashboard in dashboards"
         :key="dashboard.id"
         class="table-row table-row--dashboard"
-        :style="{ gridTemplateColumns: gridColumns }"
         @dblclick="emit('open-dashboard', dashboard)"
       >
         <span class="col-name col-name--stacked">
@@ -278,6 +273,7 @@ const gridColumns = computed(() =>
 
 <style scoped>
 .contents-panel {
+  container: contents-panel / inline-size;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -337,13 +333,52 @@ const gridColumns = computed(() =>
 .contents-table {
   flex: 1;
   overflow-y: auto;
+  /* Last resort: if the columns still do not fit, scroll sideways rather
+     than squeeze the name column away. */
+  overflow-x: auto;
 }
 
+/*
+ * The name column gets a floor. It used to be a bare `1fr` next to 520px of
+ * fixed columns, so wherever the panel was narrower than that — an iPad in
+ * landscape, with the folder tree beside it — `1fr` resolved to 0 and every
+ * row lost its name while type, status and the icons still showed. The
+ * action column fits four 1.75rem buttons (folder rows), which 120px did not.
+ */
 .table-header,
 .table-row {
   display: grid;
+  grid-template-columns: minmax(12rem, 1fr) 130px 110px 128px;
   align-items: center;
   padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
+}
+
+.contents-table--moderators .table-header,
+.contents-table--moderators .table-row {
+  grid-template-columns: minmax(12rem, 1fr) 160px 130px 110px 128px;
+}
+
+/* Narrow panel: drop the type column — the row icon already says folder,
+   Looker report or sheet — and tighten the rest so the name keeps room. */
+@container contents-panel (max-width: 720px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: minmax(9rem, 1fr) 90px 128px;
+  }
+
+  .contents-table--moderators .table-header,
+  .contents-table--moderators .table-row {
+    grid-template-columns: minmax(9rem, 1fr) 110px 90px 128px;
+  }
+
+  .col-type {
+    display: none;
+  }
+
+  /* the base .moderator-badge rule comes later in the file */
+  .col-moderators .moderator-badge {
+    max-width: 100px;
+  }
 }
 
 .table-header {
