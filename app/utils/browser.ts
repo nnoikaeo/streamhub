@@ -38,3 +38,22 @@ export function isSafariLike(userAgent: string): boolean {
 
   return /safari/i.test(userAgent)
 }
+
+/**
+ * True for a phone — the one place a framed Google Sheet cannot be edited.
+ *
+ * On a phone Google does not serve the Sheets editor at all: the frame gets
+ * its mobile page, a plain grid with the tabs as links and no menu bar,
+ * whatever the embed mode and whatever the account's rights. Measured on an
+ * iPhone (2026-09-27) with an account that edits the same sheet from desktop
+ * Safari; Android is assumed to get the same page, since it is Google's
+ * choice by user agent and not the browser's.
+ *
+ * Every phone browser puts "Mobile" in its UA. iPadOS Safari asks for the
+ * desktop site by default and reports itself as a Mac, so an iPad lands on
+ * the desktop editor and correctly does not match.
+ */
+export function isPhone(userAgent: string): boolean {
+  if (!userAgent) return false
+  return /\bMobile\b/.test(userAgent) && !/\biPad\b/.test(userAgent)
+}
