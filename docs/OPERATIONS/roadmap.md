@@ -189,11 +189,11 @@
 **Goal:** Manual test plan execution, bug fixes, production stability
 
 - [x] **Pre-launch checklist A–E PASSED** (2026-07-18) — Route Protection, Admin Edit/Delete, Invitations, Permissions, Moderator folder-scoped access — see [pre-launch-checklist.md](pre-launch-checklist.md). App launch-ready at <https://streamhub-1c27a.web.app>
-- [x] **Manual Test Plan** — [manual-test-plan.md](manual-test-plan.md) (145 test cases)
+- [x] **Manual Test Plan** — [manual-test-plan.md](manual-test-plan.md): 145 cases at the time, **215 today** (201 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ / 2 🐛, 2026-09-28) — current totals in its [§ 9 Test Case Summary](manual-test-plan.md#9-test-case-summary)
   - [x] Section 1: Authentication & Onboarding (TC 1.1–1.2) ✅
   - [x] Section 2.1: Dashboard Home ✅
   - [x] Section 2.2: Dashboard Discover (12/12 passed; BUG-001/002/003 fixed) ✅
-  - [ ] Section 2.3+: remaining dashboard, admin, moderator pages (superseded by pre-launch A–E)
+  - [x] Section 2.3+: remaining dashboard, admin, moderator pages ✅ — run page by page after pre-launch A–E (2026-07-26 → 2026-08-20), every section closed
 - [x] **Recent Dashboards tracking** — เปลี่ยนจาก `updatedAt` → localStorage per-user (PR #237)
 - [x] **Fix embed URL in production** — `/api/embed/request` อ่าน user+dashboard จาก Firestore (PR #239)
 - [x] **Quick Actions uniform style** — ลบ primary style จากปุ่ม "สร้างแดชบอร์ด" (PR #241)
@@ -277,6 +277,7 @@ All four code/QA items done 2026-09-28 (#481–#487). What is left below needs a
 - [x] **BUG-037** (#482) — `/admin/explorer` on iPad showed no folder or dashboard names: a bare `1fr` next to 520px of fixed columns resolved to 0. The name column now has a floor; below 720px a container query hides the type column
 - [x] **`SegmentedControl`** (#484) — one `ui/` component for the dashboard type and sheet mode pickers: a joined strip, the chosen option filled, keyboard-accessible. It also removed the stale "edits on Chrome only" hint
 - [x] **BUG-038** (#486) — cached chunks re-injected an old `entry.*.css` after a trip to a dashboard, because Vite writes file names into `__vite__mapDeps` after hashing. Two build plugins in `nuxt.config.ts` fix it — see [deployment.md § Browser caching](deployment.md#browser-caching-of-_nuxt)
+- [x] **Housekeeping** (#490–#492) — dead `QuickShareInput` type removed; the permissions page's dashboard/folder toggle now uses `SegmentedControl` too; a tab left open across a deploy gets a "มี StreamHub เวอร์ชันใหม่ — โหลดใหม่" bar ([deployment.md § Browser caching](deployment.md#browser-caching-of-_nuxt))
 
 **When a device is at hand:**
 
