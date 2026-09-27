@@ -4,22 +4,24 @@
 >
 > branch: แตกใหม่จาก `develop` เป็น `feat/sheets-embed` — งาน spike ทั้งหมด merge เข้า `develop` แล้ว
 >
+> 📦 **อยู่ใน archive ตั้งแต่ 2026-09-27** — งานนี้ปิดแล้ว เก็บไว้เป็นที่มาของตัวเลขและเหตุผล · **ความจริงปัจจุบันอยู่ที่ [google-sheets-embeds.md](../../REFERENCE/google-sheets-embeds.md)** — ข้อสรุปบางข้อในนี้ถูกแทนที่แล้ว (โดยเฉพาะเรื่อง Safari)
+>
 > **2026-09-26: ค่าเริ่มต้นเปลี่ยนจาก `interactive` เป็น `full` (มีเมนูบาร์)** และแถบเตือน WebKit ขึ้นกับ sheet โหมด `full` แล้ว — ที่มาอยู่ใน [google-sheets-menubar-spike.md](google-sheets-menubar-spike.md) · ข้อความ "`interactive` เป็นค่าเริ่มต้น" และ "แถบเตือนไม่ขึ้นกับ sheet" ด้านล่างเป็นบันทึกของรอบก่อน
 >
 > **สถานะ 2026-09-06: P1–P5 เสร็จบน `feat/sheets-embed`** · ทดสอบด้วยมือบน Chrome และ **Safari (macOS)** ครบทุกเคสแล้ว: ชีตที่แชร์ลิงก์เปิดได้ทั้งสองเบราว์เซอร์ · แก้เซลล์ผ่านกรอบได้จริงในโหมด `interactive` · zoom เพิ่มทั้งแถวและคอลัมน์ · แถบเตือน WebKit ไม่ขึ้นกับ sheet · ตรวจการแชร์ได้ทั้ง 200 และ 401 · ชีตที่ยังไม่แชร์ถูกปฏิเสธตอนกดบันทึก
 >
 > **การทดสอบด้วยมือเจอบั๊ก 2 ตัวที่ lint/typecheck/เทสต์มองไม่เห็นเลย** — ทั้งคู่แก้แล้ว:
 >
-> - ปุ่มเลือกชนิดและปุ่มเลือกโหมดขึ้นสีเดียวกันทุกอัน แยกไม่ออกว่าเลือกอะไร · [main.css](../../assets/css/main.css) บังคับ `background` + `color` ให้ทุก `<button>` ที่ไม่ได้อยู่ในลิสต์ยกเว้น และชนะ scoped style เสมอ · segmented picker ใช้สองพร็อพเพอร์ตี้นั้นบอก selection พอดี ⇒ ตัวควบคุมไม่แสดง selection เลย
-> - **ตรวจการแชร์รายงาน 401 ถูกต้อง แต่ฟอร์มยังบันทึกได้** ⇒ ได้แดชบอร์ดที่พังบน Safari จริง ๆ ตรงตามที่ endpoint ถูกสร้างมากัน · P3 ทำแค่ครึ่งเดียว การตรวจที่ไม่มีใครทำตามไม่ใช่ guard · ตอนนี้บล็อกการบันทึก และตรวจอัตโนมัติแบบ debounce แทนที่จะรอให้กดปุ่ม ([sheetSharingGuard.ts](../../app/utils/sheetSharingGuard.ts))
+> - ปุ่มเลือกชนิดและปุ่มเลือกโหมดขึ้นสีเดียวกันทุกอัน แยกไม่ออกว่าเลือกอะไร · [main.css](../../../assets/css/main.css) บังคับ `background` + `color` ให้ทุก `<button>` ที่ไม่ได้อยู่ในลิสต์ยกเว้น และชนะ scoped style เสมอ · segmented picker ใช้สองพร็อพเพอร์ตี้นั้นบอก selection พอดี ⇒ ตัวควบคุมไม่แสดง selection เลย
+> - **ตรวจการแชร์รายงาน 401 ถูกต้อง แต่ฟอร์มยังบันทึกได้** ⇒ ได้แดชบอร์ดที่พังบน Safari จริง ๆ ตรงตามที่ endpoint ถูกสร้างมากัน · P3 ทำแค่ครึ่งเดียว การตรวจที่ไม่มีใครทำตามไม่ใช่ guard · ตอนนี้บล็อกการบันทึก และตรวจอัตโนมัติแบบ debounce แทนที่จะรอให้กดปุ่ม ([sheetSharingGuard.ts](../../../app/utils/sheetSharingGuard.ts))
 >
 > สิ่งที่ต่างจากแผนตอนลงมือจริง 3 ข้อ — เขียนไว้เพราะแผนนี้ยังถูกอ่านต่อ:
 >
 > 1. `sheetUrl.ts` อยู่ที่ **`shared/utils/`** ไม่ใช่ `app/utils/` ตามที่เขียนไว้ใน P1 · เซิร์ฟเวอร์ต้อง parse URL เดียวกันเพื่อประกอบ probe ของ 2.4 และ `server/` ไม่มีที่ไหน runtime-import จาก `~/` เลย · สำเนา regex ตรวจ host ชุดที่สองคือทางที่การตรวจ host จะเพี้ยน
-> 2. รายการฟิลด์ที่ต้องตัด (2.2) **ไม่ได้แก้ทีละจุด** แต่รวมไว้ที่ `EMBED_URL_FIELDS` ใน [embedUrl.ts](../../shared/utils/embedUrl.ts) แล้วให้ทั้ง 3 จุดเรียก `stripEmbedUrls` — ต้นเหตุของกับดักคือชื่อฟิลด์ถูกสะกดซ้ำหลายที่ ไม่ใช่จำนวนจุด
-> 3. **มีจุดที่ 4 ที่แผนไม่ได้ระบุ** — [`[id]/embed-url.get.ts`](../../server/api/mock/dashboards/[id]/embed-url.get.ts) อ่าน `lookerEmbedUrl` ตรง ๆ · ไม่ใช่การรั่ว (ผ่าน access check) แต่จะคืน `null` ให้แดชบอร์ดชนิด sheet ทุกใบตลอดไป
+> 2. รายการฟิลด์ที่ต้องตัด (2.2) **ไม่ได้แก้ทีละจุด** แต่รวมไว้ที่ `EMBED_URL_FIELDS` ใน [embedUrl.ts](../../../shared/utils/embedUrl.ts) แล้วให้ทั้ง 3 จุดเรียก `stripEmbedUrls` — ต้นเหตุของกับดักคือชื่อฟิลด์ถูกสะกดซ้ำหลายที่ ไม่ใช่จำนวนจุด
+> 3. **มีจุดที่ 4 ที่แผนไม่ได้ระบุ** — [`[id]/embed-url.get.ts`](../../../server/api/mock/dashboards/[id]/embed-url.get.ts) อ่าน `lookerEmbedUrl` ตรง ๆ · ไม่ใช่การรั่ว (ผ่าน access check) แต่จะคืน `null` ให้แดชบอร์ดชนิด sheet ทุกใบตลอดไป
 >
-> zoom (P3) แยกออกมาเป็น [embedZoom.ts](../../app/utils/embedZoom.ts) พร้อมเทสต์ เพราะหน้า `[id].vue` ไม่มี harness ทดสอบ component (ไม่มี `@vue/test-utils` และ environment เป็น `node`) การแยกจึงเป็นทางเดียวที่ทดสอบสูตรได้โดยไม่เพิ่ม dependency
+> zoom (P3) แยกออกมาเป็น [embedZoom.ts](../../../app/utils/embedZoom.ts) พร้อมเทสต์ เพราะหน้า `[id].vue` ไม่มี harness ทดสอบ component (ไม่มี `@vue/test-utils` และ environment เป็น `node`) การแยกจึงเป็นทางเดียวที่ทดสอบสูตรได้โดยไม่เพิ่ม dependency
 
 ## เริ่มงานจากศูนย์ต้องรู้อะไรบ้าง
 
@@ -30,8 +32,8 @@
 | ไฟล์ | ใช้ทำอะไร |
 |---|---|
 | [google-sheets-spike-plan.md](google-sheets-spike-plan.md) | ผลวัดทุกเคส — ที่มาของข้อบังคับสามข้อด้านล่าง อ่านก่อนถ้าจะเถียงข้อไหน |
-| [scripts/spike-sheets-iframe.html](../../scripts/spike-sheets-iframe.html) | หน้า 5 กรอบสำหรับกดทดสอบบน Safari/iPhone — P5 ใช้ตัวนี้ · เปิดตรงด้วย `file://` ได้ ยกเว้นเทสต์ Storage Access ที่ต้อง `http://localhost` |
-| [scripts/spike-sheets-read.mjs](../../scripts/spike-sheets-read.mjs) | อ่านชีตผ่าน service account (read-only) — ของทางเลือก 2 ที่ไม่ได้เลือก เก็บไว้เผื่อทบทวน |
+| [scripts/spike-sheets-iframe.html](../../../scripts/spike-sheets-iframe.html) | หน้า 5 กรอบสำหรับกดทดสอบบน Safari/iPhone — P5 ใช้ตัวนี้ · เปิดตรงด้วย `file://` ได้ ยกเว้นเทสต์ Storage Access ที่ต้อง `http://localhost` |
+| [scripts/spike-sheets-read.mjs](../../../scripts/spike-sheets-read.mjs) | อ่านชีตผ่าน service account (read-only) — ของทางเลือก 2 ที่ไม่ได้เลือก เก็บไว้เผื่อทบทวน |
 
 **ชีตทดสอบบน Drive** (ดูตารางในเอกสาร spike): `SPIKE-E-link` แชร์ลิงก์แล้ว = เคสที่ต้องผ่าน · `SPIKE-D-large` ไม่ได้แชร์ลิงก์ + 3,300 แถว = เคสที่ต้องถูกปฏิเสธ และใช้วัดว่าตารางใหญ่แสดงไหวไหม
 
@@ -57,9 +59,9 @@
 
 | ที่ | ทำอะไร |
 |---|---|
-| [dashboard.ts:94](../../app/types/dashboard.ts#L94) | `type: 'looker'` เป็น `'looker' \| 'sheet'` |
-| [dashboard.ts:99](../../app/types/dashboard.ts#L99) | เพิ่ม `sheetEmbedUrl?: string` และ `sheetEmbedMode?: 'view' \| 'interactive'` |
-| `app/utils/sheetUrl.ts` (ใหม่) | คู่ขนานกับ [lookerUrl.ts](../../app/utils/lookerUrl.ts) |
+| [dashboard.ts:94](../../../app/types/dashboard.ts#L94) | `type: 'looker'` เป็น `'looker' \| 'sheet'` |
+| [dashboard.ts:99](../../../app/types/dashboard.ts#L99) | เพิ่ม `sheetEmbedUrl?: string` และ `sheetEmbedMode?: 'view' \| 'interactive'` |
+| `app/utils/sheetUrl.ts` (ใหม่) | คู่ขนานกับ [lookerUrl.ts](../../../app/utils/lookerUrl.ts) |
 | `tests/utils/sheetUrl.test.ts` (ใหม่) | เคสตามตารางด้านล่าง |
 
 **เก็บ URL เต็ม ไม่ใช่ id** — URL ของชีตที่เผยแพร่ใช้ id คนละตัว (`/d/e/2PACX-…`) ประกอบเองจาก file id ไม่ได้ (วัดไว้ใน S1.6)
@@ -79,22 +81,22 @@
 
 ### 2.1 เลือก URL ตามชนิด
 
-[request.post.ts:77](../../server/api/embed/request.post.ts#L77) อ่าน `dashboard.lookerEmbedUrl` ตรง ๆ ⇒ เปลี่ยนเป็นเลือกตาม `dashboard.type` · ท่อที่เหลือ (ผนึก AES-256-GCM, คุกกี้ session, 302) **ไม่ต้องแตะเลย** — ไม่รู้จักโดเมนอยู่แล้ว
+[request.post.ts:77](../../../server/api/embed/request.post.ts#L77) อ่าน `dashboard.lookerEmbedUrl` ตรง ๆ ⇒ เปลี่ยนเป็นเลือกตาม `dashboard.type` · ท่อที่เหลือ (ผนึก AES-256-GCM, คุกกี้ session, 302) **ไม่ต้องแตะเลย** — ไม่รู้จักโดเมนอยู่แล้ว
 
 ### 2.2 ⚠️ รายการฟิลด์ที่ต้องตัดออกจาก response
 
 ตอนนี้โค้ดตัด `lookerEmbedUrl` ออกจาก listing ด้วยชื่อฟิลด์ตรง ๆ **3 จุด** ถ้าไม่เพิ่ม `sheetEmbedUrl` เข้าไปด้วย **URL ชีตจะรั่วออกทาง API listing** ซึ่งลบล้างเหตุผลทั้งหมดของการมี embed token
 
-- [dashboards.get.ts:29](../../server/api/mock/dashboards.get.ts#L29) และ [:51](../../server/api/mock/dashboards.get.ts#L51)
-- [[id].get.ts:42](../../server/api/mock/dashboards/[id].get.ts#L42)
-- [[id].put.ts:27](../../server/api/mock/dashboards/[id].put.ts#L27) — `allowedFields` ต้องเพิ่ม `sheetEmbedUrl`, `sheetEmbedMode`, `type` ไม่งั้นบันทึกไม่ติด
+- [dashboards.get.ts:29](../../../server/api/mock/dashboards.get.ts#L29) และ [:51](../../../server/api/mock/dashboards.get.ts#L51)
+- [[id].get.ts:42](../../../server/api/mock/dashboards/[id].get.ts#L42)
+- [[id].put.ts:27](../../../server/api/mock/dashboards/[id].put.ts#L27) — `allowedFields` ต้องเพิ่ม `sheetEmbedUrl`, `sheetEmbedMode`, `type` ไม่งั้นบันทึกไม่ติด
 
-เพิ่มเทสต์กันถอยหลังใน [dashboardsList.test.ts:100](../../tests/server/dashboardsList.test.ts#L100) ที่มีแบบเดียวกันของ Looker อยู่แล้ว
+เพิ่มเทสต์กันถอยหลังใน [dashboardsList.test.ts:100](../../../tests/server/dashboardsList.test.ts#L100) ที่มีแบบเดียวกันของ Looker อยู่แล้ว
 
 ### 2.3 CSP — สองไฟล์ ไม่ใช่ไฟล์เดียว
 
-- [securityHeaders.ts:33](../../server/middleware/securityHeaders.ts#L33) เพิ่ม `https://docs.google.com`
-- [firebase.json:27](../../firebase.json#L27) มีสำเนาแบบ static สำหรับไฟล์ที่ Hosting เสิร์ฟเอง — ต้องแก้คู่กัน ไม่งั้นบางหน้ากรอบว่างโดยหาสาเหตุไม่เจอ
+- [securityHeaders.ts:33](../../../server/middleware/securityHeaders.ts#L33) เพิ่ม `https://docs.google.com`
+- [firebase.json:27](../../../firebase.json#L27) มีสำเนาแบบ static สำหรับไฟล์ที่ Hosting เสิร์ฟเอง — ต้องแก้คู่กัน ไม่งั้นบางหน้ากรอบว่างโดยหาสาเหตุไม่เจอ
 
 ### 2.4 ตรวจการแชร์อัตโนมัติ (`POST /api/sheet/check-sharing`)
 
@@ -108,18 +110,18 @@
 
 | ที่ | ทำอะไร |
 |---|---|
-| `app/components/features/SheetUrlInput.vue` (ใหม่) | คู่ขนานกับ [LookerUrlInput.vue](../../app/components/features/LookerUrlInput.vue) — validate, preview, เลือกโหมด, เรียก check-sharing แล้วโชว์ผลพร้อมคำเตือนว่าข้อมูลจะเปิดสาธารณะ |
-| [DashboardForm.vue:86](../../app/components/admin/forms/DashboardForm.vue#L86) | ตัวเลือกชนิด looker/sheet แล้วสลับ input ตามชนิด |
-| [[id].vue:262](../../app/pages/dashboard/view/[id].vue#L262) | `title` ของ iframe ตามชนิด · watermark และ audit ใช้ของเดิมได้ทั้งหมด |
-| [[id].vue:430](../../app/pages/dashboard/view/[id].vue#L430) | **zoom ต้องแยกทาง** — สูตรปัจจุบันสเกลแบบไม่สมมาตรเพราะรายงาน Looker ปรับตัวตามความกว้างกรอบ · ตารางชีตไม่ทำแบบนั้น ใช้สูตรเดิมแล้วภาพเพี้ยน ⇒ ชีตใช้ `transform: scale()` ตรง ๆ |
-| [browser.ts](../../app/utils/browser.ts) | แถบเตือน WebKit **ไม่ต้องขึ้นกับแดชบอร์ดชนิด sheet** — ชีตที่ผ่านการตรวจ 2.4 แล้วเปิดได้บน Safari ปกติ · ขึ้นแถบทั้งที่ใช้งานได้จะสอนผู้ใช้ผิด |
-| [DashboardCard.vue:13](../../app/components/features/DashboardCard.vue#L13) | ส่ง embed url ตามชนิด (ใช้ทำ thumbnail) |
+| `app/components/features/SheetUrlInput.vue` (ใหม่) | คู่ขนานกับ [LookerUrlInput.vue](../../../app/components/features/LookerUrlInput.vue) — validate, preview, เลือกโหมด, เรียก check-sharing แล้วโชว์ผลพร้อมคำเตือนว่าข้อมูลจะเปิดสาธารณะ |
+| [DashboardForm.vue:86](../../../app/components/admin/forms/DashboardForm.vue#L86) | ตัวเลือกชนิด looker/sheet แล้วสลับ input ตามชนิด |
+| [[id].vue:262](../../../app/pages/dashboard/view/[id].vue#L262) | `title` ของ iframe ตามชนิด · watermark และ audit ใช้ของเดิมได้ทั้งหมด |
+| [[id].vue:430](../../../app/pages/dashboard/view/[id].vue#L430) | **zoom ต้องแยกทาง** — สูตรปัจจุบันสเกลแบบไม่สมมาตรเพราะรายงาน Looker ปรับตัวตามความกว้างกรอบ · ตารางชีตไม่ทำแบบนั้น ใช้สูตรเดิมแล้วภาพเพี้ยน ⇒ ชีตใช้ `transform: scale()` ตรง ๆ |
+| [browser.ts](../../../app/utils/browser.ts) | แถบเตือน WebKit **ไม่ต้องขึ้นกับแดชบอร์ดชนิด sheet** — ชีตที่ผ่านการตรวจ 2.4 แล้วเปิดได้บน Safari ปกติ · ขึ้นแถบทั้งที่ใช้งานได้จะสอนผู้ใช้ผิด |
+| [DashboardCard.vue:13](../../../app/components/features/DashboardCard.vue#L13) | ส่ง embed url ตามชนิด (ใช้ทำ thumbnail) |
 
 ## P4 — เอกสารและกฎ
 
-- [looker-sharing-policy.md](looker-sharing-policy.md) เพิ่มหัวข้อ Sheets: ต้องแชร์ "ทุกคนที่มีลิงก์ (ผู้ดู)" · ห้ามใช้กับข้อมูลอ่อนไหวโดยไม่ผ่านเจ้าของข้อมูล · อธิบายว่าทำไมชีตต่างจาก Looker (ลิงก์หลุด = ได้ทั้งไฟล์ ไม่ใช่แค่รายงาน)
+- [looker-sharing-policy.md](../looker-sharing-policy.md) เพิ่มหัวข้อ Sheets: ต้องแชร์ "ทุกคนที่มีลิงก์ (ผู้ดู)" · ห้ามใช้กับข้อมูลอ่อนไหวโดยไม่ผ่านเจ้าของข้อมูล · อธิบายว่าทำไมชีตต่างจาก Looker (ลิงก์หลุด = ได้ทั้งไฟล์ ไม่ใช่แค่รายงาน)
 - `CLAUDE.md` เพิ่มกฎย่อในหัวข้อ Looker Embeds ให้ครอบ Sheets ด้วย
-- [docs/README.md](../README.md) ลงดัชนีเอกสารนี้ (CI ตรวจ orphan)
+- [docs/README.md](../../README.md) ลงดัชนีเอกสารนี้ (CI ตรวจ orphan)
 
 ## P5 — ตรวจก่อนส่ง
 

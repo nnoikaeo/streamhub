@@ -2,7 +2,7 @@
  * Move every sheet dashboard framed as `interactive` to `full` — the menu bar.
  *
  * `full` became the default on 2026-09-26 because the menu bar was asked for
- * on every sheet (docs/OPERATIONS/google-sheets-menubar-spike.md). A new
+ * on every sheet (docs/REFERENCE/google-sheets-embeds.md). A new
  * default only reaches dashboards saved after it; this brings the existing
  * ones along.
  *

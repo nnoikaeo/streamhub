@@ -24,7 +24,7 @@
 
 ## Google Sheets ใช้กฎคนละชุด
 
-ฝัง Google Sheets ได้แล้ว (ตัดสินใจ 2026-09-06) · ที่มาของกฎทุกข้อวัดไว้ใน [google-sheets-spike-plan.md](google-sheets-spike-plan.md) · แผนที่ใช้สร้างอยู่ใน [google-sheets-embed-plan.md](google-sheets-embed-plan.md)
+ฝัง Google Sheets ได้แล้ว (ตัดสินใจ 2026-09-06) · พฤติกรรมที่วัดได้ทั้งหมด (โหมด เบราว์เซอร์ CSP sandbox) อยู่ใน [google-sheets-embeds.md](../REFERENCE/google-sheets-embeds.md) · ที่มาของกฎทุกข้อวัดไว้ใน [google-sheets-spike-plan.md](archive/google-sheets-spike-plan.md) · แผนที่ใช้สร้างอยู่ใน [google-sheets-embed-plan.md](archive/google-sheets-embed-plan.md)
 
 ### กฎสำหรับชีตใหม่ทุกใบ
 
@@ -54,7 +54,7 @@
 
 ### หมายเหตุเรื่องโหมด `full` และ `interactive`
 
-ตั้งแต่ 2026-09-26 โหมดเริ่มต้นคือ **`full`** ฝัง `/edit` ไม่มี `rm` ⇒ มีเมนูบาร์ ทูลบาร์ และแถบสูตรของ Google ตามมติที่ประชุม ([google-sheets-menubar-spike.md](google-sheets-menubar-spike.md)) · `interactive` (`/edit?rm=minimal`) ยังเลือกได้
+ตั้งแต่ 2026-09-26 โหมดเริ่มต้นคือ **`full`** ฝัง `/edit` ไม่มี `rm` ⇒ มีเมนูบาร์ ทูลบาร์ และแถบสูตรของ Google ตามมติที่ประชุม ([google-sheets-menubar-spike.md](archive/google-sheets-menubar-spike.md)) · `interactive` (`/edit?rm=minimal`) ยังเลือกได้
 
 ทั้งสองโหมดแปลว่า **คนที่มีสิทธิ์แก้ไขบนชีตนั้นแก้ได้จริงผ่านกรอบ** — บน Chrome และ Safari เดสก์ท็อป (Safari ใช้ได้หลัง #477) · **บนมือถือแก้ไม่ได้** เพราะ Google ส่งหน้าเวอร์ชันมือถือที่ไม่มีเมนูและแก้ไม่ได้ · ชีตที่แชร์ลิงก์เป็น "ผู้ดู" แก้ไม่ได้ · ถ้าไม่ต้องการให้แก้ผ่านกรอบเลย ให้เลือกโหมด `view` (`/preview`) ซึ่งเป็นตารางแบนคลิกไม่ได้
 

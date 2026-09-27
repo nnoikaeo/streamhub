@@ -1,10 +1,12 @@
 # แผนทดสอบ: เมนูบาร์ของ Google Sheets ในกรอบ StreamHub
 
-> **สถานะ: ทดสอบจบ ตัดสินใจแล้ว (2026-09-26)** — ทำโหมด `full` เป็นค่าเริ่มต้น ดู [§ ตัดสินใจแล้ว](#ตัดสินใจแล้ว) · branch `feat/sheets-menubar-spike`
+> 📦 **อยู่ใน archive ตั้งแต่ 2026-09-27** — งานนี้ปิดแล้ว เก็บไว้เป็นที่มาของตัวเลขและเหตุผล · **ความจริงปัจจุบันอยู่ที่ [google-sheets-embeds.md](../../REFERENCE/google-sheets-embeds.md)** — ข้อสรุปบางข้อในนี้ถูกแทนที่แล้ว (โดยเฉพาะเรื่อง Safari)
+>
+> **สถานะ: ทดสอบจบ ตัดสินใจแล้ว (2026-09-26)** — ทำโหมด `full` เป็นค่าเริ่มต้น ดู [§ ตัดสินใจแล้ว](#ตัดสินใจแล้ว) · ship แล้วใน PR #476 · ตามด้วย #477 (CSP) และ #478 (แถบเตือนมือถือ)
 >
 > ที่มา: ที่ประชุมกับผู้เกี่ยวข้องต้องการให้แดชบอร์ดแบบชีตแสดง**เมนูบาร์ของ Google Sheets** (File / Edit / View / Insert / Format / Data / …) · ตอนนี้โหมด `interactive` ใช้ `/edit?rm=minimal` ซึ่งตัดเมนูบาร์ ทูลบาร์ และแถบสูตรออกทั้งหมด
 >
-> พื้นหลัง: [google-sheets-spike-plan.md](google-sheets-spike-plan.md) (การวัดรอบแรก ทุกเลข S1.x อ้างจากที่นั่น) · [google-sheets-embed-plan.md](google-sheets-embed-plan.md) · [looker-sharing-policy.md](looker-sharing-policy.md) § Google Sheets
+> พื้นหลัง: [google-sheets-spike-plan.md](google-sheets-spike-plan.md) (การวัดรอบแรก ทุกเลข S1.x อ้างจากที่นั่น) · [google-sheets-embed-plan.md](google-sheets-embed-plan.md) · [looker-sharing-policy.md](../looker-sharing-policy.md) § Google Sheets
 
 ## คำถามที่ต้องตอบ
 
@@ -18,8 +20,8 @@
 
 | ของ | อยู่ที่ | ใช้ทำอะไร |
 |---|---|---|
-| โหมด `full` | [sheetUrl.ts](../../shared/utils/sheetUrl.ts) · ปุ่ม **"Full (spike)"** ใน [SheetUrlInput.vue](../../app/components/features/SheetUrlInput.vue) | ฝัง `/edit` แบบไม่มี `rm` ผ่านหน้าแดชบอร์ดจริง — มี `sandbox`, CSP, zoom, fullscreen และลายน้ำครบเหมือนผู้ใช้จริงเห็น |
-| บล็อก 6 และ 7 | [spike-sheets-iframe.html](../../scripts/spike-sheets-iframe.html) | `/edit` กับ `/edit?rm=embedded` ในกรอบที่**ไม่มี** sandbox และไม่มี CSP ของเรา — วัดพฤติกรรมของ Google ล้วน ๆ เทียบกับในแอป ถ้าผลต่างกัน ตัวการคือฝั่งเรา |
+| โหมด `full` | [sheetUrl.ts](../../../shared/utils/sheetUrl.ts) · ปุ่ม **"Full (spike)"** ใน [SheetUrlInput.vue](../../../app/components/features/SheetUrlInput.vue) | ฝัง `/edit` แบบไม่มี `rm` ผ่านหน้าแดชบอร์ดจริง — มี `sandbox`, CSP, zoom, fullscreen และลายน้ำครบเหมือนผู้ใช้จริงเห็น |
+| บล็อก 6 และ 7 | [spike-sheets-iframe.html](../../../scripts/spike-sheets-iframe.html) | `/edit` กับ `/edit?rm=embedded` ในกรอบที่**ไม่มี** sandbox และไม่มี CSP ของเรา — วัดพฤติกรรมของ Google ล้วน ๆ เทียบกับในแอป ถ้าผลต่างกัน ตัวการคือฝั่งเรา |
 | ใบ E `SPIKE-E-link` | `17tVllF92cAhn9ymGo9xIWqW84-vs4gtkaYie4CLb12g` | แชร์ "ทุกคนที่มีลิงก์ (ผู้ดู)" · เจ้าของ `n.noikaeo@gmail.com` |
 
 ⚠️ `npm run dev` ใช้ Firestore ของ prod — แดชบอร์ดทดสอบที่สร้างในแอปคือของจริงบน prod · สร้างในโฟลเดอร์ทดสอบ ตั้งชื่อขึ้นต้น `SPIKE-` ไม่เปิด public และ**ลบทิ้งเมื่อทดสอบจบ** (M9)
@@ -37,7 +39,7 @@
 | # | ทดสอบ | ผลที่ต้องจด |
 |---|---|---|
 | M0 | `curl` แบบไม่ล็อกอิน ดู `X-Frame-Options` / `frame-ancestors` ของ `/edit`, `/edit?rm=embedded`, `accounts.google.com` | Google อนุญาตให้ฝังแบบมีเมนูไหม · หน้าล็อกอินฝังได้ไหม |
-| M1 | เปิด [spike-sheets-iframe.html](../../scripts/spike-sheets-iframe.html) บล็อก 4 / 6 / 7 บน Chrome, Safari macOS, iPhone | ต่อบล็อก: มีเมนูบาร์ / ทูลบาร์ / แถบสูตร / ปุ่ม Share / ปุ่ม Sign in ไหม |
+| M1 | เปิด [spike-sheets-iframe.html](../../../scripts/spike-sheets-iframe.html) บล็อก 4 / 6 / 7 บน Chrome, Safari macOS, iPhone | ต่อบล็อก: มีเมนูบาร์ / ทูลบาร์ / แถบสูตร / ปุ่ม Share / ปุ่ม Sign in ไหม |
 | M2 | สร้างแดชบอร์ด `SPIKE-menubar` โหมด **Full (spike)** ด้วยใบ E แล้วเปิดในแอป ด้วยบัญชีทั้ง 3 แบบ บน Chrome | ผลตรงกับบล็อก 6 ไหม · ถ้าไม่ตรง แปลว่า `sandbox` หรือ CSP ของเราตัดอะไรออก |
 | M3 | ทำ M2 ซ้ำบน **Safari macOS** โดยล็อกอินเป็นเจ้าของใน Safari | คาดว่าเห็นเหมือนคนไม่ล็อกอิน (S1.3) — ยืนยันว่า**เจ้าของก็แก้ผ่านกรอบบน Safari ไม่ได้** |
 | M4 | ไล่เมนูทีละรายการในกรอบ ด้วยบัญชี "คนอื่นที่ล็อกอิน" และ "ไม่ล็อกอิน" — อย่างน้อย File > Download (xlsx/csv/pdf), File > Print, File > Make a copy, ปุ่ม Share, Data > Filter views, View > Freeze, Extensions > Apps Script, Help | ทำงาน / เปิดแท็บใหม่ / พังเงียบ / พังพร้อม error · รายการไหนพังเพราะ `sandbox` (เทียบกับบล็อก 6 ที่ไม่มี sandbox) |
@@ -76,10 +78,10 @@
 
 | # | พบ | ผล |
 |---|---|---|
-| P1 | **ชีตทุกตัวบน Safari และ iPhone ของ prod เป็นกรอบว่าง** · console: `Refused to load https://accounts.google.com/ServiceLogin?…passive=… because it does not appear in the frame-src directive` · เป็นทั้ง `full` และ `interactive` ⇒ ไม่ได้มาจาก #476 · ว่างมาตั้งแต่ปล่อย Sheets (#472) เพราะตอนนั้นทดสอบ Safari แค่บน localhost กับหน้า spike | แก้ใน **#477**: เพิ่ม `https://accounts.google.com` ใน `frame-src` ทั้ง [securityHeaders.ts](../../server/middleware/securityHeaders.ts) และ [firebase.json](../../firebase.json) |
+| P1 | **ชีตทุกตัวบน Safari และ iPhone ของ prod เป็นกรอบว่าง** · console: `Refused to load https://accounts.google.com/ServiceLogin?…passive=… because it does not appear in the frame-src directive` · เป็นทั้ง `full` และ `interactive` ⇒ ไม่ได้มาจาก #476 · ว่างมาตั้งแต่ปล่อย Sheets (#472) เพราะตอนนั้นทดสอบ Safari แค่บน localhost กับหน้า spike | แก้ใน **#477**: เพิ่ม `https://accounts.google.com` ใน `frame-src` ทั้ง [securityHeaders.ts](../../../server/middleware/securityHeaders.ts) และ [firebase.json](../../../firebase.json) |
 | P2 | หลัง #477 ชีตขึ้นบน Safari **และกรอบรู้จักบัญชี** (URL มี `pli=1&authuser=0` = ล็อกอินแบบ passive สำเร็จ) · SAI ที่ `it.streamwash` มีสิทธิ์แก้ ⇒ **แก้ผ่านกรอบบน Safari ได้จริง** | M3 ล้าสมัย · แถบเตือน "Safari อ่านอย่างเดียว" ผิด ⇒ เปลี่ยนเป็นแถบเฉพาะมือถือ |
 | P3 | "ทดลอง" แก้ไม่ได้ทั้งบน Safari **และ Chrome** ด้วยบัญชีเดียวกัน · แท็บ "ชีต" มีแม่กุญแจ | เป็นสิทธิ์บนชีตใบนั้น ไม่ใช่เบราว์เซอร์ |
-| P4 | iPhone แก้ไม่ได้ แม้บัญชีที่แก้ได้บนเดสก์ท็อป (M7) | แถบเตือนของชีตขึ้น**เฉพาะมือถือ** (`isPhone` ใน [browser.ts](../../app/utils/browser.ts)) |
+| P4 | iPhone แก้ไม่ได้ แม้บัญชีที่แก้ได้บนเดสก์ท็อป (M7) | แถบเตือนของชีตขึ้น**เฉพาะมือถือ** (`isPhone` ใน [browser.ts](../../../app/utils/browser.ts)) |
 | P5 | error ที่เหลือใน console ไม่กระทบการใช้งาน: `frame-ancestors` ปฏิเสธ `drivesharing/clientmodel` (กล่องแชร์), `contacts…/hovercard` (การ์ดรายชื่อ), `RotateCookiesPage` (หมุนคุกกี้ — เปิดค้างนานอาจต้องโหลดใหม่) · ฟอนต์ `filesystem:` และ sourcemap 404 เป็นเสียงรบกวน | ไม่ต้องแก้ — เป็น CSP ของ Google เอง |
 | P6 | preview URL ของ PR ล็อกอินไม่ได้: CSP ใน firebase.json อาศัย `'self'` ครอบ authDomain ซึ่งบน preview ไม่ใช่โดเมนเดียวกัน | preview ใช้ทดสอบหน้าที่ต้องล็อกอินไม่ได้ |
 
@@ -104,7 +106,7 @@
 
 - **ใบ E เคยอยู่ในถังขยะของเจ้าของ** (พบ 2026-09-26 เจ้าของกู้คืนแล้ววันเดียวกัน — Google ขึ้นแถบ "รายการนี้อยู่ในถังขยะของเจ้าของ" เหนือเมนู) · ยังเปิดผ่านลิงก์ได้ แต่ถ้าถังขยะถูกล้าง (อัตโนมัติ 30 วัน) spike นี้และ P5 จะไม่มีชีตทดสอบ ⇒ **กู้คืนจากถังขยะก่อนทดสอบต่อ** แถบนี้ยังกินพื้นที่ใน M8 ด้วย
 
-- **CSP ของเราคุมแค่กรอบชั้นแรก** — `frame-src` ใน [securityHeaders.ts](../../server/middleware/securityHeaders.ts) และ [firebase.json](../../firebase.json) อนุญาต `https://docs.google.com` อยู่แล้ว · กรอบย่อยหรือ popup ที่ Google เปิดจากในชีตอยู่ใต้ CSP ของ Google ไม่ใช่ของเรา จึงไม่ต้องแก้ CSP สำหรับ spike นี้
+- **CSP ของเราคุมแค่กรอบชั้นแรก** — `frame-src` ใน [securityHeaders.ts](../../../server/middleware/securityHeaders.ts) และ [firebase.json](../../../firebase.json) อนุญาต `https://docs.google.com` อยู่แล้ว · กรอบย่อยหรือ popup ที่ Google เปิดจากในชีตอยู่ใต้ CSP ของ Google ไม่ใช่ของเรา จึงไม่ต้องแก้ CSP สำหรับ spike นี้
 - **ลายน้ำไม่บังการคลิก** — `.watermark-overlay` ตั้ง `pointer-events: none` ไว้แล้ว
 - **`rm` ไม่มีเอกสารรับรอง** — Google เปลี่ยนความหมายได้โดยไม่ประกาศ · โหมดที่ต้องพึ่ง `rm` ค่าใดค่าหนึ่งเสี่ยงเท่ากันทุกค่า รวมถึง `rm=minimal` ที่ใช้อยู่
 

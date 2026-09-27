@@ -97,7 +97,7 @@ export type DashboardType = 'looker' | 'sheet'
  * - `full` — `/edit` with no `rm`: Google's menu bar, toolbar and formula bar.
  *   The default. Editing through it works only where the browser sends
  *   Google's cookies into the frame — Chrome, not Safari or anything on iOS
- *   (docs/OPERATIONS/google-sheets-menubar-spike.md)
+ *   (docs/REFERENCE/google-sheets-embeds.md)
  */
 export type SheetEmbedMode = 'view' | 'interactive' | 'full'
 

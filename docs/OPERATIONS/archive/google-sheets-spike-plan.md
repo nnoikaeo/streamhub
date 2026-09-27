@@ -1,10 +1,12 @@
 # แผนทดสอบ: รองรับ Google Sheets ใน StreamHub
 
+> 📦 **อยู่ใน archive ตั้งแต่ 2026-09-27** — งานนี้ปิดแล้ว เก็บไว้เป็นที่มาของตัวเลขและเหตุผล · **ความจริงปัจจุบันอยู่ที่ [google-sheets-embeds.md](../../REFERENCE/google-sheets-embeds.md)** — ข้อสรุปบางข้อในนี้ถูกแทนที่แล้ว (โดยเฉพาะเรื่อง Safari)
+>
 > **สถานะ: ทดสอบจบแล้ว ตัดสินใจแล้ว** — เอกสารนี้คือบันทึกการวัด 3 ทางเลือก ไม่ใช่แผน implement (แผนอยู่ที่ [google-sheets-embed-plan.md](google-sheets-embed-plan.md))
 >
 > เดิมตั้งใจให้โค้ด spike อยู่แค่บน `feat/google-sheets-spike` · **เปลี่ยนเป็น merge เข้ามาด้วย** เพราะ `spike-sheets-iframe.html` เป็นของที่ P5 ใช้ทดสอบมือจริง และสคริปต์อ่านชีตเป็น read-only ทั้งคู่
 >
-> พื้นหลัง: [looker-sharing-policy.md](looker-sharing-policy.md) · [BUG-032](manual-test-plan.md)
+> พื้นหลัง: [looker-sharing-policy.md](../looker-sharing-policy.md) · [BUG-032](../manual-test-plan.md)
 >
 > รอบต่อมา (2026-09-26): เมนูบาร์ของ Sheets ในกรอบ ⇒ [google-sheets-menubar-spike.md](google-sheets-menubar-spike.md)
 
@@ -73,7 +75,7 @@ https://docs.google.com/spreadsheets/d/e/2PACX-1vShmrFx35RtYdfEeHDCEzsZNSyaPYxqd
 
 เก็บท่าปัจจุบันไว้ทั้งหมด เปลี่ยนแค่ URL ที่ผนึกใน embed token
 
-**หมายเหตุก่อนทดสอบ:** CSP ของเราเองบล็อก `docs.google.com` อยู่ ([securityHeaders.ts:33](../../server/middleware/securityHeaders.ts#L33)) ⇒ ถ้าไม่แก้ก่อน กรอบจะว่างเพราะ**เรา**บล็อก ไม่ใช่ Google บล็อก อย่าสรุปผิด · แก้ชั่วคราวบน branch spike เท่านั้น
+**หมายเหตุก่อนทดสอบ:** CSP ของเราเองบล็อก `docs.google.com` อยู่ ([securityHeaders.ts:33](../../../server/middleware/securityHeaders.ts#L33)) ⇒ ถ้าไม่แก้ก่อน กรอบจะว่างเพราะ**เรา**บล็อก ไม่ใช่ Google บล็อก อย่าสรุปผิด · แก้ชั่วคราวบน branch spike เท่านั้น
 
 | id | ทดสอบ | ผ่านเมื่อ |
 |---|---|---|
@@ -96,7 +98,7 @@ https://docs.google.com/spreadsheets/d/{id}/pubhtml?widget=true&headers=false
 https://docs.google.com/spreadsheets/d/{id}/gviz/tq?tqx=out:html
 ```
 
-โค้ด spike ที่ต้องเขียน: แก้ `frame-src` + เพิ่ม pattern ใน [lookerUrl.ts](../../app/utils/lookerUrl.ts) + หน้า `/spike/sheets-iframe` ที่รับ URL แล้วฝังให้ดู (~0.5 วัน)
+โค้ด spike ที่ต้องเขียน: แก้ `frame-src` + เพิ่ม pattern ใน [lookerUrl.ts](../../../app/utils/lookerUrl.ts) + หน้า `/spike/sheets-iframe` ที่รับ URL แล้วฝังให้ดู (~0.5 วัน)
 
 ## ทางเลือก 2 — proxy อ่านผ่าน service account
 
@@ -160,7 +162,7 @@ StreamHub สั่ง Drive API เพิ่ม/ถอนอีเมลผู�
 | id | ผล | บันทึก |
 |---|---|---|
 | S0.1–S0.7 | ✅ | สร้างครบ 4 ไฟล์ 2026-08-30 · ยังไม่ได้ทำ S0.7 (นับว่าเราเป็นเจ้าของชีตจริงกี่ใบ) |
-| S1.1 | ✅ | **Google ไม่บล็อกการฝัง Sheets ที่ระดับ header** — ทั้ง `/preview`, `/edit?rm=minimal`, `/pubhtml`, `/gviz` ไม่มี `X-Frame-Options` และ CSP ไม่มี `frame-ancestors` เลย ⇒ ไม่มีสวิตช์แบบ "Enable embedding" ของ Looker ให้ต้องกด · สิ่งที่ตัดสินว่าเห็นข้อมูลไหมคือ **สิทธิ์ของผู้ดู** ล้วน ๆ ⇒ S1.3 (Safari) ยังเป็นเคสชี้ขาดเหมือนเดิม |
+| S1.1 | ✅ | **Google ไม่บล็อกการฝัง Sheets ที่ระดับ header** — ทั้ง `/preview`, `/edit?rm=minimal`, `/pubhtml`, `/gviz` ไม่มี `X-Frame-Options` และ CSP ไม่มี `frame-ancestors` เลย ⇒ ไม่มีสวิตช์แบบ "Enable embedding" ของ Looker ให้ต้องกด · สิ่งที่ตัดสินว่าเห็นข้อมูลไหมคือ **สิทธิ์ของผู้ดู** ล้วน ๆ ⇒ S1.3 (Safari) ยังเป็นเคสชี้ขาดเหมือนเดิม · ⚠️ **ภายหลัง (2026-09-27): header เป็นแค่ครึ่งเดียว** — CSP ของ*เรา*ต้องอนุญาต `accounts.google.com` ด้วย ไม่งั้น Safari บน prod ได้กรอบว่าง (BUG-036) · หน้า spike นี้ไม่มี CSP ของเรา จึงไม่เห็น |
 | S1.6 | ✅ | **URL เผยแพร่อ่านได้โดยไม่ต้องล็อกอิน และอ่านด้วยเครื่องได้** — `…/pub?output=csv` คืน CSV ครบทุกแถวให้ curl ที่ไม่มี cookie เลย (200, ข้อมูลจริงทั้ง 5 แถว) · `pubhtml` เองคืนแค่หน้าเปล่าที่ให้ JS ไปดึงข้อมูลทีหลัง จึงดูเหมือนไม่มีข้อมูล — อย่าใช้เป็นหลักฐานว่าปลอดภัย · **ทาง 1 แบบเผยแพร่ = ข้อมูลสาธารณะเต็มรูป ไม่ใช่แค่ "คนมีลิงก์"** |
 | S2.0 | ✅ | ต้องเปิด **Sheets API ในโปรเจกต์ของ service account (`streamhub-1c27a`)** ไม่ใช่โปรเจกต์ของบัญชีที่เป็นเจ้าของชีต — การเปิด API ผูกกับผู้เรียก ส่วนการเห็นไฟล์ผูกกับการแชร์ใน Drive คนละชั้นกัน (เปิดแล้ว 2026-08-30) |
 | S2.1 | ✅ | **แชร์ให้ service account เป็น "ผู้อ่าน" พอแล้ว ไม่ต้องเป็นเจ้าของ** — อ่านใบ B ได้ครบ · metadata 1.9 s (เรียกแรก รวม auth) · `values.get` 390 ms |

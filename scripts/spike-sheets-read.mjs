@@ -1,7 +1,7 @@
 /**
  * SPIKE — read a Google Sheet through the Firebase service account.
  *
- * Answers S2.1/S2.2/S2.3/S2.5/S2.6 of docs/OPERATIONS/google-sheets-spike-plan.md:
+ * Answers S2.1/S2.2/S2.3/S2.5/S2.6 of docs/OPERATIONS/archive/google-sheets-spike-plan.md:
  * can a sheet that is merely *shared with* the service account be read from the
  * server, how long does a large one take, and does the grid-data call carry the
  * formatting an iframe would have shown.

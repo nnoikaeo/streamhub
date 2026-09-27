@@ -69,11 +69,12 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - **`frame-src` must keep `https://accounts.google.com`.** Where the frame has no Google session yet — every Safari — Google first navigates the frame through `accounts.google.com/ServiceLogin?passive=…`, and frame-src is checked on every hop. Without it every sheet on production Safari and iPhone was a **blank frame** from the day Sheets shipped until PR #477, with only a console error to show for it. Google's sign-in page still sends `X-Frame-Options: DENY`, so this does not frame a login form
 - Store the **whole URL**, never an id: a published sheet is served under `/d/e/2PACX-…`, a different id from the file id and not derivable from it
 - Zoom is **not** the Looker formula. A Looker report rescales itself to its iframe width, so zoom grows height only and scales down; a Sheet's grid is fixed pixels and needs both axes ([embedZoom.ts](app/utils/embedZoom.ts))
-- **Default mode is `full`** — `/edit` with no `rm`, Google's menu bar included (asked for on every sheet, 2026-09-26). Editing through it works on **desktop Chrome and desktop Safari** alike, with the account's own rights on the sheet (after #477 — before it, Safari looked read-only because the passive sign-in was blocked). **On a phone nothing edits**: Google serves its mobile page, no menu bar, whatever the mode. Download and Print in the menu do nothing — the `sandbox` has no `allow-downloads` / `allow-modals` — which only closes the in-app path, not the export URL. Measured: [google-sheets-menubar-spike.md](docs/OPERATIONS/google-sheets-menubar-spike.md)
+- **Default mode is `full`** — `/edit` with no `rm`, Google's menu bar included (asked for on every sheet, 2026-09-26). Editing through it works on **desktop Chrome and desktop Safari** alike, with the account's own rights on the sheet (after #477 — before it, Safari looked read-only because the passive sign-in was blocked). **On a phone nothing edits**: Google serves its mobile page, no menu bar, whatever the mode. Download and Print in the menu do nothing — the `sandbox` has no `allow-downloads` / `allow-modals` — which only closes the in-app path, not the export URL. Measured: [google-sheets-menubar-spike.md](docs/REFERENCE/google-sheets-embeds.md)
 - A sheet iframe has **no `allow-top-navigation-by-user-activation`**, and must not get it back: with it, Google's in-frame "Sign in" on Safari took the whole tab out of StreamHub to the raw sheet — no watermark, real URL in the address bar — and the sign-in never reached the frame anyway. Without it the button opens the sheet in a **new tab** via `allow-popups` — the StreamHub tab survives; dropping `allow-popups` too would also kill hyperlinks in cells, so that was accepted. Looker keeps the flag
 - The WebKit hint bar shows for **every Looker** dashboard. Sheets have their **own bar, on phones only** (`isPhone` in [browser.ts](app/utils/browser.ts)) — the one place a sheet cannot be edited. It used to show on all of WebKit claiming Safari was read-only; that was the CSP bug talking, and the claim was wrong
 - The type→glyph mapping lives once in [DashboardTypeIcon.vue](app/components/features/DashboardTypeIcon.vue), used by four lists. Before it existed the workaround for telling a sheet from a report was writing the type into the dashboard's name
-- Policy for new sheets: [looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) § Google Sheets · what was measured: [google-sheets-spike-plan.md](docs/OPERATIONS/google-sheets-spike-plan.md) · the build plan: [google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md)
+- **What works where, and why — every measured fact in one place: [google-sheets-embeds.md](docs/REFERENCE/google-sheets-embeds.md).** Read it before touching sheet embeds, the CSP or the iframe `sandbox`. Policy for new sheets: [looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) § Google Sheets · raw spikes and the build plan are archived: [spike](docs/OPERATIONS/archive/google-sheets-spike-plan.md) · [build plan](docs/OPERATIONS/archive/google-sheets-embed-plan.md) · [menu bar](docs/OPERATIONS/archive/google-sheets-menubar-spike.md)
+- **Test sheet embeds on production Safari, never only localhost.** localhost never triggered Google's passive sign-in, so a spike there concluded "Safari is read-only" (wrong) and missed that every sheet on prod Safari was blank (real). PR preview URLs cannot sign in at all — their CSP `'self'` does not cover the auth domain
 
 ---
 
@@ -121,14 +122,13 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | [docs/OPERATIONS/versioning.md](docs/OPERATIONS/versioning.md) | Version numbering policy |
 | [docs/OPERATIONS/manual-test-plan.md](docs/OPERATIONS/manual-test-plan.md) | Manual QA test cases by role |
 | [docs/OPERATIONS/looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md) | Sharing policy for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
-| [docs/OPERATIONS/google-sheets-spike-plan.md](docs/OPERATIONS/google-sheets-spike-plan.md) | What was measured about embedding Google Sheets — every option, every number |
-| [docs/OPERATIONS/google-sheets-embed-plan.md](docs/OPERATIONS/google-sheets-embed-plan.md) | The plan Sheets embeds were built from, and what the build did differently — P1–P5 done |
 
 ### Reference
 
 | Doc | Contents |
 |-----|----------|
 | [docs/REFERENCE/environment-variables.md](docs/REFERENCE/environment-variables.md) | All env vars and where they're set |
+| [docs/REFERENCE/google-sheets-embeds.md](docs/REFERENCE/google-sheets-embeds.md) | Sheets embeds as measured: modes, what edits on which browser, the CSP/sandbox values that must stay, console noise, how to test |
 | [firestore.rules](firestore.rules) | Security rules (admin / moderator / user) |
 | [.github/workflows/deploy.yml](.github/workflows/deploy.yml) | Production CI/CD pipeline |
 | [.github/workflows/preview.yml](.github/workflows/preview.yml) | PR preview deploy pipeline |
