@@ -67,7 +67,7 @@ Edit files and test locally:
 npm run dev
 
 # In another terminal
-npm test                                          # must be green (baseline 421)
+npm test                                          # must be green (baseline 427)
 npx eslint .                                      # baseline 0 — any problem is yours
 npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json   # must be 0; NOT -p tsconfig.json (checks nothing)
 npx vue-tsc --noEmit -p tests/tsconfig.json       # must be 0; no .nuxt project covers tests/

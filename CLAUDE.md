@@ -51,6 +51,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - That let a cached chunk re-inject an **old `entry.*.css`** after the current one — the old global button rule won and every segmented option rendered filled, only after visiting a dashboard and coming back (BUG-038). The plugin `streamhub:drop-entry-css-from-deps` in [nuxt.config.ts](nuxt.config.ts) replaces the entry-CSS slot in every list ([entryCssDeps.ts](scripts/build/entryCssDeps.ts)); `streamhub:chunk-hash-salt` renamed every chunk once to flush caches — change its value only to force another full rename
 - **A UI screenshot that contradicts the code: open DevTools → Styles and read which `entry.*.css` the winning rule comes from** before reading any code. If it differs from `curl -s https://streamhub-1c27a.web.app/ | grep -o 'entry[.][^"]*css'`, the browser is running stale files, not the current build
 - A hard reload hides the problem instead of proving a fix — test a cache fix with a normal reload (Cmd+R) on a browser that showed the bug
+- A tab left open across a deploy keeps running the old build. [version-check.client.ts](app/plugins/version-check.client.ts) compares the entry script of `/` with its own (after navigation / on tab focus, at most every 5 min) and [NewVersionBanner.vue](app/components/features/NewVersionBanner.vue) offers a reload — never forced, so a half-filled form survives a deploy. `experimental.appManifest` stays off (routeRules.test.ts)
 
 ### Firestore / Nitro Plugins
 
@@ -186,7 +187,7 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite. **Baseline is 421 passing** |
+| `npm test` | Vitest suite. **Baseline is 427 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). **Baseline is 0 — any problem is yours** |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |
