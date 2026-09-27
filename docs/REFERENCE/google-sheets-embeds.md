@@ -109,7 +109,7 @@ URL ที่ฝังถูกเก็บ**ทั้งเส้น**ใน `s
 
 ## ยังไม่รู้
 
-งานที่วางแผนไว้สำหรับข้อเหล่านี้อยู่ใน [roadmap.md § Phase 11](../OPERATIONS/roadmap.md#phase-11-sheets-follow-ups--in-progress)
+งานที่วางแผนไว้สำหรับข้อเหล่านี้อยู่ใน [roadmap.md § Phase 11](../OPERATIONS/roadmap.md#phase-11-sheets-follow-ups--completed)
 
 - **Android** — คาดว่าได้หน้ามือถือ (อ่านอย่างเดียว) เหมือน iPhone ยังไม่ได้วัด · **ไม่มีเครื่อง Android** · iPad วัดแล้ว 2026-09-27: หน้าเดสก์ท็อป แก้ได้
 - **M6** — ถ้าเจ้าของปิด "ผู้ดูดาวน์โหลด พิมพ์ คัดลอกได้" export URL ยังตอบ 200 ไหม · รอมติประชุม · จะสำคัญก็ต่อเมื่อคิดเปิด `allow-downloads`
