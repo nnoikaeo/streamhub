@@ -146,6 +146,36 @@ Refused to load https://accounts.google.com/ServiceLogin?service=wise&passive=12
 
 ---
 
+## Issue: หลัง deploy ปุ่มหรือหน้าตาบางส่วนกลับไปเป็นแบบเก่า และ hard reload แล้วหาย (BUG-038, แก้แล้ว PR #486)
+
+**อาการ** — ปุ่มที่แก้ไปแล้วกลับมาหน้าตาเดิม เช่นตัวเลือกใน SegmentedControl ทึบน้ำเงินทุกตัว · กด Cmd+Shift+R แล้วหาย แต่พอเปิดแดชบอร์ดแล้วกด ← กลับมาก็เป็นอีก · lint / typecheck / เทสต์ผ่านหมด
+
+**ตรวจ** — DevTools → Styles ที่ปุ่มนั้น ดูชื่อไฟล์ทางขวาของกฎที่ชนะ แล้วเทียบกับที่ prod ส่งจริง:
+
+```bash
+curl -s https://streamhub-1c27a.web.app/ | grep -o 'entry[.][^"]*css'
+```
+
+ถ้าชื่อไม่ตรง (รอบนั้นคือ `entry.CAY3gK_G.css` ซึ่งไม่มีบนเซิร์ฟเวอร์แล้ว) ⇒ เบราว์เซอร์ใช้ CSS เก่าจาก cache ของตัวเอง
+
+**สาเหตุ** — Vite เขียนชื่อไฟล์ลงรายการ `__vite__mapDeps` ของ chunk **หลัง** hash ชื่อ chunk ⇒ แก้ CSS อย่างเดียว chunk ได้เนื้อหาใหม่แต่ชื่อเดิม · Hosting ตั้ง `/_nuxt/**` เป็น `immutable` 1 ปี ⇒ เบราว์เซอร์ที่ถือ chunk เก่าแทรก `entry.*.css` เก่าต่อท้ายตัวปัจจุบันทุกครั้งที่ dynamic import นั้นทำงาน
+
+**ทางแก้ (อยู่ใน build แล้ว)** — plugin `streamhub:drop-entry-css-from-deps` ใน [nuxt.config.ts](../../nuxt.config.ts) · ถ้าอาการกลับมาทั้งที่ plugin ยังอยู่ ให้ไล่ JS บน prod ว่ามี chunk ไหนอ้าง `entry.*.css` · ถ้าต้องล้าง cache ของผู้ใช้ทุกคนอีกรอบ ให้เปลี่ยนค่าใน `streamhub:chunk-hash-salt` · ประวัติเต็มอยู่ที่ BUG-038 ใน [manual-test-plan.md](../OPERATIONS/manual-test-plan.md)
+
+> ⚠️ **ทดสอบการแก้ด้วย reload ธรรมดา (Cmd+R)** บนเบราว์เซอร์ที่เคยเจอ — hard reload ข้าม cache จึงทำให้ดูเหมือนหายทั้งที่ยังไม่ได้แก้
+
+---
+
+## Issue: Explorer บน iPad ไม่แสดงชื่อโฟลเดอร์/แดชบอร์ด (BUG-037, แก้แล้ว PR #482)
+
+**อาการ** — `/admin/explorer` บน iPad แนวนอน แถวมีแต่ไอคอน แท็ก ประเภท สถานะ ไม่มีชื่อ · หัวคอลัมน์ "ชื่อ" หายใต้ "ผู้ดูแล" · ปุ่ม 🗑️ หลุดขอบขวา
+
+**สาเหตุ** — grid เดิม `1fr 160px 130px 110px 120px` คอลัมน์คงที่รวม 520px แต่แผงขวาบน iPad กว้างราว 515px ⇒ `1fr` = 0
+
+**ทางแก้** — คอลัมน์ชื่อ `minmax(12rem, 1fr)` · container query ซ่อนคอลัมน์ประเภทเมื่อแผงแคบกว่า 720px · ถ้าเพิ่มคอลัมน์ใหม่ใน [ExplorerContentsPanel.vue](../../app/components/admin/ExplorerContentsPanel.vue) ให้ลองที่แผงกว้าง ~516px เสมอ
+
+---
+
 ## Issue: Google Sign-in Fails on Production (COOP)
 
 **Error:** `Cross-Origin-Opener-Policy policy would block the window.close call`

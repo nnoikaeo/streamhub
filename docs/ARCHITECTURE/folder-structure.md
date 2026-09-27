@@ -195,7 +195,7 @@ streamhub/
 │
 ├── 📁 tests/                        # Vitest suite (see tests/tsconfig.json)
 │   ├── 📁 composables/
-│   ├── 📁 config/
+│   ├── 📁 config/                   # nuxt.config / routeRules / build-output guards
 │   ├── 📁 scripts/
 │   ├── 📁 server/
 │   ├── 📁 utils/

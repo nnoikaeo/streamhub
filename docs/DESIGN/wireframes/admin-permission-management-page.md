@@ -218,7 +218,6 @@ Separate section below the main editor. `v-if="showRestrictions"`
 |----------|---------|------|
 | **Permissions Guide** | Complete 3-layer permission logic | [roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
 | **Discover Page** | User dashboard discovery view | [dashboard-discover-page.md](./dashboard-discover-page.md) |
-| **Quick Share** | Moderator quick share dialog | [moderator-quick-share-dialog.md](./moderator-quick-share-dialog.md) |
 | **Design System** | Colors, typography, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
 | **Database Schema** | Permission data structure | [database-schema.md](../../GUIDES/database-schema.md) |
 

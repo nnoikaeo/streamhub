@@ -9,7 +9,7 @@
     ".claude/skills",   // vendored skill packages, not ours to reformat
     ".output",
     ".nuxt",
-    "prompt-*.md"       // gitignored working notes, not part of the docs
+    "**/prompt-*.md"    // gitignored working notes (root, or archived under prompts-archive/), not part of the docs
   ],
   "config": {
     // Prose here is Thai and English mixed, and the BUG register in
