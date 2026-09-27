@@ -27,11 +27,19 @@ export default defineEventHandler((event: H3Event) => {
   // production `'self'` already covers the authDomain, so it is left as is.)
   const authDomain = useRuntimeConfig(event).public.firebase.authDomain
   const authFrameSrc = authDomain && !authDomain.startsWith('YOUR_') ? ` https://${authDomain}` : ''
+  // accounts.google.com is a redirect hop, never a page we show. On
+  // production Safari a framed sheet (`/edit`, with or without `rm=minimal`)
+  // was seen navigating to accounts.google.com/ServiceLogin?passive=… before
+  // the sheet. frame-src is checked on every hop of a frame's navigation, so
+  // without this origin the frame stopped dead on the redirect and stayed
+  // blank, with only a console error to show for it. Google's sign-in page
+  // itself still refuses to be framed (X-Frame-Options: DENY); this only lets
+  // the passive check through.
   setHeader(
     event,
     'Content-Security-Policy',
     "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com " +
-      "https://docs.google.com " +
+      "https://docs.google.com https://accounts.google.com " +
       `https://*.firebaseapp.com https://*.googleapis.com${authFrameSrc}; frame-ancestors 'self'`
   )
 
