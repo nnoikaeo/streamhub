@@ -259,6 +259,28 @@ Decided 2026-09-06 after the measurement spike ([google-sheets-spike-plan.md](ar
 
 **Not done, deliberately:** Drive permission sync, writing back to a sheet, Google Docs/Slides. A type filter on Discover was considered and deferred — the icons answer the question a filter would, and one sheet among thirty dashboards does not need one yet.
 
+### Phase 11: Sheets Follow-ups 🔜 PLANNED
+
+**Goal:** Close what the Sheets work (#472–#479) left open, and make sure BUG-036 cannot come back quietly
+
+Listed 2026-09-27. Background for every item: [google-sheets-embeds.md](../REFERENCE/google-sheets-embeds.md).
+
+**Next PR — items 1 and 2 together** (small, no user-facing change):
+
+- [ ] **1. Guard the CSP with a test** — assert that `frame-src` in [securityHeaders.ts](../../server/middleware/securityHeaders.ts) **and** [firebase.json](../../firebase.json) both contain `https://docs.google.com` and `https://accounts.google.com`, and that the two lists agree apart from the runtime `authDomain` the middleware appends. BUG-036 shipped because nothing checked this: lint, typecheck and the suite all passed while every sheet on prod Safari was blank. Remember to register any new `shared/utils/` helper in `tests/setup.ts`
+- [ ] **2. Fix the stale Phase 9 marker** — Phase 9 still reads 🔄 IN PROGRESS although every item is `[x]` and the `any` backlog is closed; its `#359 … not yet back-merged` line is also long out of date
+
+**When a device is at hand:**
+
+- [ ] **3. Measure sheets on iPad** — open a `full`-mode sheet (e.g. SAI) with an account that can edit it, type into an empty cell and delete it at once. Expected: iPadOS asks for the desktop site, so it edits like macOS Safari and shows **no** sheet hint bar (`isPhone` excludes iPad). Record the result in [manual-test-plan.md](manual-test-plan.md) 7.1.i and the reference doc. **Android: no device available** — stays unmeasured; expected to behave like iPhone (read-only mobile page, hint bar shown)
+- [ ] **4. Numbered test cases for sheet dashboards** — the P5 pass was ad hoc. Add to [manual-test-plan.md](manual-test-plan.md): an unshared sheet is refused at save (BUG-034 guard), zoom on a sheet grows rows *and* columns, switching mode rewrites the stored URL, and the phone hint bar
+
+**Waiting on a person, not code** — do not start these without the decision:
+
+- **M6 — viewer download switch.** Waits on the next stakeholder meeting. Only matters if `allow-downloads` is ever considered
+- **Tell the meeting the result beat the decision** — they accepted "edit on Chrome only"; desktop Safari edits too, only phones are read-only
+- **Watch, don't build:** Google's `RotateCookiesPage` is refused inside our frame, so a sheet left open for hours on Safari may lose its session — measure before acting. The Discover type filter stays deferred until there are enough sheets to need it
+
 ---
 
 ## Remaining Backlog (non-blocking)
