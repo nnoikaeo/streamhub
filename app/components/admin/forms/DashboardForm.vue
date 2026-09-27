@@ -213,19 +213,12 @@ onMounted(async () => {
     <!-- Embed type -->
     <div class="form-field-group">
       <label class="form-label">ชนิดแดชบอร์ด</label>
-      <div class="type-options" role="group" aria-label="ชนิดแดชบอร์ด">
-        <button
-          v-for="option in typeOptions"
-          :key="option.value"
-          type="button"
-          class="type-button"
-          :class="{ 'type-button--active': formData.type === option.value }"
-          @click="setType(option.value)"
-        >
-          {{ option.label }}
-          <span class="type-hint">{{ option.hint }}</span>
-        </button>
-      </div>
+      <SegmentedControl
+        :model-value="formData.type"
+        :options="typeOptions"
+        aria-label="ชนิดแดชบอร์ด"
+        @update:model-value="setType"
+      />
     </div>
 
     <!-- Embed URL input, by type -->
@@ -302,40 +295,9 @@ onMounted(async () => {
   color: var(--color-error, #ef4444);
 }
 
-.type-options {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
 
-.type-button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.125rem;
-  padding: 0.5rem 0.875rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  text-align: left;
-  color: var(--color-text-secondary, #6b7280);
-  background: var(--color-bg-secondary, #f3f4f6);
-  border: 1px solid var(--color-border, #d1d5db);
-  border-radius: var(--radius-md, 0.375rem);
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.type-button--active {
-  color: var(--color-primary, #3b82f6);
-  background: var(--color-bg-info, #eff6ff);
-  border-color: var(--color-primary, #3b82f6);
-}
 
-.type-hint {
-  font-size: 0.7rem;
-  font-weight: 400;
-  color: var(--color-text-secondary, #94a3b8);
-}
 
 .form-label {
   font-size: 0.9rem;
