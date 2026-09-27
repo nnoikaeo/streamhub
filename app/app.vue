@@ -2,6 +2,7 @@
 import '../assets/css/main.css'
 import '../assets/css/theme.css'
 import AppToast from '~/components/ui/AppToast.vue'
+import NewVersionBanner from '~/components/features/NewVersionBanner.vue'
 import { useAuthStore } from '~/stores/auth'
 
 const authStore = useAuthStore()
@@ -20,5 +21,6 @@ onMounted(async () => {
       <NuxtPage />
     </NuxtLayout>
     <AppToast />
+    <NewVersionBanner />
   </div>
 </template>
