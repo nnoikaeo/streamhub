@@ -6,7 +6,7 @@ How we review pull requests **and** keep documentation up-to-date.
 
 ### Before Submitting PR
 
-- [ ] Tests pass: `npm test` (baseline 421) + build succeeds: `npm run build`
+- [ ] Tests pass: `npm test` (baseline 427) + build succeeds: `npm run build`
 - [ ] Lint is clean: `npx eslint .` (baseline 0). Every violation is yours — fix it
 - [ ] Typecheck is clean: `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` (baseline is 0 — any error is yours)
 - [ ] Tests typecheck too: `npx vue-tsc --noEmit -p tests/tsconfig.json` (baseline 0 — no `.nuxt/tsconfig.*` project covers `tests/`)

@@ -37,6 +37,8 @@ StreamHub deploys to **Firebase Hosting** (static SPA) + **Cloud Functions for F
 - `streamhub:drop-entry-css-from-deps` — keeps the entry stylesheet out of every deps list. It is already in `<head>`
 - `streamhub:chunk-hash-salt` — a constant mixed into every chunk hash. Changing it renames every chunk on the next deploy, which is the one way to flush every browser's cache of old chunks. It was used once, on 2026-09-28 (#486)
 
+**Tabs left open across a deploy** keep the old build in memory. `app/plugins/version-check.client.ts` fetches `/` after navigation, and when the tab regains focus, at most every 5 minutes. When the entry script differs from the one the tab loaded, `NewVersionBanner` offers "โหลดใหม่". The reload is not forced, so unsaved work is never lost. The first deploy that can show the banner is the one *after* the plugin shipped, because a tab needs the plugin in order to notice.
+
 **Checking a UI fix after deploy:** test on a browser that showed the bug, with a normal reload (Cmd+R), not a hard reload. A hard reload bypasses the cache and hides the problem.
 
 ## CI/CD (Automated)
