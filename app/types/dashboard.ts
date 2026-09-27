@@ -203,15 +203,6 @@ export interface PermissionCheckResult {
 }
 
 // ============================================================================
-// DASHBOARD QUICK SHARE (Layer 1 Direct Only)
-// ============================================================================
-
-export interface QuickShareInput {
-  selectedUsers: string[] // User UIDs to add
-  expiryDate?: Date // Optional: When access expires
-}
-
-// ============================================================================
 // DASHBOARD CARD (UI Representation)
 // ============================================================================
 
