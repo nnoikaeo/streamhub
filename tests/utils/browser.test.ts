@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { isSafariLike } from '../../app/utils/browser'
+import { isSafariLike, isPhone } from '../../app/utils/browser'
 
 const UA = {
   iPadSafari:
@@ -34,6 +34,8 @@ const UA = {
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0.0.0 Mobile/15E148 Safari/604.1',
   iosFirefox:
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/127.0 Mobile/15E148 Safari/605.1.15',
+  iPadMobileSite:
+    'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
 }
 
 describe('isSafariLike', () => {
@@ -57,5 +59,30 @@ describe('isSafariLike', () => {
 
   it('treats a missing user agent as not-Safari rather than showing the hint to everyone', () => {
     expect(isSafariLike('')).toBe(false)
+  })
+})
+
+describe('isPhone', () => {
+  it('matches every phone browser — Google serves them a read-only sheet', () => {
+    expect(isPhone(UA.iPhoneSafari)).toBe(true)
+    expect(isPhone(UA.iosChrome)).toBe(true)
+    expect(isPhone(UA.iosFirefox)).toBe(true)
+    expect(isPhone(UA.androidChrome)).toBe(true)
+  })
+
+  it('does not match desktops, where the sheet editor works in the frame', () => {
+    expect(isPhone(UA.macSafari)).toBe(false)
+    expect(isPhone(UA.macChrome)).toBe(false)
+    expect(isPhone(UA.windowsEdge)).toBe(false)
+    expect(isPhone(UA.macFirefox)).toBe(false)
+  })
+
+  it('does not match an iPad, in its default desktop mode or with the mobile site requested', () => {
+    expect(isPhone(UA.iPadSafari)).toBe(false)
+    expect(isPhone(UA.iPadMobileSite)).toBe(false)
+  })
+
+  it('treats a missing user agent as not a phone', () => {
+    expect(isPhone('')).toBe(false)
   })
 })

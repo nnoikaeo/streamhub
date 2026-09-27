@@ -172,14 +172,14 @@
           </button>
         </div>
 
-        <!-- Sheet menu-bar hint (Safari only). A different fact from the Looker
-             bar above: the sheet does open here, but Safari never sends
-             Google's cookies into the frame, so everyone is anonymous and the
-             menu bar is read-only — the owner included (spike M3). -->
-        <div v-if="showSheetHint && isFullSheetEmbed && embedUrl && !immersive" class="cookie-hint" role="note">
+        <!-- Sheet hint (phones only). Google serves a phone its mobile page —
+             a plain grid, no menu bar, no editing — whatever the mode or the
+             account's rights. Desktop Safari edits fine since the CSP let
+             Google's passive sign-in through (#477), so it gets no bar. -->
+        <div v-if="showSheetHint && !isLookerEmbed && embedUrl && !immersive" class="cookie-hint" role="note">
           <span class="cookie-hint-text">
-            บน Safari, iPhone และ iPad ชีตนี้เปิดดูได้อย่างเดียว —
-            แก้ไขผ่านเมนูได้เฉพาะบน Google Chrome บนคอมพิวเตอร์
+            บนมือถือ Google แสดงชีตแบบอ่านอย่างเดียว —
+            แก้ไขได้บนคอมพิวเตอร์
           </span>
           <button
             type="button"
@@ -435,10 +435,11 @@ const initCookieHint = () => {
   showCookieHint.value = true
 }
 
-// A sheet in `full` mode does open on Safari, but read-only for everyone: the
-// frame never gets Google's cookies, so even the owner is anonymous in it.
-// Its own key, because dismissing the Looker bar says nothing about this one.
-const SHEET_HINT_STORAGE_KEY = 'streamhub:sheet-menubar-hint-dismissed'
+// On a phone Google frames its mobile Sheets page, which cannot edit. Its own
+// key, because dismissing the Looker bar says nothing about this one — and a
+// new name, because the old key held dismissals of a Safari-wide bar whose
+// claim turned out to be wrong.
+const SHEET_HINT_STORAGE_KEY = 'streamhub:sheet-phone-hint-dismissed'
 const showSheetHint = ref(false)
 
 const dismissSheetHint = () => {
@@ -451,7 +452,7 @@ const dismissSheetHint = () => {
 }
 
 const initSheetHint = () => {
-  if (!isSafariLike(navigator.userAgent)) return
+  if (!isPhone(navigator.userAgent)) return
   try {
     if (localStorage.getItem(SHEET_HINT_STORAGE_KEY) === '1') return
   } catch {
@@ -468,16 +469,11 @@ const dashboardId = computed(() => route.params.id as string)
 const isLookerEmbed = computed(() => dashboard.value?.type !== 'sheet')
 const embedTitle = computed(() => (isLookerEmbed.value ? 'Looker Dashboard' : 'Google Sheet'))
 
-// Rows saved before the mode existed carry no `sheetEmbedMode`; what they frame
-// is whatever URL was stored, so only an explicit `full` counts here.
-const isFullSheetEmbed = computed(() =>
-  dashboard.value?.type === 'sheet' && dashboard.value.sheetEmbedMode === 'full',
-)
-
 // A sheet frame loses `allow-top-navigation-by-user-activation`. With it,
 // Safari's in-frame "Sign in" button took the whole tab to docs.google.com —
 // out of StreamHub, no watermark, the sheet's real URL in the address bar —
-// and signing in there never reached the frame anyway (spike M5). Without it
+// and signing in there never reached the frame anyway (spike M5, measured
+// while the CSP still blocked Google's passive sign-in). Without it
 // the button opens the sheet in a new tab through `allow-popups`, so StreamHub
 // stays open. Dropping `allow-popups` as well would also break hyperlinks in
 // cells, which is why the new tab was accepted.
