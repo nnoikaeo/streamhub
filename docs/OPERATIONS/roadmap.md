@@ -188,7 +188,7 @@
 
 **Goal:** Manual test plan execution, bug fixes, production stability
 
-- [x] **Pre-launch checklist A–E PASSED** (2026-07-18) — Route Protection, Admin Edit/Delete, Invitations, Permissions, Moderator folder-scoped access — see [pre-launch-checklist.md](pre-launch-checklist.md). App launch-ready at <https://streamhub-1c27a.web.app>
+- [x] **Pre-launch checklist A–E PASSED** (2026-07-18) — Route Protection, Admin Edit/Delete, Invitations, Permissions, Moderator folder-scoped access — see [pre-launch-checklist.md](archive/pre-launch-checklist.md). App launch-ready at <https://streamhub-1c27a.web.app>
 - [x] **Manual Test Plan** — [manual-test-plan.md](manual-test-plan.md): 145 cases at the time, **215 today** (201 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ / 2 🐛, 2026-09-28) — current totals in its [§ 9 Test Case Summary](manual-test-plan.md#9-test-case-summary)
   - [x] Section 1: Authentication & Onboarding (TC 1.1–1.2) ✅
   - [x] Section 2.1: Dashboard Home ✅

@@ -1,58 +1,14 @@
-# StreamHub Project Instructions
+# StreamHub — instructions for AI assistants
 
-StreamHub is a Dashboard Management System for StreamVoice company (150 employees).
-Built with Nuxt 4, TypeScript, Firebase, Tailwind CSS, and @nuxt/ui.
+The project's rules live in **[CLAUDE.md](../CLAUDE.md)** at the repo root, and every document is
+indexed in **[docs/README.md](../docs/README.md)**. Read those; this file only points at them.
 
-## Project Setup Progress
+It used to hold the February 2026 scaffold notes (a different company name, `@nuxt/ui` and
+Vee-Validate as if they were in use, and a "next steps" list finished long ago). Anything an
+assistant read here was wrong, so it was cut down to this pointer on 2026-09-28.
 
-- [x] Create .github directory and copilot-instructions.md
-- [x] Scaffold Nuxt 4 project with TypeScript
-- [x] Install Firebase and dependencies
-- [x] Install Pinia and state management
-- [x] Set up authentication structure
-- [x] Create dashboard pages and layout
-- [x] Compile and validate project
-- [x] Create and run dev task
+Before any change, the short version:
 
-## Tech Stack
-
-- **Framework**: Nuxt 4
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: @nuxt/ui
-- **Form Validation**: Vee-Validate v4 + Zod
-- **State Management**: Pinia + Firebase Composables
-- **Backend**: Cloud Firestore, Firebase Auth
-- **Storage**: Cloud Storage
-- **Hosting**: Firebase Hosting
-
-## Development Server
-
-Dev server running on `http://localhost:3000`
-
-To start dev server:
-
-```bash
-npm run dev
-```
-
-## Project Structure
-
-- `app/composables/` - Vue composables (useAuth)
-- `app/components/` - Reusable Vue components
-- `app/layouts/` - Page layouts
-- `app/middleware/` - Route middleware
-- `app/pages/` - Application pages
-- `app/plugins/` - Nuxt plugins
-- `app/stores/` - Pinia stores
-- `app/utils/` - Utility functions (schemas, Firebase config)
-- `assets/css/` - Global styles
-
-## Next Steps
-
-1. Configure Firebase credentials in `.env.local`
-2. Update login page with real Firebase authentication
-3. Create dashboard components
-4. Set up Firestore collections
-5. Add more pages (Users, Settings, Analytics)
-6. Configure Firebase Hosting deployment
+- Branch from `develop`; PR to `develop`; `main` only by back-merge (it deploys)
+- Verify: `npx eslint .` · `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` · `npm test` — baselines in CLAUDE.md
+- Caught errors are `unknown` — use `shared/utils/errors.ts`; never `any`
