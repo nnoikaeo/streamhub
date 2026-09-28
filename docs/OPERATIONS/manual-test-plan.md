@@ -375,7 +375,7 @@
 | 3.10.21 | บันทึกสิทธิ์โฟลเดอร์ส่งครบทุกฟิลด์ | 1. ติ๊กสิทธิ์สืบทอด + เพิ่มบริษัท 2. บันทึก | `inheritPermissions: true` **และ** `access.company` อยู่ด้วยกัน พร้อม `permissionMeta` (provenance) | High | ✅ |
 | 3.10.22 | ปิดสาธารณะทั้งที่มีข้อจำกัดค้าง → ถามตอนบันทึก (BUG-022) | 1. เปิดสาธารณะ + ระงับผู้ใช้ 1 คน → บันทึก 2. ปิดสาธารณะ 3. กดบันทึก | ขึ้น dialog "ลบข้อจำกัดที่ไม่มีสิทธิ์รองรับ" ระบุชื่อคนนั้น → **ลบและบันทึก** = `restrictions` ว่างพร้อมกับสิทธิ์; **ยกเลิก** = ไม่บันทึกอะไรเลย | Medium | ✅ |
 | 3.10.23 | ข้อจำกัดที่ยังมีสิทธิ์รองรับต้องไม่ถูกถาม | 1. ให้สิทธิ์บริษัทของผู้ใช้ + ระงับผู้ใช้คนนั้น 2. ลบ direct grant (ถ้ามี) 3. บันทึก | **ไม่ขึ้น dialog** และ `restrictions.revoke` ยังอยู่ (ยังกัดผ่านสิทธิ์บริษัท) | Medium | ✅ |
-| 3.10.24 | เปิดหน้าสิทธิ์โดยไม่ระบุเป้าหมาย ต้องพาไป Explorer | 1. พิมพ์ `/admin/permissions` (ไม่มี `?dashboard` / `?folder`) 2. ทำซ้ำด้วยบัญชี moderator ที่ `/manage/permissions` 3. เปิด `/admin/permissions?dashboard=dash_ไม่มีจริง` | 1–2: ไปหน้า Explorer ของ role นั้นทันที (`replace` — กด Back แล้วไม่วนกลับมา) · 3: ขึ้น "ไม่พบแดชบอร์ดนี้" + ปุ่ม "ไปที่ Explorer" ไม่มีช่องค้นหาหรือปุ่มสลับแดชบอร์ด/โฟลเดอร์ (ถอดออก 2026-09-28 — ไม่มีทางเข้าจาก UI มาตั้งแต่ 2026-03-16) | Medium | ☐ |
+| 3.10.24 | เปิดหน้าสิทธิ์โดยไม่ระบุเป้าหมาย ต้องพาไป Explorer | 1. พิมพ์ `/admin/permissions` (ไม่มี `?dashboard` / `?folder`) 2. ทำซ้ำด้วยบัญชี moderator ที่ `/manage/permissions` 3. เปิด `/admin/permissions?dashboard=dash_ไม่มีจริง` | 1–2: ไปหน้า Explorer ของ role นั้นทันที (`replace` — กด Back แล้วไม่วนกลับมา) · 3: ขึ้น "ไม่พบแดชบอร์ดนี้" + ปุ่ม "ไปที่ Explorer" ไม่มีช่องค้นหาหรือปุ่มสลับแดชบอร์ด/โฟลเดอร์ (ถอดออก 2026-09-28 — ไม่มีทางเข้าจาก UI มาตั้งแต่ 2026-03-16) | Medium | ✅ (prod Chrome 2026-09-28, #494 — `/admin/permissions` ⇒ `/admin/explorer` ทันที · `?dashboard=dash_ไม่มีจริง` ⇒ "ไม่พบแดชบอร์ดนี้" + ปุ่มไป Explorer ไม่มีตัวเลือก · บันทึกผ่าน 🔑 (SAI) กลับ Explorer พร้อม toast แล้วคืนค่าเดิม) |
 
 > 🧪 **TC 3.10.6–3.10.10 — ทดสอบ end-to-end บน Firestore prod จริง 2026-08-16** (ยืนยัน fix PR #364)
 > ทำบนแดชบอร์ด `EXPIRY-TEST` ที่สร้างขึ้นเฉพาะการทดสอบแล้วลบทิ้ง (โฟลเดอร์ "แดชบอร์ดหลัก" ซึ่งไม่ให้สิทธิ์สืบทอดกับใคร) กับ user `survey.streamwash@gmail.com` (role `user`, company OAYT — ไม่มีสิทธิ์ทางอื่นเลย ตัวแปรเดียวที่เหลือคือ expiry)
@@ -459,11 +459,11 @@
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 4.2.1 | Open a manageable dashboard's permissions | 1. `/manage/explorer` → 🔑 on a dashboard in an assigned folder | Editor opens for that dashboard, restrictions hidden | High | ☐ — rewritten 2026-09-28: the old step listed dashboards in the page's own picker, which was removed (✅ under the old steps) |
+| 4.2.1 | Open a manageable dashboard's permissions | 1. `/manage/explorer` → 🔑 on a dashboard in an assigned folder | Editor opens for that dashboard, restrictions hidden | High | ✅ (prod 2026-09-28, moderator Nopphol Noikaeo — 🔑 on Master List in แดชบอร์ดหลัก: editor opens, breadcrumb จัดการ / Explorer / จัดการสิทธิ์, no restrictions section · rewritten from the removed picker's steps) |
 | 4.2.2 | Add user to dashboard | 1. Select dashboard 2. Add user 3. Save | User gains access | High | ✅ |
 | 4.2.3 | Remove user from dashboard | 1. Select dashboard 2. Remove user 3. Save | User loses access | High | ✅ |
 | 4.2.4 | Layer 3 restrictions hidden | 1. Check permission editor | Layer 3 (restrictions) not visible | Medium | ✅ |
-| 4.2.5 | Cannot open an unassigned dashboard | 1. As moderator, open `/manage/permissions?dashboard=<id of a dashboard outside the assigned folders>` | "ไม่พบแดชบอร์ดนี้" + ปุ่มไป Explorer — the editor never loads | Medium | ☐ — rewritten 2026-09-28, same reason as 4.2.1 (✅ under the old steps) |
+| 4.2.5 | Cannot open an unassigned dashboard | 1. As moderator, open `/manage/permissions?dashboard=<id of a dashboard outside the assigned folders>` | "ไม่พบแดชบอร์ดนี้" + ปุ่มไป Explorer — the editor never loads | Medium | ✅ (prod 2026-09-28 — `dash_1788832026632` "ลงทะเบียนรับคูปองส่วนลด" in Restech 2026, the one dashboard outside this moderator's folders: "ไม่พบแดชบอร์ดนี้", editor never shown · pick the id from Firestore — a made-up id only repeats 3.10.24) |
 
 ---
 
@@ -501,6 +501,7 @@
 | 5.2.3 | Moderator → `/admin/*` | 1. Login as Moderator 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | ✅ (UI: pre-launch group A3, 2026-06-28) |
 | 5.2.4 | Sidebar reflects role | 1. Login as each role | user = แดชบอร์ด (หน้าแรก + แดชบอร์ดทั้งหมด) เท่านั้น · moderator = + accordion "จัดการ" · admin = + accordion "ผู้ดูแลระบบ" (ภาพรวม/ผู้ใช้/คำเชิญ/Explorer/บริษัท/เขตพื้นที่/กลุ่มผู้ใช้/แท็ก/Audit Logs/System Health) | High | ✅ (2026-08-19 — เห็นครบ 3 role: `survey` user, `n.noikaeo` moderator, `it.streamwash` admin) |
 | 5.2.5 | Sidebar visibility on mobile | 1. เปิดที่ 375px (iPhone SE) 2. กด ☰ 3. กดฉากมืด 4. กดเมนูใน drawer | ปุ่ม ☰ อยู่ซ้ายสุดของ header · กดแล้ว drawer เลื่อนเข้า + ฉากมืด · กดฉากมืดปิด · กดเมนูแล้วไปหน้านั้นและ drawer ปิดเอง · เมนูผู้ใช้ (avatar) ยังกดได้ ไม่ตกขอบ | High | ✅ (2026-08-19 ครบ 4 ทาง — ☰ เปิด · แตะพื้นเทาปิด · กดลิงก์ปิด (รวมลิงก์ของหน้าที่อยู่แล้ว) · กดหัว accordion กางเมนูโดยไม่ปิด · จอ >768px ไม่มี ☰) |
+| 5.2.6 | แท็บที่เปิดค้างข้าม deploy ต้องถูกบอกให้โหลดใหม่ | 1. เปิด prod ทิ้งไว้ 2. deploy build ใหม่ 3. รอ > 5 นาที หรือสลับแท็บไปแล้วกลับมา แล้วเปลี่ยนหน้าหนึ่งครั้ง 4. กด "โหลดใหม่" | แถบล่าง "มี StreamHub เวอร์ชันใหม่ — โหลดใหม่" ([NewVersionBanner.vue](../../app/components/features/NewVersionBanner.vue)) · ไม่โหลดใหม่เอง · กดแล้วได้ build ใหม่ | Medium | ✅ (prod Chrome 2026-09-28 — แท็บจาก build `9b3acc7` เห็นแถบหลัง deploy `1b36e41` · กดแล้วได้ build ใหม่ ซึ่งพา `/admin/permissions` ไป Explorer ตาม #494 · ทดสอบได้ตั้งแต่ deploy ที่ **สอง** หลัง plugin ขึ้นเท่านั้น) |
 
 ---
 
@@ -797,18 +798,18 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | Admin Groups | 8 | Medium | ✅ (8/8 — 3.7.8 cascade delete ยืนยันบน prod) |
 | Admin Tags | 10 | Medium | ✅ (9 ✅ / 1 ⊘ 3.8.7 — "admin ที่ถูกถอดสิทธิ์แท็ก" ไม่มีทางเกิด เพราะ `canManageTags` ผูกกับ role ตรง ๆ ไม่มี per-user override) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
-| Admin Permissions | 24 | High | 🔍 (23/24 ✅ — 3.10.11–3.10.23 verified on prod 2026-08-19 · 3.10.24 ☐ page without a target goes to Explorer) |
+| Admin Permissions | 24 | High | ✅ (24/24 — 3.10.11–3.10.23 verified on prod 2026-08-19 · 3.10.24 Explorer-only entry 2026-09-28) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 13 | High | ✅ (11/13 ✅ / 2 🐛 BUG-008 + BUG-013 fixed และ re-verified · เคสชีต 3.13.10–3.13.13 ครบ 2026-09-28) |
 | Moderator Explorer | 6 | High | ✅ (6/6) |
-| Moderator Permissions | 5 | High | 🔍 (3/5 ✅ · 4.2.1, 4.2.5 ☐ rewritten 2026-09-28 when the picker was removed) |
+| Moderator Permissions | 5 | High | ✅ (5/5 — 4.2.1, 4.2.5 rewritten for the Explorer path and re-verified on prod 2026-09-28) |
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
-| Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
+| Navigation & Middleware | 6 | Critical | ✅ (6/6 — 5.2.5 ปิดครบทุกทาง 2026-08-19 · 5.2.6 แถบเวอร์ชันใหม่ 2026-09-28) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **216** | — | 199 ✅ / 1 🔍 / 3 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **217** | — | 203 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
-> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 216 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
+> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 217 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
 
 ---
 
