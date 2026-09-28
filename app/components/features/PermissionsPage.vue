@@ -3,8 +3,12 @@
  * PermissionsPage — Shared Permissions Management Component
  *
  * Used by both admin (/admin/permissions) and moderator (/manage/permissions).
- * Provides searchable dashboard dropdown, PermissionEditor integration,
- * save/reset actions, alerts, and loading/empty states.
+ * Always opened from Explorer's 🔑 with `?dashboard=<id>` or `?folder=<id>` —
+ * the sidebar entry was removed 2026-03-16 and the page's own dashboard/folder
+ * picker went with it (2026-09-28): nobody could reach it without typing the
+ * URL. Opened with neither, the page sends the user to Explorer.
+ * Provides PermissionEditor integration, save/reset actions, alerts, and
+ * loading/empty states.
  *
  * Role differences controlled via props:
  * - dashboards: all (admin) vs manageable only (moderator)
@@ -60,10 +64,7 @@ const router = useRouter()
 const { user } = useAuth()
 const dashboardService = useDashboardService()
 
-/** Whether we arrived from explorer via ?dashboard or ?folder query param */
 const { showToast } = useAppToast()
-
-const cameFromExplorer = computed(() => !!route.query.dashboard || !!route.query.folder)
 
 const goBackToExplorer = () => {
   // Prefer browser back (preserves explorer folder + scroll position).
@@ -86,6 +87,12 @@ const explorerPath = computed(() =>
 )
 
 const goToExplorer = () => router.push(explorerPath.value)
+
+// No target in the URL — there is nothing to edit here and no picker to choose
+// one with, so go to Explorer, where 🔑 opens this page with a target.
+if (!route.query.dashboard && !route.query.folder) {
+  router.replace(explorerPath.value)
+}
 
 // Access-state cue for the dashboard being edited [DESIGN-001].
 // - 'public'    : explicit public flag → every logged-in user can access
@@ -123,7 +130,6 @@ const currentDashboardFolder = ref<string>('')
 const isLoading = ref(false)
 const isSaving = ref(false)
 const errorMessage = ref<string | null>(null)
-const successMessage = ref<string | null>(null)
 
 const permissionsToEdit = ref<{
   access: AccessControl
@@ -144,10 +150,6 @@ const originalPermissions = ref<{
 // ─── Edit Mode ──────────────────────────────────────────────────────────
 
 const editMode = ref<'dashboard' | 'folder'>('dashboard')
-const modeOptions: { label: string, value: 'dashboard' | 'folder' }[] = [
-  { label: '📊 แดชบอร์ด', value: 'dashboard' },
-  { label: '📁 โฟลเดอร์', value: 'folder' },
-]
 
 // ─── Folder Mode State ──────────────────────────────────────────────────
 
@@ -171,11 +173,7 @@ const originalFolderPermissions = ref<{
   restrictions: { revoke: [], expiry: {} },
 })
 
-// ─── Dashboard search dropdown ──────────────────────────────────────────
-
-const dashboardSearchQuery = ref('')
-const isDropdownOpen = ref(false)
-const searchInputRef = ref<HTMLInputElement | null>(null)
+// ─── Target selection ───────────────────────────────────────────────────
 
 const getFolderBreadcrumb = (folderId: string): string => {
   if (props.getFolderPath) {
@@ -194,125 +192,15 @@ const getFolderBreadcrumb = (folderId: string): string => {
   return parts.join(' > ') || ''
 }
 
-const sortedDashboards = computed(() => {
-  return [...props.dashboards].sort((a, b) => {
-    const pathA = getFolderBreadcrumb(a.folderId)
-    const pathB = getFolderBreadcrumb(b.folderId)
-    return pathA.localeCompare(pathB) || a.name.localeCompare(b.name)
-  })
-})
-
-const filteredDashboards = computed(() => {
-  const list = sortedDashboards.value
-
-  if (!dashboardSearchQuery.value) return list
-  const q = dashboardSearchQuery.value.toLowerCase()
-  return list.filter(d =>
-    d.name.toLowerCase().includes(q) || getFolderBreadcrumb(d.folderId).toLowerCase().includes(q)
-  )
-})
-
 const selectDashboard = (dashboardId: string) => {
   selectedDashboardId.value = dashboardId
-  dashboardSearchQuery.value = ''
-  isDropdownOpen.value = false
   loadDashboardPermissions()
 }
 
-const clearSelection = () => {
-  if (cameFromExplorer.value) {
-    goBackToExplorer()
-    return
-  }
-  selectedDashboardId.value = ''
-  currentDashboard.value = null
-  currentDashboardFolder.value = ''
-  dashboardSearchQuery.value = ''
-}
-
-const focusSearch = () => {
-  dashboardSearchQuery.value = ''
-  isDropdownOpen.value = true
-  nextTick(() => {
-    searchInputRef.value?.focus()
-  })
-}
-
-// Close dropdown on click outside
-const handleClickOutside = (e: MouseEvent) => {
-  // Ignore clicks on elements detached from DOM (e.g. v-if unmounted on same click)
-  if (!document.contains(e.target as Node)) return
-  const wrapper = (e.target as HTMLElement)?.closest('.dashboard-search-wrapper')
-  if (!wrapper) isDropdownOpen.value = false
-}
-
-// ─── Folder search dropdown ─────────────────────────────────────────────
-
-const folderSearchQuery = ref('')
-const isFolderDropdownOpen = ref(false)
-const folderSearchInputRef = ref<HTMLInputElement | null>(null)
-
-const flatSortedFolders = computed(() => {
-  return [...props.allFolders]
-    .filter(f => f.isActive)
-    .sort((a, b) => {
-      const pathA = getFolderBreadcrumb(a.id)
-      const pathB = getFolderBreadcrumb(b.id)
-      return pathA.localeCompare(pathB)
-    })
-})
-
-const filteredEditFolders = computed(() => {
-  const list = flatSortedFolders.value
-  if (!folderSearchQuery.value) return list
-  const q = folderSearchQuery.value.toLowerCase()
-  return list.filter(f =>
-    f.name.toLowerCase().includes(q) || getFolderBreadcrumb(f.id).toLowerCase().includes(q)
-  )
-})
-
 const selectEditFolder = (folderId: string) => {
   selectedEditFolderId.value = folderId
-  folderSearchQuery.value = ''
-  isFolderDropdownOpen.value = false
   loadFolderPermissions()
 }
-
-const clearFolderSelection = () => {
-  if (cameFromExplorer.value) {
-    goBackToExplorer()
-    return
-  }
-  selectedEditFolderId.value = ''
-  currentEditFolder.value = null
-  folderSearchQuery.value = ''
-  folderInheritEnabled.value = false
-}
-
-const focusFolderSearch = () => {
-  folderSearchQuery.value = ''
-  isFolderDropdownOpen.value = true
-  nextTick(() => {
-    folderSearchInputRef.value?.focus()
-  })
-}
-
-const handleFolderClickOutside = (e: MouseEvent) => {
-  // Ignore clicks on elements detached from DOM (e.g. v-if unmounted on same click)
-  if (!document.contains(e.target as Node)) return
-  const wrapper = (e.target as HTMLElement)?.closest('.folder-search-wrapper')
-  if (!wrapper) isFolderDropdownOpen.value = false
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-  document.addEventListener('click', handleFolderClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  document.removeEventListener('click', handleFolderClickOutside)
-})
 
 // ─── Computed ───────────────────────────────────────────────────────────
 
@@ -671,12 +559,7 @@ const savePermissions = async (strandedConfirmed = false) => {
       showToast(message)
       originalPermissions.value = JSON.parse(JSON.stringify(permissionsToEdit.value))
 
-      if (cameFromExplorer.value) {
-        goBackToExplorer()
-        return
-      }
-      successMessage.value = message
-      setTimeout(() => { successMessage.value = null }, 5000)
+      goBackToExplorer()
     } else {
       errorMessage.value = response.message || 'ไม่สามารถบันทึกสิทธิ์ได้'
       showToast(errorMessage.value, 'error')
@@ -726,12 +609,7 @@ const saveFolderPermissions = async () => {
         permissionMeta,
       }
 
-      if (cameFromExplorer.value) {
-        goBackToExplorer()
-        return
-      }
-      successMessage.value = message
-      setTimeout(() => { successMessage.value = null }, 5000)
+      goBackToExplorer()
     } else {
       errorMessage.value = response.message || 'ไม่สามารถบันทึกสิทธิ์ได้'
       showToast(errorMessage.value, 'error')
@@ -756,19 +634,17 @@ const resetEditor = () => {
   }
 }
 
-// ─── Mode switch ────────────────────────────────────────────────────────
+// Auto-select happens from the query params below — the only way in.
 
-const hasSelection = computed(() => {
-  return editMode.value === 'dashboard' ? !!selectedDashboardId.value : !!selectedEditFolderId.value
+// The URL names a target that is not in the list. Judged only once that list
+// has arrived, so "not found" never flashes while the page is still loading.
+const targetMissing = computed(() => {
+  const dashId = route.query.dashboard as string | undefined
+  if (dashId) return props.dashboards.length > 0 && !props.dashboards.some(d => d.id === dashId)
+  const folderId = route.query.folder as string | undefined
+  if (folderId) return props.allFolders.length > 0 && !props.allFolders.some(f => f.id === folderId)
+  return false
 })
-
-const switchMode = (mode: 'dashboard' | 'folder') => {
-  if (editMode.value === mode) return
-  editMode.value = mode
-  errorMessage.value = null
-  successMessage.value = null
-}
-
 // Auto-select from query params (?dashboard=xxx or ?folder=xxx)
 const queryHandled = ref(false)
 
@@ -810,7 +686,6 @@ watch(() => props.allFolders, (folders) => {
       <template #header>
         <div class="page-header__row">
           <button
-            v-if="cameFromExplorer"
             type="button"
             class="back-to-explorer-btn"
             @click="goBackToExplorer"
@@ -821,131 +696,8 @@ watch(() => props.allFolders, (folders) => {
         </div>
       </template>
 
-      <template #filters>
-        <!-- Filter bar hidden when arriving from Explorer — target is already chosen -->
-        <div v-if="!cameFromExplorer" class="filter-bar">
-          <!-- Mode toggle — the shared pick-one control (ui/SegmentedControl) -->
-          <SegmentedControl
-            class="mode-toggle"
-            :model-value="editMode"
-            :options="modeOptions"
-            aria-label="แก้ไขสิทธิ์ของ"
-            @update:model-value="switchMode"
-          />
-
-          <!-- Dashboard Selector (dashboard mode) -->
-          <div v-if="editMode === 'dashboard'" class="filter-search dashboard-search-wrapper">
-            <div class="dashboard-search" :class="{ 'dashboard-search--open': isDropdownOpen }">
-              <input
-                v-show="!selectedDashboardId || dashboardSearchQuery || isDropdownOpen"
-                id="permission-dashboard-search"
-                ref="searchInputRef"
-                v-model="dashboardSearchQuery"
-                type="text"
-                name="permission-dashboard-search"
-                aria-label="ค้นหาแดชบอร์ดเพื่อจัดการสิทธิ์"
-                autocomplete="off"
-                class="theme-form-input"
-                :placeholder="'🔍 เลือกแดชบอร์ดเพื่อจัดการสิทธิ์... (พิมพ์เพื่อค้นหา)'"
-                :disabled="isLoading"
-                @focus="isDropdownOpen = true"
-                @input="isDropdownOpen = true"
-              >
-              <div
-                v-if="selectedDashboardId && !dashboardSearchQuery && !isDropdownOpen"
-                class="dashboard-search__selected"
-                @click="focusSearch"
-              >
-                <span class="dashboard-search__name">{{ currentDashboard?.name }}</span>
-                <span class="dashboard-search__folder">{{ currentDashboardFolder }}</span>
-                <button
-                  type="button"
-                  class="dashboard-search__clear"
-                  title="ล้างการเลือก"
-                  @click.stop="clearSelection"
-                >✕</button>
-              </div>
-              <div v-if="isDropdownOpen" class="dashboard-dropdown">
-                <div
-                  v-for="dash in filteredDashboards"
-                  :key="dash.id"
-                  class="dashboard-dropdown__item"
-                  :class="{ 'dashboard-dropdown__item--active': dash.id === selectedDashboardId }"
-                  @mousedown.prevent="selectDashboard(dash.id)"
-                >
-                  <span class="dashboard-dropdown__name">{{ dash.name }}</span>
-                  <span class="dashboard-dropdown__folder">{{ getFolderBreadcrumb(dash.folderId) }}</span>
-                </div>
-                <div v-if="filteredDashboards.length === 0" class="dashboard-dropdown__empty">
-                  ไม่พบแดชบอร์ด
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Folder Selector (folder mode) -->
-          <div v-if="editMode === 'folder'" class="filter-search folder-search-wrapper">
-            <div class="dashboard-search" :class="{ 'dashboard-search--open': isFolderDropdownOpen }">
-              <input
-                v-show="!selectedEditFolderId || folderSearchQuery || isFolderDropdownOpen"
-                id="permission-folder-search"
-                ref="folderSearchInputRef"
-                v-model="folderSearchQuery"
-                type="text"
-                name="permission-folder-search"
-                aria-label="ค้นหาโฟลเดอร์เพื่อจัดการสิทธิ์"
-                autocomplete="off"
-                class="theme-form-input"
-                :placeholder="'🔍 เลือกโฟลเดอร์เพื่อจัดการสิทธิ์... (พิมพ์เพื่อค้นหา)'"
-                @focus="isFolderDropdownOpen = true"
-                @input="isFolderDropdownOpen = true"
-              >
-              <div
-                v-if="selectedEditFolderId && !folderSearchQuery && !isFolderDropdownOpen"
-                class="dashboard-search__selected"
-                @click="focusFolderSearch"
-              >
-                <span class="dashboard-search__name">📁 {{ currentEditFolder?.name }}</span>
-                <span class="dashboard-search__folder">{{ getFolderBreadcrumb(selectedEditFolderId) }}</span>
-                <button
-                  type="button"
-                  class="dashboard-search__clear"
-                  title="ล้างการเลือก"
-                  @click.stop="clearFolderSelection"
-                >✕</button>
-              </div>
-              <div v-if="isFolderDropdownOpen" class="dashboard-dropdown">
-                <div
-                  v-for="folder in filteredEditFolders"
-                  :key="folder.id"
-                  class="dashboard-dropdown__item"
-                  :class="{ 'dashboard-dropdown__item--active': folder.id === selectedEditFolderId }"
-                  @mousedown.prevent="selectEditFolder(folder.id)"
-                >
-                  <span class="dashboard-dropdown__name">📁 {{ folder.name }}</span>
-                  <span class="dashboard-dropdown__folder">{{ getFolderBreadcrumb(folder.id) }}</span>
-                </div>
-                <div v-if="filteredEditFolders.length === 0" class="dashboard-dropdown__empty">
-                  ไม่พบโฟลเดอร์
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Hint bar (shown when nothing selected, and not in focused explorer flow) -->
-        <div v-if="!hasSelection && !cameFromExplorer" class="filter-hint">
-          💡 เลือกโหมด <strong>แดชบอร์ด</strong> หรือ <strong>โฟลเดอร์</strong> ด้านซ้าย แล้วค้นหารายการที่ต้องการจัดการสิทธิ์
-        </div>
-      </template>
-
       <template #table>
         <!-- Status Messages -->
-        <div v-if="successMessage" class="alert alert-success" role="status">
-          <span>{{ successMessage }}</span>
-          <button type="button" class="alert-close" aria-label="Dismiss" @click="successMessage = null">✕</button>
-        </div>
-
         <div v-if="errorMessage" class="alert alert-error" role="alert">
           <span>{{ errorMessage }}</span>
           <button type="button" class="alert-close" aria-label="Dismiss" @click="errorMessage = null">✕</button>
@@ -965,7 +717,6 @@ watch(() => props.allFolders, (folders) => {
             </div>
             <div class="editor-actions">
               <button
-                v-if="cameFromExplorer"
                 type="button"
                 class="page-header-action-btn page-header-action-btn--secondary"
                 @click="goBackToExplorer"
@@ -1120,7 +871,6 @@ watch(() => props.allFolders, (folders) => {
             </div>
             <div class="editor-actions">
               <button
-                v-if="cameFromExplorer"
                 type="button"
                 class="page-header-action-btn page-header-action-btn--secondary"
                 @click="goBackToExplorer"
@@ -1236,14 +986,15 @@ watch(() => props.allFolders, (folders) => {
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="!isLoading" class="empty-state">
+        <div v-else-if="!isLoading && targetMissing" class="empty-state">
           <div class="empty-state__icon">🔐</div>
-          <h3>{{ editMode === 'dashboard' ? 'เลือกแดชบอร์ด' : 'เลือกโฟลเดอร์' }}</h3>
-          <p>{{ editMode === 'dashboard' ? 'เลือกแดชบอร์ดจากช่องค้นหาด้านบน หรือเปิดจาก Explorer เพื่อจัดการสิทธิ์' : 'เลือกโฟลเดอร์จากช่องค้นหาด้านบน หรือเปิดจาก Explorer เพื่อจัดการสิทธิ์' }}</p>
+          <!-- Reached only with a ?dashboard / ?folder that is not in the list:
+               deleted since the link was made, or outside what this user manages. -->
+          <h3>{{ route.query.folder ? 'ไม่พบโฟลเดอร์นี้' : 'ไม่พบแดชบอร์ดนี้' }}</h3>
+          <p>อาจถูกลบไปแล้ว หรืออยู่นอกโฟลเดอร์ที่คุณดูแล — เปิดจากปุ่ม 🔑 ใน Explorer อีกครั้ง</p>
           <button type="button" class="empty-state__cta" @click="goToExplorer">
             🗂️ ไปที่ Explorer
           </button>
-          <p class="empty-state__hint">แนะนำ: เปิดหน้านี้จากปุ่ม 🔐 จัดการสิทธิ์ ของแต่ละแดชบอร์ด/โฟลเดอร์ใน Explorer เพื่อจัดการสิทธิ์ได้ทันที</p>
         </div>
       </template>
     </AdminPageContent>
@@ -1263,159 +1014,6 @@ watch(() => props.allFolders, (folders) => {
 </template>
 
 <style scoped>
-/* Filter Bar */
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm, 0.5rem);
-  width: 100%;
-}
-
-.filter-search {
-  flex: 1;
-  min-width: 0;
-}
-
-/* The mode toggle is ui/SegmentedControl; only its place in the bar is set here. */
-.mode-toggle {
-  flex-shrink: 0;
-}
-
-/* Filter Hint */
-.filter-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.8125rem;
-  color: var(--color-primary-dark, #1e3a5f);
-  background-color: var(--color-primary-lightest, #eff6ff);
-  border: 1px solid var(--color-primary-lighter, #bfdbfe);
-  border-radius: 0.5rem;
-  margin-top: var(--spacing-xs, 0.25rem);
-}
-
-/* Dashboard / Folder Search Dropdown */
-.dashboard-search-wrapper,
-.folder-search-wrapper {
-  position: relative;
-}
-
-.dashboard-search {
-  position: relative;
-  height: 2.375rem;
-}
-
-.dashboard-search .theme-form-input {
-  height: 100%;
-}
-
-.dashboard-search__selected {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm, 0.5rem);
-  padding: 0 2.25rem 0 var(--spacing-md, 0.75rem);
-  cursor: pointer;
-  background: var(--color-bg-primary, white);
-  border: 1px solid var(--color-border-default, #d1d5db);
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.dashboard-search__name {
-  font-weight: 600;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dashboard-search__folder {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-.dashboard-search__clear {
-  position: absolute;
-  right: 0.375rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-  padding: 0.25rem 0.375rem;
-  line-height: 1;
-  border-radius: 0.25rem;
-  z-index: 1;
-}
-
-.dashboard-search__clear:hover {
-  color: var(--color-text-primary);
-}
-
-.dashboard-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  max-height: 320px;
-  overflow-y: auto;
-  background: white;
-  border: 1px solid var(--color-border-default, #d1d5db);
-  border-top: none;
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0,0,0,.1));
-}
-
-.dashboard-dropdown__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.dashboard-dropdown__item:hover {
-  background-color: var(--color-bg-secondary, #f3f4f6);
-}
-
-.dashboard-dropdown__item--active {
-  background-color: var(--color-primary-light, #e0e7ff);
-  font-weight: 600;
-}
-
-.dashboard-dropdown__name {
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.dashboard-dropdown__folder {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.dashboard-dropdown__empty {
-  padding: var(--spacing-lg);
-  text-align: center;
-  color: var(--color-text-secondary);
-  font-size: 0.875rem;
-}
-
 /* Editor Section */
 .editor-section {
   padding: var(--spacing-lg);
@@ -1743,11 +1341,6 @@ watch(() => props.allFolders, (folders) => {
   font-size: 0.875rem;
 }
 
-.alert-success {
-  background: var(--color-bg-success, #f0fdf4);
-  border: 1px solid var(--color-border-success, #bbf7d0);
-  color: var(--color-success, #16a34a);
-}
 
 .alert-error {
   background: var(--color-bg-error, #fef2f2);
@@ -1901,12 +1494,6 @@ watch(() => props.allFolders, (folders) => {
   opacity: 0.9;
 }
 
-.empty-state__hint {
-  max-width: 32rem;
-  font-size: 0.8125rem !important;
-  color: var(--color-text-tertiary, #9ca3af) !important;
-  margin-top: var(--spacing-xs) !important;
-}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -1916,24 +1503,6 @@ watch(() => props.allFolders, (folders) => {
   }
 
   .editor-actions {
-    width: 100%;
-  }
-
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  /* Full-width toggle on phones: the strip and each option stretch. */
-  .mode-toggle :deep(.segmented-control__strip) {
-    align-self: stretch;
-  }
-
-  .mode-toggle :deep(.segmented-control__option) {
-    flex: 1;
-  }
-
-  .filter-search {
     width: 100%;
   }
 
