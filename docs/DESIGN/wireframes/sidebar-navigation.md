@@ -139,8 +139,8 @@ All roles share the **Dashboard** menu (View All + Search) as the primary entry 
 │    ├ Dashboards      │  → /admin/dashboards
 │    ├ Companies       │  → /admin/companies
 │    ├ Groups          │  → /admin/groups
-│    ├ Tags            │  → /admin/tags  (NEW)
-│    └ Permissions     │  → /admin/permissions
+│    └ Tags            │  → /admin/tags  (NEW)
+│   (no Permissions item — reached via 🔑 in Explorer, removed 2026-03-16)
 │                      │
 │  (No Folder Tree     │
 │   in Sidebar —       │
@@ -245,7 +245,7 @@ function getSidebarMenus(role: string, assignedFolders: Folder[]): SidebarMenuGr
         { label: 'Companies', icon: 'business', to: '/admin/companies' },
         { label: 'Groups', icon: 'groups', to: '/admin/groups' },
         { label: 'Tags', icon: 'label', to: '/admin/tags' },
-        { label: 'Permissions', icon: 'lock', to: '/admin/permissions' },
+        // No Permissions entry: the page is reached via 🔑 in Explorer (removed 2026-03-16)
       ]
     })
   }
