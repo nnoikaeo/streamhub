@@ -46,8 +46,12 @@
 - `/manage/explorer` — File explorer scoped to assigned folders
 - `/manage/permissions` — Permission management (accessible via 🔑 buttons in explorer)
 
-**Note:** The "สิทธิ์" (Permissions) menu was removed from sidebar for both roles.
-Permissions page is accessed via 🔑 buttons on dashboard rows and search results in explorer.
+**Note:** The "สิทธิ์" (Permissions) menu was removed from sidebar for both roles (2026-03-16).
+Permissions page is accessed via 🔑 buttons on dashboard rows and search results in explorer, which
+always pass `?dashboard=<id>` or `?folder=<id>`. The page's own dashboard/folder picker (a
+แดชบอร์ด | โฟลเดอร์ toggle plus a search dropdown) was removed on 2026-09-28 — it could only be
+reached by typing the URL. Opened without a target, the page redirects to the role's Explorer; with a
+target that is not in the list, it shows "ไม่พบแดชบอร์ดนี้" and a button back to Explorer.
 
 ---
 
@@ -146,7 +150,7 @@ Separate section below the main editor. `v-if="showRestrictions"`
 **Same PermissionEditor component with:**
 
 - `showRestrictions: false` — Restrictions section hidden
-- Dashboard selector scoped to assigned folders only (via `useModeratorDashboards()`)
+- Dashboards scoped to assigned folders only (via `useModeratorDashboards()`) — a `?dashboard=` outside them shows "ไม่พบแดชบอร์ดนี้"
 - Breadcrumb: จัดการ > สิทธิ์
 - Auto-select dashboard via `?dashboard=id` query param (from explorer 🔑 button)
 - Pre-filter by folder via `?folder=id` query param (from explorer folder 🔑 button, admin only)

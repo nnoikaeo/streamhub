@@ -129,7 +129,7 @@ User: สมชาย (STTH)
 - ✅ Move dashboards between assigned folders
 - ✅ View activity logs (in company)
 - ✅ Access `/manage/explorer` (unified folder + dashboard management)
-- ✅ Access `/manage/permissions` (via 🔑 button in explorer)
+- ✅ Access `/manage/permissions` (via 🔑 button in explorer — the only way in; without `?dashboard`/`?folder` the page redirects to Explorer)
 - ❌ Set Layer 3 restrictions (Admin only)
 - ❌ Create new tags (Admin only)
 - ❌ Edit/Delete tags (Admin only)

@@ -145,7 +145,7 @@
 >
 > 1. **ทางปกติ (แนะนำ):** ไปที่เมนู **Explorer** → คลิกไอคอน **🔑** ข้างชื่อ Dashboard หรือ Folder
 >    → ระบบจะ navigate ไป `/admin/permissions?dashboard=<id>` (หรือ `?folder=<id>`) พร้อม pre-select ให้
-> 2. **ทางตรง:** พิมพ์ `/admin/permissions` ใน URL เอง (ไม่มี pre-select ต้องเลือก dashboard เอง)
+> 2. ~~**ทางตรง:** พิมพ์ `/admin/permissions` ใน URL เอง (ไม่มี pre-select ต้องเลือก dashboard เอง)~~ — **ถอดออกแล้ว 2026-09-28**: ไม่มีเป้าหมายใน URL ⇒ พาไป Explorer
 >
 > ทั้งสองทางไปที่ component เดียวกัน (`PermissionsPage.vue` → Layer 3 restrictions)
 
