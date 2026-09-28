@@ -573,7 +573,7 @@ if (new Date() > new Date(expiryDate as any)) return false
 
 > ℹ️ **ตั้งวันหมดอายุผ่าน UI** ได้ที่หน้าจัดการสิทธิ์ → แท็บ "ข้อจำกัด" → หมดอายุ (Quick Share ถูกลบทั้งชุดแล้ว 2026-08-18) ค่าที่เขียนเป็น `Timestamp` ของ **23:59:59.999 ตามเวลาผู้ตั้ง** = วันที่เลือกคือวันสุดท้ายที่เข้าถึงได้ (BUG-018)
 
-**จุดอ่านทั้งหมดใช้ `isExpired` แล้ว** — `checkAccess`, `resolveEffectiveUsers`, `PermissionsPage.effectiveAccess` ([PermissionsPage.vue:540](../../app/components/features/PermissionsPage.vue#L540), ย้ายใน PR #374) และ `server/utils/companyAccess.isRestricted`
+**จุดอ่านทั้งหมดใช้ `isExpired` แล้ว** — `checkAccess`, `resolveEffectiveUsers`, `PermissionsPage.effectiveAccess` ([PermissionsPage.vue:389](../../app/components/features/PermissionsPage.vue#L389), ย้ายใน PR #374) และ `server/utils/companyAccess.isRestricted`
 
 ---
 

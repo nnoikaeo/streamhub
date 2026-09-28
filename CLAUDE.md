@@ -53,6 +53,11 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - A hard reload hides the problem instead of proving a fix — test a cache fix with a normal reload (Cmd+R) on a browser that showed the bug
 - A tab left open across a deploy keeps running the old build. [version-check.client.ts](app/plugins/version-check.client.ts) compares the entry script of `/` with its own (after navigation / on tab focus, at most every 5 min) and [NewVersionBanner.vue](app/components/features/NewVersionBanner.vue) offers a reload — never forced, so a half-filled form survives a deploy. `experimental.appManifest` stays off (routeRules.test.ts)
 
+### Permissions Page
+
+- `/admin/permissions` and `/manage/permissions` are opened **only** from 🔑 in Explorer, always with `?dashboard=<id>` or `?folder=<id>`. No sidebar entry (removed 2026-03-16), no in-page picker (removed 2026-09-28, #494). Without a target the page `replace`s to Explorer; with a target not in the list it shows "ไม่พบแดชบอร์ดนี้"
+- Testing a moderator's scope (TC 4.2.5) needs a **real** dashboard id outside their folders — `node scripts/qa-moderator-scope.mjs` prints one with its URL. A made-up id only proves "not found"
+
 ### Firestore / Nitro Plugins
 
 - Never `throw` inside Nitro plugins (`server/plugins/`) — Firebase CLI runs them during deploy analysis without env vars
@@ -126,7 +131,6 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | Doc | Contents |
 |-----|----------|
 | [docs/OPERATIONS/deployment.md](docs/OPERATIONS/deployment.md) | Deploy procedures, CI/CD, rollback |
-| [docs/OPERATIONS/pre-launch-checklist.md](docs/OPERATIONS/pre-launch-checklist.md) | A–E test groups, launch sign-off |
 | [docs/OPERATIONS/roadmap.md](docs/OPERATIONS/roadmap.md) | Feature roadmap and priorities |
 | [docs/OPERATIONS/versioning.md](docs/OPERATIONS/versioning.md) | Version numbering policy |
 | [docs/OPERATIONS/manual-test-plan.md](docs/OPERATIONS/manual-test-plan.md) | Manual QA test cases by role |
@@ -177,6 +181,7 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | `npm run docs:links` | Read-only Markdown check across every tracked `.md` (skips `.claude/skills/`, which is vendored). Four things: the linked file resolves; for `.md` targets the `#anchor` still matches a heading under GitHub's slug rules (trim, lowercase, *then* strip punctuation — which is why an emoji heading anchors as `#-tag-permissions`); no doc under `docs/` is an **orphan** (a file nothing links to is how an index drifts without breaking anything); and no doc carries a hand-maintained `Last Updated:` / `Version:` **stamp** — all 33 the repo had were wrong, six by more than two years, so `git log -1 --format=%as -- <file>` is the date. A `#L120` on a `.ts`/`.vue` target is a line ref, not an anchor, so only the file is checked. Enforced by [.github/workflows/docs.yml](.github/workflows/docs.yml) on any PR touching a `.md`. **Baseline is 0** |
 | `npm run docs:lint` | markdownlint over every `.md` (config: [.markdownlint-cli2.jsonc](.markdownlint-cli2.jsonc), which says **why** each disabled rule is off). Runs through a **pinned `npx`, not a devDependency** — `npm install` rewrites `package-lock.json` on its own in this repo, so adding one drags 1700 lines of unrelated lock churn into the diff. `npm run docs:lint -- --fix` clears the whitespace rules; MD040 (fence needs a language) does not auto-fix — untagged ASCII diagrams take `text`. Same CI job as `docs:links`. **Baseline is 0** |
 | `npm run rules:verify` | Read-only check that the Firestore rules **Google is enforcing** are the ones in this repo — fetches the live `cloud.firestore` ruleset and compares it to [firestore.rules](firestore.rules), exit 1 on a difference with the first differing line. Closes the one gap the manual deploy leaves: nothing else can tell a deployed rules file from a merged-but-forgotten one. Add `-- --print` to dump the live source. Needs `.env.local` credentials, so it cannot run in CI |
+| `node scripts/qa-moderator-scope.mjs` | Read-only: which dashboards each moderator can and cannot manage, with a ready `/manage/permissions?dashboard=…` URL for one outside their scope — the input TC 4.2.5 needs |
 | `npm run audit:orphans` | Read-only Firestore data-hygiene check (dangling folderId / group / region / company / member / **moderator** refs — the last one exposed five folders still naming a user deleted months ago) |
 | `node scripts/clean-orphan-refs.mjs [--apply]` | ตัวคู่กับ audit ที่ **ล้างจริง** — ตัด id ที่ตายแล้วออกจาก `users.groups[]`, `groups.members[]`, `folders.assignedModerators[]` (3 กรณีที่ "ลบทิ้ง" คือคำตอบทั้งหมด) · ไม่แตะ `dashboards.folderId` / `folders.parentId` / `users.company` เพราะเป็น pointer เดี่ยว ต้องตัดสินใจว่าจะย้ายไปไหน ไม่ใช่ล้าง · dry run ถ้าไม่ใส่ `--apply`, เขียนเป็น batch เดียว |
 | `node scripts/qa-broken-refs.mjs status\|break\|restore [--apply]` | QA fixture สำหรับ TC 6.2.1/6.2.2 — เขียน `folderId` และ `access.users` ที่ชี้ไปยัง id ที่ไม่มีจริง แล้วคืนค่าเดิมได้ (เก็บค่าเดิมไว้ก่อนแตะ ปฏิเสธทำงานกับแดชบอร์ดที่มีคนเข้าถึงได้ ไม่เขียนถ้าไม่ใส่ `--apply`) — สภาพนี้ UI สร้างเองไม่ได้แล้วเพราะ guard BUG-008/009 · **ต้องใส่ `--dashboard <id>` เสมอ** ไม่มีค่าเริ่มต้นแล้ว — แดชบอร์ดที่จองไว้ถูกลบ และตอนนี้ทุกตัวใน Firestore เป็นของจริงหมด (2026-08-25) |

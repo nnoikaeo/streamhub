@@ -350,6 +350,8 @@
 
 ### 3.10 Admin Permissions (`/admin/permissions`)
 
+> **เข้าได้ทางเดียว: ปุ่ม 🔑 ใน Explorer** ซึ่งเปิด `?dashboard=<id>` หรือ `?folder=<id>` เสมอ — "Select dashboard" ในเคสด้านล่างหมายถึงกด 🔑 ที่แดชบอร์ดนั้น · ไม่มีเมนู sidebar (ถอด 2026-03-16) และไม่มีตัวเลือกในหน้าแล้ว (ถอด 2026-09-28, #494) ⇒ เปิดโดยไม่มีเป้าหมาย = ไป Explorer (3.10.24) · บันทึกแล้วกลับ Explorer พร้อม toast ทุกครั้ง
+
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
 | 3.10.1 | Add user to dashboard | 1. Select **restricted** dashboard 2. Add user 3. Save | User gains access | High | ✅ |
@@ -375,7 +377,7 @@
 | 3.10.21 | บันทึกสิทธิ์โฟลเดอร์ส่งครบทุกฟิลด์ | 1. ติ๊กสิทธิ์สืบทอด + เพิ่มบริษัท 2. บันทึก | `inheritPermissions: true` **และ** `access.company` อยู่ด้วยกัน พร้อม `permissionMeta` (provenance) | High | ✅ |
 | 3.10.22 | ปิดสาธารณะทั้งที่มีข้อจำกัดค้าง → ถามตอนบันทึก (BUG-022) | 1. เปิดสาธารณะ + ระงับผู้ใช้ 1 คน → บันทึก 2. ปิดสาธารณะ 3. กดบันทึก | ขึ้น dialog "ลบข้อจำกัดที่ไม่มีสิทธิ์รองรับ" ระบุชื่อคนนั้น → **ลบและบันทึก** = `restrictions` ว่างพร้อมกับสิทธิ์; **ยกเลิก** = ไม่บันทึกอะไรเลย | Medium | ✅ |
 | 3.10.23 | ข้อจำกัดที่ยังมีสิทธิ์รองรับต้องไม่ถูกถาม | 1. ให้สิทธิ์บริษัทของผู้ใช้ + ระงับผู้ใช้คนนั้น 2. ลบ direct grant (ถ้ามี) 3. บันทึก | **ไม่ขึ้น dialog** และ `restrictions.revoke` ยังอยู่ (ยังกัดผ่านสิทธิ์บริษัท) | Medium | ✅ |
-| 3.10.24 | เปิดหน้าสิทธิ์โดยไม่ระบุเป้าหมาย ต้องพาไป Explorer | 1. พิมพ์ `/admin/permissions` (ไม่มี `?dashboard` / `?folder`) 2. ทำซ้ำด้วยบัญชี moderator ที่ `/manage/permissions` 3. เปิด `/admin/permissions?dashboard=dash_ไม่มีจริง` | 1–2: ไปหน้า Explorer ของ role นั้นทันที (`replace` — กด Back แล้วไม่วนกลับมา) · 3: ขึ้น "ไม่พบแดชบอร์ดนี้" + ปุ่ม "ไปที่ Explorer" ไม่มีช่องค้นหาหรือปุ่มสลับแดชบอร์ด/โฟลเดอร์ (ถอดออก 2026-09-28 — ไม่มีทางเข้าจาก UI มาตั้งแต่ 2026-03-16) | Medium | ☐ |
+| 3.10.24 | เปิดหน้าสิทธิ์โดยไม่ระบุเป้าหมาย ต้องพาไป Explorer | 1. พิมพ์ `/admin/permissions` (ไม่มี `?dashboard` / `?folder`) 2. ทำซ้ำด้วยบัญชี moderator ที่ `/manage/permissions` 3. เปิด `/admin/permissions?dashboard=dash_ไม่มีจริง` | 1–2: ไปหน้า Explorer ของ role นั้นทันที (`replace` — กด Back แล้วไม่วนกลับมา) · 3: ขึ้น "ไม่พบแดชบอร์ดนี้" + ปุ่ม "ไปที่ Explorer" ไม่มีช่องค้นหาหรือปุ่มสลับแดชบอร์ด/โฟลเดอร์ (ถอดออก 2026-09-28 — ไม่มีทางเข้าจาก UI มาตั้งแต่ 2026-03-16) | Medium | ✅ (prod Chrome 2026-09-28, #494 — `/admin/permissions` ⇒ `/admin/explorer` ทันที · `?dashboard=dash_ไม่มีจริง` ⇒ "ไม่พบแดชบอร์ดนี้" + ปุ่มไป Explorer ไม่มีตัวเลือก · บันทึกผ่าน 🔑 (SAI) กลับ Explorer พร้อม toast แล้วคืนค่าเดิม) |
 
 > 🧪 **TC 3.10.6–3.10.10 — ทดสอบ end-to-end บน Firestore prod จริง 2026-08-16** (ยืนยัน fix PR #364)
 > ทำบนแดชบอร์ด `EXPIRY-TEST` ที่สร้างขึ้นเฉพาะการทดสอบแล้วลบทิ้ง (โฟลเดอร์ "แดชบอร์ดหลัก" ซึ่งไม่ให้สิทธิ์สืบทอดกับใคร) กับ user `survey.streamwash@gmail.com` (role `user`, company OAYT — ไม่มีสิทธิ์ทางอื่นเลย ตัวแปรเดียวที่เหลือคือ expiry)
@@ -454,16 +456,18 @@
 
 ### 4.2 Moderator Permissions (`/manage/permissions`)
 
+> เข้าทาง 🔑 ใน `/manage/explorer` เหมือน admin · **เคสขอบเขต (4.2.5) ต้องใช้ id จริงของแดชบอร์ดนอกโฟลเดอร์ที่ดูแล** — หาด้วย `node scripts/qa-moderator-scope.mjs` (อ่านอย่างเดียว พิมพ์ URL ให้พร้อม) · id ที่แต่งขึ้นพิสูจน์แค่ "ไม่พบ" ซึ่งซ้ำกับ 3.10.24
+
 | Middleware: `auth` | Role: Moderator |
 |---|---|
 
 | # | Test Case | Steps | Expected Result | Priority | Status |
 |---|-----------|-------|-----------------|----------|--------|
-| 4.2.1 | Open a manageable dashboard's permissions | 1. `/manage/explorer` → 🔑 on a dashboard in an assigned folder | Editor opens for that dashboard, restrictions hidden | High | ☐ — rewritten 2026-09-28: the old step listed dashboards in the page's own picker, which was removed (✅ under the old steps) |
+| 4.2.1 | Open a manageable dashboard's permissions | 1. `/manage/explorer` → 🔑 on a dashboard in an assigned folder | Editor opens for that dashboard, restrictions hidden | High | ✅ (prod 2026-09-28, moderator Nopphol Noikaeo — 🔑 on Master List in แดชบอร์ดหลัก: editor opens, breadcrumb จัดการ / Explorer / จัดการสิทธิ์, no restrictions section · rewritten from the removed picker's steps) |
 | 4.2.2 | Add user to dashboard | 1. Select dashboard 2. Add user 3. Save | User gains access | High | ✅ |
 | 4.2.3 | Remove user from dashboard | 1. Select dashboard 2. Remove user 3. Save | User loses access | High | ✅ |
 | 4.2.4 | Layer 3 restrictions hidden | 1. Check permission editor | Layer 3 (restrictions) not visible | Medium | ✅ |
-| 4.2.5 | Cannot open an unassigned dashboard | 1. As moderator, open `/manage/permissions?dashboard=<id of a dashboard outside the assigned folders>` | "ไม่พบแดชบอร์ดนี้" + ปุ่มไป Explorer — the editor never loads | Medium | ☐ — rewritten 2026-09-28, same reason as 4.2.1 (✅ under the old steps) |
+| 4.2.5 | Cannot open an unassigned dashboard | 1. As moderator, open `/manage/permissions?dashboard=<id of a dashboard outside the assigned folders>` | "ไม่พบแดชบอร์ดนี้" + ปุ่มไป Explorer — the editor never loads | Medium | ✅ (prod 2026-09-28 — `dash_1788832026632` "ลงทะเบียนรับคูปองส่วนลด" in Restech 2026, the one dashboard outside this moderator's folders: "ไม่พบแดชบอร์ดนี้", editor never shown · pick the id from Firestore — a made-up id only repeats 3.10.24) |
 
 ---
 
@@ -501,6 +505,7 @@
 | 5.2.3 | Moderator → `/admin/*` | 1. Login as Moderator 2. Go to `/admin/users` | Redirect to `/dashboard/discover` | Critical | ✅ (UI: pre-launch group A3, 2026-06-28) |
 | 5.2.4 | Sidebar reflects role | 1. Login as each role | user = แดชบอร์ด (หน้าแรก + แดชบอร์ดทั้งหมด) เท่านั้น · moderator = + accordion "จัดการ" · admin = + accordion "ผู้ดูแลระบบ" (ภาพรวม/ผู้ใช้/คำเชิญ/Explorer/บริษัท/เขตพื้นที่/กลุ่มผู้ใช้/แท็ก/Audit Logs/System Health) | High | ✅ (2026-08-19 — เห็นครบ 3 role: `survey` user, `n.noikaeo` moderator, `it.streamwash` admin) |
 | 5.2.5 | Sidebar visibility on mobile | 1. เปิดที่ 375px (iPhone SE) 2. กด ☰ 3. กดฉากมืด 4. กดเมนูใน drawer | ปุ่ม ☰ อยู่ซ้ายสุดของ header · กดแล้ว drawer เลื่อนเข้า + ฉากมืด · กดฉากมืดปิด · กดเมนูแล้วไปหน้านั้นและ drawer ปิดเอง · เมนูผู้ใช้ (avatar) ยังกดได้ ไม่ตกขอบ | High | ✅ (2026-08-19 ครบ 4 ทาง — ☰ เปิด · แตะพื้นเทาปิด · กดลิงก์ปิด (รวมลิงก์ของหน้าที่อยู่แล้ว) · กดหัว accordion กางเมนูโดยไม่ปิด · จอ >768px ไม่มี ☰) |
+| 5.2.6 | แท็บที่เปิดค้างข้าม deploy ต้องถูกบอกให้โหลดใหม่ | 1. เปิด prod ทิ้งไว้ 2. deploy build ใหม่ 3. รอ > 5 นาที หรือสลับแท็บไปแล้วกลับมา แล้วเปลี่ยนหน้าหนึ่งครั้ง 4. กด "โหลดใหม่" | แถบล่าง "มี StreamHub เวอร์ชันใหม่ — โหลดใหม่" ([NewVersionBanner.vue](../../app/components/features/NewVersionBanner.vue)) · ไม่โหลดใหม่เอง · กดแล้วได้ build ใหม่ | Medium | ✅ (prod Chrome 2026-09-28 — แท็บจาก build `9b3acc7` เห็นแถบหลัง deploy `1b36e41` · กดแล้วได้ build ใหม่ ซึ่งพา `/admin/permissions` ไป Explorer ตาม #494 · ทดสอบได้ตั้งแต่ deploy ที่ **สอง** หลัง plugin ขึ้นเท่านั้น) |
 
 ---
 
@@ -520,7 +525,7 @@
 | # | Scenario | Expected Behavior | Status |
 |---|----------|-------------------|--------|
 | 6.2.1 | Folder deleted while dashboard still references it | ปัจจุบัน chip โฟลเดอร์แสดง**ว่างเปล่า** ([DashboardListItem.vue:76](../../app/components/features/DashboardListItem.vue#L76) `?? ''`) ไม่ error ไม่บอกว่ากำพร้า — สร้างสภาพนี้ผ่าน UI ไม่ได้แล้ว (guard BUG-008/009) ต้องแก้ Firestore ตรง ๆ; ตรวจด้วย `npm run audit:orphans` · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | ✅ (2026-08-19 — ตั้ง `folderId` เป็น id ที่ไม่มีจริง: แถวยังอยู่ในลิสต์ ช่องโฟลเดอร์ว่างเปล่า ไม่ error ไม่หาย · คืนค่าแล้ว audit = 0) |
-| 6.2.2 | User deleted while showing in admin table | หน้าจัดการสิทธิ์ fallback เป็น uid ดิบ ([PermissionsPage.vue:513](../../app/components/features/PermissionsPage.vue#L513)) และ PermissionEditor แสดง "Unknown" ([PermissionEditor.vue:520](../../app/components/features/PermissionEditor.vue#L520)) — ไม่ crash · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | ✅ (2026-08-19 — ใส่ uid ที่ไม่มีจริงใน `access.direct.users`: แท็บขึ้น "จัดการสิทธิ์ 1" แถวแสดง "Unknown" + badge สิทธิ์ตรง + ปุ่ม ✕ ลบได้ · "ผลลัพธ์รวม: 0 คน" ถูกต้องเพราะ uid ผีไม่ใช่ผู้ใช้จริง · คืนค่าแล้ว) |
+| 6.2.2 | User deleted while showing in admin table | หน้าจัดการสิทธิ์ fallback เป็น uid ดิบ ([PermissionsPage.vue:405](../../app/components/features/PermissionsPage.vue#L405)) และ PermissionEditor แสดง "Unknown" ([PermissionEditor.vue:520](../../app/components/features/PermissionEditor.vue#L520)) — ไม่ crash · ตั้ง/คืนสภาพด้วย `node scripts/qa-broken-refs.mjs break --apply` / `restore --apply` | ✅ (2026-08-19 — ใส่ uid ที่ไม่มีจริงใน `access.direct.users`: แท็บขึ้น "จัดการสิทธิ์ 1" แถวแสดง "Unknown" + badge สิทธิ์ตรง + ปุ่ม ✕ ลบได้ · "ผลลัพธ์รวม: 0 คน" ถูกต้องเพราะ uid ผีไม่ใช่ผู้ใช้จริง · คืนค่าแล้ว) |
 | 6.2.3 | Folder has children — delete attempt | Error toast "ไม่สามารถลบโฟลเดอร์ที่มีเนื้อหาได้ กรุณาลบแดชบอร์ดและโฟลเดอร์ย่อยทั้งหมดก่อน" + โฟลเดอร์ไม่ถูกลบ | ✅ (ครอบด้วย TC 3.3.5 `/admin/folders` และ TC 3.13.6 Explorer ที่กดจริงแล้วทั้งคู่ — BUG-008/009) |
 
 ### 6.3 Network Errors
@@ -628,7 +633,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | BUG-018 | หน้า `/admin/permissions` (+ `/manage/permissions`) เขียน `restrictions.expiry` เป็น **ISO string ที่เที่ยงคืน UTC** = 07:00 น. ตามเวลาไทย ⇒ ตั้ง "หมดอายุ 18 ส.ค." สิทธิ์ตัดเช้าวันที่ 18 เร็วไป 17 ชม.; และ shape ต่างจากที่ Quick Share เขียน (`Timestamp`) ทั้งที่เป็นฟิลด์เดียวกัน | TC 3.10.11–3.10.12 | Medium | 🔧 Fixed — **ยืนยันบน prod 2026-08-19**: `dash_1787110946066` ได้ `object<Timestamp>` + `resolves 2026-08-20T16:59:59.999Z` (= 23:59:59.999 น. ไทย) ✅ และฝั่งโฟลเดอร์ `folder_1785082588448` ได้ `Timestamp` เดียวกัน ✅ |
 | BUG-020 | ลบสิทธิ์ผู้ใช้ออกจากแดชบอร์ด แต่ข้อจำกัด (หมดอายุ/ระงับ) ของคนนั้นยังค้างอยู่ — หน้าจอแสดง `จัดการสิทธิ์ 0` คู่กับ `ข้อจำกัด 1` โดยไม่บอกว่ามีผลหรือไม่ และถ้าให้สิทธิ์คนเดิมใหม่ภายหลัง วันหมดอายุเก่าจะกลับมามีผลเงียบ ๆ | TC 3.10.13 | Medium | 🔧 Fixed (ถาม ConfirmDialog ตอนลบสิทธิ์ที่มีข้อจำกัดผูกอยู่ **เฉพาะเมื่อ direct grant เป็นทางเข้าเดียว** ยืนยันแล้วลบทั้งคู่) — **ยืนยันบน prod 2026-08-19** TC 3.10.13/3.10.14/3.10.15 ผ่านครบ ✅ · ต่อมาย้าย guard ไปตรวจตอนกดบันทึกแทนการดักรายปุ่ม ดู BUG-022 |
 | BUG-021 | บันทึกสิทธิ์สำเร็จแล้ว **ไม่มีข้อความยืนยันเลย** — `cameFromExplorer` เป็น true ทุกครั้งที่ URL มี `?dashboard=`/`?folder=` (คือทางเข้าปกติทั้งหมด) จึง `goBackToExplorer()` แล้ว `return` ก่อนถึงบรรทัดที่ตั้ง `successMessage` ⇒ แถบ `alert-success` เป็นโค้ดที่ไม่มีทางแสดง ผู้ใช้ไม่รู้ว่าบันทึกติดหรือไม่ | TC 3.10.17 | Medium | 🔧 Fixed (`showToast` ก่อน navigate — toast เป็น `useState` singleton จึงข้าม route ได้; ทางที่ล้มเหลวก็ toast ด้วย) — **ยืนยันบน prod 2026-08-19** ✅ |
-| BUG-022 | สวิตช์ **เข้าถึงสาธารณะ** ไม่ได้เดินผ่านการตรวจของ BUG-020 — มันเขียน `access.public` ตรง ๆ ที่ [PermissionsPage.vue:103](../../app/components/features/PermissionsPage.vue#L103) ไม่ใช่ `requestRemoval` ใน PermissionEditor ⇒ ปิดสาธารณะทั้งที่มีคนถูกระงับ/หมดอายุ = ทิ้งข้อจำกัดกำพร้าเงียบ ๆ (พบตอน regression pass 2026-08-19: ปิดสาธารณะ + ลบกลุ่ม แล้ว `revoke` ของ Janine ค้าง) | TC 3.10.22–3.10.23 | Medium | 🔧 Fixed (ย้ายการตรวจไปที่ตอน **กดบันทึก** ด้วย `strandedRestrictions`; ถอด guard รายปุ่มใน `PermissionEditor` ออก) — **ยืนยันบน prod 2026-08-19** ครบ 4 เส้นทาง: ถาม / ยกเลิกไม่เขียน / ยืนยันเขียนทั้งคู่ / ข้อจำกัดที่ยังมีผลไม่ถูกแตะ ✅ |
+| BUG-022 | สวิตช์ **เข้าถึงสาธารณะ** ไม่ได้เดินผ่านการตรวจของ BUG-020 — มันเขียน `access.public` ตรง ๆ ที่ [PermissionsPage.vue:110](../../app/components/features/PermissionsPage.vue#L110) ไม่ใช่ `requestRemoval` ใน PermissionEditor ⇒ ปิดสาธารณะทั้งที่มีคนถูกระงับ/หมดอายุ = ทิ้งข้อจำกัดกำพร้าเงียบ ๆ (พบตอน regression pass 2026-08-19: ปิดสาธารณะ + ลบกลุ่ม แล้ว `revoke` ของ Janine ค้าง) | TC 3.10.22–3.10.23 | Medium | 🔧 Fixed (ย้ายการตรวจไปที่ตอน **กดบันทึก** ด้วย `strandedRestrictions`; ถอด guard รายปุ่มใน `PermissionEditor` ออก) — **ยืนยันบน prod 2026-08-19** ครบ 4 เส้นทาง: ถาม / ยกเลิกไม่เขียน / ยืนยันเขียนทั้งคู่ / ข้อจำกัดที่ยังมีผลไม่ถูกแตะ ✅ |
 | BUG-019 | ปุ่ม Share ในหน้า `/dashboard/view/[id]` เด้งไป `/admin/permissions` แบบ hardcode ทั้งที่หน้านั้น middleware `['auth','admin']` ⇒ **moderator กดแล้วโดนเด้ง** ใช้ไม่ได้ | TC 2.3.1 | Medium | ⊘ ปิดด้วยการลบ — ปุ่ม Share ในหน้านี้ถูกเอาออกพร้อม Quick Share (2026-08-18) เหลือทางเดียวคือ Explorer ปุ่ม 🔑 ซึ่งเลือก path ตาม role ถูกอยู่แล้ว |
 | BUG-027 | ลด role moderator → user **ล้างโฟลเดอร์ที่ดูแลทิ้งทั้งหมดโดยไม่เตือน** และเลื่อนกลับเป็น moderator ไม่คืนให้ (ไม่มีที่เก็บประวัติ) — พบตอนทดสอบ TC 6.1.3: `folder_finance` เสีย `assignedModerators` ของบัญชีทดสอบไปถาวร ต้องผูกคืนเอง · การล้างเป็นพฤติกรรมตั้งใจ ([folderAssignment.ts:62](../../app/utils/folderAssignment.ts#L62)) แต่ฟอร์มไม่บอกว่ากำลังจะทิ้งอะไร | TC 6.1.3 | Medium | 🔧 Fixed (ConfirmDialog ตอนกดบันทึกเมื่อ role เปลี่ยนจาก moderator และคนนั้นดูแลโฟลเดอร์อยู่ — บอกจำนวนและว่าเลื่อนกลับไม่ได้คืนอัตโนมัติ) — **ยืนยันด้วยการกดจริง 2026-08-20** ✅ |
 | BUG-028 | หน้า `/profile` ซ่อนการ์ด "โฟลเดอร์ที่ดูแล" ทั้งที่ badge ขึ้น "ผู้ดูแลโฟลเดอร์" — หน้าเดียวอ่าน role จาก 2 แหล่ง: badge จากเอกสาร Firestore (สด) ส่วนการ์ดจาก auth store (อัปเดตเฉพาะตอน auth init) ⇒ หลัง admin เปลี่ยน role กลางคัน สองส่วนขัดกันจนกว่าจะรีเฟรช | TC 6.1.3 | Low | 🔧 Fixed (อ่าน role จากเอกสารเป็นหลัก fallback ไป store ระหว่างรอโหลด; ย้ายการตัดสินใจ fetch โฟลเดอร์ไปหลังเอกสารมาถึง) |
@@ -742,7 +747,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 - **Fix (รอบแรก):** ถามด้วย `ConfirmDialog` ตอนลบสิทธิ์ที่ทำให้คนถือข้อจำกัดไม่เหลือทางเข้า ตัดสินด้วย `restrictedWithoutAccess` ใน `app/utils/accessScope.ts` — **ต่อมาถูกแทนที่ด้วยการตรวจตอนกดบันทึก ดู BUG-022** (ไฟล์นั้นถูกลบแล้ว)
 - **ครอบทุกชนิดของสิทธิ์:** ลบผู้ใช้ / กลุ่ม / บริษัท และ "ล้างทั้งหมด" ผ่านทางเดียวกันหมด — รอบแรก (PR #380) ดักเฉพาะตอนลบ direct user ทำให้ลบสิทธิ์บริษัทที่เป็นทางเข้าสุดท้ายแล้วยังทิ้ง orphan (พบตอนทดสอบ TC 3.10.14 วันที่ 2026-08-19)
 - **ยังมีผลอยู่ถ้าเข้าทางอื่นได้:** กรณีนั้นไม่ถาม และไม่ลบข้อจำกัด เพราะมันยังกัดอยู่จริง
-- **จังหวะเขียนฐานข้อมูล:** dialog กับปุ่ม ✕ แก้แค่ state ในหน้า การเขียนเกิดตอนกด **บันทึก** เท่านั้น ([savePermissions](../../app/components/features/PermissionsPage.vue#L653)) กด "ยกเลิก"/"รีเซ็ต" ก่อนบันทึก = ไม่มีอะไรลง Firestore
+- **จังหวะเขียนฐานข้อมูล:** dialog กับปุ่ม ✕ แก้แค่ state ในหน้า การเขียนเกิดตอนกด **บันทึก** เท่านั้น ([savePermissions](../../app/components/features/PermissionsPage.vue#L527)) กด "ยกเลิก"/"รีเซ็ต" ก่อนบันทึก = ไม่มีอะไรลง Firestore
 
 **BUG-021 / BUG-022 รายละเอียด:**
 
@@ -797,18 +802,18 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | Admin Groups | 8 | Medium | ✅ (8/8 — 3.7.8 cascade delete ยืนยันบน prod) |
 | Admin Tags | 10 | Medium | ✅ (9 ✅ / 1 ⊘ 3.8.7 — "admin ที่ถูกถอดสิทธิ์แท็ก" ไม่มีทางเกิด เพราะ `canManageTags` ผูกกับ role ตรง ๆ ไม่มี per-user override) |
 | Admin Invitations | 10 | Critical | ✅ (9 ✅ / 1 N/A) |
-| Admin Permissions | 24 | High | 🔍 (23/24 ✅ — 3.10.11–3.10.23 verified on prod 2026-08-19 · 3.10.24 ☐ page without a target goes to Explorer) |
+| Admin Permissions | 24 | High | ✅ (24/24 — 3.10.11–3.10.23 verified on prod 2026-08-19 · 3.10.24 Explorer-only entry 2026-09-28) |
 | Admin Health | 3 | Low | ✅ (3/3) |
 | Admin Audit Logs | 8 | Medium | ✅ (8/8 — BUG-007 fixed) |
 | Admin Explorer | 13 | High | ✅ (11/13 ✅ / 2 🐛 BUG-008 + BUG-013 fixed และ re-verified · เคสชีต 3.13.10–3.13.13 ครบ 2026-09-28) |
 | Moderator Explorer | 6 | High | ✅ (6/6) |
-| Moderator Permissions | 5 | High | 🔍 (3/5 ✅ · 4.2.1, 4.2.5 ☐ rewritten 2026-09-28 when the picker was removed) |
+| Moderator Permissions | 5 | High | ✅ (5/5 — 4.2.1, 4.2.5 rewritten for the Explorer path and re-verified on prod 2026-09-28) |
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
-| Navigation & Middleware | 5 | Critical | ✅ (5/5 — 5.2.5 ปิดครบทุกทาง 2026-08-19) |
+| Navigation & Middleware | 6 | Critical | ✅ (6/6 — 5.2.5 ปิดครบทุกทาง 2026-08-19 · 5.2.6 แถบเวอร์ชันใหม่ 2026-09-28) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **216** | — | 199 ✅ / 1 🔍 / 3 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **217** | — | 203 ✅ / 1 🔍 / 0 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
-> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 216 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
+> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 217 แถว — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอด 211
 
 ---
 
@@ -821,6 +826,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | เคส | คำสั่ง | สร้างสภาพอะไร |
 |---|---|---|
 | TC 3.2.11 | `node scripts/qa-cascade-user.mjs seed\|restore [--apply]` | user `uid_qa_cascade` ที่ถูกอ้างอิงจาก **ทั้งสองฝั่ง** ของ cascade — `groups/analytics.members[]` + TEST-E `.assignedModerators[]` — เพื่อให้มีบัญชีที่ลบทิ้งได้ (6 บัญชีจริงบน prod ใช้งานอยู่หมด) |
+| TC 4.2.1 / 4.2.5 | `node scripts/qa-moderator-scope.mjs` (อ่านอย่างเดียว ไม่มี `--apply`) | ไม่สร้างอะไร — บอกว่าแดชบอร์ดไหนอยู่ใน/นอกขอบเขตของ moderator แต่ละคน พร้อม URL `/manage/permissions?dashboard=…` ของตัวที่อยู่นอก |
 | TC 6.2.1 / 6.2.2 | `node scripts/qa-broken-refs.mjs break\|restore [--apply]` | dangling `folderId` + grant ที่ชี้ไป uid ที่ไม่มีจริง บนแดชบอร์ด QA (guard BUG-008/009 กันไม่ให้ UI สร้างสภาพนี้) |
 
 ปิดท้ายด้วย `npm run audit:orphans` ทุกครั้ง ต้องได้ 0 ทั้ง 7 หมวด

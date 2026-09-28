@@ -74,7 +74,6 @@ its row.
 | [roadmap.md](OPERATIONS/roadmap.md) | ⭐ Phases, progress, what shipped in which PR |
 | [deployment.md](OPERATIONS/deployment.md) | Deploy procedures, CI/CD, rollback |
 | [manual-test-plan.md](OPERATIONS/manual-test-plan.md) | Manual QA cases by role, and the BUG-0xx register |
-| [pre-launch-checklist.md](OPERATIONS/pre-launch-checklist.md) | A–E test groups, launch sign-off |
 | [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md) | Sharing rules for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
 | [versioning.md](OPERATIONS/versioning.md) | Version numbering policy |
 
@@ -98,6 +97,7 @@ the snippets predate the current types.
 | [firestore-invitations-plan.md](OPERATIONS/archive/firestore-invitations-plan.md) | Invitations moved onto Firestore |
 | [phase6-implementation-plan.md](OPERATIONS/archive/phase6-implementation-plan.md) | Phase 6 enhancement & polish |
 | [production-readiness-plan.md](OPERATIONS/archive/production-readiness-plan.md) | Prod/dev boundary hardening |
+| [pre-launch-checklist.md](OPERATIONS/archive/pre-launch-checklist.md) | Launch sign-off A–E (2026-07-18) — superseded by the manual test plan |
 | [moderator-quick-share-dialog.md](OPERATIONS/archive/moderator-quick-share-dialog.md) | ⛔ Not shipped as designed — Quick Share was removed 2026-08-18 (BUG-017); sharing goes through the permissions page |
 
 ## CONTRIBUTING — working on it
