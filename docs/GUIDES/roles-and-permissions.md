@@ -845,7 +845,7 @@ Effective access for "Budget Report":
 - [x] Part 1: Types (AccessControl simplified, PermissionMetadata), Mock Data
 - [x] Part 2: Permission Algorithm (simplified company check, folder-aware)
 - [x] Part 3: PermissionEditor.vue — Unified 3-Column (no tabs)
-- [x] Part 4: PermissionsPage.vue — Inherited permissions, conflict detection, effective access, folder/dashboard mode toggle, provenance
+- [x] Part 4: PermissionsPage.vue — Inherited permissions, conflict detection, effective access, folder/dashboard mode toggle, provenance *(the mode toggle and in-page picker were removed 2026-09-28, #494 — the page is opened only from 🔑 in Explorer)*
 - [x] Part 5: Services (saveFolderPermissions, getFolderPermissions, resolveEffectiveUsers)
 - [x] Part 6: Cleanup + Documentation update
 

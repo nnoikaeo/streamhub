@@ -25,7 +25,7 @@
 
 - Uses: PageLayout with sidebar navigation
 - Left: Navigation sidebar (admin or moderator)
-- Right: Dashboard selector + PermissionEditor (unified 3-column + restrictions section)
+- Right: header (← กลับไป Explorer) + PermissionEditor for the one dashboard or folder named in the URL (unified 3-column + restrictions section) — no selector; the target comes from 🔑 in Explorer
 
 ### Components
 

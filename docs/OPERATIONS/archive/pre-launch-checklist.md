@@ -1,5 +1,7 @@
 # Pre-Launch Checklist
 
+> 📦 **Archived 2026-09-28** — launch sign-off from 2026-07-18, kept as history. The living test record is [manual-test-plan.md](../manual-test-plan.md). The note below about typing `/admin/permissions` directly no longer applies: the page is opened only from 🔑 in Explorer (#494).
+
 > **เป้าหมาย:** ยืนยัน 5 กลุ่มที่ต้องผ่านก่อน Launch (~2 ชั่วโมง)
 > **วันที่ทดสอบ:** 2026-06-28  **ผู้ทดสอบ:** Nopphol Noikaeo
 > **สภาพแวดล้อม:** Production URL: `https://streamhub-1c27a.web.app`
@@ -186,7 +188,7 @@
 - **ผลที่สังเกต:** Master List **ยังโชว์อยู่** ❗ (และยังขึ้น "ทุกบริษัท")
 - **ผลการตัดสิน:** ⚠️ **TEST INVALID (ไม่ใช่ bug)** — ดูคำอธิบายด้านล่าง
 - **หมายเหตุ — finding สำคัญต่อ launch:**
-  - **สาเหตุ:** Master List มี `access.company = []` (ว่าง) ซึ่งใน [`server/utils/companyAccess.ts` → `matchesAccessRules`](../../server/utils/companyAccess.ts) แปลว่า **"ทุกบริษัท" = เปิด public ให้ทุกคน** → Survey เห็น Master List เพราะมัน public อยู่แล้ว ไม่ใช่เพราะ grant ใน D1
+  - **สาเหตุ:** Master List มี `access.company = []` (ว่าง) ซึ่งใน [`server/utils/companyAccess.ts` → `matchesAccessRules`](../../../server/utils/companyAccess.ts) แปลว่า **"ทุกบริษัท" = เปิด public ให้ทุกคน** → Survey เห็น Master List เพราะมัน public อยู่แล้ว ไม่ใช่เพราะ grant ใน D1
   - **ผลกระทบ:** D1-D2 "pass" จริงๆ **confounded** — Survey เห็น dashboard ไม่ว่าจะ grant หรือไม่; การลบ grant (D3) จึงไม่ทำให้หาย
   - **2 กลไกที่ต่างกัน:**
     - **"จัดการสิทธิ์" (grant)** = allow-list — เพิ่มสิทธิ์ แต่ไม่จำกัด dashboard ที่ public อยู่แล้ว
