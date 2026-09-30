@@ -15,6 +15,8 @@ import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminGroups } from '~/composables/useAdminGroups'
 import { useModeratorFolders } from '~/composables/useModeratorFolders'
 import PageLayout from '~/components/compositions/PageLayout.vue'
+import { userGroupChips } from '~/utils/groupDisplay'
+import { roleLabel } from '~/utils/roleLabel'
 import type { User } from '~/types/dashboard'
 
 definePageMeta({
@@ -46,12 +48,7 @@ const displayName = computed(
 
 const initial = computed(() => displayName.value.charAt(0).toUpperCase())
 
-const roleLabel = computed(() => {
-  const role = profile.value?.role || user.value?.role
-  if (role === 'admin') return 'ผู้ดูแลระบบ'
-  if (role === 'moderator') return 'ผู้ดูแลโฟลเดอร์'
-  return 'ผู้ใช้ทั่วไป'
-})
+const roleText = computed(() => roleLabel(profile.value?.role || user.value?.role))
 
 /** Company docs are keyed by `code`, which is what the user record stores. */
 const companyLabel = computed(() => {
@@ -61,11 +58,13 @@ const companyLabel = computed(() => {
   return match ? `${match.name} (${code})` : code
 })
 
-/** `groups` on the user doc holds ids; the display name lives on the group doc. */
-const groupLabels = computed(() => {
-  const ids = profile.value?.groups ?? []
-  return ids.map(id => groups.value.find(g => g.id === id)?.name || id)
-})
+/**
+ * `groups` on the user doc holds ids; the display name lives on the group doc.
+ * An id whose group was deleted is dropped, not shown raw.
+ */
+const groupLabels = computed(() =>
+  userGroupChips(profile.value?.groups, groups.value, [], Infinity).shown.map(c => c.name)
+)
 
 const joinedAt = computed(() => {
   const raw = profile.value?.createdAt
@@ -110,7 +109,7 @@ onMounted(async () => {
             <h1 class="profile-name">{{ displayName }}</h1>
             <p class="profile-email">{{ profile?.email || user?.email }}</p>
             <span class="profile-role-badge" :class="`profile-role-badge--${profile?.role || user?.role}`">
-              {{ roleLabel }}
+              {{ roleText }}
             </span>
           </div>
         </section>
@@ -145,6 +144,7 @@ onMounted(async () => {
           <div class="theme-card__header">
             <h2 class="theme-card__title">กลุ่มผู้ใช้</h2>
           </div>
+          <p class="profile-hint">สิทธิ์ดูแดชบอร์ดบางตัวมาจากกลุ่มเหล่านี้ — ผู้ดูแลระบบให้สิทธิ์ทั้งกลุ่มได้ในครั้งเดียว</p>
           <div class="profile-chips">
             <span v-for="label in groupLabels" :key="label" class="profile-chip">{{ label }}</span>
             <p v-if="groupLabels.length === 0" class="profile-empty">ยังไม่ได้อยู่กลุ่มใด</p>
@@ -310,6 +310,12 @@ onMounted(async () => {
   margin: 0;
   color: #9ca3af;
   font-size: 0.9375rem;
+}
+
+.profile-hint {
+  margin: 0 0 0.75rem;
+  color: #6b7280;
+  font-size: 0.8125rem;
 }
 
 .profile-note {

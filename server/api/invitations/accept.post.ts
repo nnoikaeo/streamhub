@@ -1,5 +1,7 @@
+import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminDb } from '../../utils/firestoreAdmin'
 import { logActivity } from '../../utils/auditLog'
+import { planInviteMembership } from '../../utils/inviteMembership'
 import type { Invitation, StoredUser } from '~/types/invitation'
 
 export default defineEventHandler(async (event) => {
@@ -84,7 +86,32 @@ export default defineEventHandler(async (event) => {
       newUser.assignedFolders = invitation.assignedFolders
     }
 
-    await db.collection('users').doc(uid).set(newUser)
+    // The user doc and the mirrored membership go in one batch, so an accepted
+    // invite never leaves a user named by nothing on the group/folder side.
+    const groupIds = newUser.groups
+    const folderIds = newUser.assignedFolders ?? []
+    const [groupSnaps, folderSnaps] = await Promise.all([
+      groupIds.length ? db.getAll(...groupIds.map(id => db.collection('groups').doc(id))) : [],
+      folderIds.length ? db.getAll(...folderIds.map(id => db.collection('folders').doc(id))) : [],
+    ])
+    const plan = planInviteMembership({
+      uid,
+      role: newUser.role,
+      groupIds,
+      folderIds,
+      groups: groupSnaps.filter(s => s.exists).map(s => ({ id: s.id, members: s.get('members') as string[] | undefined })),
+      folders: folderSnaps.filter(s => s.exists).map(s => ({ id: s.id, assignedModerators: s.get('assignedModerators') as string[] | undefined })),
+    })
+
+    const batch = db.batch()
+    batch.set(db.collection('users').doc(uid), newUser)
+    for (const id of plan.groupIds) {
+      batch.update(db.collection('groups').doc(id), { members: FieldValue.arrayUnion(uid) })
+    }
+    for (const id of plan.folderIds) {
+      batch.update(db.collection('folders').doc(id), { assignedModerators: FieldValue.arrayUnion(uid) })
+    }
+    await batch.commit()
 
     // Audit log
     await logActivity({
