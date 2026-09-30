@@ -60,9 +60,12 @@
                 </svg>
               </button>
             </span>
-            <DashboardTypeFilter
+            <SegmentedControl
               v-if="hasBothTypes"
-              v-model="selectedTypes"
+              v-model="selectedType"
+              :options="TYPE_FILTER_OPTIONS"
+              label="ชนิดแดชบอร์ด"
+              class="discover-filters__type"
             />
             <TagFilter
               v-if="tagStore.activeTags.length > 0"
@@ -312,7 +315,7 @@
  * After (Strategy 4): ~50 lines of pure presentation
  */
 
-import type { Folder, Dashboard, DashboardType, ViewMode, DisplayGroup, User  } from '~/types/dashboard'
+import type { Folder, Dashboard, ViewMode, DisplayGroup, User  } from '~/types/dashboard'
 import { useDashboardPage } from '~/composables/useDashboardPage'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import DashboardGrid from '~/components/features/DashboardGrid.vue'
@@ -322,8 +325,8 @@ import TreeDashboardList from '~/components/features/TreeDashboardList.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
-import DashboardTypeFilter from '~/components/features/DashboardTypeFilter.vue'
-import { DASHBOARD_TYPE_LABELS, matchesTypeFilter, parseTypeFilter } from '~/utils/typeFilter'
+import SegmentedControl from '~/components/ui/SegmentedControl.vue'
+import { DASHBOARD_TYPE_LABELS, TYPE_FILTER_OPTIONS, matchesTypeFilter, parseTypeFilter, type TypeFilterValue } from '~/utils/typeFilter'
 import GroupBySwitcher, { type GroupByMode } from '~/components/features/GroupBySwitcher.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useTagStore } from '~/stores/tags'
@@ -532,27 +535,26 @@ const clearOwnershipFilter = () => {
 }
 
 /**
- * `?type=looker|sheet` — the Looker Studio / Google Sheets chips. Nothing
- * selected shows both. Hidden while the list holds only one type, where the
- * chips could only empty it.
+ * `?type=looker|sheet` — the ทั้งหมด | Looker Studio | Google Sheets strip.
+ * Hidden while the list holds only one type, where it could only empty it.
  */
-const selectedTypes = computed<DashboardType[]>({
+const selectedType = computed<TypeFilterValue>({
   get: () => parseTypeFilter(route.query.type),
-  set: (types) => {
+  set: (type) => {
     const query = { ...route.query }
-    if (types.length) query.type = types.join(',')
-    else delete query.type
+    if (type === 'all') delete query.type
+    else query.type = type
     router.replace({ query })
   },
 })
 const hasBothTypes = computed(() => {
   const types = new Set(dashboards.value.map((d) => d.type ?? 'looker'))
-  return types.size > 1 || selectedTypes.value.length > 0
+  return types.size > 1 || selectedType.value !== 'all'
 })
 
 const hasActiveFilters = computed(() =>
   !!ownershipFilter.value
-  || selectedTypes.value.length > 0
+  || selectedType.value !== 'all'
   || tagStore.selectedTagIds.length > 0
   || !!selectedFolderId.value
   || !!selectedCompanyCode.value
@@ -596,9 +598,9 @@ const filteredDashboards = computed<Dashboard[]>(() => {
     result = result.filter((d) => matchesOwnershipFilter(d, ownership, uid))
   }
 
-  const types = selectedTypes.value
-  if (types.length) {
-    result = result.filter((d) => matchesTypeFilter(d, types))
+  const type = selectedType.value
+  if (type !== 'all') {
+    result = result.filter((d) => matchesTypeFilter(d, type))
   }
 
   // Search filter (name + description, case-insensitive)
@@ -921,9 +923,7 @@ const dashboardCountText = computed(() => {
   const selected = tagStore.selectedTagIds
   const companySuffix = selectedCompanyCode.value ? ` · บริษัท: ${selectedCompanyCode.value}` : ''
   const ownershipSuffix = ownershipFilter.value ? ` · ${OWNERSHIP_FILTER_LABELS[ownershipFilter.value]}` : ''
-  const typeSuffix = selectedTypes.value.length
-    ? ` · ${selectedTypes.value.map((t) => DASHBOARD_TYPE_LABELS[t]).join(', ')}`
-    : ''
+  const typeSuffix = selectedType.value !== 'all' ? ` · ${DASHBOARD_TYPE_LABELS[selectedType.value]}` : ''
   const searchSuffix = ownershipSuffix + typeSuffix + (searchQuery.value.trim() ? ` · ค้นหา: "${searchQuery.value.trim()}"` : '')
 
   const mode = groupBy.value
@@ -1127,6 +1127,16 @@ const dashboardCountText = computed(() => {
   color: var(--color-danger, #ef4444);
   border-color: var(--color-danger, #ef4444);
   background: color-mix(in srgb, var(--color-danger, #ef4444) 8%, transparent);
+}
+
+/* The form-sized strip, scaled to sit level with the tag chips */
+.discover-filters__type {
+  flex-shrink: 0;
+}
+
+.discover-filters__type :deep(.segmented-control__option) {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .ownership-chip {
