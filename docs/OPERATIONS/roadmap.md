@@ -302,6 +302,15 @@ All four code/QA items done 2026-09-28 (#481–#487). What is left below needs a
 - [x] **Reactivate mirrors groups** (#505) — `invitations/reactivate` (Firestore + mock) now writes `groups.members[]` in the same batch as the user: `planGroupMembership` compares against every group, so the uid ends up listed by exactly the groups its `groups[]` names — including leaving stale entries from before deactivation, and leaving all of them when reactivated as admin
 - [x] **`vue-tsc` back to 0 on a fresh `nuxi prepare`** (#505) — `SegmentedControl`'s `ariaLabel` prop is now `label`. vue-tsc types `aria-label` on a component as the built-in ARIA attribute, so it never bound to the prop, generic `T` fell back to `string`, and both call sites (`DashboardForm`, `SheetUrlInput`) failed typecheck since #484 — invisible on a stale `.nuxt`. camelCase `ariaLabel=` at the call site also works but trips `vue/attribute-hyphenation`
 
+All nine PRs are on prod; every new test case except two passed on prod the same day ([manual-test-plan.md](manual-test-plan.md) §9: 228 cases, 212 ✅, 2 ☐). Data changes on prod: `admin` group members synced, then the group deleted (BUG-041); `audit:orphans` 0 after both. The `SegmentedControl` pickers were re-checked in the browser after #505.
+
+**Still open — start here next session:**
+
+- [ ] **TC 3.9.11** — accept an invitation end to end (BUG-040 fix): needs a Google account not yet in StreamHub; delete it afterwards through `/admin/users` so the cascade runs
+- [ ] **TC 3.9.13** — reactivate a deactivated account with a different group (#505): needs a disposable test account
+- [ ] **Invitation rows show the company at invite time** — survey's accepted invitation reads `ORAY` while the user is now `OAYT`. Decide whether accepted rows should show the user's current company; nothing is wrong in the data
+- [ ] **Discover ignores `?filter=my` / `?filter=shared`** — both home cards link there and land on the full list. Pre-existing, noted with #503
+
 ---
 
 ## Remaining Backlog (non-blocking)
