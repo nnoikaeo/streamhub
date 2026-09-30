@@ -79,7 +79,6 @@
               v-model="selectedCompanyCode"
               :companies="companies"
               :regions="regions"
-              @update:model-value="handleCompanyFilterChange"
             />
             <label v-if="isAdmin" class="archive-toggle">
               <input
@@ -421,7 +420,23 @@ const { fetchTags } = useAdminTags()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
 const { isAdmin } = useCompanyAccess()
-const selectedCompanyCode = ref<string | null>(null)
+/**
+ * `?company=` — the home card "แดชบอร์ดบริษัท" links here with the user's
+ * company. Kept in the URL like `?filter=`, so the link, a refresh and a
+ * copied URL all land on the same list.
+ */
+const selectedCompanyCode = computed<string | null>({
+  get: () => {
+    const v = route.query.company
+    return typeof v === 'string' && v ? v : null
+  },
+  set: (code) => {
+    const query = { ...route.query }
+    if (code) query.company = code
+    else delete query.company
+    router.replace({ query })
+  },
+})
 const searchQuery = ref('')
 const showArchived = ref(false)
 
@@ -488,10 +503,6 @@ onMounted(async () => {
   }
 })
 
-const handleCompanyFilterChange = (code: string | null) => {
-  selectedCompanyCode.value = code
-}
-
 /**
  * `?filter=my|shared` from the home cards. Read from the URL rather than
  * copied into a ref: the page is kept alive, so a second visit from the other
@@ -515,7 +526,6 @@ const hasActiveFilters = computed(() =>
 
 const resetAllFilters = () => {
   tagStore.clearTagFilter()
-  selectedCompanyCode.value = null
   searchQuery.value = ''
   router.replace('/dashboard/discover')
 }

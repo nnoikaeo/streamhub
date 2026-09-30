@@ -59,7 +59,7 @@
           title="แดชบอร์ดบริษัท"
           :count="companyDashboardsCount"
           icon="🏢"
-          link="/dashboard/discover?scope=company"
+          :link="companyDashboardsLink"
         />
         <DashboardStatCard
           title="โฟลเดอร์"
@@ -84,14 +84,15 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
-import type { Folder } from '~/types/dashboard'
+import type { Dashboard, Folder } from '~/types/dashboard'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import { useRecentDashboards } from '~/composables/useRecentDashboards'
 import { useDashboardService } from '~/composables/useDashboardService'
 import { sharedBreakdown, sharedBreakdownLabel, type SharedBreakdown } from '~/utils/sharedCount'
+import { matchesOwnershipFilter } from '~/utils/ownershipFilter'
+import { matchesCompanyFilter } from '~/utils/companyFilter'
 
 definePageMeta({
   middleware: 'auth',
@@ -101,7 +102,6 @@ definePageMeta({
 const { user } = useAuth()
 const service = useDashboardService()
 const { getRecentDashboards } = useRecentDashboards()
-const { dashboards, fetchDashboards } = useAdminDashboards()
 const { folders, fetchFolders } = useAdminFolders()
 const { companies, fetchCompanies } = useAdminCompanies()
 
@@ -158,31 +158,52 @@ const buildFolderTree = (flatFolders: Folder[]): Folder[] => {
  */
 const folderTree = computed(() => buildFolderTree(folders.value))
 
-// Stats - using composables
-const myDashboardsCount = computed(() => {
-  return dashboards.value.filter(d => d.owner === user.value?.uid).length
-})
-
 /**
- * "แชร์ให้ฉัน" counts the access-checked list Discover shows (archived left
- * out), split by how the user got in — `dashboards` above is the raw
- * collection, which any signed-in user can read in full.
+ * Every count on this page comes from the access-checked list Discover shows,
+ * archived left out as Discover does by default, so each card's number is
+ * what its link lands on. The page used to count the raw `dashboards`
+ * collection, which any signed-in user can read in full — so "แดชบอร์ดบริษัท"
+ * was every dashboard in the system, linking to a `?scope=` Discover ignored,
+ * and "แดชบอร์ดของฉัน" included archived ones Discover hides.
+ * `null` until loaded, so a card shows its placeholder instead of 0.
  */
-const shared = ref<SharedBreakdown | null>(null)
+const visible = ref<Dashboard[] | null>(null)
+const loadVisible = async () => {
+  const u = user.value
+  if (!u?.uid) return
+  const { dashboards: list } = await service.getDashboards(u.uid, u.company || '')
+  visible.value = list.filter((d) => !d.isArchived)
+}
+
+const myDashboardsCount = computed(() =>
+  visible.value?.filter((d) => matchesOwnershipFilter(d, 'my', user.value?.uid)).length
+)
+
+/** "แชร์ให้ฉัน", split by how the user got in. */
+const shared = computed<SharedBreakdown | null>(() => {
+  const u = user.value
+  if (!visible.value || !u?.uid) return null
+  return sharedBreakdown(visible.value, { uid: u.uid, groups: u.groups, company: u.company })
+})
 const sharedDetail = computed(() =>
   shared.value && !isAdmin.value ? sharedBreakdownLabel(shared.value) : undefined
 )
-const loadShared = async () => {
-  const u = user.value
-  if (!u?.uid) return
-  const { dashboards: visible } = await service.getDashboards(u.uid, u.company || '')
-  shared.value = sharedBreakdown(visible, { uid: u.uid, groups: u.groups, company: u.company })
-}
 
+/**
+ * "แดชบอร์ดบริษัท": dashboards granted to the user's company (or `ALL`) — the
+ * Discover company filter, preset. A user with no company gets the whole list.
+ */
+const userCompany = computed(() => user.value?.company || '')
 const companyDashboardsCount = computed(() => {
-  // All dashboards in same company
-  return dashboards.value.length
+  if (!visible.value) return undefined
+  const code = userCompany.value
+  return code ? visible.value.filter((d) => matchesCompanyFilter(d, code)).length : visible.value.length
 })
+const companyDashboardsLink = computed(() =>
+  userCompany.value
+    ? `/dashboard/discover?company=${encodeURIComponent(userCompany.value)}`
+    : '/dashboard/discover'
+)
 
 const foldersCount = computed(() => folders.value.length)
 
@@ -208,8 +229,7 @@ onMounted(async () => {
   loadRecentDashboards()
   const isPrivileged = isAdmin.value || isModerator.value
   await Promise.all([
-    fetchDashboards(),
-    loadShared(),
+    loadVisible(),
     ...(isPrivileged ? [fetchFolders(), fetchCompanies()] : []),
   ])
 })
