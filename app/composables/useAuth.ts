@@ -4,6 +4,7 @@ import { getDoc, doc } from 'firebase/firestore'
 import { useAuthStore, type UserData } from '~/stores/auth'
 import { usePermissionsStore } from '~/stores/permissions'
 import type { InvitationAcceptResponse, InvitationCheckResponse } from '~/types/invitation'
+import { resolveDisplayName } from '~/utils/displayName'
 
 /** The fields the auth flow reads off a stored user profile. */
 interface UserProfile {
@@ -11,6 +12,7 @@ interface UserProfile {
   role?: string
   company?: string
   isActive?: boolean
+  name?: string
 }
 
 export const useAuth = () => {
@@ -92,7 +94,7 @@ export const useAuth = () => {
               const userData: UserData = {
                 uid: userCredential.user.uid,
                 email: userCredential.user.email,
-                displayName: userCredential.user.displayName,
+                displayName: resolveDisplayName(newUser.name, userCredential.user.displayName),
                 photoURL: userCredential.user.photoURL,
                 role: newUser.role,
                 company: newUser.company
@@ -114,7 +116,7 @@ export const useAuth = () => {
       const userData: UserData = {
         uid: userCredential.user.uid,
         email: userCredential.user.email,
-        displayName: userCredential.user.displayName,
+        displayName: resolveDisplayName(mockUser.name, userCredential.user.displayName),
         photoURL: userCredential.user.photoURL,
         role: mockUser.role,
         company: mockUser.company
@@ -204,7 +206,7 @@ export const useAuth = () => {
             const userData: UserData = {
               uid: user.uid,
               email: user.email,
-              displayName: user.displayName,
+              displayName: resolveDisplayName(mockUser.name, user.displayName),
               photoURL: user.photoURL,
               role: mockUser.role,
               company: mockUser.company
