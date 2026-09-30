@@ -5,6 +5,7 @@
       <h3 class="stat-card__title">{{ title }}</h3>
       <p v-if="count !== undefined" class="stat-card__value">{{ count }}</p>
       <p v-else-if="value" class="stat-card__value">{{ value }}</p>
+      <p v-if="detail" class="stat-card__detail">{{ detail }}</p>
     </div>
     <NuxtLink
       v-if="link"
@@ -23,6 +24,8 @@ defineProps<{
   value?: string
   icon: string
   link?: string
+  /** Small line under the number, e.g. how a count breaks down */
+  detail?: string
 }>()
 </script>
 
@@ -51,6 +54,12 @@ defineProps<{
 
 .stat-card__content {
   flex: 1;
+}
+
+.stat-card__detail {
+  margin-top: var(--spacing-xs, 0.25rem);
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
 }
 
 .stat-card__title {
