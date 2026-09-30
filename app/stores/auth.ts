@@ -7,6 +7,8 @@ export interface UserData {
   photoURL: string | null
   role?: string
   company?: string  // Company code (e.g., 'STTH', 'STTN') - NEW for multi-company support
+  /** Group ids from `users.groups[]` — shown in the user menu; access is decided server-side */
+  groups?: string[]
 }
 
 export const useAuthStore = defineStore('auth', () => {

@@ -80,3 +80,11 @@ describe('memberPreview', () => {
     expect(memberPreview([])).toEqual({ names: [], extra: 0 })
   })
 })
+
+describe('userGroupChips without a limit (profile page)', () => {
+  it('shows every real group and still drops orphans', () => {
+    const { shown, hidden } = userGroupChips(['marketing', 'operations', 'sales', 'gone'], groups, [], Infinity)
+    expect(shown.map((c) => c.name)).toEqual(['Marketing', 'Operations', 'Sales'])
+    expect(hidden).toEqual([])
+  })
+})

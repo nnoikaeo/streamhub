@@ -31,6 +31,14 @@
               <div class="user-name-lg"><ClientOnly>{{ displayName }}<template #fallback>User</template></ClientOnly></div>
               <div class="user-email"><ClientOnly>{{ userEmail }}<template #fallback>&nbsp;</template></ClientOnly></div>
               <div v-if="userRoleCompany" class="user-role-company">{{ userRoleCompany }}</div>
+              <div v-if="groupChips.shown.length" class="user-groups">
+                <span v-for="chip in groupChips.shown" :key="chip.id" class="user-group-chip">👥 {{ chip.name }}</span>
+                <span
+                  v-if="groupChips.hidden.length"
+                  class="user-group-chip user-group-chip--more"
+                  :title="groupChips.hidden.map((c) => c.name).join(', ')"
+                >+{{ groupChips.hidden.length }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -75,9 +83,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import { useAdminGroups } from '~/composables/useAdminGroups'
+import { userGroupChips } from '~/utils/groupDisplay'
+import { roleLabel } from '~/utils/roleLabel'
 
 const { user, logout } = useAuth()
+const { groups, fetchGroups } = useAdminGroups()
 const isMenuOpen = ref(false)
+
+/**
+ * The user's groups, by name. Group names live on the group docs, so the list
+ * is fetched the first time the menu opens rather than on every page.
+ */
+let groupsRequested = false
+const groupChips = computed(() => userGroupChips(user.value?.groups, groups.value, []))
 
 /**
  * Get user display name or email
@@ -100,7 +119,7 @@ const userRoleCompany = computed(() => {
   const role = user.value?.role
   const company = user.value?.company
   if (!role && !company) return ''
-  const parts = [role, company].filter(Boolean)
+  const parts = [role ? roleLabel(role) : '', company].filter(Boolean)
   return parts.join(' · ')
 })
 
@@ -117,6 +136,10 @@ const userInitial = computed(() => {
  */
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
+  if (isMenuOpen.value && !groupsRequested && user.value?.groups?.length) {
+    groupsRequested = true
+    fetchGroups().catch(() => { groupsRequested = false })
+  }
 }
 
 /**
@@ -310,6 +333,28 @@ onUnmounted(() => {
   color: var(--color-primary);
   font-weight: 500;
   margin-top: 2px;
+}
+
+.user-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+}
+
+.user-group-chip {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
+  white-space: nowrap;
+}
+
+.user-group-chip--more {
+  cursor: help;
 }
 
 /* ========== DIVIDER ========== */
