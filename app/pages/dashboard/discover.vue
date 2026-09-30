@@ -46,6 +46,20 @@
 
           <!-- Filters: Tag + Folder -->
           <div class="discover-filters">
+            <span v-if="ownershipFilter" class="ownership-chip">
+              {{ OWNERSHIP_FILTER_LABELS[ownershipFilter] }}
+              <button
+                type="button"
+                class="ownership-chip__close"
+                :aria-label="`เลิกกรอง ${OWNERSHIP_FILTER_LABELS[ownershipFilter]}`"
+                @click="clearOwnershipFilter"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </span>
             <TagFilter
               v-if="tagStore.activeTags.length > 0"
               :tags="tagStore.activeTags"
@@ -313,6 +327,7 @@ import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useCompanyAccess } from '~/composables/useCompanyAccess'
 import { useLazyLoad } from '~/composables/useLazyLoad'
 import { useAuthStore } from '~/stores/auth'
+import { OWNERSHIP_FILTER_LABELS, matchesOwnershipFilter, parseOwnershipFilter } from '~/utils/ownershipFilter'
 
 const route = useRoute()
 
@@ -477,8 +492,22 @@ const handleCompanyFilterChange = (code: string | null) => {
   selectedCompanyCode.value = code
 }
 
+/**
+ * `?filter=my|shared` from the home cards. Read from the URL rather than
+ * copied into a ref: the page is kept alive, so a second visit from the other
+ * card only changes the query.
+ */
+const ownershipFilter = computed(() => parseOwnershipFilter(route.query.filter))
+
+const clearOwnershipFilter = () => {
+  const query = { ...route.query }
+  delete query.filter
+  router.replace({ query })
+}
+
 const hasActiveFilters = computed(() =>
-  tagStore.selectedTagIds.length > 0
+  !!ownershipFilter.value
+  || tagStore.selectedTagIds.length > 0
   || !!selectedFolderId.value
   || !!selectedCompanyCode.value
   || searchQuery.value.trim().length > 0
@@ -514,6 +543,12 @@ const filteredDashboards = computed<Dashboard[]>(() => {
   // Filter out archived dashboards unless toggle is on
   if (!showArchived.value) {
     result = result.filter((d) => !d.isArchived)
+  }
+
+  const ownership = ownershipFilter.value
+  if (ownership) {
+    const uid = authStore.user?.uid
+    result = result.filter((d) => matchesOwnershipFilter(d, ownership, uid))
   }
 
   // Search filter (name + description, case-insensitive)
@@ -593,7 +628,9 @@ const handleDropdownChange = (folderId: string | null) => {
   if (folderId) {
     selectFolder(folderId)
   } else {
-    router.push('/dashboard/discover')
+    const query = { ...route.query }
+    delete query.folder
+    router.push({ path: '/dashboard/discover', query })
   }
 }
 
@@ -829,7 +866,8 @@ watch(activeGroups, (groups, prevGroups) => {
 const dashboardCountText = computed(() => {
   const selected = tagStore.selectedTagIds
   const companySuffix = selectedCompanyCode.value ? ` · บริษัท: ${selectedCompanyCode.value}` : ''
-  const searchSuffix = searchQuery.value.trim() ? ` · ค้นหา: "${searchQuery.value.trim()}"` : ''
+  const ownershipSuffix = ownershipFilter.value ? ` · ${OWNERSHIP_FILTER_LABELS[ownershipFilter.value]}` : ''
+  const searchSuffix = ownershipSuffix + (searchQuery.value.trim() ? ` · ค้นหา: "${searchQuery.value.trim()}"` : '')
 
   const mode = groupBy.value
 
@@ -1030,6 +1068,37 @@ const dashboardCountText = computed(() => {
   color: var(--color-danger, #ef4444);
   border-color: var(--color-danger, #ef4444);
   background: color-mix(in srgb, var(--color-danger, #ef4444) 8%, transparent);
+}
+
+.ownership-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.375rem 0.25rem 0.625rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.ownership-chip__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ownership-chip__close:hover {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .archive-toggle {

@@ -123,6 +123,7 @@
 | 2.2.10 | Admin — archive toggle | 1. Login as Admin 2. Toggle "Show Archived" | Archived dashboards appear/disappear | High | ✅ |
 | 2.2.11 | URL query params preserve filters | 1. Apply filters 2. Copy URL 3. Open in new tab | Same filters applied | Medium | ✅ |
 | 2.2.12 | Click dashboard card | 1. Click a dashboard card | Navigate to `/dashboard/view/{id}` | High | ✅ |
+| 2.2.13 | Home cards open Discover filtered | 1. หน้าแรก → กดการ์ด "แชร์ให้ฉัน" 2. เทียบจำนวน 3. เลือกโฟลเดอร์จาก dropdown 4. กด × บนชิป 5. กลับหน้าแรก → กด "แดชบอร์ดของฉัน" | ขั้น 1: ชิป "แชร์ให้ฉัน" ในแถวตัวกรอง, รายการมีแต่แดชบอร์ดที่คนอื่นเป็นเจ้าของ · ขั้น 2: "พบ N แดชบอร์ด · แชร์ให้ฉัน" N เท่าตัวเลขบนการ์ด · ขั้น 3: ชิปยังอยู่ (`?folder=…&filter=shared`) · ขั้น 4: ชิปหาย รายการเต็ม · ขั้น 5: มีแต่แดชบอร์ดที่ตัวเองเป็นเจ้าของ · "ล้างตัวกรอง" ล้างชิปด้วย | Medium | ☐ |
 
 ---
 

@@ -229,7 +229,10 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
   const selectFolder = async (folderId: string) => {
     log('selectFolder', { folderId })
     dashboardStore.selectFolder(folderId)
-    await router.push(`/dashboard/discover?folder=${folderId}`)
+    // Keep `?filter=my|shared` from the home cards — picking a folder narrows
+    // that list, it does not replace it
+    const filter = route.query.filter
+    await router.push({ path: '/dashboard/discover', query: filter ? { folder: folderId, filter } : { folder: folderId } })
     await loadDashboards()
     onFolderChange?.(folderId)
   }
