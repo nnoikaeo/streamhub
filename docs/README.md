@@ -42,7 +42,6 @@ its row.
 | [COMPONENT_ARCHITECTURE.md](DESIGN/COMPONENT_ARCHITECTURE.md) | ⭐ 4-layer component system, auto-import conventions |
 | [DESIGN_SYSTEM.md](DESIGN/DESIGN_SYSTEM.md) | CSS tokens, colors, spacing, theme |
 | [user-flows.md](DESIGN/user-flows.md) | Journey maps per role |
-| [MOCK_DATA_STRUCTURE.md](DESIGN/MOCK_DATA_STRUCTURE.md) | Shape of the JSON mock store used off Firestore |
 
 ### Wireframes (ASCII, page-level)
 
@@ -99,6 +98,7 @@ the snippets predate the current types.
 | [production-readiness-plan.md](OPERATIONS/archive/production-readiness-plan.md) | Prod/dev boundary hardening |
 | [pre-launch-checklist.md](OPERATIONS/archive/pre-launch-checklist.md) | Launch sign-off A–E (2026-07-18) — superseded by the manual test plan |
 | [moderator-quick-share-dialog.md](OPERATIONS/archive/moderator-quick-share-dialog.md) | ⛔ Not shipped as designed — Quick Share was removed 2026-08-18 (BUG-017); sharing goes through the permissions page |
+| [MOCK_DATA_STRUCTURE.md](OPERATIONS/archive/MOCK_DATA_STRUCTURE.md) | ⛔ Describes `useMockData.ts`, deleted in #372 — archived 2026-09-30. Current shapes: [database-schema.md](GUIDES/database-schema.md), `app/types/dashboard.ts`; mock data is `.data/*.json` |
 
 ## CONTRIBUTING — working on it
 

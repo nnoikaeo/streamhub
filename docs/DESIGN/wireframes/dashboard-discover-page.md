@@ -279,7 +279,7 @@ Features:
 | **Permissions** | 3-layer permission logic | [docs/GUIDES/roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
 | **View Page** | What happens after clicking "Open" | [dashboard-view-page.md](./dashboard-view-page.md) |
 | **Design System** | Colors, typography, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
-| **Mock Data** | Test data structure | [MOCK_DATA_STRUCTURE.md](../MOCK_DATA_STRUCTURE.md) |
+| **Data shapes** | Firestore collections (dev mock data mirrors them in `.data/*.json`) | [database-schema.md](../../GUIDES/database-schema.md) |
 | **User Flows** | Complete user journey diagrams | [user-flows.md](../user-flows.md) |
 
 ---
