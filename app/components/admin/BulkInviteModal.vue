@@ -104,8 +104,8 @@ function addToQueue() {
     role: form.value.role,
     company: form.value.company,
     companyName: getCompanyName(form.value.company),
-    groups: [...form.value.assignedGroups],
-    groupNames: getGroupNames(form.value.assignedGroups),
+    groups: groupsForRole(form.value.role, form.value.assignedGroups),
+    groupNames: getGroupNames(groupsForRole(form.value.role, form.value.assignedGroups)),
     message: form.value.message,
   })
 
@@ -305,7 +305,8 @@ onMounted(loadDropdownData)
         <div class="form-row form-row--2col form-row--stretch">
           <div class="form-field">
             <label class="form-label">กลุ่มผู้ใช้</label>
-            <div class="multi-select-list">
+            <p v-if="form.role === 'admin'" class="text-sm text-gray-400">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม</p>
+            <div v-else class="multi-select-list">
               <label v-for="group in groups" :key="group.id" class="multi-select-item">
                 <input v-model="form.assignedGroups" type="checkbox" :value="group.id" >
                 {{ group.name }}

@@ -72,7 +72,7 @@ export default defineEventHandler(async (event) => {
       name: displayName,
       role: invitation.role,
       company: invitation.company,
-      groups: invitation.assignedGroups || [],
+      groups: groupsForRole(invitation.role, invitation.assignedGroups),
       isActive: true,
       createdAt: now,
       updatedAt: now
