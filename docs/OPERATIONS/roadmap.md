@@ -290,6 +290,13 @@ All four code/QA items done 2026-09-28 (#481–#487). What is left below needs a
 - **Tell the meeting the result beat the decision** — they accepted "edit on Chrome only"; desktop Safari edits too, only phones are read-only
 - **Watch, don't build:** Google's `RotateCookiesPage` is refused inside our frame, so a sheet left open for hours on Safari may lose its session — measure before acting. The Discover type filter stays deferred until there are enough sheets to need it
 
+### Tester feedback — 2026-09-30
+
+- [x] **BUG-039** (#497) — the user menu showed the Google account name, not the name an admin set on `/admin/users`; it now reads `users.name` first · verified on prod 2026-09-30
+- [x] **Groups in the permission editor** (#498) — groups under each user in the picker (green = already granted through it), member names under each granted group, a warning for a group that grants nobody · TC 3.10.25–3.10.26
+- [ ] **Group membership drift** — accepting an invitation writes `users.groups[]` but not `groups.members[]` (and `users.assignedFolders` but not `folders.assignedModerators[]`); proposal pending approval
+- [ ] **Groups in the user menu / profile page polish** — proposal pending approval
+
 ---
 
 ## Remaining Backlog (non-blocking)

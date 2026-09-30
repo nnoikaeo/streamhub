@@ -95,6 +95,20 @@
                 <div class="user-item__info">
                   <span class="user-item__name">{{ u.name }}</span>
                   <span class="user-item__email">{{ u.role ? ({ admin: 'Admin', moderator: 'Moderator', user: 'User' }[u.role] ?? u.role) + ' · ' + u.company : u.company }}</span>
+                  <span v-if="groupChipsFor(u).shown.length" class="group-chips">
+                    <span
+                      v-for="chip in groupChipsFor(u).shown"
+                      :key="chip.id"
+                      class="group-chip"
+                      :class="{ 'group-chip--granted': chip.granted }"
+                      :title="chip.granted ? `ได้สิทธิ์ผ่านกลุ่ม ${chip.name} แล้ว` : undefined"
+                    >👥 {{ chip.name }}</span>
+                    <span
+                      v-if="groupChipsFor(u).hidden.length"
+                      class="group-chip group-chip--more"
+                      :title="groupChipsFor(u).hidden.map((c) => c.name).join(', ')"
+                    >+{{ groupChipsFor(u).hidden.length }}</span>
+                  </span>
                   <span
                     v-if="accessBadge(u.uid)"
                     class="access-badge"
@@ -218,7 +232,15 @@
                 <span class="selected-item__icon">👥</span>
                 <div class="selected-item__text">
                   <span class="selected-item__name">{{ getGroupName(gid) }}</span>
-                  <span class="selected-item__badge">สิทธิ์ตรง(กลุ่ม) · {{ getGroupMemberCount(gid) }} คน</span>
+                  <span class="selected-item__badge">สิทธิ์ตรง(กลุ่ม) · {{ membersOf(gid).length }} คน</span>
+                  <span v-if="membersOf(gid).length" class="selected-item__members">
+                    {{ memberPreview(membersOf(gid)).names.join(', ') }}<template v-if="memberPreview(membersOf(gid)).extra">
+                      <span
+                        class="selected-item__members-more"
+                        :title="membersOf(gid).slice(3).map((m) => m.name).join(', ')"
+                      >+{{ memberPreview(membersOf(gid)).extra }}</span></template>
+                  </span>
+                  <span v-else class="selected-item__warn">⚠ ยังไม่มีสมาชิก — ยังไม่มีใครได้สิทธิ์จากกลุ่มนี้</span>
                 </div>
               </div>
               <button
@@ -475,6 +497,7 @@
 import { ref, computed, watch } from 'vue'
 import { sourceLabel, ALL_COMPANIES } from '~/utils/effectiveAccess'
 import type { AccessEntry } from '~/utils/effectiveAccess'
+import { userGroupChips, groupMembers, memberPreview } from '~/utils/groupDisplay'
 import type { User, AccessControl, AccessRestrictions } from '~/types/dashboard'
 import type { AdminGroup, Company } from '~/types/admin'
 
@@ -531,8 +554,14 @@ function getGroupName(gid: string): string {
   return props.allGroups.find((g) => g.id === gid)?.name ?? gid
 }
 
-function getGroupMemberCount(gid: string): number {
-  return props.allGroups.find((g) => g.id === gid)?.members.length ?? 0
+// Membership comes from `users.groups[]`, the side the server enforces — see
+// app/utils/groupDisplay.ts for why not `groups.members[]`.
+function membersOf(gid: string): User[] {
+  return groupMembers(gid, props.allUsers)
+}
+
+function groupChipsFor(u: User) {
+  return userGroupChips(u.groups, props.allGroups, localAccess.value.direct.groups)
 }
 
 // Non-admin users (admin has access to everything by role — no need to grant)
@@ -1249,6 +1278,55 @@ function clearAllRestrictions() {
 .selected-item__badge {
   font-size: 0.7rem;
   color: var(--color-text-secondary);
+}
+
+.selected-item__members {
+  font-size: 0.7rem;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-item__members-more {
+  margin-left: 0.25rem;
+  color: var(--color-text-secondary);
+  cursor: help;
+}
+
+.selected-item__warn {
+  font-size: 0.7rem;
+  color: var(--color-warning);
+}
+
+/* Groups a user belongs to, under their name in the grant picker. Green =
+   that group is already granted here, so the user has access through it. */
+.group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.group-chip {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-secondary);
+}
+
+.group-chip--granted {
+  background-color: var(--color-bg-success, #ecfdf5);
+  border-color: var(--color-success);
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.group-chip--more {
+  cursor: help;
 }
 
 .selected-item__remove {
