@@ -20,7 +20,7 @@ import { isExpired } from '../../shared/utils/dates'
 const users = [
   { uid: 'survey', name: 'Survey', company: 'OAYT' },
   { uid: 'janine', name: 'Janine', company: 'STTH' },
-  { uid: 'nattha', name: 'Nattha', company: 'STTH' },
+  { uid: 'nattha', name: 'Nattha', company: 'STTH', groups: ['finance'] },
 ]
 
 const groups = [{ id: 'finance', name: 'การเงิน', members: ['nattha'] }]
@@ -64,6 +64,14 @@ describe('buildAccessEntries — sources', () => {
 
     expect(entries).toHaveLength(3)
     expect(entries[0]?.sources.map(sourceLabel)).toEqual(['ทุกบริษัท'])
+  })
+
+  it('reads group membership from users.groups, not groups.members (BUG-005 drift)', () => {
+    // On prod the `admin` group listed no members while three users named it.
+    // The server grants by the user's side, so the preview must too.
+    const drifted = [{ id: 'finance', name: 'การเงิน', members: [] }]
+    const entries = buildAccessEntries({ ...base, groups: drifted, permissions: permissions({ groups: ['finance'] }) })
+    expect(entries.map((e) => e.uid)).toEqual(['nattha'])
   })
 
   it('expands a group grant to its members', () => {

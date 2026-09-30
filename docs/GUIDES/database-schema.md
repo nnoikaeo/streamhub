@@ -128,7 +128,7 @@ Firestore Database (Multi-Company)
   id: string                     // Group ID (e.g., 'sales', 'finance')
   name: string                   // Group display name
   description?: string           // Optional description
-  members: string[]              // User UIDs in this group
+  members: string[]              // User UIDs in this group — a MIRROR of users.groups[], which is what access reads; keep in sync (scripts/sync-group-members.mjs)
   isActive: boolean              // Active/inactive
   createdAt?: Timestamp          // Creation date
   updatedAt?: Timestamp          // Last update
@@ -177,7 +177,7 @@ Group (1) ──── access given to ────► (many) Dashboards
   role: 'user' | 'moderator' | 'admin'  // Role
   company: string                // Company code (STTH, STTN, etc.) - ALL users including admins
   groups: string[]               // Group IDs the user belongs to (e.g., ['sales', 'finance'])
-  assignedFolders: string[]      // Folder IDs (moderators only; empty for user/admin)
+  assignedFolders: string[]      // Folder IDs from the invitation, written once at accept; nothing reads it — folders.assignedModerators[] is the source of truth
   isActive: boolean              // Active/inactive status
   createdAt: Timestamp           // Account creation date
   updatedAt: Timestamp           // Last update date

@@ -1,6 +1,9 @@
 import { readJSON, updateItem, createItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
+import { planInviteMembership } from '../../../utils/inviteMembership'
 import type { Invitation, StoredUser } from '~/types/invitation'
+import type { AdminGroup } from '~/types/admin'
+import type { Folder } from '~/types/dashboard'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -70,6 +73,28 @@ export default defineEventHandler(async (event) => {
     }
 
     const createdUser = await createItem('users.json', newUser)
+
+    // Mirror the membership onto the group/folder side — see inviteMembership.ts
+    const [groups, folders] = await Promise.all([
+      readJSON<AdminGroup>('groups.json'),
+      readJSON<Folder>('folders.json'),
+    ])
+    const plan = planInviteMembership({
+      uid,
+      role: newUser.role,
+      groupIds: newUser.groups,
+      folderIds: newUser.assignedFolders ?? [],
+      groups,
+      folders,
+    })
+    for (const id of plan.groupIds) {
+      const members = groups.find(g => g.id === id)?.members ?? []
+      await updateItem<AdminGroup>('groups.json', id, { members: [...members, uid] })
+    }
+    for (const id of plan.folderIds) {
+      const moderators = folders.find(f => f.id === id)?.assignedModerators ?? []
+      await updateItem<Folder>('folders.json', id, { assignedModerators: [...moderators, uid] })
+    }
 
     // Audit log
     await logActivity({
