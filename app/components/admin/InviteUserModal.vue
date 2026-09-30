@@ -118,7 +118,7 @@ async function handleSubmit() {
       company: form.value.company,
       message: form.value.message || undefined,
       assignedFolders: form.value.role === 'moderator' ? form.value.assignedFolders : undefined,
-      assignedGroups: form.value.assignedGroups.length ? form.value.assignedGroups : undefined,
+      assignedGroups: groupsForRole(form.value.role, form.value.assignedGroups).length ? groupsForRole(form.value.role, form.value.assignedGroups) : undefined,
       invitedBy: authStore.user?.uid ?? 'admin',
       invitedByName: authStore.user?.displayName ?? 'Admin',
     }
@@ -158,7 +158,7 @@ async function handleReactivate() {
         email: typeof existingEmail === 'string' ? existingEmail : form.value.email.trim(),
         role: form.value.role,
         company: form.value.company,
-        groups: form.value.assignedGroups.length ? form.value.assignedGroups : undefined,
+        groups: groupsForRole(form.value.role, form.value.assignedGroups),
         performedBy: authStore.user?.uid ?? 'admin',
         performedByEmail: authStore.user?.email ?? 'admin',
       },
@@ -289,7 +289,8 @@ onMounted(loadDropdownData)
           <!-- Groups -->
           <div class="form-field">
             <p class="form-label">กลุ่มผู้ใช้</p>
-            <div class="multi-select-list">
+            <p v-if="form.role === 'admin'" class="text-sm text-gray-400">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม</p>
+            <div v-else class="multi-select-list">
               <label v-for="group in groups" :key="group.id" class="multi-select-item">
                 <input v-model="form.assignedGroups" type="checkbox" :value="group.id" >
                 {{ group.name }}

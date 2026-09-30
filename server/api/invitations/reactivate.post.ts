@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
       isActive: true,
       role: role || inactiveUser.role,
       company: company || inactiveUser.company,
-      groups: groups || inactiveUser.groups,
+      groups: groupsForRole(role || inactiveUser.role, groups || inactiveUser.groups),
       updatedAt: now
     }
 
