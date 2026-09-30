@@ -98,6 +98,7 @@
 | 2.1.5 | Click "Dashboards" quick action | 1. Click "Dashboards" card | Navigate to `/dashboard/discover` | Medium | ✅ |
 | 2.1.6 | Sidebar folder navigation | N/A — folder tree removed from sidebar (Phase 5 redesign); folders are now filters on `/dashboard/discover` | — | Low | ⊘ N/A |
 | 2.1.7 | ปุ่ม "สร้างแดชบอร์ด" ที่การ์ดการดำเนินการด่วน | 1. login admin หรือ moderator 2. `/dashboard` 3. กด ➕ สร้างแดชบอร์ด | admin → `/admin/explorer` · moderator → `/manage/explorer` (เดิมยิงไป `/dashboard/create` ที่ไม่มีอยู่ = หน้า 404 เต็มจอ) | High | ✅ (prod-equivalent 2026-08-20 ทั้งสอง role) |
+| 2.1.8 | การ์ด "แชร์ให้ฉัน" นับสิทธิ์ผ่านกลุ่มและบริษัท | 1. login `survey.streamwash@gmail.com` 2. `/dashboard` 3. เทียบกับ `/profile` และ `/dashboard/discover` 4. login admin แล้วดูการ์ดเดียวกัน | 2: `4` + บรรทัด `สิทธิ์ตรง 3 · ผ่านกลุ่ม 1` (SAI ผ่านกลุ่ม Sales — เดิมการ์ดนับแค่สิทธิ์ตรงจึงขึ้น 3) · 3: เท่ากับ "เข้าถึงได้ N" และ "พบ N แดชบอร์ด" (ไม่นับที่ตัวเองเป็นเจ้าของ) · 4: ตัวเลขอย่างเดียว ไม่มีบรรทัดแยก — admin เห็นทุกตัวเพราะบทบาท | Medium | ☐ |
 
 ---
 

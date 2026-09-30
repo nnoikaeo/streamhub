@@ -29,7 +29,8 @@
         />
         <DashboardStatCard
           title="แชร์ให้ฉัน"
-          :count="sharedDashboardsCount"
+          :count="shared?.total"
+          :detail="sharedDetail"
           icon="🤝"
           link="/dashboard/discover?filter=shared"
         />
@@ -89,6 +90,8 @@ import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import type { Folder } from '~/types/dashboard'
 import PageLayout from '~/components/compositions/PageLayout.vue'
 import { useRecentDashboards } from '~/composables/useRecentDashboards'
+import { useDashboardService } from '~/composables/useDashboardService'
+import { sharedBreakdown, sharedBreakdownLabel, type SharedBreakdown } from '~/utils/sharedCount'
 
 definePageMeta({
   middleware: 'auth',
@@ -96,6 +99,7 @@ definePageMeta({
 })
 
 const { user } = useAuth()
+const service = useDashboardService()
 const { getRecentDashboards } = useRecentDashboards()
 const { dashboards, fetchDashboards } = useAdminDashboards()
 const { folders, fetchFolders } = useAdminFolders()
@@ -159,12 +163,21 @@ const myDashboardsCount = computed(() => {
   return dashboards.value.filter(d => d.owner === user.value?.uid).length
 })
 
-const sharedDashboardsCount = computed(() => {
-  return dashboards.value.filter(d =>
-    d.owner !== user.value?.uid &&
-    d.access?.direct?.users?.includes(user.value?.uid || '')
-  ).length
-})
+/**
+ * "แชร์ให้ฉัน" counts the access-checked list Discover shows (archived left
+ * out), split by how the user got in — `dashboards` above is the raw
+ * collection, which any signed-in user can read in full.
+ */
+const shared = ref<SharedBreakdown | null>(null)
+const sharedDetail = computed(() =>
+  shared.value && !isAdmin.value ? sharedBreakdownLabel(shared.value) : undefined
+)
+const loadShared = async () => {
+  const u = user.value
+  if (!u?.uid) return
+  const { dashboards: visible } = await service.getDashboards(u.uid, u.company || '')
+  shared.value = sharedBreakdown(visible, { uid: u.uid, groups: u.groups, company: u.company })
+}
 
 const companyDashboardsCount = computed(() => {
   // All dashboards in same company
@@ -196,6 +209,7 @@ onMounted(async () => {
   const isPrivileged = isAdmin.value || isModerator.value
   await Promise.all([
     fetchDashboards(),
+    loadShared(),
     ...(isPrivileged ? [fetchFolders(), fetchCompanies()] : []),
   ])
 })
