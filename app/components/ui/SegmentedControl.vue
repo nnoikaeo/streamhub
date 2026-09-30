@@ -22,7 +22,7 @@
  * paints all options the same filled colour (BUG-033).
  *
  * Usage:
- * <SegmentedControl v-model="mode" :options="modeOptions" aria-label="โหมดแสดงผล" />
+ * <SegmentedControl v-model="mode" :options="modeOptions" label="โหมดแสดงผล" />
  */
 
 import { nextSegmentIndex } from '~/utils/segmentedKeys'
@@ -37,7 +37,13 @@ interface SegmentedOption<V extends string> {
 const props = defineProps<{
   modelValue: T
   options: SegmentedOption<T>[]
-  ariaLabel: string
+  /**
+   * Accessible name for the radiogroup. Not called `ariaLabel`: vue-tsc types
+   * `aria-label` on a component as the built-in ARIA attribute, so it never
+   * bound to that prop, generic `T` fell back to `string`, and both call sites
+   * failed typecheck — hidden for weeks by a stale `.nuxt`.
+   */
+  label: string
 }>()
 
 const emit = defineEmits<{
@@ -67,7 +73,7 @@ const onKeydown = (event: KeyboardEvent, index: number) => {
 
 <template>
   <div class="segmented-control">
-    <div class="segmented-control__strip" role="radiogroup" :aria-label="ariaLabel">
+    <div class="segmented-control__strip" role="radiogroup" :aria-label="label">
       <button
         v-for="(option, index) in options"
         :key="option.value"

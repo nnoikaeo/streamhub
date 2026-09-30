@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { planInviteMembership } from '../../server/utils/inviteMembership'
+import { planInviteMembership, planGroupMembership } from '../../server/utils/inviteMembership'
 
 const groups = [
   { id: 'admin', members: [] },
@@ -42,5 +42,33 @@ describe('planInviteMembership', () => {
   it('never assigns folders to a role that is not moderator', () => {
     const plan = planInviteMembership({ uid: 'uid_new', role: 'user', groupIds: [], folderIds: ['folder_a'], groups, folders })
     expect(plan.folderIds).toEqual([])
+  })
+})
+
+describe('planGroupMembership (reactivate)', () => {
+  const all = [
+    { id: 'sales', members: ['uid_back'] },
+    { id: 'finance', members: [] },
+    { id: 'marketing', members: ['someone'] },
+  ]
+
+  it('joins the groups the account now names and leaves the ones it no longer does', () => {
+    expect(planGroupMembership({ uid: 'uid_back', groupIds: ['finance'], groups: all }))
+      .toEqual({ join: ['finance'], leave: ['sales'] })
+  })
+
+  it('does nothing when both sides already agree', () => {
+    expect(planGroupMembership({ uid: 'uid_back', groupIds: ['sales'], groups: all }))
+      .toEqual({ join: [], leave: [] })
+  })
+
+  it('removes an account reactivated as admin from every group', () => {
+    expect(planGroupMembership({ uid: 'uid_back', groupIds: [], groups: all }))
+      .toEqual({ join: [], leave: ['sales'] })
+  })
+
+  it('ignores a named group that does not exist', () => {
+    expect(planGroupMembership({ uid: 'uid_back', groupIds: ['sales', 'gone'], groups: all }))
+      .toEqual({ join: [], leave: [] })
   })
 })

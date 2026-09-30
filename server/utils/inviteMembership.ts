@@ -46,3 +46,28 @@ export function planInviteMembership(input: InviteMembershipInput): InviteMember
 
   return { groupIds: joinGroups, folderIds: joinFolders }
 }
+
+/**
+ * Reactivating an account rewrites `users.groups[]` wholesale (new role, new
+ * groups, or the old ones kept), and wrote nothing on the group side — the
+ * same one-sided write as BUG-040. The account may also have been deactivated
+ * with stale entries in some `members[]`, so this compares against every
+ * group rather than a before/after diff: the uid must be listed exactly by the
+ * groups its `groups[]` names.
+ */
+export function planGroupMembership(input: {
+  uid: string
+  groupIds: readonly string[]
+  groups: readonly { id: string, members?: string[] }[]
+}): { join: string[], leave: string[] } {
+  const { uid, groupIds, groups } = input
+  const join: string[] = []
+  const leave: string[] = []
+  for (const g of groups) {
+    const listed = (g.members ?? []).includes(uid)
+    const named = groupIds.includes(g.id)
+    if (named && !listed) join.push(g.id)
+    if (!named && listed) leave.push(g.id)
+  }
+  return { join, leave }
+}
