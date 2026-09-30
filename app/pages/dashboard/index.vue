@@ -20,7 +20,18 @@
     <section class="dashboard-section">
       <h2 class="section-title">พื้นที่ทำงานของฉัน</h2>
       
-      <div class="stats-grid stats-grid--2col">
+      <!-- A user cannot create dashboards, so "mine" is always 0 and "shared"
+           is everything they can open — one card says it without a filter -->
+      <div v-if="isUser" class="stats-grid stats-grid--2col">
+        <DashboardStatCard
+          title="แดชบอร์ดที่เข้าถึงได้"
+          :count="visible?.length"
+          :detail="sharedDetail"
+          icon="🤝"
+          link="/dashboard/discover"
+        />
+      </div>
+      <div v-else class="stats-grid stats-grid--2col">
         <DashboardStatCard
           title="แดชบอร์ดของฉัน"
           :count="myDashboardsCount"
@@ -109,6 +120,7 @@ const { companies, fetchCompanies } = useAdminCompanies()
 // Role checks
 const isAdmin = computed(() => user.value?.role === 'admin')
 const isModerator = computed(() => user.value?.role === 'moderator')
+const isUser = computed(() => user.value?.role === 'user')
 
 /**
  * Where "สร้างแดชบอร์ด" goes. It used to point at /dashboard/create, a page

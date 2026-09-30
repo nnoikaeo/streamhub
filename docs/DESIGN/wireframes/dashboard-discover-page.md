@@ -156,7 +156,8 @@ Features:
 Features:
 - Count of dashboards and folders
 - View mode switcher: Grid / Compact / List (persisted in localStorage)
-- Folder filter dropdown
+- Folder filter dropdown — admin/moderator only; a user sees no folder dropdown, folder column or group-by-folder button (folders are not their concept)
+- Type chips `[Looker Studio] [Google Sheets]` before the tags, `?type=looker|sheet` — tag behaviour: none selected shows both, selected ones are OR-ed; hidden when the list holds one type
 - Company filter dropdown — kept in `?company=`; the home card "แดชบอร์ดบริษัท" links here preset to the user's company
 - Ownership chip `[แชร์ให้ฉัน ×]` / `[แดชบอร์ดของฉัน ×]` from `?filter=shared|my` (the home cards link here); kept when a folder is picked, cleared by × or "ล้างตัวกรอง"
 - Expand/Collapse all folders buttons (in grouped view)
