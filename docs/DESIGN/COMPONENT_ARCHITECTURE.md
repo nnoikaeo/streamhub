@@ -437,7 +437,7 @@ Basic reusable components (buttons, cards, forms, etc.).
 
 - Slot props: `item` (whole row), `value` (that column's raw value), `index` (0-based position in the filtered list, page offset included)
 - The default text rendering is the slot's **fallback content**, so pages that pass no slot are unaffected
-- Prefer this over adding another `isXxxColumn` flag — it keeps `DataTable` from importing feature components. The four existing flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`, `isGroupsColumn`) predate the slot and stay as-is.
+- Prefer this over adding another `isXxxColumn` flag — it keeps `DataTable` from importing feature components. The three remaining flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`) predate the slot and stay as-is; `isGroupsColumn` moved to `#cell-groups` in `/admin/users` to show group names instead of ids.
 
 **See:** [coding-standards.md > Custom Cells in DataTable](../CONTRIBUTING/coding-standards.md#custom-cells-in-datatable)
 
