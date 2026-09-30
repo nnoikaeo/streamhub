@@ -13,6 +13,7 @@
  *   5. users.company              → missing company     (dead company ref)
  *   6. groups.members[]           → missing user        (dead member ref)
  *   7. folders.assignedModerators[] → missing user   (dead moderator ref)
+ *   8. users.groups[] ↔ groups.members[] one-sided   (both exist, only one side names the other)
  *
  * Auth: reads GOOGLE_SERVICE_ACCOUNT_KEY (or GOOGLE_APPLICATION_CREDENTIALS)
  * from .env.local — the same admin credentials used by scripts/seed-firestore.ts.
@@ -112,6 +113,24 @@ report('Folders with dead moderator refs (folder.assignedModerators[] → missin
     .map(f => ({ f, dead: (f.assignedModerators ?? []).filter(m => !userIds.has(m)) }))
     .filter(x => x.dead.length),
   x => `id=${x.f._id} name="${x.f.name ?? '?'}" dead=${JSON.stringify(x.dead)}`)
+
+// Membership is stored on both sides. The checks above only catch ids that
+// point at nothing; this one catches a pair where both records exist but only
+// one names the other — how accepting an invitation left three admins out of
+// the `admin` group's members[] (2026-09-30). users.groups[] is what the server
+// enforces, so fix with scripts/sync-group-members.mjs, which rewrites members[].
+report('One-sided group membership (users.groups[] ↔ groups.members[])',
+  [
+    ...users.flatMap(u => (u.groups ?? [])
+      .filter(gid => groupIds.has(gid))
+      .filter(gid => !(groups.find(g => g._id === gid).members ?? []).includes(u._id))
+      .map(gid => ({ u, gid, side: 'user names group, group.members[] does not list user' }))),
+    ...groups.flatMap(g => (g.members ?? [])
+      .filter(uid => userIds.has(uid))
+      .filter(uid => !(users.find(u => u._id === uid).groups ?? []).includes(g._id))
+      .map(uid => ({ u: users.find(x => x._id === uid), gid: g._id, side: 'group.members[] lists user, user.groups[] does not name group' }))),
+  ],
+  x => `group=${x.gid} email=${x.u.email ?? '?'} — ${x.side}`)
 
 console.log(`\n${total === 0 ? '✅ No orphans found.' : `⚠️  ${total} orphan reference(s) found.`} (read-only — no writes)\n`)
 process.exit(0)

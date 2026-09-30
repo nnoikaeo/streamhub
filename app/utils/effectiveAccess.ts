@@ -36,8 +36,12 @@ export interface InheritedSource {
 export interface AccessInput {
   permissions: PermissionSnapshot
   /** Users eligible for access — admins are excluded by the caller. */
-  users: { uid: string, name: string, company?: string }[]
-  groups: { id: string, name: string, members: string[] }[]
+  users: { uid: string, name: string, company?: string, groups?: string[] }[]
+  /**
+   * Group names only. Members come from each user's `groups[]` — the side the
+   * server enforces — not `groups.members[]`, which can drift (BUG-005).
+   */
+  groups: { id: string, name: string }[]
   /** Company codes that "ทุกบริษัท" expands to. */
   activeCompanyCodes: string[]
   inherited?: InheritedSource[]
@@ -112,7 +116,9 @@ export function buildAccessEntries(input: AccessInput): AccessEntry[] {
     for (const gid of access.direct.groups) {
       const group = groups.find((g) => g.id === gid)
       if (!group) continue
-      for (const uid of group.members) add(uid, { kind: 'group', name: group.name, viaFolder })
+      for (const user of users) {
+        if (user.groups?.includes(gid)) add(user.uid, { kind: 'group', name: group.name, viaFolder })
+      }
     }
 
     for (const code of access.company) {
