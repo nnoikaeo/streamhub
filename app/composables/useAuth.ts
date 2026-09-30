@@ -13,6 +13,7 @@ interface UserProfile {
   company?: string
   isActive?: boolean
   name?: string
+  groups?: string[]
 }
 
 export const useAuth = () => {
@@ -97,7 +98,8 @@ export const useAuth = () => {
                 displayName: resolveDisplayName(newUser.name, userCredential.user.displayName),
                 photoURL: userCredential.user.photoURL,
                 role: newUser.role,
-                company: newUser.company
+                company: newUser.company,
+                groups: newUser.groups
               }
               authStore.setUser(userData)
               authStore.setAuthError(null)
@@ -119,7 +121,8 @@ export const useAuth = () => {
         displayName: resolveDisplayName(mockUser.name, userCredential.user.displayName),
         photoURL: userCredential.user.photoURL,
         role: mockUser.role,
-        company: mockUser.company
+        company: mockUser.company,
+        groups: mockUser.groups
       }
       authStore.setUser(userData)
       authStore.setAuthError(null)
@@ -209,7 +212,8 @@ export const useAuth = () => {
               displayName: resolveDisplayName(mockUser.name, user.displayName),
               photoURL: user.photoURL,
               role: mockUser.role,
-              company: mockUser.company
+              company: mockUser.company,
+              groups: mockUser.groups
             }
             console.log(`🔍 [useAuth.initAuth] Setting user data:`, userData)
             authStore.setUser(userData)

@@ -295,7 +295,7 @@ All four code/QA items done 2026-09-28 (#481–#487). What is left below needs a
 - [x] **BUG-039** (#497) — the user menu showed the Google account name, not the name an admin set on `/admin/users`; it now reads `users.name` first · verified on prod 2026-09-30
 - [x] **Groups in the permission editor** (#498) — groups under each user in the picker (green = already granted through it), member names under each granted group, a warning for a group that grants nobody · TC 3.10.25–3.10.26
 - [ ] **Group membership drift** — accepting an invitation writes `users.groups[]` but not `groups.members[]` (and `users.assignedFolders` but not `folders.assignedModerators[]`); proposal pending approval
-- [ ] **Groups in the user menu / profile page polish** — proposal pending approval
+- [x] **Groups in the user menu + profile polish** (#499) — the menu shows the user's groups (two chips + `+N`, no green: there is no dashboard to compare against) and the role in Thai, the same label as the profile badge (`roleLabel`); the profile's group card drops deleted-group ids and says what groups are for · TC 2.4.6–2.4.7 · a link to "dashboards I can open" (2d) awaits a decision
 
 ---
 
