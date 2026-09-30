@@ -223,7 +223,7 @@ const openInNewTab = () => {
       <SegmentedControl
         :model-value="mode"
         :options="modeOptions"
-        aria-label="โหมดแสดงผล"
+        label="โหมดแสดงผล"
         @update:model-value="setMode"
       />
     </div>

@@ -216,7 +216,7 @@ onMounted(async () => {
       <SegmentedControl
         :model-value="formData.type"
         :options="typeOptions"
-        aria-label="ชนิดแดชบอร์ด"
+        label="ชนิดแดชบอร์ด"
         @update:model-value="setType"
       />
     </div>

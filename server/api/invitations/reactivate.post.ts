@@ -1,6 +1,8 @@
+import { FieldValue } from 'firebase-admin/firestore'
 import { getAdminDb, fsQuery } from '../../utils/firestoreAdmin'
 import { logActivity } from '../../utils/auditLog'
 import type { StoredUser } from '~/types/invitation'
+import { planGroupMembership } from '../../utils/inviteMembership'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -40,7 +42,19 @@ export default defineEventHandler(async (event) => {
       updatedAt: now
     }
 
-    await db.collection('users').doc(inactiveUser.uid).update(updates)
+    // Mirror the rewritten groups[] onto groups.members[] in the same batch —
+    // see planGroupMembership (BUG-040 pattern).
+    const groupSnaps = await db.collection('groups').get()
+    const plan = planGroupMembership({
+      uid: inactiveUser.uid,
+      groupIds: updates.groups ?? [],
+      groups: groupSnaps.docs.map(d => ({ id: d.id, members: d.get('members') as string[] | undefined })),
+    })
+    const batch = db.batch()
+    batch.update(db.collection('users').doc(inactiveUser.uid), updates)
+    for (const id of plan.join) batch.update(db.collection('groups').doc(id), { members: FieldValue.arrayUnion(inactiveUser.uid) })
+    for (const id of plan.leave) batch.update(db.collection('groups').doc(id), { members: FieldValue.arrayRemove(inactiveUser.uid) })
+    await batch.commit()
 
     const updatedUser: StoredUser = { ...inactiveUser, ...updates }
 
