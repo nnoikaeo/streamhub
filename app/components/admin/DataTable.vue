@@ -11,7 +11,6 @@ export interface Column {
   isNameColumn?: boolean
   isStatusColumn?: boolean
   isRoleColumn?: boolean
-  isGroupsColumn?: boolean
 }
 
 export interface Action<T extends object = Record<string, unknown>> {
@@ -187,19 +186,6 @@ const isAllSelected = computed(() => {
 const handleToggleActive = (item: T) => {
   emit('toggleActive', item)
 }
-
-// Get badge class for group (color-coded by group name)
-const getGroupBadgeClass = (groupName: string): string => {
-  const groupColors: Record<string, string> = {
-    'sales': 'badge--group-sales',
-    'finance': 'badge--group-finance',
-    'operations': 'badge--group-operations',
-    'marketing': 'badge--group-marketing',
-    'it': 'badge--group-it',
-    'hr': 'badge--group-hr',
-  }
-  return groupColors[groupName.toLowerCase()] || 'badge--group'
-}
 </script>
 
 <template>
@@ -315,18 +301,6 @@ const getGroupBadgeClass = (groupName: string): string => {
                 <!-- Role badge -->
                 <div v-else-if="column.isRoleColumn" class="flex justify-center">
                   <span class="badge" :class="`badge--${item.role}`">{{ item.role }}</span>
-                </div>
-
-                <!-- Groups badges (comma-separated to individual badges) -->
-                <div v-else-if="column.isGroupsColumn" class="flex gap-2 flex-wrap justify-center">
-                  <span
-                    v-for="group in (typeof item.groups === 'string' ? item.groups.split(',').map(g => g.trim()) : item.groups)"
-                    :key="group"
-                    class="badge"
-                    :class="getGroupBadgeClass(group)"
-                  >
-                    {{ group }}
-                  </span>
                 </div>
 
                 <!-- Main value + subtitle display (when subtitleKey is set) -->
@@ -612,42 +586,6 @@ tbody tr:last-child td {
 .badge--user {
   background-color: #d1fae5;
   color: #065f46;
-}
-
-.badge--group {
-  background-color: #e0e7ff;
-  color: #3730a3;
-}
-
-/* Group-specific badge colors */
-.badge--group-sales {
-  background-color: #fecaca;
-  color: #991b1b;
-}
-
-.badge--group-finance {
-  background-color: #bfdbfe;
-  color: #1e40af;
-}
-
-.badge--group-operations {
-  background-color: #bbf7d0;
-  color: #065f46;
-}
-
-.badge--group-marketing {
-  background-color: #fed7aa;
-  color: #92400e;
-}
-
-.badge--group-it {
-  background-color: #e9d5ff;
-  color: #6b21a8;
-}
-
-.badge--group-hr {
-  background-color: #fce7f3;
-  color: #be185d;
 }
 
 /* Pagination bar layout */
