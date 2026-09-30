@@ -353,6 +353,7 @@
 | 3.9.10 | Resend already accepted | 1. Try resend on accepted invitation | Resend button hidden or disabled | Medium | ✅ |
 | 3.9.11 | รับคำเชิญแล้วเป็นสมาชิกทั้งสองฝั่ง (BUG-040) | 1. เชิญอีเมลใหม่เป็น moderator พร้อมกลุ่ม 1 กลุ่มและโฟลเดอร์ 1 โฟลเดอร์ 2. รับคำเชิญด้วยบัญชีนั้น 3. `npm run audit:orphans` 4. login เป็นบัญชีนั้นแล้วเปิด `/manage/explorer` | 3: "One-sided group membership" = 0 · ใน Firestore `groups/<id>.members` มี uid ใหม่ และ `folders/<id>.assignedModerators` มี uid ใหม่ · 4: เห็นและจัดการโฟลเดอร์นั้นได้**ทันที** ไม่ต้องให้ admin แก้ผู้ใช้ก่อน · ต้องใช้บัญชี Google ที่ยังไม่อยู่ในระบบ | High | ☐ |
 | 3.9.12 | เชิญเป็น admin เลือกกลุ่มไม่ได้ | 1. `/admin/invitations` → "เชิญผู้ใช้" 2. เลือก Role = admin 3. ทำซ้ำใน "เชิญหลายคน" 4. ปิดโดยไม่ส่ง | ช่อง "กลุ่มผู้ใช้" เหลือข้อความ "ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม" ไม่มี checkbox · เปลี่ยนกลับเป็น user แล้ว checkbox กลับมา · ฝั่ง server: accept และ reactivate ทิ้งกลุ่มของ admin เสมอ (`groupsForRole`) แม้คำเชิญเก่าจะมีกลุ่มค้างอยู่ | Medium | ☐ |
+| 3.9.13 | เปิดใช้บัญชีที่ถูกปิดอีกครั้ง — กลุ่มตรงกันทั้งสองฝั่ง | 1. ใช้บัญชีทดสอบที่อยู่กลุ่ม Sales แล้วปิดใช้งาน 2. `/admin/invitations` เชิญอีเมลเดิม → ระบบเสนอเปิดใช้อีกครั้ง เลือกกลุ่ม Finance แทน 3. `npm run audit:orphans` | `users.groups` = `["finance"]` · `groups/finance.members` มี uid · `groups/sales.members` **ไม่มี** uid แล้ว · one-sided = 0 · ต้องใช้บัญชีทดสอบ ไม่ใช่บัญชีจริง | Medium | ☐ |
 
 ---
 

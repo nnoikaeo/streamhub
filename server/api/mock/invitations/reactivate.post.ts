@@ -1,6 +1,8 @@
-import { readJSON, writeJSON } from '../../../utils/jsonDatabase'
+import { readJSON, writeJSON, updateItem } from '../../../utils/jsonDatabase'
 import { logActivity } from '../../../utils/auditLog'
+import { planGroupMembership } from '../../../utils/inviteMembership'
 import type { StoredUser } from '~/types/invitation'
+import type { AdminGroup } from '~/types/admin'
 
 export default defineEventHandler(async (event) => {
   try {
@@ -39,6 +41,15 @@ export default defineEventHandler(async (event) => {
     users[userIndex] = updatedUser
 
     await writeJSON('users.json', users)
+
+    // Mirror the rewritten groups[] onto groups.members[] — see planGroupMembership
+    const allGroups = await readJSON<AdminGroup>('groups.json')
+    const plan = planGroupMembership({ uid: updatedUser.uid, groupIds: updatedUser.groups, groups: allGroups })
+    for (const id of [...plan.join, ...plan.leave]) {
+      const members = allGroups.find(g => g.id === id)?.members ?? []
+      const next = plan.join.includes(id) ? [...members, updatedUser.uid] : members.filter(m => m !== updatedUser.uid)
+      await updateItem<AdminGroup>('groups.json', id, { members: next })
+    }
 
     // Audit log
     await logActivity({
