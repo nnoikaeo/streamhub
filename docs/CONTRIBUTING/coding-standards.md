@@ -481,7 +481,7 @@ Use `index` when the column should show a **position** rather than a stored fiel
 <template #cell-sortOrder="{ index }">{{ index + 1 }}</template>
 ```
 
-The four legacy flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`, `isGroupsColumn`) still work — leave them alone, but write new custom cells as slots.
+The three legacy flags (`isNameColumn`, `isStatusColumn`, `isRoleColumn`) still work — leave them alone, but write new custom cells as slots. `isGroupsColumn` was the fourth: it printed `users.groups[]` ids raw, so a group rename never reached `/admin/users`, and it became `#cell-groups` on that page when it needed group names (2026-09-30).
 
 **Reuse the real component.** `/admin/tags` renders `TagBadge`, the same component Explorer and dashboard cards use, so the admin table shows what users actually see. A hand-rolled preview in the table would drift from the real badge.
 

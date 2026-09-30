@@ -58,6 +58,7 @@ import {
   applyFolderAssignments,
 } from '~/utils/folderAssignment'
 import { diffIds, applyUserGroupsSync } from '~/utils/groupSync'
+import { userGroupChips } from '~/utils/groupDisplay'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 
@@ -168,7 +169,7 @@ const columns = [
   { key: 'name', label: 'ชื่อ', sortable: true, width: '180px', isNameColumn: true },
   { key: 'role', label: 'บทบาท', sortable: true, width: '95px', isRoleColumn: true },
   { key: 'company', label: 'บริษัท', sortable: true, width: '105px', align: 'center' as const },
-  { key: 'groups', label: 'กลุ่ม', width: '130px', isGroupsColumn: true },
+  { key: 'groups', label: 'กลุ่ม', width: '130px' },
   { key: 'isActive', label: 'สถานะ', sortable: true, width: '85px', isStatusColumn: true },
 ]
 
@@ -365,6 +366,17 @@ onMounted(async () => {
 })
 
 const folderTree = computed(() => buildFolderTree(folders.value))
+
+/**
+ * Group names for the table. `users.groups[]` holds ids, and the column used to
+ * print them raw — `marketing` where every other screen says "Marketing", and
+ * a rename never reached this table. Deleted-group ids are dropped.
+ */
+const groupChipsOf = (ids: string[] | undefined) => userGroupChips(ids, groups.value, [], Infinity).shown
+
+/** Colour follows the group id, so it survives a rename. */
+const GROUP_COLOURS = new Set(['sales', 'finance', 'operations', 'marketing', 'it', 'hr'])
+const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${id}` : ''
 </script>
 
 <template>
@@ -428,7 +440,18 @@ const folderTree = computed(() => buildFolderTree(folders.value))
           :actions="actions"
           empty-message="ไม่พบผู้ใช้"
           @toggle-active="handleToggleActive"
-        />
+        >
+          <template #cell-groups="{ item }">
+            <div class="group-badges">
+              <span
+                v-for="chip in groupChipsOf(item.groups)"
+                :key="chip.id"
+                class="group-badge"
+                :class="groupBadgeClass(chip.id)"
+              >{{ chip.name }}</span>
+            </div>
+          </template>
+        </DataTable>
       </template>
 
       <!-- Edit User Form Modal -->
@@ -483,4 +506,28 @@ const folderTree = computed(() => buildFolderTree(folders.value))
 </template>
 
 <style scoped>
+.group-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.group-badge {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.group-badge--sales { background-color: #fecaca; color: #991b1b; }
+.group-badge--finance { background-color: #bfdbfe; color: #1e40af; }
+.group-badge--operations { background-color: #bbf7d0; color: #065f46; }
+.group-badge--marketing { background-color: #fed7aa; color: #92400e; }
+.group-badge--it { background-color: #e9d5ff; color: #6b21a8; }
+.group-badge--hr { background-color: #fce7f3; color: #be185d; }
 </style>
