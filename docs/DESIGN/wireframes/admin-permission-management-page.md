@@ -96,8 +96,22 @@ Current Access: 4 users + 3 groups
 **Column 3 — สิทธิ์ที่ให้แล้ว:** Unified list of ALL granted permissions with type badges:
 
 - 👤 User: "สิทธิ์ตรง · {company}"
-- 👥 Group: "สิทธิ์ตรง(กลุ่ม) · N คน"
+- 👥 Group: "สิทธิ์ตรง(กลุ่ม) · N คน", then the first three member names and `+N` (the rest in a tooltip). A group with no members says `⚠ ยังไม่มีสมาชิก — ยังไม่มีใครได้สิทธิ์จากกลุ่มนี้` — the grant reaches nobody
 - 🏢 Company: "ตามบริษัท (N คน)"
+
+**Groups under each user (Column 2, ผู้ใช้ mode)** — added after tester feedback (2026-09-30, #498): nobody could tell from the editor who was in which group, so a group grant was a guess.
+
+```text
+ก ข
+User · OAYT
+[👥 Operations] [👥 Marketing] +1
+```
+
+- Chips show group **names**; an id with no matching group is dropped, not shown raw
+- **Green, bold** chip = that group is already granted here, so the user has access through it. Granted chips sort first so they are never folded into `+N`
+- Two chips, the rest as `+N` with their names in a `title` tooltip (no tooltip on touch screens)
+
+**Membership source:** both the chips and the member count/names read `users.groups[]` — the field the server enforces (`server/utils/companyAccess.ts`) — never `groups.members[]`. The two lists are meant to mirror each other but can drift (BUG-005; on 2026-09-30 group `admin` listed no members while three users named it). Logic: [groupDisplay.ts](../../../app/utils/groupDisplay.ts)
 
 Click ✕ to remove any item.
 
