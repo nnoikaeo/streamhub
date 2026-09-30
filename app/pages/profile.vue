@@ -66,6 +66,18 @@ const groupLabels = computed(() =>
   userGroupChips(profile.value?.groups, groups.value, [], Infinity).shown.map(c => c.name)
 )
 
+/**
+ * How many dashboards this account can open — the same access-checked list
+ * Discover shows (archived excluded), not the raw collection.
+ */
+const dashboardCount = ref<number | null>(null)
+const loadDashboardCount = async () => {
+  const uid = user.value?.uid
+  if (!uid) return
+  const { total } = await service.getDashboards(uid, profile.value?.company || user.value?.company || '')
+  dashboardCount.value = total
+}
+
 const joinedAt = computed(() => {
   const raw = profile.value?.createdAt
   if (!raw) return '—'
@@ -85,6 +97,7 @@ onMounted(async () => {
     await Promise.all([
       fetchCompanies(),
       fetchGroups(),
+      loadDashboardCount(),
       ...(isModerator.value ? [fetchFolders()] : []),
     ])
   } finally {
@@ -135,6 +148,13 @@ onMounted(async () => {
             <div class="profile-fact">
               <dt>เข้าร่วมเมื่อ</dt>
               <dd>{{ joinedAt }}</dd>
+            </div>
+            <div class="profile-fact">
+              <dt>แดชบอร์ด</dt>
+              <dd>
+                <template v-if="dashboardCount !== null">เข้าถึงได้ {{ dashboardCount }} รายการ</template>
+                <NuxtLink to="/dashboard/discover" class="profile-link">ดูทั้งหมด →</NuxtLink>
+              </dd>
             </div>
           </dl>
         </section>
@@ -310,6 +330,17 @@ onMounted(async () => {
   margin: 0;
   color: #9ca3af;
   font-size: 0.9375rem;
+}
+
+.profile-link {
+  margin-left: 0.5rem;
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.profile-link:hover {
+  text-decoration: underline;
 }
 
 .profile-hint {
