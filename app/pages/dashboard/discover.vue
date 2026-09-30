@@ -62,6 +62,7 @@
             </span>
             <TagFilter
               v-if="tagStore.activeTags.length > 0"
+              class="discover-filters__tags"
               :tags="tagStore.activeTags"
               :selected-tag-ids="tagStore.selectedTagIds"
               @update:selected-tag-ids="handleTagFilterUpdate"
@@ -1053,7 +1054,9 @@ const dashboardCountText = computed(() => {
   flex-wrap: nowrap;
 }
 
-.discover-filters > :first-child {
+/* By class, not :first-child — the ownership chip sits before the tags and
+   took this rule, squeezing itself to a sliver */
+.discover-filters__tags {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
@@ -1081,6 +1084,7 @@ const dashboardCountText = computed(() => {
 }
 
 .ownership-chip {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -1299,7 +1303,7 @@ const dashboardCountText = computed(() => {
     flex-wrap: wrap;
   }
 
-  .discover-filters > :first-child {
+  .discover-filters__tags {
     flex: unset;
     width: 100%;
   }
