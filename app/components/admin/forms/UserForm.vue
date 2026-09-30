@@ -152,7 +152,8 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
         name: values.name,
         company: values.company,
         role: values.role,
-        groups: values.groups,
+        // Admins hold no groups — see shared/utils/roleGroups.ts
+        groups: groupsForRole(values.role, values.groups),
       },
       selectedFolderIds: values.role === 'moderator' ? selectedFolderIds.value : [],
       previousRole,
@@ -162,6 +163,7 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
 
 const isEditMode = computed(() => !!props.user)
 const isModeratorRole = computed(() => formData.role === 'moderator')
+const isAdminRole = computed(() => formData.role === 'admin')
 
 // Fetch all reference data on mount, then pre-populate folder selection
 onMounted(async () => {
@@ -227,12 +229,14 @@ defineExpose({ submit: handleSubmit })
     </div>
 
     <FormField
+      v-if="!isAdminRole"
       v-model="formData.groups"
       type="multi-select"
       label="กลุ่ม"
       :options="groupOptions"
       description="เลือกกลุ่มที่ผู้ใช้คนนี้สังกัด"
     />
+    <p v-else class="user-form__folder-hint">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม<template v-if="formData.groups.length"> — กลุ่มเดิมจะถูกนำออกเมื่อบันทึก</template></p>
   </div>
 </template>
 

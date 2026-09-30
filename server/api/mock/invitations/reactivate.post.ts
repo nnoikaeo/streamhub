@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
       isActive: true,
       role: role || user.role,
       company: company || user.company,
-      groups: groups || user.groups,
+      groups: groupsForRole(role || user.role, groups || user.groups),
       updatedAt: now
     }
     users[userIndex] = updatedUser
