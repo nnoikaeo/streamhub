@@ -156,8 +156,10 @@ Features:
 Features:
 - Count of dashboards and folders
 - View mode switcher: Grid / Compact / List (persisted in localStorage)
-- Folder filter dropdown
-- Company filter dropdown
+- Folder filter dropdown — admin/moderator only; a user sees no folder dropdown, folder column or group-by-folder button (folders are not their concept)
+- Type strip `[ทั้งหมด | Looker Studio | Google Sheets]` before the tags — `SegmentedControl`, one choice at a time, `?type=looker|sheet`; hidden when the list holds one type. Tag-style toggles were tried first and dropped: with two types, "none selected" and "both selected" looked different and showed the same list
+- Company filter dropdown — kept in `?company=`; the home card "แดชบอร์ดบริษัท" links here preset to the user's company
+- Ownership chip `[แชร์ให้ฉัน ×]` / `[แดชบอร์ดของฉัน ×]` from `?filter=shared|my` (the home cards link here); kept when a folder is picked, cleared by × or "ล้างตัวกรอง"
 - Expand/Collapse all folders buttons (in grouped view)
 ```
 
@@ -279,7 +281,7 @@ Features:
 | **Permissions** | 3-layer permission logic | [docs/GUIDES/roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) |
 | **View Page** | What happens after clicking "Open" | [dashboard-view-page.md](./dashboard-view-page.md) |
 | **Design System** | Colors, typography, responsive | [DESIGN_SYSTEM.md](../DESIGN_SYSTEM.md) |
-| **Mock Data** | Test data structure | [MOCK_DATA_STRUCTURE.md](../MOCK_DATA_STRUCTURE.md) |
+| **Data shapes** | Firestore collections (dev mock data mirrors them in `.data/*.json`) | [database-schema.md](../../GUIDES/database-schema.md) |
 | **User Flows** | Complete user journey diagrams | [user-flows.md](../user-flows.md) |
 
 ---

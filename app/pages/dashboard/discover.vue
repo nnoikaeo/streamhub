@@ -46,14 +46,37 @@
 
           <!-- Filters: Tag + Folder -->
           <div class="discover-filters">
+            <span v-if="ownershipFilter" class="ownership-chip">
+              {{ OWNERSHIP_FILTER_LABELS[ownershipFilter] }}
+              <button
+                type="button"
+                class="ownership-chip__close"
+                :aria-label="`เลิกกรอง ${OWNERSHIP_FILTER_LABELS[ownershipFilter]}`"
+                @click="clearOwnershipFilter"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </span>
+            <SegmentedControl
+              v-if="hasBothTypes"
+              v-model="selectedType"
+              :options="TYPE_FILTER_OPTIONS"
+              label="ชนิดแดชบอร์ด"
+              class="discover-filters__type"
+            />
             <TagFilter
               v-if="tagStore.activeTags.length > 0"
+              class="discover-filters__tags"
               :tags="tagStore.activeTags"
               :selected-tag-ids="tagStore.selectedTagIds"
               @update:selected-tag-ids="handleTagFilterUpdate"
             />
+            <!-- Folders are an admin/moderator concept — a user never sees the folder tree -->
             <FolderDropdownFilter
-              v-if="flattenedFolders.length > 0"
+              v-if="isPrivilegedUser && flattenedFolders.length > 0"
               :key="folderDropdownKey"
               v-model="dropdownFolderId"
               :folders="flattenedFolders"
@@ -65,7 +88,6 @@
               v-model="selectedCompanyCode"
               :companies="companies"
               :regions="regions"
-              @update:model-value="handleCompanyFilterChange"
             />
             <label v-if="isAdmin" class="archive-toggle">
               <input
@@ -113,7 +135,7 @@
             <div class="header-right-controls">
               <GroupBySwitcher
                 v-model="groupBy"
-                :show-folders="folderTree.length > 0"
+                :show-folders="isPrivilegedUser && folderTree.length > 0"
                 :is-admin="isAdmin"
               />
 
@@ -303,6 +325,8 @@ import TreeDashboardList from '~/components/features/TreeDashboardList.vue'
 import FolderDropdownFilter from '~/components/features/FolderDropdownFilter.vue'
 import CompanyDropdownFilter from '~/components/features/CompanyDropdownFilter.vue'
 import TagFilter from '~/components/features/TagFilter.vue'
+import SegmentedControl from '~/components/ui/SegmentedControl.vue'
+import { DASHBOARD_TYPE_LABELS, TYPE_FILTER_OPTIONS, matchesTypeFilter, parseTypeFilter, type TypeFilterValue } from '~/utils/typeFilter'
 import GroupBySwitcher, { type GroupByMode } from '~/components/features/GroupBySwitcher.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import { useTagStore } from '~/stores/tags'
@@ -313,6 +337,7 @@ import { useAdminUsers } from '~/composables/useAdminUsers'
 import { useCompanyAccess } from '~/composables/useCompanyAccess'
 import { useLazyLoad } from '~/composables/useLazyLoad'
 import { useAuthStore } from '~/stores/auth'
+import { OWNERSHIP_FILTER_LABELS, matchesOwnershipFilter, parseOwnershipFilter } from '~/utils/ownershipFilter'
 
 const route = useRoute()
 
@@ -406,7 +431,23 @@ const { fetchTags } = useAdminTags()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
 const { isAdmin } = useCompanyAccess()
-const selectedCompanyCode = ref<string | null>(null)
+/**
+ * `?company=` — the home card "แดชบอร์ดบริษัท" links here with the user's
+ * company. Kept in the URL like `?filter=`, so the link, a refresh and a
+ * copied URL all land on the same list.
+ */
+const selectedCompanyCode = computed<string | null>({
+  get: () => {
+    const v = route.query.company
+    return typeof v === 'string' && v ? v : null
+  },
+  set: (code) => {
+    const query = { ...route.query }
+    if (code) query.company = code
+    else delete query.company
+    router.replace({ query })
+  },
+})
 const searchQuery = ref('')
 const showArchived = ref(false)
 
@@ -450,6 +491,13 @@ const isPrivilegedUser = computed(() => {
   return role === 'admin' || role === 'moderator'
 })
 
+// A user who once grouped by folder (saved in localStorage) falls back to no
+// grouping — the folder button is hidden from them. Keyed on the role, not
+// isPrivilegedUser: before auth loads that is false for admins too
+watch(() => authStore.user?.role, (role) => {
+  if (role === 'user' && groupBy.value === 'folder') groupBy.value = 'none'
+}, { immediate: true })
+
 const userMap = computed(() => {
   const map: Record<string, User> = {}
   for (const u of users.value) {
@@ -473,12 +521,41 @@ onMounted(async () => {
   }
 })
 
-const handleCompanyFilterChange = (code: string | null) => {
-  selectedCompanyCode.value = code
+/**
+ * `?filter=my|shared` from the home cards. Read from the URL rather than
+ * copied into a ref: the page is kept alive, so a second visit from the other
+ * card only changes the query.
+ */
+const ownershipFilter = computed(() => parseOwnershipFilter(route.query.filter))
+
+const clearOwnershipFilter = () => {
+  const query = { ...route.query }
+  delete query.filter
+  router.replace({ query })
 }
 
+/**
+ * `?type=looker|sheet` — the ทั้งหมด | Looker Studio | Google Sheets strip.
+ * Hidden while the list holds only one type, where it could only empty it.
+ */
+const selectedType = computed<TypeFilterValue>({
+  get: () => parseTypeFilter(route.query.type),
+  set: (type) => {
+    const query = { ...route.query }
+    if (type === 'all') delete query.type
+    else query.type = type
+    router.replace({ query })
+  },
+})
+const hasBothTypes = computed(() => {
+  const types = new Set(dashboards.value.map((d) => d.type ?? 'looker'))
+  return types.size > 1 || selectedType.value !== 'all'
+})
+
 const hasActiveFilters = computed(() =>
-  tagStore.selectedTagIds.length > 0
+  !!ownershipFilter.value
+  || selectedType.value !== 'all'
+  || tagStore.selectedTagIds.length > 0
   || !!selectedFolderId.value
   || !!selectedCompanyCode.value
   || searchQuery.value.trim().length > 0
@@ -486,7 +563,6 @@ const hasActiveFilters = computed(() =>
 
 const resetAllFilters = () => {
   tagStore.clearTagFilter()
-  selectedCompanyCode.value = null
   searchQuery.value = ''
   router.replace('/dashboard/discover')
 }
@@ -514,6 +590,17 @@ const filteredDashboards = computed<Dashboard[]>(() => {
   // Filter out archived dashboards unless toggle is on
   if (!showArchived.value) {
     result = result.filter((d) => !d.isArchived)
+  }
+
+  const ownership = ownershipFilter.value
+  if (ownership) {
+    const uid = authStore.user?.uid
+    result = result.filter((d) => matchesOwnershipFilter(d, ownership, uid))
+  }
+
+  const type = selectedType.value
+  if (type !== 'all') {
+    result = result.filter((d) => matchesTypeFilter(d, type))
   }
 
   // Search filter (name + description, case-insensitive)
@@ -593,7 +680,9 @@ const handleDropdownChange = (folderId: string | null) => {
   if (folderId) {
     selectFolder(folderId)
   } else {
-    router.push('/dashboard/discover')
+    const query = { ...route.query }
+    delete query.folder
+    router.push({ path: '/dashboard/discover', query })
   }
 }
 
@@ -748,13 +837,17 @@ const lazyIsLoadingMore = computed(() =>
 
 /** Columns visible in list view — hides the column used for grouping */
 const visibleColumns = computed<ListColumn[]>(() => {
-  switch (groupBy.value) {
-    case 'folder': return ['tags', 'company']
-    case 'tag':    return ['folder', 'company']
-    case 'company': return ['folder', 'tags']
-    case 'none':   return ['folder', 'tags', 'company']
-    default:       return ['tags', 'company']
-  }
+  const columns: ListColumn[] = (() => {
+    switch (groupBy.value) {
+      case 'folder': return ['tags', 'company']
+      case 'tag':    return ['folder', 'company']
+      case 'company': return ['folder', 'tags']
+      case 'none':   return ['folder', 'tags', 'company']
+      default:       return ['tags', 'company']
+    }
+  })()
+  // Folders are an admin/moderator concept — a user never sees the folder tree
+  return isPrivilegedUser.value ? columns : columns.filter((c) => c !== 'folder')
 })
 
 /** Contextual empty message — folder-specific or generic */
@@ -829,7 +922,9 @@ watch(activeGroups, (groups, prevGroups) => {
 const dashboardCountText = computed(() => {
   const selected = tagStore.selectedTagIds
   const companySuffix = selectedCompanyCode.value ? ` · บริษัท: ${selectedCompanyCode.value}` : ''
-  const searchSuffix = searchQuery.value.trim() ? ` · ค้นหา: "${searchQuery.value.trim()}"` : ''
+  const ownershipSuffix = ownershipFilter.value ? ` · ${OWNERSHIP_FILTER_LABELS[ownershipFilter.value]}` : ''
+  const typeSuffix = selectedType.value !== 'all' ? ` · ${DASHBOARD_TYPE_LABELS[selectedType.value]}` : ''
+  const searchSuffix = ownershipSuffix + typeSuffix + (searchQuery.value.trim() ? ` · ค้นหา: "${searchQuery.value.trim()}"` : '')
 
   const mode = groupBy.value
 
@@ -1005,7 +1100,9 @@ const dashboardCountText = computed(() => {
   flex-wrap: nowrap;
 }
 
-.discover-filters > :first-child {
+/* By class, not :first-child — the ownership chip sits before the tags and
+   took this rule, squeezing itself to a sliver */
+.discover-filters__tags {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
@@ -1030,6 +1127,48 @@ const dashboardCountText = computed(() => {
   color: var(--color-danger, #ef4444);
   border-color: var(--color-danger, #ef4444);
   background: color-mix(in srgb, var(--color-danger, #ef4444) 8%, transparent);
+}
+
+/* The form-sized strip, scaled to sit level with the tag chips */
+.discover-filters__type {
+  flex-shrink: 0;
+}
+
+.discover-filters__type :deep(.segmented-control__option) {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.ownership-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.375rem 0.25rem 0.625rem;
+  border: 1px solid var(--color-primary);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.ownership-chip__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ownership-chip__close:hover {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .archive-toggle {
@@ -1220,7 +1359,7 @@ const dashboardCountText = computed(() => {
     flex-wrap: wrap;
   }
 
-  .discover-filters > :first-child {
+  .discover-filters__tags {
     flex: unset;
     width: 100%;
   }

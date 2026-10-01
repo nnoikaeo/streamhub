@@ -7,8 +7,8 @@
 > `/api/mock/*` and reached through `useJSONMockService`; production reads Firestore.
 > Kept for the permission-model rationale, which still explains why the shapes look
 > the way they do — but the file layout, line counts and sample data below are stale.
-> Current sources: [database-schema.md](../GUIDES/database-schema.md),
-> [roles-and-permissions.md](../GUIDES/roles-and-permissions.md), `app/types/dashboard.ts`.
+> Current sources: [database-schema.md](../../GUIDES/database-schema.md),
+> [roles-and-permissions.md](../../GUIDES/roles-and-permissions.md), `app/types/dashboard.ts`.
 
 > **Purpose:** Complete reference for mock data design, including TypeScript interfaces, sample data, and usage patterns  
 > **Created:** 2024-02-03  
@@ -618,11 +618,11 @@ const dashboards = await dashboardService.getDashboards(userId, companyId)
 
 ## 📚 Related Files
 
-- [app/types/dashboard.ts](../../app/types/dashboard.ts) - TypeScript interfaces
-- [app/composables/useJSONMockService.ts](../../app/composables/useJSONMockService.ts) - JSON-backed mock service
-- [app/composables/useDashboardService.ts](../../app/composables/useDashboardService.ts) - Service interface & implementation
-- [docs/DESIGN/wireframes/dashboard-discover-page.md](./wireframes/dashboard-discover-page.md) - UI design
-- [docs/GUIDES/roles-and-permissions.md](../GUIDES/roles-and-permissions.md) - Permission logic reference
+- [app/types/dashboard.ts](../../../app/types/dashboard.ts) - TypeScript interfaces
+- [app/composables/useJSONMockService.ts](../../../app/composables/useJSONMockService.ts) - JSON-backed mock service
+- [app/composables/useDashboardService.ts](../../../app/composables/useDashboardService.ts) - Service interface & implementation
+- [docs/DESIGN/wireframes/dashboard-discover-page.md](../../DESIGN/wireframes/dashboard-discover-page.md) - UI design
+- [docs/GUIDES/roles-and-permissions.md](../../GUIDES/roles-and-permissions.md) - Permission logic reference
 
 ---
 
