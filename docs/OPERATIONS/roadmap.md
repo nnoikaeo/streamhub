@@ -309,7 +309,7 @@ All nine PRs are on prod; every new test case except two passed on prod the same
 - [ ] **TC 3.9.11** — accept an invitation end to end (BUG-040 fix): needs a Google account not yet in StreamHub; delete it afterwards through `/admin/users` so the cascade runs
 - [ ] **TC 3.9.13** — reactivate a deactivated account with a different group (#505): needs a disposable test account
 - [ ] **Invitation rows show the company at invite time** — survey's accepted invitation reads `ORAY` while the user is now `OAYT`. Decide whether accepted rows should show the user's current company; nothing is wrong in the data
-- [ ] **Discover ignores `?filter=my` / `?filter=shared`** — both home cards link there and land on the full list. Pre-existing, noted with #503
+- [x] **Discover ignores `?filter=my` / `?filter=shared`** (#507) — Discover reads `?filter=` as a removable chip and `?company=` for its company filter; "แดชบอร์ดบริษัท" used to count every dashboard in the system and link to a `?scope=company` nothing read — it now counts company-granted dashboards the user can open (0 on prod: no dashboard has a company grant yet). All three home counts come from one access-checked list, archived left out · a role user, who cannot own a dashboard, gets one card "แดชบอร์ดที่เข้าถึงได้" instead of "mine 0 / shared N" and no folder UI in Discover · **Looker Studio / Google Sheets type filter** (asked for at the 2026-09-30 meeting) as a `ทั้งหมด | Looker Studio | Google Sheets` strip, `?type=` — tag-style toggles were tried first and dropped because "none" and "both" showed the same list · TC 2.1.9, 2.2.13–2.2.16
 
 ---
 
