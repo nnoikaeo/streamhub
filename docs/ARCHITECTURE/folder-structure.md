@@ -32,7 +32,6 @@ streamhub/
 │   │   ├── useLookerApi.ts          # Looker Studio API client (status, reports, sync)
 │   │   ├── useModeratorDashboards.ts # Moderator dashboard management
 │   │   ├── useModeratorFolders.ts   # Moderator folder management
-│   │   ├── usePaginatedList.ts      # Pagination logic
 │   │   ├── useRoleNavigation.ts     # Role-based sidebar menu config
 │   │   └── useSidebarVisibility.ts  # Sidebar show/hide state
 │   │
@@ -66,7 +65,6 @@ streamhub/
 │   │   │   ├── DashboardGrid.vue    # Responsive dashboard grid
 │   │   │   ├── DashboardPreview.vue # Quick view modal with live Looker iframe
 │   │   │   ├── DashboardViewHeader.vue # Top nav for dashboard view (breadcrumb + actions)
-│   │   │   ├── FolderSidebar.vue    # Folder tree sidebar for discover page
 │   │   │   ├── FolderTree.vue       # Recursive folder tree component
 │   │   │   ├── LookerUrlInput.vue   # Looker Studio URL input + validation + live preview
 │   │   │   ├── PermissionEditor.vue # 3-layer permission editor UI
@@ -138,11 +136,11 @@ streamhub/
 │   │   ├── errorMessages.ts         # Centralized error message strings
 │   │   ├── firebase.ts              # Firebase config + initialization
 │   │   ├── formValidators.ts        # Form validation helpers
-│   │   ├── lookerUrl.ts             # Looker Studio URL validation + embed URL conversion
-│   │   └── schemas.ts               # Zod validation schemas
+│   │   └── lookerUrl.ts             # Looker Studio URL validation + embed URL conversion
 │   │
 │   └── app.vue                      # Root component (mounts AppToast globally)
 │
+├── 📁 archive/                      # Retired code + one-off scripts — not built, imported or linted (see archive/README.md)
 ├── 📁 assets/
 │   ├── 📁 css/
 │   │   ├── main.css                 # Global styles

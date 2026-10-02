@@ -108,7 +108,7 @@ URL ที่ฝังถูกเก็บ**ทั้งเส้น**ใน `s
 | | ทำอะไร |
 |---|---|
 | [spike-sheets-iframe.html](../../scripts/spike-sheets-iframe.html) | หน้าทดสอบ**นอก**แอป ไม่มี CSP ไม่มี sandbox ของเรา — วัดพฤติกรรมของ Google ล้วน · เทียบกับในแอปเพื่อหาว่าตัวการอยู่ฝั่งไหน |
-| `node scripts/migrate-sheet-full-mode.mjs [--apply]` | ย้ายแดชบอร์ด `interactive` เป็น `full` · รันแล้ว 2026-09-27 (3 ตัว) · รันซ้ำไม่มีผล |
+| `node archive/scripts/migrate-sheet-full-mode.mjs [--apply]` (archived 2026-10-02) | ย้ายแดชบอร์ด `interactive` เป็น `full` · รันแล้ว 2026-09-27 (3 ตัว) · รันซ้ำไม่มีผล |
 | `POST /api/sheet/check-sharing` | ตรวจว่าชีตแชร์ลิงก์ไหม (200/401) · ฟอร์มเรียกเอง |
 | ชีตทดสอบ `SPIKE-E-link` | `17tVllF92cAhn9ymGo9xIWqW84-vs4gtkaYie4CLb12g` · แชร์ลิงก์ผู้ดู · เจ้าของ `n.noikaeo@gmail.com` · เคยถูกทิ้งลงถังขยะครั้งหนึ่ง — เช็กก่อนใช้ |
 
