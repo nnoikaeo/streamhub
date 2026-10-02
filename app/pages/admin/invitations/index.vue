@@ -7,6 +7,8 @@ import { useAdminInvitations } from '~/composables/useAdminInvitations'
 import { useAdminFolders } from '~/composables/useAdminFolders'
 import { useAdminCompanies } from '~/composables/useAdminCompanies'
 import { useAdminRegions } from '~/composables/useAdminRegions'
+import { useAdminUsers } from '~/composables/useAdminUsers'
+import { invitationCompany } from '~/utils/invitationCompany'
 
 definePageMeta({
   middleware: ['auth', 'admin'],
@@ -18,6 +20,12 @@ const { invitations, loading, fetchInvitations, cancelInvitation, resendInvitati
 const { folders, buildFolderTree } = useAdminFolders()
 const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
+const { users, fetchUsers } = useAdminUsers()
+
+/** Accepted rows show the user's current company — see invitationCompany */
+const usersByUid = computed(() => new Map(users.value.map((u) => [u.uid, u])))
+const companyCodes = computed(() => new Set(companies.value.map((c) => c.code)))
+const companyOf = (inv: Invitation) => invitationCompany(inv, usersByUid.value, companyCodes.value)
 
 // Modal state
 const showInviteModal = ref(false)
@@ -50,7 +58,7 @@ const filteredInvitations = computed(() => {
         const q = searchQuery.value.toLowerCase()
         if (!inv.email.toLowerCase().includes(q) && !inv.invitedByName.toLowerCase().includes(q)) return false
       }
-      if (filterCompany.value && inv.company !== filterCompany.value) return false
+      if (filterCompany.value && companyOf(inv).company !== filterCompany.value) return false
       if (filterStatus.value && effectiveStatus(inv) !== filterStatus.value) return false
       return true
     })
@@ -172,7 +180,7 @@ const clearFilters = () => {
   filterStatus.value = ''
 }
 
-onMounted(() => Promise.all([fetchInvitations(), fetchCompanies(), fetchRegions()]))
+onMounted(() => Promise.all([fetchInvitations(), fetchCompanies(), fetchRegions(), fetchUsers()]))
 
 const folderTree = computed(() => buildFolderTree(folders.value))
 </script>
@@ -301,7 +309,12 @@ const folderTree = computed(() => buildFolderTree(folders.value))
                     {{ roleLabel(inv.role) }}
                   </span>
                 </td>
-                <td>{{ inv.company }}</td>
+                <td>
+                  {{ companyOf(inv).company }}
+                  <span v-if="companyOf(inv).invitedAs" class="invited-as">
+                    เชิญใน {{ companyOf(inv).invitedAs }}
+                  </span>
+                </td>
                 <td>
                   <span :class="statusBadgeClass(effectiveStatus(inv))">
                     {{ statusLabel(effectiveStatus(inv)) }}
@@ -657,5 +670,10 @@ const folderTree = computed(() => buildFolderTree(folders.value))
   background-color: var(--color-primary, #3b82f6);
   color: white;
   border-color: var(--color-primary, #3b82f6);
+}
+.invited-as {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
 }
 </style>
