@@ -301,7 +301,7 @@
  * - Layout Composition (DiscoverPageLayout)
  * - Pinia Stores (dashboard, permissions)
  * - Composable Logic (useDashboardPage)
- * - Generic Components (DashboardGrid, FolderSidebar)
+ * - Generic Components (DashboardGrid)
  *
  * Benefits:
  * - Page logic extracted to composables (reusable)

@@ -3,6 +3,10 @@ import withNuxt from './.nuxt/eslint.config.mjs'
 
 export default withNuxt(
   {
+    // Retired code kept for reference — not built, not imported. See archive/README.md
+    ignores: ['archive/**'],
+  },
+  {
     // Design-system primitives under `app/components/ui/` are deliberately
     // single-word (Badge, Button, Card, Input, Modal…). They are imported by
     // path rather than resolved from a bare template tag, and renaming them
