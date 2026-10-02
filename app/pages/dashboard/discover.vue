@@ -1113,7 +1113,10 @@ const dashboardCountText = computed(() => {
   align-items: center;
   gap: 0.3rem;
   padding: 0.25rem 0.625rem;
-  border: 1px solid var(--color-border);
+  /* --color-border-default: plain --color-border is not a token, and an
+     undefined var() drops the whole border — hidden while the global button
+     rule still painted this button */
+  border: 1px solid var(--color-border-default);
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text-secondary);
