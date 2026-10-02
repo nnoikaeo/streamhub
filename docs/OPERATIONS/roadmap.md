@@ -308,8 +308,17 @@ All nine PRs are on prod; every new test case except two passed on prod the same
 
 - [ ] **TC 3.9.11** — accept an invitation end to end (BUG-040 fix): needs a Google account not yet in StreamHub; delete it afterwards through `/admin/users` so the cascade runs
 - [ ] **TC 3.9.13** — reactivate a deactivated account with a different group (#505): needs a disposable test account
-- [x] **Invitation rows show the company at invite time** — decided 2026-10-02: an accepted row shows the user's current company, matched through `acceptedByUid` (`invitationCompany`); `เชิญใน …` appears under it only when the user moved to another company and the old code still exists — ORAY was renamed to OAYT, not left, so survey's row shows OAYT alone; the company filter uses the same value. Pending rows keep the invitation's company · TC 3.9.14 · same branch: "ล้างตัวกรอง" had no border on prod after #507 — its CSS read `var(--color-border)`, which is not a token, so the whole `border` was dropped · the tag chips had the same disease: `.tag-filter__chip` was never registered with the global button rule, so unselected tags had no outline and the selected one swelled into a filled block · TC 2.2.17
+- [x] **Invitation rows show the company at invite time** (#508) — decided 2026-10-02: an accepted row shows the user's current company, matched through `acceptedByUid` (`invitationCompany`); `เชิญใน …` appears under it only when the user moved to another company and the old code still exists — ORAY was renamed to OAYT, not left, so survey's row shows OAYT alone; the company filter uses the same value. Pending rows keep the invitation's company · TC 3.9.14 · same branch: "ล้างตัวกรอง" had no border on prod after #507 — its CSS read `var(--color-border)`, which is not a token, so the whole `border` was dropped · the tag chips had the same disease: `.tag-filter__chip` was never registered with the global button rule, so unselected tags had no outline and the selected one swelled into a filled block · TC 2.2.17
 - [x] **Discover ignores `?filter=my` / `?filter=shared`** (#507) — Discover reads `?filter=` as a removable chip and `?company=` for its company filter; "แดชบอร์ดบริษัท" used to count every dashboard in the system and link to a `?scope=company` nothing read — it now counts company-granted dashboards the user can open (0 on prod: no dashboard has a company grant yet). All three home counts come from one access-checked list, archived left out · a role user, who cannot own a dashboard, gets one card "แดชบอร์ดที่เข้าถึงได้" instead of "mine 0 / shared N" and no folder UI in Discover · **Looker Studio / Google Sheets type filter** (asked for at the 2026-09-30 meeting) as a `ทั้งหมด | Looker Studio | Google Sheets` strip, `?type=` — tag-style toggles were tried first and dropped because "none" and "both" showed the same list · TC 2.1.9, 2.2.13–2.2.16
+
+**Follow-up round — 2026-10-02** (#506 docs, #507, #508; both code PRs back-merged and deployed the same day, `c39085f` and `060e653`): the two items above, plus what the tester's screenshots turned up along the way —
+
+- [x] **Role user sees one home card and no folders** (#507) — "แดชบอร์ดของฉัน" was always 0 for a user and "แชร์ให้ฉัน" everything they can open, so its filter changed nothing; Discover hides the folder dropdown, column and group-by from them (decision: folders are an admin/moderator concept) · TC 2.1.9, 2.2.16
+- [x] **Looker Studio / Google Sheets filter** (#507) — asked for at the 2026-09-30 meeting; shipped as a `ทั้งหมด | Looker Studio | Google Sheets` strip after a tag-style first version · TC 2.2.15
+- [x] **Global button rule, three more victims** (#507, #508) — "ล้างตัวกรอง" painted solid blue, then borderless (`var(--color-border)` is not a token), and the tag chips (no outline, selected one swollen) · TC 2.2.17
+- [x] **Retired code moved to [archive/](../../archive/README.md)** — nine components/composables/utils nothing rendered or called (found by scanning for references outside comments) and three one-off scripts; `eslint` ignores `archive/**`
+
+Verified on prod 2026-10-02: survey's single card (4), n.noikaeo's "แดชบอร์ดบริษัท" 0, the tag chips and bordered "ล้างตัวกรอง", survey's invitation row reading `OAYT`. Test plan §9: 235 cases, 219 ✅, 2 ☐ (3.9.11, 3.9.13 — both need a disposable account).
 
 ---
 
@@ -386,7 +395,7 @@ app/pages/
 |----------|-----------|
 | **Admin CRUD (11)** | useAdminBreadcrumbs, useAdminCompanies, useAdminCrudPage, useAdminDashboards, useAdminFolders, useAdminGroups, useAdminInvitations, useAdminRegions, useAdminResource, useAdminTags, useAdminUsers |
 | **Moderator (2)** | useModeratorFolders, useModeratorDashboards |
-| **Core (13)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useLookerApi, usePaginatedList, useRecentDashboards, useRoleNavigation, useSidebarVisibility |
+| **Core (12)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useLookerApi, useRecentDashboards, useRoleNavigation, useSidebarVisibility |
 
 ### Mock API Endpoints
 
