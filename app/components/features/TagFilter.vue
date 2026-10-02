@@ -82,6 +82,9 @@ const chipStyle = (tag: Tag) => {
   border-radius: 2px;
 }
 
+/* Registered in main.css's global button rule — without it the rule set
+   border: none and its own padding, so unselected tags lost their outline and
+   the selected one swelled into a filled block */
 .tag-filter__chip {
   display: inline-flex;
   align-items: center;
