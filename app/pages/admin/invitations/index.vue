@@ -24,7 +24,8 @@ const { users, fetchUsers } = useAdminUsers()
 
 /** Accepted rows show the user's current company — see invitationCompany */
 const usersByUid = computed(() => new Map(users.value.map((u) => [u.uid, u])))
-const companyOf = (inv: Invitation) => invitationCompany(inv, usersByUid.value)
+const companyCodes = computed(() => new Set(companies.value.map((c) => c.code)))
+const companyOf = (inv: Invitation) => invitationCompany(inv, usersByUid.value, companyCodes.value)
 
 // Modal state
 const showInviteModal = ref(false)

@@ -7,6 +7,11 @@
  * accepted row now shows the user's current company, with the invite-time one
  * kept as `invitedAs` when the two differ. Pending, expired and cancelled rows
  * have no user yet and show the invitation's own company.
+ *
+ * `invitedAs` is left out when that code is no longer a company. ORAY was in
+ * fact renamed to OAYT (scripts/migrate-company-code.mjs keeps invitations as
+ * the historical record), so "invited into ORAY" named a company that does
+ * not exist and read as if survey had moved.
  */
 
 interface InvitationLike {
@@ -29,9 +34,12 @@ export interface InvitationCompany {
 export function invitationCompany(
   invitation: InvitationLike,
   usersByUid: ReadonlyMap<string, UserLike>,
+  companyCodes: ReadonlySet<string>,
 ): InvitationCompany {
   const uid = invitation.status === 'accepted' ? invitation.acceptedByUid : undefined
   const current = uid ? usersByUid.get(uid)?.company : undefined
   if (!current || current === invitation.company) return { company: invitation.company }
-  return { company: current, invitedAs: invitation.company }
+  return companyCodes.has(invitation.company)
+    ? { company: current, invitedAs: invitation.company }
+    : { company: current }
 }
