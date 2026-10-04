@@ -49,7 +49,7 @@ URL ที่ฝังถูกเก็บ**ทั้งเส้น**ใน `s
 
 | คำสั่ง | ผล | เพราะ |
 |---|---|---|
-| ไฟล์ > ดาวน์โหลด | ~~ไม่มีไฟล์ออก ไม่มี error~~ · **ได้ไฟล์ตั้งแต่เพิ่ม `allow-downloads`** (M6, TC 3.13.14 — รอวัดบน prod) | เดิมไม่มี `allow-downloads` |
+| ไฟล์ > ดาวน์โหลด | **Chrome: ได้ไฟล์** (.xlsx ทุกแท็บ, .csv แท็บที่เปิด) ตั้งแต่ #511 · **Safari: ไม่มีไฟล์** — `Refused to load https://doc-…-sheets.googleusercontent.com/export/… because it does not appear in the frame-ancestors directive` (TC 3.13.14, prod 2026-10-04) | Chrome: `allow-downloads` (#511) · Safari: `frame-ancestors` เป็น header ของ **Google** บนไฟล์ export — แก้จากฝั่งเราไม่ได้ ต่างจาก Looker ที่ตัวบล็อกคือ `frame-src` ของเราเอง (#513) |
 | ไฟล์ > พิมพ์ | หน้าตั้งค่าการพิมพ์ขึ้น กด "ถัดไป" แล้วหายไปเฉย ๆ | ไม่มี `allow-modals` |
 
 พิมพ์ยังปิดอยู่ตั้งใจ · **ดาวน์โหลดเปิดแล้วทั้ง Looker (TC 2.3.15) และชีต (M6, TC 3.13.14)** — ของชีตคือได้ทั้งไฟล์ทุกแท็บ ไม่ใช่ตารางเดียว จึงตัดสินแยกจาก Looker · การปิดในกรอบกันได้แค่ทางแอปมาตลอด · **export URL ตรง (`export?format=csv|xlsx|pdf`) ยังเปิดให้คนที่ไม่ล็อกอินเสมอ** ถ้าชีตแชร์ลิงก์ (spike S1.10)
