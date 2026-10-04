@@ -42,7 +42,6 @@ StreamHub Application
 │
 ├── Feature Components (Page-Specific)
 │   ├── DashboardViewHeader
-│   ├── FolderSidebar
 │   ├── DashboardGrid
 │   ├── TagBadge              (NEW - display tag on dashboard cards)
 │   ├── TagFilter             (NEW - tag chip filter on View All page)
@@ -152,7 +151,7 @@ StreamHub Application
 
 ### AuthLayout (To Be Created)
 
-**File:** `app/components/layouts/AuthLayout.vue` (future)
+**File:** none — an unused draft was moved to [archive/code/](../../archive/README.md) on 2026-10-02; `/login` uses its own page layout
 
 **Purpose:** Simple centered layout for authentication pages (login, register)
 
@@ -202,9 +201,9 @@ Page-specific components for dashboard functionality.
 
 ---
 
-### FolderSidebar
+### FolderSidebar (archived)
 
-**File:** `app/components/features/FolderSidebar.vue`
+**File:** moved to [archive/code/](../../archive/README.md) on 2026-10-02 with `FolderAccordion`, its only caller — kept here for the design notes
 
 **Purpose:** Hierarchical folder navigation with accordion behavior
 
@@ -537,7 +536,6 @@ app/components/
 └── features/                     # Domain-specific
    ├── DashboardCard.vue
    ├── DashboardGrid.vue
-   ├── FolderSidebar.vue
    ├── FolderTree.vue
    ├── PermissionEditor.vue       # 3-column grant editor + restrictions; badges who
    │                               # already has access and why
@@ -778,7 +776,7 @@ describe('useDashboardPage', () => {
 ## 📌 Best Practices
 
 1. **One Store per Domain** — `useDashboardStore`, `useUserStore` (not `useGlobalStore`)
-2. **Composable = Page Logic** — `useDashboardPage` (specific), `usePaginatedList` (generic)
+2. **Composable = Page Logic** — `useDashboardPage` (specific), `useAdminCrudPage` (generic)
 3. **Components = Presentation Only** — Template + minimal logic
 4. **Permissions at 3 Levels** — Data, Action, UI
 5. **Cache Invalidation** — Clear cache when permissions/role change

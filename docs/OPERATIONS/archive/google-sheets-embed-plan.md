@@ -33,7 +33,7 @@
 |---|---|
 | [google-sheets-spike-plan.md](google-sheets-spike-plan.md) | ผลวัดทุกเคส — ที่มาของข้อบังคับสามข้อด้านล่าง อ่านก่อนถ้าจะเถียงข้อไหน |
 | [scripts/spike-sheets-iframe.html](../../../scripts/spike-sheets-iframe.html) | หน้า 5 กรอบสำหรับกดทดสอบบน Safari/iPhone — P5 ใช้ตัวนี้ · เปิดตรงด้วย `file://` ได้ ยกเว้นเทสต์ Storage Access ที่ต้อง `http://localhost` |
-| [scripts/spike-sheets-read.mjs](../../../scripts/spike-sheets-read.mjs) | อ่านชีตผ่าน service account (read-only) — ของทางเลือก 2 ที่ไม่ได้เลือก เก็บไว้เผื่อทบทวน |
+| [archive/scripts/spike-sheets-read.mjs](../../../archive/scripts/spike-sheets-read.mjs) | อ่านชีตผ่าน service account (read-only) — ของทางเลือก 2 ที่ไม่ได้เลือก เก็บไว้เผื่อทบทวน |
 
 **ชีตทดสอบบน Drive** (ดูตารางในเอกสาร spike): `SPIKE-E-link` แชร์ลิงก์แล้ว = เคสที่ต้องผ่าน · `SPIKE-D-large` ไม่ได้แชร์ลิงก์ + 3,300 แถว = เคสที่ต้องถูกปฏิเสธ และใช้วัดว่าตารางใหญ่แสดงไหวไหม
 

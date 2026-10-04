@@ -469,20 +469,8 @@ const dashboardId = computed(() => route.params.id as string)
 const isLookerEmbed = computed(() => dashboard.value?.type !== 'sheet')
 const embedTitle = computed(() => (isLookerEmbed.value ? 'Looker Dashboard' : 'Google Sheet'))
 
-// A sheet frame loses `allow-top-navigation-by-user-activation`. With it,
-// Safari's in-frame "Sign in" button took the whole tab to docs.google.com —
-// out of StreamHub, no watermark, the sheet's real URL in the address bar —
-// and signing in there never reached the frame anyway (spike M5, measured
-// while the CSP still blocked Google's passive sign-in). Without it
-// the button opens the sheet in a new tab through `allow-popups`, so StreamHub
-// stays open. Dropping `allow-popups` as well would also break hyperlinks in
-// cells, which is why the new tab was accepted.
-const EMBED_SANDBOX_BASE = 'allow-scripts allow-same-origin allow-popups allow-forms allow-storage-access-by-user-activation'
-const embedSandbox = computed(() =>
-  isLookerEmbed.value
-    ? `${EMBED_SANDBOX_BASE} allow-top-navigation-by-user-activation`
-    : EMBED_SANDBOX_BASE,
-)
+// Which keywords each embed type gets, and why — see app/utils/embedSandbox.ts.
+const embedSandbox = computed(() => getEmbedSandbox(dashboard.value?.type))
 const currentUserId = computed(() => user.value?.uid || '')
 const currentUserRole = computed(() => user.value?.role || 'user')
 

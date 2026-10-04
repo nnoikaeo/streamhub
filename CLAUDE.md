@@ -43,7 +43,8 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - [assets/css/main.css](assets/css/main.css) forces `background-color`, `color`, `border`, `radius`, `padding` and `font-weight` onto **every `<button>`** whose class is not named in that rule's `:not()` list, and it outranks any scoped component style. A component cannot opt out by styling its own button — it has to be registered there
 - The test is not "does it look broken" but **"does the component set any property that rule sets"**. A segmented picker marking its selection with background and colour showed no selection at all until `.type-button` / `.mode-button` were added (BUG-033; both pickers are now [SegmentedControl.vue](app/components/ui/SegmentedControl.vue), registered as `segmented-control__*` — reuse it for any pick-one control), the same way `.zoom-button` swallowed the `+` control (BUG-030) and `.menu-toggle` painted the mobile drawer button blue (BUG-025)
 - Nothing catches this: lint, typecheck and the test suite all pass. Look at any new button in the browser
-- A pick-one control (type, mode, view) is [SegmentedControl.vue](app/components/ui/SegmentedControl.vue) — already registered, keyboard-accessible, used by the dashboard form. Do not hand-roll another row of toggle buttons
+- A pick-one control (type, mode, view) is [SegmentedControl.vue](app/components/ui/SegmentedControl.vue) — already registered, keyboard-accessible, used by the dashboard form and Discover's type filter. Do not hand-roll another row of toggle buttons — tag-style toggles for two values were tried in #507 and dropped: "none selected" and "both selected" looked different and showed the same list
+- Registering a button can **uncover** a second bug the global rule was hiding: "ล้างตัวกรอง" had no border once registered (#508), because its CSS read `var(--color-border)` — **not a token**; the real ones are `--color-border-light/-default/-dark`. An undefined `var()` drops the whole declaration silently. Nine more uses remain in `DashboardViewHeader.vue` and `dashboard/view/[id].vue`, left alone on purpose: fixing them adds borders that page has never shown
 
 ### Build & Browser Cache
 
@@ -52,6 +53,12 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - **A UI screenshot that contradicts the code: open DevTools → Styles and read which `entry.*.css` the winning rule comes from** before reading any code. If it differs from `curl -s https://streamhub-1c27a.web.app/ | grep -o 'entry[.][^"]*css'`, the browser is running stale files, not the current build
 - A hard reload hides the problem instead of proving a fix — test a cache fix with a normal reload (Cmd+R) on a browser that showed the bug
 - A tab left open across a deploy keeps running the old build. [version-check.client.ts](app/plugins/version-check.client.ts) compares the entry script of `/` with its own (after navigation / on tab focus, at most every 5 min) and [NewVersionBanner.vue](app/components/features/NewVersionBanner.vue) offers a reload — never forced, so a half-filled form survives a deploy. `experimental.appManifest` stays off (routeRules.test.ts)
+
+### Discover & Home Cards
+
+- Discover's filters live in the URL so a link, a refresh and a copied URL land on the same list: `?filter=my|shared`, `?type=looker|sheet`, `?company=`, `?tag=`, `?folder=`. The page is `keepalive` — read them through computeds over `route.query`, not refs copied once on mount. Picking a folder keeps `filter` and `company`
+- Every home-card count comes from the **access-checked** list (`getDashboards`, archived left out), never `useAdminDashboards` — that is the raw collection, which any signed-in user can read in full. "แดชบอร์ดบริษัท" counted it and showed 34 (every dashboard in the system) until #507
+- **A role `user` sees no folders** in Discover — no folder dropdown, column or group-by — and one home card, "แดชบอร์ดที่เข้าถึงได้" (a user cannot own a dashboard, so mine/shared was 0/everything). Gate on the **known** role: before auth loads, "not admin/moderator" is true for admins too
 
 ### Permissions Page
 
@@ -71,6 +78,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - `allow-storage-access-by-user-activation` is on every Looker iframe, but measured on prod it changes nothing — Looker never calls `requestStorageAccess()`. Keep it, don't count on it
 - Sharing by link means anyone holding the Looker URL can open the report without passing StreamHub's permission checks. The URL stays sealed inside the embed token — weigh that against how sensitive the report is
 - **New dashboards: require link sharing + Enable embedding before the report goes in.** Agreed 2026-08-25
+- The Looker iframe has `allow-downloads` (2026-10-06) so technicians can Export data as CSV through StreamHub — without it Chrome drops the file and only logs `Download is disallowed`. A sheet frame does **not** get it (File > Download is the whole file). Every keyword per type lives in [embedSandbox.ts](app/utils/embedSandbox.ts), pinned by tests
 - **The 30 reports already in use cannot be changed — we do not own them.** Safari users cannot open those at all; the hint bar is the permanent answer for them, not a stopgap, so do not remove it. Closing the gap for real means asking the report owners, which is a cross-team conversation and not a code change
 
 ### Google Sheets Embeds
@@ -97,6 +105,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 [docs/README.md](docs/README.md) lists **every** document and is CI-checked against the tree — a doc nothing links to fails the build.
 The tables below are the subset needed most often; a doc missing here is not missing from the project.
 Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS/archive/) — read them for *why*, never copy code out of them.
+Retired code and one-off scripts live in [archive/](archive/README.md) — not built, imported or linted.
 
 ### Architecture
 
@@ -189,11 +198,10 @@ Finished implementation plans live in [docs/OPERATIONS/archive/](docs/OPERATIONS
 | `node scripts/qa-cascade-user.mjs status\|seed\|restore [--apply]` | QA fixture สำหรับ TC 3.2.11 — สร้าง user ปลอม (`uid_qa_cascade`) ที่ถูกอ้างอิงจาก **ทั้งสองฝั่ง** ของ cascade (`groups.members[]` + `folders.assignedModerators[]`) เพื่อให้มีบัญชีที่ลบทิ้งได้ · ระบบสร้างบัญชีได้ทางคำเชิญทางเดียว และ 6 บัญชีบน prod ใช้งานอยู่หมด · ปฏิเสธ uid ที่ไม่ขึ้นต้น `uid_qa_` (restore ลบ user doc จริง) และปฏิเสธ group/folder ที่มีสมาชิก/ผู้ดูแลจริง · `restore` เป็นทางล้างทั้งกรณีที่ลบสำเร็จและกรณีเลิกกลางคัน และคืน `assignedModerators` เป็น "ไม่มีฟิลด์" ด้วย `FieldValue.delete()` เพราะ cascade เขียน `[]` ค้างไว้ · **ต้องใส่ `--folder <id>` เสมอ** ไม่มีค่าเริ่มต้นแล้ว — TEST-E ที่เคยจองไว้ถูกลบพร้อมของทดสอบอื่นทั้งหมด (2026-08-25) และการ seed เขียนลง `folders.assignedModerators[]` การมีค่าเริ่มต้นจึงแปลว่าเผลอแตะโฟลเดอร์จริงได้ |
 | `node scripts/inspect-expiry.mjs [dashboardId] [--all]` | Read-only ตรวจ **ร่างจริง** ของ `dashboards.restrictions.expiry` — Firebase console แสดง Timestamp กับ ISO string เกือบเหมือนกัน สคริปต์นี้แยกให้ (`object<Timestamp>` vs `string`) พร้อมบอกว่า `new Date(value)` แบบก่อน PR #364 อ่านออกไหม; ใส่ dashboard id เพื่อดู `access`/`restrictions` + folder chain |
 | `npm run cloudbuild:status` | Read-only Cloud Build history for the functions deploy — tells queue expiry (`EXPIRED`, queued ~600s, ran 0s → Google-side, just rerun) apart from a real build failure. Pass a build id for details |
-| `node scripts/migrate-sheet-full-mode.mjs [--apply]` | Move sheet dashboards still on `interactive` (the old default) to `full`, rewriting `sheetEmbedUrl` with `sheetEmbedMode` since the stored URL *is* the framed one. Rewrites only the exact `/edit?rm=minimal&widget=true&headers=false` shape; `view`, published and hand-edited URLs are listed and skipped. Dry run without `--apply`, one batch, leaves `updatedAt` alone. **Run only after the code that renders `full` is live** — before that, prod frames the menu bar with the old sandbox and no hint |
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite. **Baseline is 466 passing** |
+| `npm test` | Vitest suite. **Baseline is 483 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). **Baseline is 0 — any problem is yours** |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** · run `npx nuxi prepare` first — a stale `.nuxt` hid four real errors for weeks (#484 → #505) |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |
