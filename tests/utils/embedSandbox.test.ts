@@ -21,8 +21,8 @@ describe('getEmbedSandbox', () => {
     expect(getEmbedSandbox(undefined)).toBe(getEmbedSandbox('looker'))
   })
 
-  it('keeps downloads blocked for a sheet', () => {
-    expect(keywords('sheet')).not.toContain('allow-downloads')
+  it('lets a sheet download through File > Download', () => {
+    expect(keywords('sheet')).toContain('allow-downloads')
   })
 
   it('never lets a sheet navigate the top window', () => {
