@@ -154,6 +154,7 @@
 | 2.3.12 | Embed zoom control | 1. เปิด dashboard ที่มี Looker embed 2. คลิก `−` ลงไปจนถึง 60% 3. คลิกที่ตัวเลข `60%` | ปุ่ม `− / % / +` อยู่ในแถบ header (แสดงเฉพาะเมื่อมี embed URL) — คลิก `−` → เนื้อหาเล็กลงและ**เห็นแถวล่างเพิ่มขึ้น** (ที่ 60% เห็นทั้งตารางบนและกราฟล่าง) จัดกึ่งกลาง ขอบขาวเท่ากันสองข้าง — คลิกตัวเลข → กลับเป็น 100% — ช่วง 40–100% ทีละ 10%, สุดช่วงแล้วปุ่ม disabled | Medium | ✅ |
 | 2.3.13 | Zoom persists across reload | 1. ตั้ง zoom เป็น 60% 2. refresh หน้า | ยังเป็น 60% (เก็บใน `localStorage` key `streamhub:embed-zoom`) | Low | ✅ |
 | 2.3.14 | Browser zoom ไม่ใช่ทางแก้ | 1. เปิด dashboard 2. ใช้ zoom out ของ Chrome (`Cmd -`) | หน้าจอ**ไม่เปลี่ยน** — ไม่ใช่บั๊ก ดู [common-issues.md](../TROUBLESHOOTING/common-issues.md) หัวข้อ "Zoom out ของเบราว์เซอร์ไม่มีผลกับแดชบอร์ด" — ต้องใช้ปุ่ม zoom ในแอปแทน | Low | ✅ |
+| 2.3.15 | Export ข้อมูลตาราง Looker เป็น CSV ผ่าน StreamHub | 1. เปิดแดชบอร์ด Looker ที่มีตาราง (เช่น Hotline) 2. เลือกช่วงวันที่ 3. ⋮ ของตาราง → ส่งออกแผนภูมิ → ส่งออกข้อมูล 4. เลือก CSV (Excel) → ส่งออก 5. ทำซ้ำบน Safari | ได้ไฟล์ `.csv` ในโฟลเดอร์ดาวน์โหลด จำนวนแถวตรงกับตัวนับใต้ตาราง (`1 - 100 / N`) ภาษาไทยอ่านได้เมื่อเปิดใน Excel · console **ไม่มี** `Download is disallowed` · Safari: ถ้ารายงานแชร์เฉพาะบัญชี จะเปิดรายงานไม่ได้ตั้งแต่แรก (BUG-032) ไม่ใช่ปัญหา export | High | ☐ · ก่อนแก้ (prod Chrome 2026-10-04, `dash_1790652958602`): กดส่งออกแล้ว**ไม่มีไฟล์** console ขึ้น `Download is disallowed. The frame initiating or instantiating the download is sandboxed, but the flag 'allow-downloads' is not set.` — แก้ใน `fix/looker-allow-downloads` ([embedSandbox.ts](../../app/utils/embedSandbox.ts)) |
 
 ---
 
@@ -622,7 +623,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 
 1. **ปุ่ม 🖊️ กับ 🗑️ ในคอลัมน์ "จัดการ" แยกคนละบรรทัดเมื่อจอแคบ** — ตั้งใจ ไม่ใช่ layout พัง: กล่องปุ่มเป็น `flex ... flex-wrap` ที่ [DataTable.vue:354](../../app/components/admin/DataTable.vue#L354) ส่วน `<td>` ตั้ง `width: 120px` ไว้เป็น *คำแนะนำ* ไม่ใช่ `min-width` ⇒ พอตารางถูกบีบ คอลัมน์แคบกว่า 2 ปุ่ม (36px + gap + 36px) มันจึง **wrap ลงบรรทัดใหม่แทนที่จะถูกตัดหาย** ปุ่มทั้งสองยังเห็นและกดได้ครบ แลกกับแถวสูงขึ้น · ถ้าจะให้อยู่บรรทัดเดียวเสมอต้องเปลี่ยนเป็น `min-width` บน `<td>` หรือถอด `flex-wrap` — แต่ทางนั้นแลกด้วยการตัดปุ่มหายเมื่อที่ไม่พอ ซึ่งแย่กว่า
 
-2. **console ของหน้าแดชบอร์ดมีข้อความจาก Looker เอง ไม่ใช่ของเรา** — `requestStorageAccess: Refused to execute request. The document is sandboxed...` มาจาก `recaptcha__th.js` และคำเตือน Google Maps `loading=async` มาจาก `js?key=...visualization` ทั้งคู่รันอยู่**ข้างใน** iframe ของ Looker · `sandbox` ที่เราตั้งไว้ที่ [\[id\].vue:252](../../app/pages/dashboard/view/[id].vue#L252) ไม่มี `allow-storage-access-by-user-activation` จึงเห็นข้อความนี้ · รายงานเรนเดอร์ครบและซูมได้ตามปกติ ⇒ ยังไม่ต้องแตะ · **ถ้าวันหนึ่งมี Looker control ตัวไหนทำงานไม่ครบ ให้มาดูบรรทัดนี้ก่อน** แล้วค่อยชั่งว่าจะเพิ่ม keyword เข้า `sandbox` ไหม
+2. **console ของหน้าแดชบอร์ดมีข้อความจาก Looker เอง ไม่ใช่ของเรา** — `requestStorageAccess: Refused to execute request. The document is sandboxed...` มาจาก `recaptcha__th.js` และคำเตือน Google Maps `loading=async` มาจาก `js?key=...visualization` ทั้งคู่รันอยู่**ข้างใน** iframe ของ Looker · `sandbox` ที่เราตั้งไว้ (ตอนนี้อยู่ที่ [embedSandbox.ts](../../app/utils/embedSandbox.ts)) ไม่มี `allow-storage-access-by-user-activation` จึงเห็นข้อความนี้ · รายงานเรนเดอร์ครบและซูมได้ตามปกติ ⇒ ยังไม่ต้องแตะ · **ถ้าวันหนึ่งมี Looker control ตัวไหนทำงานไม่ครบ ให้มาดูบรรทัดนี้ก่อน** แล้วค่อยชั่งว่าจะเพิ่ม keyword เข้า `sandbox` ไหม
 
 เคสไหนพัง จดเป็น BUG-032 ขึ้นไปในตาราง §8 ก่อน แล้วค่อยตัดสินใจว่าจะแก้รอบไหน (029 = ความสูง `<select>` บน WebKit, 030 = ปุ่มซูมถูกตัดที่ 375px, 031 = embed token 403)
 
@@ -813,7 +814,7 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | Invite Accept | 6 | Critical | ✅ |
 | Dashboard Home | 10 | High | ✅ (10/10 — 2.1.8 "แชร์ให้ฉัน" นับผ่านกลุ่ม/บริษัท prod 2026-09-30 · 2.1.9 การ์ดเดียวของ user #507 localhost) |
 | Dashboard Discover | 17 | High | ✅ (17/17 — 2.2.17 แท็กโดนกฎปุ่มส่วนกลาง #508 · #507 localhost 2026-09-30/10-02: 2.2.13–2.2.14 การ์ดหน้าแรกเปิด Discover แบบกรองแล้ว · 2.2.15 ตัวกรองชนิด · 2.2.16 user ไม่เห็นโฟลเดอร์) |
-| Dashboard View | 14 | High | ✅ |
+| Dashboard View | 15 | High | 🟡 (14/15 — **2.3.15 ☐** export CSV จาก Looker รอ deploy `allow-downloads`) |
 | Profile | 8 | Medium | ✅ (8/8 — ยืนยันบน prod ทั้ง admin และ moderator 2026-08-19 · 2.4.6–2.4.8 เมนูแสดงกลุ่ม/บทบาทไทย, จำนวนแดชบอร์ด 2026-09-30) |
 | Admin Overview | 5 | High | ✅ |
 | Admin Users | 19 | High | ✅ (19/19 — 3.2.11 cascade delete ยืนยันบน prod 2026-08-20 ด้วย fixture `scripts/qa-cascade-user.mjs` · 3.2.13 ชื่อกลุ่มในตาราง, 3.2.14 admin ไม่มีกลุ่ม 2026-09-30) |
@@ -833,9 +834,9 @@ drawer ตัดที่ `max-width: 768px` ส่วนการย่อ side
 | Cross-Cutting (CRUD) | 11 | High | ✅ (11/11 — 5.1.6 ยืนยันด้วย throttle 3G 2026-08-19) |
 | Navigation & Middleware | 6 | Critical | ✅ (6/6 — 5.2.5 ปิดครบทุกทาง 2026-08-19 · 5.2.6 แถบเวอร์ชันใหม่ 2026-09-28) |
 | Error Scenarios | 10 | Medium | ✅ (8 ✅ / 1 🔍 จงใจข้าม 6.3.1 / 1 ⊘ 6.3.2 เกิดไม่ได้) |
-| **TOTAL** | **235** | — | 219 ✅ / 1 🔍 / 2 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
+| **TOTAL** | **236** | — | 219 ✅ / 1 🔍 / 3 ☐ / 11 ⊘ N/A / 2 🐛 fixed+verified |
 
-> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 235 แถว (นับใหม่ 2026-09-30) — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอดรวม
+> ตัวเลขนี้นับจากช่องสถานะ (คอลัมน์สุดท้าย) ของแถวเคสทั้ง 236 แถว (นับใหม่ 2026-09-30 · +2.3.15 2026-10-04) — แถวเลขที่มีตัวอักษรต่อท้าย (`2.1.4a`, `3.2.6a`) นับด้วย · ทุกเคส N/A ใช้สัญลักษณ์ `⊘ N/A` เหมือนกันหมดแล้ว (เดิมมี 4 แถวเขียน `N/A` เปล่า ๆ ทำให้นับตกไป) ⇒ นับซ้ำได้ด้วย regex `^\| [0-9]+\.[0-9]+\.[0-9]+[a-z]?` แล้วดูสัญลักษณ์ในช่องท้าย · §7 ตั้งใจใช้เลขคนละทรง (`7.1.a` — ตัวอักษร**แทน**ตัวเลขตัวที่สาม ไม่ใช่ต่อท้ายแบบ `2.1.4a`) regex นี้จึงไม่จับ และเมทริกซ์สภาพแวดล้อมไม่ปนเข้ามาในยอดรวม
 
 ---
 

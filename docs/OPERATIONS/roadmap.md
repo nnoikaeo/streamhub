@@ -286,7 +286,7 @@ All four code/QA items done 2026-09-28 (#481–#487). What is left below needs a
 
 **Waiting on a person, not code** — do not start these without the decision:
 
-- **M6 — viewer download switch.** Waits on the next stakeholder meeting. Only matters if `allow-downloads` is ever considered
+- **M6 — viewer download switch.** Waits on the next stakeholder meeting. Only matters if `allow-downloads` is ever considered for **sheets** — Looker frames got it on 2026-10-06 for technicians' CSV export (TC 2.3.15)
 - **Tell the meeting the result beat the decision** — they accepted "edit on Chrome only"; desktop Safari edits too, only phones are read-only
 - **Watch, don't build:** Google's `RotateCookiesPage` is refused inside our frame, so a sheet left open for hours on Safari may lose its session — measure before acting. The Discover type filter stays deferred until there are enough sheets to need it
 
@@ -319,6 +319,13 @@ All nine PRs are on prod; every new test case except two passed on prod the same
 - [x] **Retired code moved to [archive/](../../archive/README.md)** — nine components/composables/utils nothing rendered or called (found by scanning for references outside comments) and three one-off scripts; `eslint` ignores `archive/**`
 
 Verified on prod 2026-10-02: survey's single card (4), n.noikaeo's "แดชบอร์ดบริษัท" 0, the tag chips and bordered "ล้างตัวกรอง", survey's invitation row reading `OAYT`. Test plan §9: 235 cases, 219 ✅, 2 ☐ (3.9.11, 3.9.13 — both need a disposable account).
+
+### Meeting — 2026-10-06: technicians export CSV through StreamHub
+
+Technicians download a Looker table (Hotline Daily Report: ⋮ › Export chart › Export data › CSV (Excel)) to build their site-visit compensation claims. The meeting agreed they should do it **through StreamHub**, so everyone uses one tool.
+
+- [ ] **Looker export blocked in the frame** (`fix/looker-allow-downloads`) — measured on prod Chrome 2026-10-04: Looker shows the same Export data dialog inside StreamHub, Export gives no file, the console says `Download is disallowed … 'allow-downloads' is not set`. The Looker iframe now gets `allow-downloads`; the sandbox moved to [embedSandbox.ts](../../app/utils/embedSandbox.ts) with tests pinning every keyword per type · TC 2.3.15 · **trade-off:** everyone who can open a Looker dashboard can export its data, and the watermark does not travel with the file; a report owner can still turn viewer downloads off in Looker
+- [ ] **Sheets download** — separate branch, decision M6 below. File > Download hands out the whole file, every tab, not one table
 
 ---
 

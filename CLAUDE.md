@@ -78,6 +78,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - `allow-storage-access-by-user-activation` is on every Looker iframe, but measured on prod it changes nothing — Looker never calls `requestStorageAccess()`. Keep it, don't count on it
 - Sharing by link means anyone holding the Looker URL can open the report without passing StreamHub's permission checks. The URL stays sealed inside the embed token — weigh that against how sensitive the report is
 - **New dashboards: require link sharing + Enable embedding before the report goes in.** Agreed 2026-08-25
+- The Looker iframe has `allow-downloads` (2026-10-06) so technicians can Export data as CSV through StreamHub — without it Chrome drops the file and only logs `Download is disallowed`. A sheet frame does **not** get it (File > Download is the whole file). Every keyword per type lives in [embedSandbox.ts](app/utils/embedSandbox.ts), pinned by tests
 - **The 30 reports already in use cannot be changed — we do not own them.** Safari users cannot open those at all; the hint bar is the permanent answer for them, not a stopgap, so do not remove it. Closing the gap for real means asking the report owners, which is a cross-team conversation and not a code change
 
 ### Google Sheets Embeds
