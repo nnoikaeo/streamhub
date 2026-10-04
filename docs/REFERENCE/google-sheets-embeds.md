@@ -62,6 +62,7 @@ URL ที่ฝังถูกเก็บ**ทั้งเส้น**ใน `s
 | **`https://accounts.google.com` ใน `frame-src`** | สองที่เดียวกัน | **ชีตทุกตัวบน Safari/iPhone เป็นกรอบว่าง** มีแค่ error ใน console — Google พากรอบผ่าน `accounts.google.com/ServiceLogin?passive=…` ก่อนเปิดชีต และ CSP ตรวจทุกช่วงของ redirect · เป็นแบบนี้บน prod ตั้งแต่ #472 จนถึง #477 (BUG-036) · หน้าล็อกอินของ Google ส่ง `X-Frame-Options: DENY` อยู่แล้ว ⇒ อนุญาตโดเมนนี้ไม่ทำให้ฟอร์มล็อกอินมาอยู่ในกรอบ |
 | กรอบของ sheet **ไม่มี** `allow-top-navigation-by-user-activation` | [embedSandbox.ts](../../app/utils/embedSandbox.ts) (ตรึงด้วย test) | ปุ่ม "เข้าสู่ระบบ" ของ Google ในกรอบจะพา**ทั้งแท็บ**ออกจาก StreamHub ไปชีตตรง — ไม่มีลายน้ำ URL จริงอยู่ที่แถบที่อยู่ · ตอนนี้เปิดแท็บใหม่แทน (ผ่าน `allow-popups`) · Looker ยังมี flag นี้ |
 | `allow-popups` | sandbox ทุกกรอบ | ลิงก์ในเซลล์และเมนูความช่วยเหลือเปิดไม่ได้ |
+| **`blob:` ใน `frame-src`** | [securityHeaders.ts](../../server/middleware/securityHeaders.ts) **และ** [firebase.json](../../firebase.json) | Export data ของตาราง Looker **บน Safari ไม่มีไฟล์ออก** — Safari ส่งไฟล์ด้วยการพากรอบรายงานไปที่ `blob:https://datastudio.google.com/…` และ CSP ของเราตรวจ navigation นั้น (TC 2.3.15, 2026-10-04) · Chrome ไม่ได้ใช้ทางนี้ จึงไม่เห็นผลบน Chrome |
 
 ## แถบเตือน
 

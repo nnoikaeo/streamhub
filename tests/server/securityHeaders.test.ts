@@ -35,6 +35,9 @@ const REQUIRED_FRAME_SRC = [
   'https://docs.google.com',
   'https://accounts.google.com',
   'https://lookerstudio.google.com',
+  // Safari delivers a Looker CSV export by navigating the report frame to a
+  // blob: URL; without it no file arrives (TC 2.3.15, 2026-10-04)
+  'blob:',
 ]
 
 const AUTH_DOMAIN = 'streamhub-test.web.app'
