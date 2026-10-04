@@ -324,8 +324,8 @@ Verified on prod 2026-10-02: survey's single card (4), n.noikaeo's "แดชบ
 
 Technicians download a Looker table (Hotline Daily Report: ⋮ › Export chart › Export data › CSV (Excel)) to build their site-visit compensation claims. The meeting agreed they should do it **through StreamHub**, so everyone uses one tool.
 
-- [ ] **Looker export blocked in the frame** (`fix/looker-allow-downloads`) — measured on prod Chrome 2026-10-04: Looker shows the same Export data dialog inside StreamHub, Export gives no file, the console says `Download is disallowed … 'allow-downloads' is not set`. The Looker iframe now gets `allow-downloads`; the sandbox moved to [embedSandbox.ts](../../app/utils/embedSandbox.ts) with tests pinning every keyword per type · TC 2.3.15 · **trade-off:** everyone who can open a Looker dashboard can export its data, and the watermark does not travel with the file; a report owner can still turn viewer downloads off in Looker
-- [ ] **Sheets download** — separate branch, decision M6 below. File > Download hands out the whole file, every tab, not one table
+- [x] **Looker export blocked in the frame** (#510, on prod 2026-10-04) — measured on prod Chrome 2026-10-04: Looker shows the same Export data dialog inside StreamHub, Export gives no file, the console says `Download is disallowed … 'allow-downloads' is not set`. The Looker iframe now gets `allow-downloads`; the sandbox moved to [embedSandbox.ts](../../app/utils/embedSandbox.ts) with tests pinning every keyword per type · TC 2.3.15 ✅ on prod Chrome 2026-10-04 (129 KB file, Thai correct in Excel); Safari cannot open this report at all — BUG-032, the report is shared with named accounts, so a Safari/iPhone technician needs the report owner to switch to link sharing + Enable embedding · **trade-off:** everyone who can open a Looker dashboard can export its data, and the watermark does not travel with the file; a report owner can still turn viewer downloads off in Looker
+- [ ] **Sheets download** — draft #511 (rebase onto `develop` now that #510 is squash-merged), decision M6 below. File > Download hands out the whole file, every tab, not one table
 
 ---
 
