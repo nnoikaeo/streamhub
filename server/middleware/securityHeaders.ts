@@ -35,12 +35,20 @@ export default defineEventHandler((event: H3Event) => {
   // blank, with only a console error to show for it. Google's sign-in page
   // itself still refuses to be framed (X-Frame-Options: DENY); this only lets
   // the passive check through.
+  //
+  // `blob:` is for a Looker table's Export data on Safari. Safari delivers the
+  // file by navigating the report's own frame to a blob: URL Looker made, and
+  // that frame sits in our page, so our frame-src is checked — without it
+  // Safari logs "Refused to load blob:https://datastudio.google.com/…" and no
+  // file arrives (prod, 2026-10-04). Chrome downloads without navigating. A
+  // blob URL is bound to the origin whose script made it, so this lets an
+  // embedded Google frame show content it could already show from its origin.
   setHeader(
     event,
     'Content-Security-Policy',
     "frame-src 'self' https://lookerstudio.google.com https://datastudio.google.com " +
       "https://docs.google.com https://accounts.google.com " +
-      `https://*.firebaseapp.com https://*.googleapis.com${authFrameSrc}; frame-ancestors 'self'`
+      `https://*.firebaseapp.com https://*.googleapis.com blob:${authFrameSrc}; frame-ancestors 'self'`
   )
 
   const pathname = getRequestURL(event).pathname
