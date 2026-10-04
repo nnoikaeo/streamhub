@@ -286,7 +286,7 @@ All four code/QA items done 2026-09-28 (#481–#487). What is left below needs a
 
 **Waiting on a person, not code** — do not start these without the decision:
 
-- **M6 — viewer download switch.** Waits on the next stakeholder meeting. Only matters if `allow-downloads` is ever considered for **sheets** — Looker frames got it on 2026-10-06 for technicians' CSV export (TC 2.3.15)
+- **M6 — viewer download switch.** Waits on the next stakeholder meeting. Looker frames got `allow-downloads` on 2026-10-06 (TC 2.3.15); sheet frames get it in `fix/sheets-allow-downloads` (TC 3.13.14), which makes this switch the only per-sheet way to stop a download
 - **Tell the meeting the result beat the decision** — they accepted "edit on Chrome only"; desktop Safari edits too, only phones are read-only
 - **Watch, don't build:** Google's `RotateCookiesPage` is refused inside our frame, so a sheet left open for hours on Safari may lose its session — measure before acting. The Discover type filter stays deferred until there are enough sheets to need it
 
@@ -325,7 +325,7 @@ Verified on prod 2026-10-02: survey's single card (4), n.noikaeo's "แดชบ
 Technicians download a Looker table (Hotline Daily Report: ⋮ › Export chart › Export data › CSV (Excel)) to build their site-visit compensation claims. The meeting agreed they should do it **through StreamHub**, so everyone uses one tool.
 
 - [x] **Looker export blocked in the frame** (#510, on prod 2026-10-04) — measured on prod Chrome 2026-10-04: Looker shows the same Export data dialog inside StreamHub, Export gives no file, the console says `Download is disallowed … 'allow-downloads' is not set`. The Looker iframe now gets `allow-downloads`; the sandbox moved to [embedSandbox.ts](../../app/utils/embedSandbox.ts) with tests pinning every keyword per type · TC 2.3.15 ✅ on prod Chrome 2026-10-04 (129 KB file, Thai correct in Excel); Safari cannot open this report at all — BUG-032; with cross-site tracking prevention turned off it opens, but export still gave no file: our CSP `frame-src` refused the `blob:` URL Safari navigates the frame to (#513 added `blob:`; Safari then got the file, prod 2026-10-04) — so Safari exports work wherever the report opens, but the report is shared with named accounts, so a Safari/iPhone technician needs the report owner to switch to link sharing + Enable embedding · **trade-off:** everyone who can open a Looker dashboard can export its data, and the watermark does not travel with the file; a report owner can still turn viewer downloads off in Looker
-- [ ] **Sheets download** — draft #511 (rebase onto `develop` now that #510 is squash-merged), decision M6 below. File > Download hands out the whole file, every tab, not one table
+- [ ] **Sheets download** (#511) — the sheet frame gets `allow-downloads` too, so File > Download works in StreamHub · `blob:` in `frame-src` from #513 already covers Safari's download path · TC 3.13.14 · **bigger trade-off than Looker:** File > Download hands out the whole file, every tab, not one table; the only per-sheet brake left is the owner's "viewers can download, print and copy" switch in Google (M6)
 
 ---
 
