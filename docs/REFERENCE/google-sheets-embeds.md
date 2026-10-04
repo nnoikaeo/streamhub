@@ -52,7 +52,7 @@ URL ที่ฝังถูกเก็บ**ทั้งเส้น**ใน `s
 | ไฟล์ > ดาวน์โหลด | **ไม่มีไฟล์ออก ไม่มี error** | ไม่มี `allow-downloads` |
 | ไฟล์ > พิมพ์ | หน้าตั้งค่าการพิมพ์ขึ้น กด "ถัดไป" แล้วหายไปเฉย ๆ | ไม่มี `allow-modals` |
 
-ตั้งใจ — กันได้แค่ทางแอป · **export URL ตรง (`export?format=csv|xlsx|pdf`) ยังเปิดให้คนที่ไม่ล็อกอินเสมอ** ถ้าชีตแชร์ลิงก์ (spike S1.10)
+ตั้งใจ — กันได้แค่ทางแอป · **กรอบ Looker ต่างกัน: มี `allow-downloads` ตั้งแต่ 2026-10-06** ให้ช่าง export ตาราง CSV ได้ (TC 2.3.15) — ชีตไม่ได้ตามไปด้วย เพราะดาวน์โหลดชีตคือได้ทั้งไฟล์ทุกแท็บ ไม่ใช่ตารางเดียว (M6) · **export URL ตรง (`export?format=csv|xlsx|pdf`) ยังเปิดให้คนที่ไม่ล็อกอินเสมอ** ถ้าชีตแชร์ลิงก์ (spike S1.10)
 
 ## ค่าที่ต้องมี และห้ามถอด
 
@@ -60,7 +60,7 @@ URL ที่ฝังถูกเก็บ**ทั้งเส้น**ใน `s
 |---|---|---|
 | `https://docs.google.com` ใน `frame-src` | [securityHeaders.ts](../../server/middleware/securityHeaders.ts) **และ** [firebase.json](../../firebase.json) | กรอบว่างทุกเบราว์เซอร์ |
 | **`https://accounts.google.com` ใน `frame-src`** | สองที่เดียวกัน | **ชีตทุกตัวบน Safari/iPhone เป็นกรอบว่าง** มีแค่ error ใน console — Google พากรอบผ่าน `accounts.google.com/ServiceLogin?passive=…` ก่อนเปิดชีต และ CSP ตรวจทุกช่วงของ redirect · เป็นแบบนี้บน prod ตั้งแต่ #472 จนถึง #477 (BUG-036) · หน้าล็อกอินของ Google ส่ง `X-Frame-Options: DENY` อยู่แล้ว ⇒ อนุญาตโดเมนนี้ไม่ทำให้ฟอร์มล็อกอินมาอยู่ในกรอบ |
-| กรอบของ sheet **ไม่มี** `allow-top-navigation-by-user-activation` | `embedSandbox` ใน [[id].vue](../../app/pages/dashboard/view/[id].vue) | ปุ่ม "เข้าสู่ระบบ" ของ Google ในกรอบจะพา**ทั้งแท็บ**ออกจาก StreamHub ไปชีตตรง — ไม่มีลายน้ำ URL จริงอยู่ที่แถบที่อยู่ · ตอนนี้เปิดแท็บใหม่แทน (ผ่าน `allow-popups`) · Looker ยังมี flag นี้ |
+| กรอบของ sheet **ไม่มี** `allow-top-navigation-by-user-activation` | [embedSandbox.ts](../../app/utils/embedSandbox.ts) (ตรึงด้วย test) | ปุ่ม "เข้าสู่ระบบ" ของ Google ในกรอบจะพา**ทั้งแท็บ**ออกจาก StreamHub ไปชีตตรง — ไม่มีลายน้ำ URL จริงอยู่ที่แถบที่อยู่ · ตอนนี้เปิดแท็บใหม่แทน (ผ่าน `allow-popups`) · Looker ยังมี flag นี้ |
 | `allow-popups` | sandbox ทุกกรอบ | ลิงก์ในเซลล์และเมนูความช่วยเหลือเปิดไม่ได้ |
 
 ## แถบเตือน
