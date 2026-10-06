@@ -10,7 +10,8 @@
 
 **User Management = Search, Filter, Edit, Delete, Toggle Active**
 
-- View all users with company/role/status filters
+- View all users with company/role/group/status filters
+- Download the filtered list as CSV (ชื่อ อีเมล บริษัท กลุ่ม สถานะ) — for comparing with One Data's PIC sheet (#518)
 - Edit user info: name, company, role, groups, moderator folders
 - New users are invited via `/admin/invitations` only (no direct create here)
 - Every user record is backed by a real Firebase Auth UID
@@ -21,10 +22,10 @@
 
 ```text
 ┌──────────────────────────────────────────────────────────────┐
-│  จัดการผู้ใช้                                               │
+│  จัดการผู้ใช้                          [📥 ดาวน์โหลดรายชื่อ] │
 ├──────────────────────────────────────────────────────────────┤
-│  [ค้นหาตามอีเมล หรือ ชื่อ...]  [บทบาท▼] [บริษัท▼] [สถานะ▼] │
-│  [🔄 ล้างตัวกรอง]                                            │
+│  [ค้นหาตามอีเมล หรือ ชื่อ...] [บทบาท▼] [บริษัท▼] [กลุ่ม▼]   │
+│  [สถานะ▼] [🔄 ล้างตัวกรอง]                                   │
 ├──────────────────────────────────────────────────────────────┤
 │  ชื่อ            บทบาท    บริษัท   กลุ่ม     สถานะ  จัดการ  │
 │  IT Streamwash   admin    STTH     -         ●      ✏️ 🗑️   │
@@ -37,6 +38,8 @@
 ```
 
 **Note:** ไม่มีปุ่ม "เพิ่มผู้ใช้ใหม่" — การสร้าง user ใหม่ใช้ `/admin/invitations`
+
+**📥 ดาวน์โหลดรายชื่อ** — ได้เฉพาะแถวที่เหลือตามตัวกรอง ชื่อไฟล์ติดบริษัท/กลุ่มที่กรอง (`streamhub-users-<บริษัท>-<กลุ่ม>-<วันที่>.csv`) · ไม่มีแถวเหลือ ⇒ ปุ่มเทา · ตัวกรองกลุ่มอ่านจาก `users.groups[]` ฝั่งที่ระบบตรวจสิทธิ์ใช้ (BUG-005)
 
 ---
 

@@ -208,7 +208,7 @@
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
             <span>{{ error }}</span>
-            <button type="button" class="theme-alert__close" aria-label="Dismiss error" @click="error = null">
+            <button type="button" class="theme-alert__close" aria-label="Dismiss error" @click="clearError">
               ✕
             </button>
           </div>
@@ -363,6 +363,7 @@ const {
   error,
 
   // Methods
+  clearError,
   selectFolder,
   handleViewDashboard,
   handleMenuDashboard,

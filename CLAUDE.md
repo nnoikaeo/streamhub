@@ -33,7 +33,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - Anything new in `shared/utils/` must also be registered as a global in `tests/setup.ts` — plain Vitest does not run Nuxt auto-import
 - Generic constraints: `T extends object`, **not** `Record<string, unknown>` (interfaces have no index signature, so it rejects `User`, `Dashboard`, …)
 - Always pass the type argument to `readJSON<T>` / `findById<T>` / `updateItem<T>`. Leaving it bare falls back to the constraint and invites an `as any[]` cast — that is how the `?company=` filter bug survived (PR #359)
-- `access.company` is a **list of company codes**, read with `.includes()`. Both `access.company[code]` and `code in access.company` type-check and are always wrong — `in` tests array indices, so `'STTH' in ['STTH']` is `false`. It has been got wrong twice (server PR #359, client PR #474); the tested predicate is [companyFilter.ts](app/utils/companyFilter.ts), and `ALL` is a real wildcard meaning every active company
+- `access.company` is a **list of company codes**, read with `.includes()`. Both `access.company[code]` and `code in access.company` type-check and are always wrong — `in` tests array indices, so `'STTH' in ['STTH']` is `false`. It has been got wrong twice (server PR #359, client PR #474); the tested predicate is [companyFilter.ts](app/utils/companyFilter.ts), and `ALL` is **meant** to be a wildcard for every active company — the editor stores it and the page counts it, but the access checks (`companyAccess.matchesAccessRules`, `useFirestoreService.checkAccess`) never match it, so today it grants nobody (BUG-043, open). The CSV download follows the server and leaves it out
 - Never "fix" an `any` with `as any` or `@ts-ignore`. If the real type is unclear, skip the site and say why. Sometimes the right fix is deleting the code: two of the last three sites guarded logic that could never run (PR #366)
 - The backlog is closed — `npx eslint .` is **0**. Any `any` you add is a regression the lint run catches
 - See: [docs/CONTRIBUTING/coding-standards.md](docs/CONTRIBUTING/coding-standards.md) § Error Handling, § Avoiding `any`
@@ -63,6 +63,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 ### Permissions Page
 
 - `/admin/permissions` and `/manage/permissions` are opened **only** from 🔑 in Explorer, always with `?dashboard=<id>` or `?folder=<id>`. No sidebar entry (removed 2026-03-16), no in-page picker (removed 2026-09-28, #494). Without a target the page `replace`s to Explorer; with a target not in the list it shows "ไม่พบแดชบอร์ดนี้"
+- 📥 on the page (admin and moderator, dashboard mode) downloads who can open that dashboard as CSV, from **saved** grants only — disabled while edits are unsaved. It lists folder moderators (the effective-access bar does not) and leaves out admins, disabled and restricted users; [accessExport.test.ts](tests/utils/accessExport.test.ts) pins it to the server's `checkDashboardAccess`. Made so One Data can compare with their PIC sheet without the two systems being connected (#518)
 - Testing a moderator's scope (TC 4.2.5) needs a **real** dashboard id outside their folders — `node scripts/qa-moderator-scope.mjs` prints one with its URL. A made-up id only proves "not found"
 
 ### Firestore / Nitro Plugins
@@ -79,6 +80,7 @@ Nuxt 4 SPA (`ssr: false`) deployed on Firebase Hosting + Cloud Functions (Nitro,
 - Sharing by link means anyone holding the Looker URL can open the report without passing StreamHub's permission checks. The URL stays sealed inside the embed token — weigh that against how sensitive the report is
 - **New dashboards: require link sharing + Enable embedding before the report goes in.** Agreed 2026-08-25
 - The Looker iframe has `allow-downloads` (2026-10-06) so technicians can Export data as CSV through StreamHub — without it Chrome drops the file and only logs `Download is disallowed`. A sheet frame got it too, as a separate decision (M6) — there File > Download hands out the whole file, every tab. Every keyword per type lives in [embedSandbox.ts](app/utils/embedSandbox.ts), pinned by tests
+- **A community visualization the user must click or type in is unusable once embedded.** Looker covers it with a "community visualization" warning whose Continue button spills outside the box and cannot be clicked (Hotline's Search, 2026-10-06) — Google's own `/embed/` URL does the same, and the non-embed `/reporting/` URL sends `X-Frame-Options: DENY`, so nothing on our side helps. New reports use native Looker controls: [looker-sharing-policy.md](docs/OPERATIONS/looker-sharing-policy.md)
 - **The 30 reports already in use cannot be changed — we do not own them.** Safari users cannot open those at all; the hint bar is the permanent answer for them, not a stopgap, so do not remove it. Closing the gap for real means asking the report owners, which is a cross-team conversation and not a code change
 
 ### Google Sheets Embeds
@@ -202,7 +204,7 @@ Retired code and one-off scripts live in [archive/](archive/README.md) — not b
 | `node scripts/migrate-company-code.mjs OLD NEW [--apply]` | Rename a company `code` (= its Firestore doc id, which the UI locks). Dry run without `--apply`. Copies the doc, repoints `users.company`, deletes the old one — one atomic batch |
 | `npm run dev` | Local dev server |
 | `npm run build` | Production build |
-| `npm test` | Vitest suite. **Baseline is 483 passing** |
+| `npm test` | Vitest suite. **Baseline is 502 passing** |
 | `npx eslint .` | Lint check (no `lint` npm script exists). **Baseline is 0 — any problem is yours** |
 | `npx vue-tsc --noEmit -p .nuxt/tsconfig.app.json` | Typecheck — **never** `-p tsconfig.json` (root is `"files": []`, checks nothing, false pass). **Baseline is 0 — any error is yours** · run `npx nuxi prepare` first — a stale `.nuxt` hid four real errors for weeks (#484 → #505) |
 | `npx vue-tsc --noEmit -p tests/tsconfig.json` | Typecheck `tests/` — the generated `.nuxt/tsconfig.*` projects do **not** cover it (Nuxt only looks at `tests/nuxt/**`), so test fixtures go unchecked without this. **Baseline is 0** |
