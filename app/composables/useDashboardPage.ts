@@ -416,6 +416,8 @@ export const useDashboardPage = (options: UseDashboardPageOptions = {}) => {
     currentUserRole,
 
     // Methods
+    // `error` is a read-only computed over the store — dismissing goes through here
+    clearError: dashboardStore.clearError,
     loadFolders,
     loadDashboards,
     selectFolder,
