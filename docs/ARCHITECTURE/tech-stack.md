@@ -52,7 +52,7 @@ Cloud Storage is initialized in `app/plugins/firebase.ts` and never used; there 
 |---|---|---|
 | `nitropack` | 2.13.1 (via Nuxt) | `firebase` preset, one Cloud Function named `server`, runtime **nodejs22** |
 | `resend` | ^6.9.4 | Invitation email. `RESEND_API_KEY` comes from Secret Manager |
-| `googleapis` | ^171.4.0 | Looker Studio API through a service account |
+| `googleapis` | ^171.4.0 | `scripts/verify-firestore-rules.mjs` (`npm run rules:verify`). The Looker Studio API client that also used it was archived 2026-10-06 |
 
 `sharp` arrives as a transitive dependency of the image handling and is the reason functions
 are **never** built locally on a Mac — the binary is the wrong architecture for the Linux

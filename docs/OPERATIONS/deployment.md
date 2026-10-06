@@ -26,7 +26,7 @@ StreamHub deploys to **Firebase Hosting** (static SPA) + **Cloud Functions for F
 │  Cloud Functions for Firebase (2nd gen)     │
 │  Serves: .output/server (Nitro API routes)  │
 │  Routes: /api/audit/*, /api/embed/*,        │
-│          /api/looker/*, /api/mock/*          │
+│          /api/mock/*, …                      │
 └─────────────────────────────────────────────┘
 ```
 

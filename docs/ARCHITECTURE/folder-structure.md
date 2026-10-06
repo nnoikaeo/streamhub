@@ -29,7 +29,6 @@ streamhub/
 │   │   ├── useExplorer.ts           # Folder/dashboard explorer state
 │   │   ├── useForm.ts               # Generic form state + validation
 │   │   ├── useJSONMockService.ts    # JSON-based mock data service
-│   │   ├── useLookerApi.ts          # Looker Studio API client (status, reports, sync)
 │   │   ├── useModeratorDashboards.ts # Moderator dashboard management
 │   │   ├── useModeratorFolders.ts   # Moderator folder management
 │   │   ├── useRoleNavigation.ts     # Role-based sidebar menu config
@@ -160,12 +159,6 @@ streamhub/
 │
 ├── 📁 server/
 │   └── 📁 api/
-│       ├── 📁 looker/               # Looker Studio API proxy endpoints
-│       │   ├── reports.get.ts       # List all Looker reports
-│       │   ├── status.get.ts        # Check Looker API credentials status
-│       │   ├── sync.post.ts         # Sync dashboard metadata from Looker
-│       │   └── 📁 reports/
-│       │       └── [id].get.ts      # Get single Looker report by ID
 │       ├── 📁 thumbnail/            # Dashboard thumbnail generation
 │       │   └── [dashboardId].get.ts # Generate SVG placeholder thumbnail
 │       └── 📁 mock/                 # Nitro mock API handlers
