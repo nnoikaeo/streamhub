@@ -328,6 +328,15 @@ Technicians download a Looker table (Hotline Daily Report: ⋮ › Export chart 
 - [x] **Sheets download** (#511, on prod 2026-10-04; deployed before the meeting so the One Data team can try it) — TC 3.13.14: Chrome downloads .xlsx (every tab) and .csv; **Safari gets no file** — Google's `frame-ancestors` on the export response refuses StreamHub as an ancestor, not fixable on our side — the sheet frame gets `allow-downloads` too, so File > Download works in StreamHub · `blob:` in `frame-src` from #513 already covers Safari's download path · TC 3.13.14 · **bigger trade-off than Looker:** File > Download hands out the whole file, every tab, not one table; the only per-sheet brake left is the owner's "viewers can download, print and copy" switch in Google (M6)
 - [ ] **BUG-042** — `check-sharing` probes `export`, so a link-shared sheet with viewer downloads off reads as "not shared (401)" and cannot be added or edited. Probe `gviz` and require `text/csv` instead — first measure gviz on a sheet that is not shared at all
 
+### Meeting — 2026-10-06: One Data PIC permission check
+
+The One Data team wants StreamHub access to match their PIC sheet (One_Data_PIC_v2). Agreed: **no connection between StreamHub and the PIC, and no new columns or work for tool admins**. StreamHub exports CSV; someone pastes it next to the PIC.
+
+- [x] **CSV export** (#518, on prod 2026-10-06) — `/admin/users`: group filter + 📥 users file (ชื่อ อีเมล บริษัท กลุ่ม สถานะ) · permissions page, dashboard mode, admin **and** moderator: 📥 everyone who can open that dashboard (ชื่อ อีเมล บริษัท กลุ่ม ได้สิทธิ์ผ่าน), saved grants only, folder moderators listed, admins / disabled / restricted left out — pinned to the server's `checkDashboardAccess` by [accessExport.test.ts](../../tests/utils/accessExport.test.ts) · TC 3.2.15–16, 3.10.27–28, 4.2.6 ✅
+- [ ] **BUG-043** — "ทุกบริษัท" (`company: ['ALL']`) grants nobody on the server or client checks, though the page counts everyone. Decide: make the checks accept `ALL` (widens access on prod at once) or remove the option. Check prod for items using `ALL` first
+- [ ] **Comparison tabs in the PIC** (`วาง_StreamHub` + `ตรวจเทียบ_StreamHub`, incl. resigned staff and acting holders from the RefPIC tabs) — formulas only, IT builds them once · **blocked:** needs One Data's consent, and the PIC is shared "anyone with the link" — its whole staff list downloads as CSV without login, so it must stop being link-shared before StreamHub emails are pasted in
+- [x] **Looker "community visualization" warning** — measured 2026-10-06: Hotline's Search box is a community visualization; embedded, Looker covers it with a warning whose Continue button cannot be clicked, so search is unusable — StreamHub cannot fix it (Google's own `/embed/` URL does the same; the non-embed URL sends `X-Frame-Options: DENY`). Recorded as a rule for new reports in [looker-sharing-policy.md](looker-sharing-policy.md), section "ห้ามใช้ community visualization ที่ต้องโต้ตอบในรายงานที่จะฝัง" (#520) · fixing Hotline itself is the report owner's call
+
 ---
 
 ## Remaining Backlog (non-blocking)

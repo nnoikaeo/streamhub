@@ -59,6 +59,8 @@ target that is not in the list, it shows "ไม่พบแดชบอร์�
 
 ### Header Section
 
+Page header row: `[← กลับไป Explorer]  จัดการสิทธิ์ ……………… [📥 ดาวน์โหลดรายชื่อผู้มีสิทธิ์]` — the download button shows in dashboard mode only (admin and moderator), uses saved grants, and is greyed out with "บันทึกการแก้ไขก่อน แล้วจึงดาวน์โหลด" while edits are unsaved. File columns: ชื่อ อีเมล บริษัท กลุ่ม ได้สิทธิ์ผ่าน (#518)
+
 ```text
 Dashboard: Sales East Performance
 Owner: John (Moderator)
