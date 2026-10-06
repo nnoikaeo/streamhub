@@ -98,7 +98,6 @@ function exportFor(access: AccessControl, restrictions: AccessRestrictions) {
     permissions: { access, restrictions },
     users: nonAdmin,
     groups,
-    activeCompanyCodes: ['STSS', 'STEB', 'STPK', 'STTH'],
     inherited: folders
       .filter((f) => f.inheritPermissions && f.access)
       .map((f) => ({ name: f.name, access: f.access, restrictions: f.restrictions })),

@@ -43,7 +43,7 @@ export function sharedBreakdown(dashboards: readonly SharedDashboard[], viewer: 
     const a = d.access
     if (a?.direct?.users?.includes(viewer.uid)) result.direct++
     else if (a?.direct?.groups?.some((g) => groups.includes(g))) result.group++
-    else if (a?.company?.some((c) => c === 'ALL' || c === viewer.company)) result.company++
+    else if (a?.company?.some((c) => c === viewer.company)) result.company++
     else result.other++
   }
   return result

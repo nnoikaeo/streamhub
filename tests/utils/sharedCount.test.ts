@@ -32,12 +32,13 @@ describe('sharedBreakdown', () => {
     expect(b).toEqual({ total: 1, direct: 1, group: 0, company: 0, other: 0 })
   })
 
-  it('counts company grants, including ALL', () => {
+  it('counts the viewer\'s own company grant, not a stored ALL (BUG-043)', () => {
     const b = sharedBreakdown([
       { owner: 'x', access: grant({ company: ['OAYT'] }) },
       { owner: 'x', access: grant({ company: ['ALL'] }) },
     ], viewer)
-    expect(b.company).toBe(2)
+    expect(b.company).toBe(1)
+    expect(b.other).toBe(1)
   })
 
   it('puts access with no matching grant on the dashboard (public, folder) under other', () => {
