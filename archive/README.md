@@ -28,6 +28,9 @@ composable and util for a reference outside comments.
 | `app/components/ui/ViewModal.vue` | Generic read-only detail modal | No page uses it; admin pages have their own (e.g. `GroupViewModal`) |
 | `app/composables/usePaginatedList.ts` | Client-side pagination | Admin tables paginate through `useAdminCrudPage` / `DataTable` |
 | `app/utils/schemas.ts` | Zod schemas | Nothing imports it |
+| `app/composables/useLookerApi.ts` | Client for the Looker Studio API routes below (status, report search, sync) | Never worked on prod: none of its calls sent an auth token, so every one got 401 and the "Browse Reports" button it gated stayed hidden. Archived 2026-10-06 together with that button and its report-picker dialog in `LookerUrlInput.vue` |
+| `server/api/looker/*.ts`, `server/api/looker/reports/[id].get.ts` | `/api/looker/status`, `/reports`, `/reports/:id`, `/sync` | Only `useLookerApi` called them. Whether the Looker Studio API returns reports to a service account was never measured |
+| `server/utils/lookerStudioApi.ts` | Looker Studio API client (`datastudio.readonly`, service account) | Only the routes above used it |
 
 ## scripts/
 

@@ -107,7 +107,7 @@ Looker ยืนยันสิทธิ์ผู้ดูด้วยคุก�
 
 ข้อ 1 เลือกหลายรายงานพร้อมกันได้จากหน้าแรกของ Looker Studio (ติ๊กหลายตัวแล้วสั่ง Share ทีเดียว) · **ข้อ 2 ไม่มีทางลัด** ต้องเปิดทีละรายงาน
 
-ทาง API ไม่ได้: service account ของเราถือ scope `datastudio.readonly` ([lookerStudioApi.ts](../../server/utils/lookerStudioApi.ts)) และการตั้ง Enable embedding ก็ไม่มีใน Looker Studio API
+ทาง API ไม่ได้: service account ของเราถือ scope `datastudio.readonly` ([lookerStudioApi.ts](../../archive/code/server/utils/lookerStudioApi.ts), ย้ายไป archive 2026-10-06 — ไม่เคยทำงานบน prod) และการตั้ง Enable embedding ก็ไม่มีใน Looker Studio API
 
 ## รายการ 30 รายงานที่ใช้อยู่ (แก้ไม่ได้ — เก็บไว้อ้างอิง)
 
