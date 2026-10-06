@@ -73,7 +73,6 @@ Nitro is built with the `firebase` preset and deployed as one Cloud Function, `s
 |---|---|
 | `/api/invitations/*` | Invite lifecycle; sends mail through Resend with a secret the browser never sees |
 | `/api/embed/request`, `/api/embed/{token}` | Looker embed proxy — the real report URL is sealed in an AES-256-GCM token so it never reaches the client |
-| `/api/looker/*` | Looker Studio API via a service account |
 | `/api/audit/*` | Audit log write and export |
 | `/api/thumbnail/{dashboardId}` | Server-side image handling (`sharp` — which is why functions are never built on a Mac) |
 | `/api/health` | Liveness check |

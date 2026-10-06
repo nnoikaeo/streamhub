@@ -96,7 +96,7 @@
 **Goal:** Connect Looker Studio + advanced features
 
 - [x] **Looker Studio Manual URL** — URL input + validation + live preview (`feat/looker-manual-url` → PR #97)
-- [x] **Looker Studio API** — Google Sheets API service, 4 API routes, `useLookerApi` composable (`feat/looker-api-service` → PR #98)
+- [x] **Looker Studio API** — Google Sheets API service, 4 API routes, `useLookerApi` composable (`feat/looker-api-service` → PR #98) · **moved to [archive/](../../archive/README.md) 2026-10-06** — it never worked on prod: every client call went out without an auth token, so `/api/looker/status` answered 401 and the "Browse Reports" button stayed hidden; the only visible trace was that 401 in the console
 - [x] **Dashboard Preview Widget** — thumbnail generation, `DashboardPreview.vue`, `DashboardCard.vue` (`feat/dashboard-preview-widget` → PR #99)
 
 **Plan:** [archive/looker-studio-api-plan.md](archive/looker-studio-api-plan.md) *(archived — completed)*
@@ -403,7 +403,7 @@ app/pages/
 |----------|-----------|
 | **Admin CRUD (11)** | useAdminBreadcrumbs, useAdminCompanies, useAdminCrudPage, useAdminDashboards, useAdminFolders, useAdminGroups, useAdminInvitations, useAdminRegions, useAdminResource, useAdminTags, useAdminUsers |
 | **Moderator (2)** | useModeratorFolders, useModeratorDashboards |
-| **Core (12)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useLookerApi, useRecentDashboards, useRoleNavigation, useSidebarVisibility |
+| **Core (11)** | useAppToast, useAuth, useCompanyAccess, useDashboardPage, useDashboardService, useExplorer, useForm, useJSONMockService, useRecentDashboards, useRoleNavigation, useSidebarVisibility |
 
 ### Mock API Endpoints
 
@@ -417,13 +417,6 @@ All entities have REST endpoints under `server/api/mock/`:
 - **Regions** — GET, POST, PUT/:code, DELETE/:code
 - **Tags** — GET, POST, GET/:id, PUT/:id, DELETE/:id
 - **Users** — GET, POST, GET/:uid, PUT/:uid, DELETE/:uid
-
-Looker Studio API proxy under `server/api/looker/`:
-
-- `GET /api/looker/status` — Check API credential status
-- `GET /api/looker/reports` — List available Looker reports
-- `GET /api/looker/reports/:id` — Get single report metadata
-- `POST /api/looker/sync` — Sync dashboard metadata from Looker
 
 Thumbnail API under `server/api/thumbnail/`:
 
