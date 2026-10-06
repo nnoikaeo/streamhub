@@ -25,6 +25,8 @@ import type { Dashboard, User, AccessControl, AccessRestrictions, Folder, Permis
 import type { AdminGroup, Company } from '~/types/admin'
 import { buildAccessEntries, accessibleUsers, sourceDetail, strandedRestrictions, withoutRestrictionsFor } from '~/utils/effectiveAccess'
 import type { AccessEntry } from '~/utils/effectiveAccess'
+import { dashboardAccessCsv } from '~/utils/accessExport'
+import { downloadCsv, csvDateStamp, fileNamePart } from '~/utils/csv'
 
 interface Props {
   /** Dashboards available for selection */
@@ -429,6 +431,24 @@ const effectiveAccess = computed<EffectiveAccessEntry[]>(() =>
   })),
 )
 
+// ─── Download (One Data PIC comparison) ─────────────────────────────────
+
+/**
+ * Everyone who can open this dashboard, as CSV. Written from the saved grants
+ * only — with unsaved edits on screen the file would describe a state that
+ * does not exist yet, so the button waits for บันทึก.
+ */
+const downloadAccess = () => {
+  if (!currentDashboard.value || hasChanges.value) return
+  const csv = dashboardAccessCsv({
+    entries: accessEntries.value,
+    users: props.allUsers,
+    groups: props.allGroups,
+    folderChain: getAncestorChain(currentDashboard.value.folderId),
+  })
+  downloadCsv(`streamhub-access-${fileNamePart(currentDashboard.value.name)}-${csvDateStamp()}.csv`, csv)
+}
+
 // ─── Load permissions ───────────────────────────────────────────────────
 
 const loadDashboardPermissions = async () => {
@@ -694,6 +714,16 @@ watch(() => props.allFolders, (folders) => {
           </button>
           <h1 class="page-header__title">จัดการสิทธิ์</h1>
         </div>
+        <button
+          v-if="editMode === 'dashboard' && currentDashboard"
+          type="button"
+          class="page-header-action-btn"
+          :disabled="hasChanges"
+          :title="hasChanges ? 'บันทึกการแก้ไขก่อน แล้วจึงดาวน์โหลด' : 'รายชื่อทุกคนที่เปิดแดชบอร์ดนี้ได้ (CSV)'"
+          @click="downloadAccess"
+        >
+          📥 ดาวน์โหลดรายชื่อผู้มีสิทธิ์
+        </button>
       </template>
 
       <template #table>
