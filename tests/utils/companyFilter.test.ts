@@ -32,9 +32,9 @@ describe('matchesCompanyFilter', () => {
     expect(matchesCompanyFilter(withCompanies(['STTH']), '0')).toBe(false)
   })
 
-  it('matches every company for an ALL grant', () => {
-    expect(matchesCompanyFilter(withCompanies(['ALL']), 'STTH')).toBe(true)
-    expect(matchesCompanyFilter(withCompanies(['ALL']), 'STCM')).toBe(true)
+  it('treats a stored ALL as no company at all (BUG-043)', () => {
+    expect(matchesCompanyFilter(withCompanies(['ALL']), 'STTH')).toBe(false)
+    expect(matchesCompanyFilter(withCompanies(['ALL']), 'STCM')).toBe(false)
   })
 
   it('does not match a dashboard with no company grants', () => {

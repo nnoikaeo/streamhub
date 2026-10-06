@@ -96,11 +96,7 @@ export function dashboardAccessCsv(input: DashboardAccessInput): string {
 
   for (const entry of entries) {
     if (entry.blockedBy) continue
-    // "ทุกบริษัท" is stored as company `ALL`, which the server's check never
-    // matches (`company.includes(user.company)`) — it grants nobody today. The
-    // file lists who can actually open the dashboard, so it is left out here.
-    const granted = entry.sources.filter((s) => s.kind !== 'allCompanies')
-    if (granted.length > 0) reasons.set(entry.uid, granted.map(sourceText))
+    reasons.set(entry.uid, entry.sources.map(sourceText))
   }
 
   for (const folder of folderChain) {

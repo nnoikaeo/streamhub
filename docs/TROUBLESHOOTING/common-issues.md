@@ -528,7 +528,7 @@ filtered = filtered.filter((d) => d.access?.company?.[companyFilter])
 
 **เกิดซ้ำฝั่ง client (BUG-035, แก้แล้ว PR #474)** — ตัวกรองบริษัทในหน้า `/dashboard/discover` เขียน `companyCode in companyAccess` ซึ่งเป็นความผิดพลาดเดียวกันคนละรูป: `in` บน array เช็ค**ดัชนี** ⇒ `'STTH' in ['STTH']` เป็น `false` แต่ `'0' in ['STTH']` เป็น `true` · เห็นเฉพาะ admin จึงไม่มีใครรายงานอยู่หลายเดือน
 
-แก้ด้วยการแยกเป็น [companyFilter.ts](../../app/utils/companyFilter.ts) พร้อมเทสต์ แทนที่จะแก้ในหน้า เพราะหน้านั้นไม่มี harness ทดสอบ component และบั๊กนี้โผล่มาแล้วสองครั้ง · ตัว predicate รองรับ `ALL` ด้วย ซึ่งเป็น wildcard จริงที่ [effectiveAccess.ts](../../app/utils/effectiveAccess.ts) ขยายเป็นทุกบริษัท — แก้แค่ `in` → `includes` จะยังซ่อนแดชบอร์ดที่ให้สิทธิ์ `ALL`
+แก้ด้วยการแยกเป็น [companyFilter.ts](../../app/utils/companyFilter.ts) พร้อมเทสต์ แทนที่จะแก้ในหน้า เพราะหน้านั้นไม่มี harness ทดสอบ component และบั๊กนี้โผล่มาแล้วสองครั้ง · ตอนนั้น predicate นับ `ALL` เป็นทุกบริษัทด้วย แต่ตัวตรวจสิทธิ์จริงไม่เคยรับ `ALL` (BUG-043) — ตัวเลือก "ทุกบริษัท" ถูกเอาออก 2026-10-07 และ predicate ตรงรหัสบริษัทอย่างเดียวแล้ว
 
 > ถ้าเจอโค้ดที่อ่าน `access.company` ด้วย `[code]` หรือ `in` ที่ไหนอีก นั่นคือบั๊กตัวเดิม ไม่ใช่สไตล์การเขียน
 

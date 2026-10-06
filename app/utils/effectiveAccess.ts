@@ -42,8 +42,6 @@ export interface AccessInput {
    * server enforces — not `groups.members[]`, which can drift (BUG-005).
    */
   groups: { id: string, name: string }[]
-  /** Company codes that "ทุกบริษัท" expands to. */
-  activeCompanyCodes: string[]
   inherited?: InheritedSource[]
   /** Reads Timestamp / ISO string / Date alike — pass `isExpired`. */
   isExpiredFn: (value: unknown, now: Date) => boolean
@@ -59,7 +57,7 @@ export interface AccessInput {
  * ("📁 Finance · บริษัท STTH").
  */
 export interface AccessSource {
-  kind: 'direct' | 'group' | 'company' | 'allCompanies' | 'public'
+  kind: 'direct' | 'group' | 'company' | 'public'
   /** Group name or company code, where the kind carries one. */
   name?: string
   /** Ancestor folder this grant came from — absent when granted on the item. */
@@ -76,8 +74,6 @@ export interface AccessEntry {
   blockedBy?: string
 }
 
-export const ALL_COMPANIES = 'ALL'
-
 /**
  * Everyone the grants reach, each with their reasons and any restriction.
  *
@@ -86,7 +82,7 @@ export const ALL_COMPANIES = 'ALL'
  * nothing — `accessibleUsers` filters them out for the plain count.
  */
 export function buildAccessEntries(input: AccessInput): AccessEntry[] {
-  const { permissions, users, groups, activeCompanyCodes, inherited = [], isExpiredFn } = input
+  const { permissions, users, groups, inherited = [], isExpiredFn } = input
   const now = input.now ?? new Date()
   const byUid = new Map<string, AccessEntry>()
 
@@ -100,11 +96,6 @@ export function buildAccessEntries(input: AccessInput): AccessEntry[] {
     if (!already) entry.sources.push(source)
     byUid.set(uid, entry)
   }
-
-  const usersInCompany = (code: string) =>
-    code === ALL_COMPANIES
-      ? users.filter((u) => u.company && activeCompanyCodes.includes(u.company))
-      : users.filter((u) => u.company === code)
 
   const applyAccess = (access: PermissionSnapshot['access'], viaFolder?: string) => {
     if (access.public) {
@@ -121,10 +112,11 @@ export function buildAccessEntries(input: AccessInput): AccessEntry[] {
       }
     }
 
+    // Exact code match only, as the access checks read it — a stored `ALL`
+    // (the removed "ทุกบริษัท", BUG-043) matches no one here either
     for (const code of access.company) {
-      const kind = code === ALL_COMPANIES ? 'allCompanies' : 'company'
-      for (const user of usersInCompany(code)) {
-        add(user.uid, { kind, name: code === ALL_COMPANIES ? undefined : code, viaFolder })
+      for (const user of users) {
+        if (user.company === code) add(user.uid, { kind: 'company', name: code, viaFolder })
       }
     }
   }
@@ -178,7 +170,6 @@ export function sourceLabel(source: AccessSource): string {
     case 'direct': return 'สิทธิ์ตรง'
     case 'group': return `กลุ่ม ${source.name}`
     case 'company': return `บริษัท ${source.name}`
-    case 'allCompanies': return 'ทุกบริษัท'
     case 'public': return 'สาธารณะ'
   }
 }
@@ -188,7 +179,6 @@ export function sourceDetail(source: AccessSource): string {
   const base = source.kind === 'direct' ? 'สิทธิ์ตรง'
     : source.kind === 'group' ? `กลุ่ม ${source.name}`
     : source.kind === 'company' ? `บริษัท ${source.name}`
-    : source.kind === 'allCompanies' ? 'ทุกบริษัท'
     : 'สาธารณะ'
 
   return source.viaFolder ? `📁 ${source.viaFolder} · ${base}` : base

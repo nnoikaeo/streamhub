@@ -260,10 +260,7 @@ const getInheritedUserCount = (folder: Folder): number => {
     if (group) group.members.forEach((uid: string) => uids.add(uid))
   }
   for (const companyCode of folder.access.company) {
-    const usersForCode = companyCode === 'ALL'
-      ? nonAdminUsers.value.filter(u => props.allCompanies.some((c) => c.code === u.company && c.isActive))
-      : nonAdminUsers.value.filter(u => u.company === companyCode)
-    usersForCode.forEach(u => uids.add(u.uid))
+    nonAdminUsers.value.filter(u => u.company === companyCode).forEach(u => uids.add(u.uid))
   }
   return uids.size
 }
@@ -290,10 +287,10 @@ const conflicts = computed<ConflictWarning[]>(() => {
   for (const uid of perms.access.direct.users) {
     const u = props.allUsers.find(x => x.uid === uid)
     if (!u) continue
-    if (perms.access.company.includes(u.company) || perms.access.company.includes('ALL')) {
+    if (perms.access.company.includes(u.company)) {
       warnings.push({
         type: 'redundant-grant',
-        message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — ${perms.access.company.includes('ALL') ? 'ทุกบริษัท' : `บริษัท ${u.company}`} มีสิทธิ์อยู่แล้ว`,
+        message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — บริษัท ${u.company} มีสิทธิ์อยู่แล้ว`,
       })
     }
     for (const gid of perms.access.direct.groups) {
@@ -317,7 +314,6 @@ const conflicts = computed<ConflictWarning[]>(() => {
       const hasInheritedAccess =
         folder.access.direct.users.includes(uid) ||
         folder.access.company.includes(u.company) ||
-        folder.access.company.includes('ALL') ||
         folder.access.direct.groups.some((gid: string) => {
           const g = props.allGroups.find((g) => g.id === gid)
           return g?.members.includes(uid)
@@ -341,7 +337,6 @@ const conflicts = computed<ConflictWarning[]>(() => {
       const hasDirectAccess =
         perms.access.direct.users.includes(uid) ||
         perms.access.company.includes(u.company) ||
-        perms.access.company.includes('ALL') ||
         perms.access.direct.groups.some((gid: string) => {
           const g = props.allGroups.find((g) => g.id === gid)
           return g?.members.includes(uid)
@@ -382,7 +377,6 @@ const accessEntries = computed<AccessEntry[]>(() =>
     permissions: activePermissions.value,
     users: nonAdminUsers.value,
     groups: props.allGroups,
-    activeCompanyCodes: props.allCompanies.filter((c) => c.isActive).map((c) => c.code),
     inherited: inheritedFolders.value.map((folder) => ({
       name: folder.name,
       access: folder.access,

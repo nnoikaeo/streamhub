@@ -7,17 +7,12 @@
  * in `server/api/mock/dashboards.get.ts` (PR #359) and survived on the client,
  * where only admins see the control and nobody reported it.
  *
- * `ALL` is a real wildcard meaning every active company — `effectiveAccess.ts`
- * expands it that way when it works out who can see a dashboard. A filter that
- * ignored it would hide dashboards the company genuinely has access to, which
- * is the same wrong answer the `in` bug gave, just less often.
+ * There is no "every company" value. The editor once offered "ทุกบริษัท",
+ * stored as `ALL`, which no access check ever matched (BUG-043); it was
+ * removed, and 🌐 public is the one way to share with everyone.
  */
 
 import type { Dashboard } from '~/types/dashboard'
-// Relative, not `~/`: this is a value import, and plain Vitest resolves no
-// Nuxt aliases — the type-only imports elsewhere in app/utils get erased and
-// never hit the resolver.
-import { ALL_COMPANIES } from './effectiveAccess'
 
 /**
  * Whether `companyCode` is granted access to this dashboard.
@@ -30,5 +25,5 @@ export function matchesCompanyFilter(dashboard: Pick<Dashboard, 'access'>, compa
   const granted = dashboard.access?.company
   if (!granted?.length) return false
 
-  return granted.includes(companyCode) || granted.includes(ALL_COMPANIES)
+  return granted.includes(companyCode)
 }
