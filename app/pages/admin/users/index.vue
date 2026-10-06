@@ -8,7 +8,8 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
  * Features:
  * - Display all users in DataTable
  * - Edit, Delete, Toggle Active operations
- * - Filter by role, company, active status
+ * - Filter by role, company, group, active status
+ * - Download the filtered list as CSV (ชื่อ อีเมล บริษัท กลุ่ม สถานะ) to compare with the One Data PIC sheet
  * - Search by email or name
  * - Protected by admin middleware
  *
@@ -28,7 +29,7 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
  *    - Click toggle → handleToggleActive → showToggleDialog with userToToggle
  * 5. FormModal with UserForm → userFormRef.submit() → validates → handleSaveUser
  * 6. ConfirmDialog → confirmDeleteUser / confirmToggleActive
- * 7. Filters: search, role, company, active status → filteredUsers computed property
+ * 7. Filters: search, role, company, group, active status → filteredUsers computed property
  *
  * COMPONENTS USED:
  * - DataTable: Generic table component (auto-imported from ~/components/admin)
@@ -59,6 +60,8 @@ import {
 } from '~/utils/folderAssignment'
 import { diffIds, applyUserGroupsSync } from '~/utils/groupSync'
 import { userGroupChips } from '~/utils/groupDisplay'
+import { usersCsv } from '~/utils/accessExport'
+import { downloadCsv, csvDateStamp, fileNamePart } from '~/utils/csv'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
 
@@ -154,6 +157,7 @@ watch(() => users.value.length, (newLen) => {
 const searchQuery = ref('')
 const filterRole = ref<string | null>(null)
 const filterCompany = ref<string | null>(null)
+const filterGroup = ref<string | null>(null)
 const filterActive = ref<boolean | null>(null)
 
 /**
@@ -172,6 +176,9 @@ const columns = [
   { key: 'groups', label: 'กลุ่ม', width: '130px' },
   { key: 'isActive', label: 'สถานะ', sortable: true, width: '85px', isStatusColumn: true },
 ]
+
+/** Groups for the filter dropdown, by name. */
+const sortedGroups = computed(() => [...groups.value].sort((a, b) => a.name.localeCompare(b.name)))
 
 /**
  * Filter and search users
@@ -194,6 +201,12 @@ const filteredUsers = computed(() => {
 
     // Company filter
     if (filterCompany.value && user.company !== filterCompany.value) {
+      return false
+    }
+
+    // Group filter — membership read from the user's own groups[], the side
+    // access control enforces (BUG-005)
+    if (filterGroup.value && !(user.groups ?? []).includes(filterGroup.value)) {
       return false
     }
 
@@ -328,7 +341,19 @@ const clearFilters = () => {
   searchQuery.value = ''
   filterRole.value = null
   filterCompany.value = null
+  filterGroup.value = null
   filterActive.value = null
+}
+
+/**
+ * Download exactly the rows the filters leave on screen. The file name carries
+ * the company / group filter so two downloads side by side stay told apart.
+ */
+const downloadUsers = () => {
+  const company = filterCompany.value
+  const group = groups.value.find(g => g.id === filterGroup.value)?.name
+  const parts = ['streamhub-users', company, group && fileNamePart(group), csvDateStamp()].filter(Boolean)
+  downloadCsv(`${parts.join('-')}.csv`, usersCsv(filteredUsers.value, groups.value))
 }
 
 /**
@@ -388,6 +413,15 @@ const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการผู้ใช้</h1>
+        <button
+          type="button"
+          class="page-header-action-btn"
+          :disabled="filteredUsers.length === 0"
+          :title="`ดาวน์โหลดรายชื่อ ${filteredUsers.length} คนตามตัวกรอง (CSV)`"
+          @click="downloadUsers"
+        >
+          📥 ดาวน์โหลดรายชื่อ
+        </button>
       </template>
 
       <template #filters>
@@ -419,6 +453,12 @@ const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${
             :show-icon="false"
             placeholder="-- ทุกบริษัท --"
           />
+        </div>
+        <div class="filter-group">
+          <select id="user-filter-group" v-model="filterGroup" name="user-filter-group" aria-label="กรองตามกลุ่ม" class="theme-form-select">
+            <option :value="null">-- ทุกกลุ่ม --</option>
+            <option v-for="group in sortedGroups" :key="group.id" :value="group.id">{{ group.name }}</option>
+          </select>
         </div>
         <div class="filter-group">
           <select id="user-filter-status" v-model="filterActive" name="user-filter-status" aria-label="กรองตามสถานะ" class="theme-form-select">
