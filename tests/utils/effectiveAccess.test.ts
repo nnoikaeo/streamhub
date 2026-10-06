@@ -28,7 +28,6 @@ const groups = [{ id: 'finance', name: 'การเงิน', members: ['natth
 const base = {
   users,
   groups,
-  activeCompanyCodes: ['OAYT', 'STTH'],
   isExpiredFn: isExpired,
   now: new Date('2026-08-19T00:00:00.000Z'),
 }
@@ -59,11 +58,12 @@ describe('buildAccessEntries — sources', () => {
     expect(entries[0]?.sources.map(sourceLabel)).toEqual(['บริษัท STTH'])
   })
 
-  it('expands ทุกบริษัท to every active company', () => {
+  it('gives a stored ALL to no one, as the access checks do (BUG-043)', () => {
+    // The removed "ทุกบริษัท" option stored `ALL`; the server never matched it,
+    // so the page must not count it as everyone either
     const entries = buildAccessEntries({ ...base, permissions: permissions({ company: ['ALL'] }) })
 
-    expect(entries).toHaveLength(3)
-    expect(entries[0]?.sources.map(sourceLabel)).toEqual(['ทุกบริษัท'])
+    expect(entries).toEqual([])
   })
 
   it('reads group membership from users.groups, not groups.members (BUG-005 drift)', () => {
@@ -196,7 +196,6 @@ describe('sourceLabel / sourceDetail', () => {
     expect(sourceDetail({ kind: 'company', name: 'STTH', viaFolder: 'Finance' })).toBe('📁 Finance · บริษัท STTH')
     expect(sourceDetail({ kind: 'group', name: 'Finance' })).toBe('กลุ่ม Finance')
     expect(sourceDetail({ kind: 'direct' })).toBe('สิทธิ์ตรง')
-    expect(sourceDetail({ kind: 'allCompanies' })).toBe('ทุกบริษัท')
     expect(sourceDetail({ kind: 'public' })).toBe('สาธารณะ')
   })
 })
