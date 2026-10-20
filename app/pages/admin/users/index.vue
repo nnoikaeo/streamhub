@@ -60,7 +60,8 @@ import {
 } from '~/utils/folderAssignment'
 import { diffIds, applyUserGroupsSync } from '~/utils/groupSync'
 import { userGroupChips } from '~/utils/groupDisplay'
-import { usersCsv } from '~/utils/accessExport'
+import { usersCsv, allDashboardsAccessCsv } from '~/utils/accessExport'
+import { useAdminDashboards } from '~/composables/useAdminDashboards'
 import { downloadCsv, csvDateStamp, fileNamePart } from '~/utils/csv'
 
 const { breadcrumbs } = useAdminBreadcrumbs()
@@ -79,6 +80,7 @@ const { companies, fetchCompanies } = useAdminCompanies()
 const { regions, fetchRegions } = useAdminRegions()
 const { folders, fetchFolders, updateFolder, buildFolderTree } = useAdminFolders()
 const { groups, fetchGroups, updateGroup } = useAdminGroups()
+const { dashboards, fetchDashboards } = useAdminDashboards()
 
 // CRUD page state (modal, dialog, handlers) — edit + delete + toggle only
 // Note: handleSave from useAdminCrudPage is replaced by a custom handler below
@@ -356,6 +358,35 @@ const downloadUsers = () => {
   downloadCsv(`${parts.join('-')}.csv`, usersCsv(filteredUsers.value, groups.value))
 }
 
+const downloadingAccess = ref(false)
+
+/**
+ * Who can open each dashboard, every dashboard in one file — the One Data
+ * team lays it next to the PIC sheet, which covers 17 tools at once. Not cut
+ * by the filters above: a user missing from the file would read as "has no
+ * access" rather than "was filtered out". Dashboards load on click, fresh, so
+ * the file describes grants as saved right now.
+ */
+const downloadAllAccess = async () => {
+  if (downloadingAccess.value) return
+  downloadingAccess.value = true
+  try {
+    await fetchDashboards()
+    const csv = allDashboardsAccessCsv({
+      dashboards: dashboards.value,
+      folders: folders.value,
+      users: users.value,
+      groups: groups.value,
+      isExpiredFn: isExpired,
+    })
+    downloadCsv(`streamhub-access-all-${csvDateStamp()}.csv`, csv)
+  } catch (error) {
+    console.error('Error exporting dashboard access:', error)
+  } finally {
+    downloadingAccess.value = false
+  }
+}
+
 /**
  * Action buttons for table rows
  */
@@ -413,15 +444,26 @@ const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${
     <AdminPageContent>
       <template #header>
         <h1 class="page-header__title">จัดการผู้ใช้</h1>
-        <button
-          type="button"
-          class="page-header-action-btn"
-          :disabled="filteredUsers.length === 0"
-          :title="`ดาวน์โหลดรายชื่อ ${filteredUsers.length} คนตามตัวกรอง (CSV)`"
-          @click="downloadUsers"
-        >
-          📥 ดาวน์โหลดรายชื่อ
-        </button>
+        <div class="page-header__actions">
+          <button
+            type="button"
+            class="page-header-action-btn"
+            :disabled="filteredUsers.length === 0"
+            :title="`ดาวน์โหลดรายชื่อ ${filteredUsers.length} คนตามตัวกรอง (CSV)`"
+            @click="downloadUsers"
+          >
+            📥 ดาวน์โหลดรายชื่อ
+          </button>
+          <button
+            type="button"
+            class="page-header-action-btn"
+            :disabled="downloadingAccess || users.length === 0"
+            title="ทุกคนที่เปิดแต่ละแดชบอร์ดได้ ทุกแดชบอร์ดในไฟล์เดียว ไม่รวมที่เก็บถาวร ไม่ขึ้นกับตัวกรอง (CSV)"
+            @click="downloadAllAccess"
+          >
+            📥 {{ downloadingAccess ? 'กำลังเตรียมไฟล์…' : 'ดาวน์โหลดสิทธิ์ทุกแดชบอร์ด' }}
+          </button>
+        </div>
       </template>
 
       <template #filters>
@@ -546,6 +588,12 @@ const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${
 </template>
 
 <style scoped>
+.page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
 .group-badges {
   display: flex;
   flex-wrap: wrap;

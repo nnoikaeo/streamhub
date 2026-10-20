@@ -1,18 +1,21 @@
 /**
- * The two CSV files a tool admin compares with the One Data PIC sheet.
+ * The CSV files a tool admin compares with the One Data PIC sheet.
  *
  * - Users (`/admin/users`): everyone in StreamHub, so the PIC side can see who
  *   has an account.
  * - Dashboard access (🔑 → จัดการสิทธิ์): everyone who can open one dashboard
  *   right now, and why.
+ * - Every dashboard (`/admin/users`, beside the users file): the same rows
+ *   for all of them in one file, with the dashboard named on each row — the
+ *   PIC has 17 tools, and one paste beats seventeen.
  *
  * StreamHub never reads the PIC. These files are the whole link: someone
  * downloads one and pastes it next to the PIC.
  */
 import { toCsv } from './csv'
 import { userGroupChips } from './groupDisplay'
-import { sourceDetail } from './effectiveAccess'
-import type { AccessEntry, AccessSource } from './effectiveAccess'
+import { buildAccessEntries, sourceDetail } from './effectiveAccess'
+import type { AccessEntry, AccessSource, PermissionSnapshot } from './effectiveAccess'
 
 interface GroupRef {
   id: string
@@ -33,6 +36,24 @@ interface ExportUser {
 interface ManagingFolder {
   name: string
   assignedModerators?: string[]
+}
+
+/** A folder as stored — enough to walk up from a dashboard and read its grants. */
+interface ExportFolder extends ManagingFolder {
+  id: string
+  parentId?: string | null
+  inheritPermissions?: boolean
+  access?: PermissionSnapshot['access'] | null
+  restrictions?: PermissionSnapshot['restrictions'] | null
+}
+
+interface ExportDashboard {
+  id: string
+  name: string
+  folderId: string
+  isArchived?: boolean
+  access?: Partial<PermissionSnapshot['access']> | null
+  restrictions?: Partial<PermissionSnapshot['restrictions']> | null
 }
 
 /** Group names, joined — ids with no group left behind are dropped. */
@@ -86,6 +107,10 @@ export interface DashboardAccessInput {
  *   file and match no PIC row
  */
 export function dashboardAccessCsv(input: DashboardAccessInput): string {
+  return toCsv(ACCESS_CSV_HEADERS, accessRows(input))
+}
+
+function accessRows(input: DashboardAccessInput): string[][] {
   const { entries, users, groups, folderChain } = input
   const byUid = new Map(users.map((u) => [u.uid, u]))
   const reasons = new Map<string, string[]>()
@@ -108,7 +133,7 @@ export function dashboardAccessCsv(input: DashboardAccessInput): string {
     }
   }
 
-  const rows = [...reasons]
+  return [...reasons]
     .map(([uid, why]) => ({ user: byUid.get(uid), why }))
     .filter((r): r is { user: ExportUser, why: string[] } =>
       !!r.user && r.user.isActive && r.user.role !== 'admin')
@@ -120,6 +145,78 @@ export function dashboardAccessCsv(input: DashboardAccessInput): string {
       groupNames(user.groups, groups),
       why.join(' / '),
     ])
+}
 
-  return toCsv(ACCESS_CSV_HEADERS, rows)
+export const ALL_ACCESS_CSV_HEADERS = ['แดชบอร์ด id', 'แดชบอร์ด', ...ACCESS_CSV_HEADERS] as const
+
+export interface AllDashboardsAccessInput {
+  dashboards: readonly ExportDashboard[]
+  folders: readonly ExportFolder[]
+  users: readonly ExportUser[]
+  groups: readonly GroupRef[]
+  /** Reads Timestamp / ISO string / Date alike — pass `isExpired`. */
+  isExpiredFn: (value: unknown, now: Date) => boolean
+  now?: Date
+}
+
+/** The dashboard's folder first, then each parent — a missing or looping parent ends the walk. */
+function folderChainOf(folderId: string, folders: readonly ExportFolder[]): ExportFolder[] {
+  const chain: ExportFolder[] = []
+  let id: string | null | undefined = folderId
+  while (id && !chain.some((f) => f.id === id)) {
+    const folder = folders.find((f) => f.id === id)
+    if (!folder) break
+    chain.push(folder)
+    id = folder.parentId
+  }
+  return chain
+}
+
+/**
+ * Everyone who can open each dashboard, one row per dashboard and person.
+ *
+ * Each dashboard's rows are exactly what 📥 on its permissions page writes —
+ * built the way that page builds them, from the stored grants. Archived
+ * dashboards are left out: nobody browses to them, and the PIC has no row for
+ * a retired report.
+ */
+export function allDashboardsAccessCsv(input: AllDashboardsAccessInput): string {
+  const { dashboards, folders, users, groups, isExpiredFn, now } = input
+  const nonAdmin = users.filter((u) => u.role !== 'admin')
+
+  const rows = dashboards
+    .filter((d) => !d.isArchived)
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .flatMap((dashboard) => {
+      const folderChain = folderChainOf(dashboard.folderId, folders)
+      const entries = buildAccessEntries({
+        // Older dashboards can lack any of these fields — read them as empty
+        permissions: {
+          access: {
+            public: dashboard.access?.public === true,
+            direct: {
+              users: dashboard.access?.direct?.users ?? [],
+              groups: dashboard.access?.direct?.groups ?? [],
+            },
+            company: dashboard.access?.company ?? [],
+          },
+          restrictions: {
+            revoke: dashboard.restrictions?.revoke ?? [],
+            expiry: dashboard.restrictions?.expiry ?? {},
+          },
+        },
+        users: nonAdmin,
+        groups: [...groups],
+        inherited: folderChain
+          .filter((f) => f.inheritPermissions && f.access)
+          .map((f) => ({ name: f.name, access: f.access, restrictions: f.restrictions })),
+        isExpiredFn,
+        now,
+      })
+      return accessRows({ entries, users, groups, folderChain })
+        .map((row) => [dashboard.id, dashboard.name, ...row])
+    })
+
+  return toCsv(ALL_ACCESS_CSV_HEADERS, rows)
 }
