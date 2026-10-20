@@ -8,7 +8,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { toCsv, csvDateStamp, fileNamePart } from '../../app/utils/csv'
-import { usersCsv, dashboardAccessCsv } from '../../app/utils/accessExport'
+import { usersCsv, dashboardAccessCsv, allDashboardsAccessCsv } from '../../app/utils/accessExport'
 import { buildAccessEntries } from '../../app/utils/effectiveAccess'
 import { checkDashboardAccess } from '../../server/utils/companyAccess'
 import { isExpired } from '../../shared/utils/dates'
@@ -160,5 +160,70 @@ describe('dashboardAccessCsv', () => {
       .sort()
 
     expect(exported).toEqual(allowed)
+  })
+})
+
+// ─── Every dashboard in one file ─────────────────────────────────────────
+
+describe('allDashboardsAccessCsv', () => {
+  const dashboards = scenarios.map((s, i) => ({
+    id: `dash_${i}`,
+    name: `แดชบอร์ด ${i}`,
+    folderId: 'hotline',
+    isArchived: false,
+    access: s.access,
+    restrictions: s.restrictions,
+  }))
+
+  const all = () => parse(allDashboardsAccessCsv({
+    dashboards: [
+      ...dashboards,
+      { ...dashboards[0]!, id: 'dash_old', name: 'เก็บแล้ว', isArchived: true },
+    ],
+    folders,
+    users,
+    groups,
+    isExpiredFn: isExpired,
+  }))
+
+  it('adds the dashboard id and name in front of the per-dashboard columns', () => {
+    expect(all()[0]).toEqual(['แดชบอร์ด id', 'แดชบอร์ด', 'ชื่อ', 'อีเมล', 'บริษัท', 'กลุ่ม', 'ได้สิทธิ์ผ่าน'])
+  })
+
+  it.each(scenarios.map((s, i) => ({ ...s, i })))(
+    'writes the same rows as the dashboard\'s own 📥 — $name',
+    ({ access, restrictions, i }) => {
+      const own = exportFor(access, restrictions).slice(1)
+      const mine = all().slice(1).filter((r) => r[0] === `dash_${i}`)
+      expect(mine.map((r) => r.slice(2))).toEqual(own)
+      expect(mine.every((r) => r[1] === `แดชบอร์ด ${i}`)).toBe(true)
+    },
+  )
+
+  it('leaves archived dashboards out', () => {
+    expect(all().some((r) => r[0] === 'dash_old')).toBe(false)
+  })
+
+  it('reads a dashboard with no access fields at all as granting nobody but its folder moderators', () => {
+    const rows = parse(allDashboardsAccessCsv({
+      dashboards: [{ id: 'bare', name: 'เก่า', folderId: 'hotline' }],
+      folders,
+      users,
+      groups,
+      isExpiredFn: isExpired,
+    })).slice(1)
+    // ปิติ comes in through Ops, which inherits; the two moderators manage the chain
+    expect(rows.map((r) => r[2]).sort()).toEqual(['กุณฑลี', 'ชูใจ', 'ปิติ'].sort())
+  })
+
+  it('stops at a folder that names itself as an ancestor', () => {
+    const loop = [{ id: 'a', name: 'A', parentId: 'b' }, { id: 'b', name: 'B', parentId: 'a' }]
+    expect(() => allDashboardsAccessCsv({
+      dashboards: [{ id: 'd', name: 'd', folderId: 'a' }],
+      folders: loop,
+      users,
+      groups,
+      isExpiredFn: isExpired,
+    })).not.toThrow()
   })
 })
