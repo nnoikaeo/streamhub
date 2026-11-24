@@ -73,6 +73,7 @@ its row.
 | [roadmap.md](OPERATIONS/roadmap.md) | ⭐ Phases, progress, what shipped in which PR |
 | [deployment.md](OPERATIONS/deployment.md) | Deploy procedures, CI/CD, rollback |
 | [manual-test-plan.md](OPERATIONS/manual-test-plan.md) | Manual QA cases by role, and the BUG-0xx register |
+| [invite-csv-template.md](OPERATIONS/invite-csv-template.md) | Inviting users from a CSV file — the columns, how to build the Google Sheets template with dropdowns, and how a company fills it |
 | [looker-sharing-policy.md](OPERATIONS/looker-sharing-policy.md) | Sharing rules for embedded reports — Looker and Google Sheets — and why the 30 existing Looker reports cannot be fixed (BUG-032) |
 | [versioning.md](OPERATIONS/versioning.md) | Version numbering policy |
 
