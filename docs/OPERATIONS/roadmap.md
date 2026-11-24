@@ -342,12 +342,12 @@ The One Data team wants StreamHub access to match their PIC sheet (One_Data_PIC_
 
 One Data reviewed `/admin/invitations` and `/admin/users` and asked that the admin, not the Google account, decide a user's name — the PIC keys people by ชื่อ and นามสกุล, and names taken from Google ("ช่าง STSB", "Hotline Streamwash") matched nobody. Every screen was agreed on a mock-up before any code.
 
-- [ ] **PR A — names, Gmail only, field order** (`feat/invite-user-name`)
+- [x] **PR A — names, Gmail only, field order** (#527, prod 2026-11-24)
   - `users.name` replaced by optional `firstName` / `lastName`, read only through `fullName` / `userLabel` ([userName.ts](../../shared/utils/userName.ts)); a user with no name shows the email. At acceptance the typed name wins, else the Google name split at the first space
   - Invitations go to `@gmail.com` only: the forms show the suffix as fixed text ([GmailInput.vue](../../app/components/ui/GmailInput.vue)) and every server path that creates, edits or reactivates checks again ([gmail.ts](../../shared/utils/gmail.ts))
   - Field order on invite, bulk invite and edit user: ชื่อ · นามสกุล · บริษัท · กลุ่ม · Gmail · บทบาท
   - CSV columns: users `ชื่อ, นามสกุล, บริษัท, กลุ่ม, gmail, สถานะ` · per dashboard `ชื่อ, นามสกุล, บริษัท, กลุ่ม, gmail, role, ได้สิทธิ์ผ่าน` · every dashboard: `แดชบอร์ด id, แดชบอร์ด` + the per-dashboard columns. One Data first asked for `role` in place of `ได้สิทธิ์ผ่าน` in the all-dashboards file, then kept both, so the two files still hold the same rows
-  - Data: `node scripts/migrate-user-names.mjs split --apply` **before** the deploy (the new build reads only the two parts), `drop-name --apply` after it is live and checked
+  - Data: `node scripts/migrate-user-names.mjs split --apply` **before** the deploy (the new build reads only the two parts), `drop-name --apply` after it is live and checked — both done on prod (split 2026-11-24, drop-name 2026-11-25, 6/6 users)
   - TC 3.2.18, 3.9.15–3.9.17 new; 3.2.16, 3.2.17, 3.10.27, 4.2.6 to re-run
 - [ ] **PR B — import invitations from CSV** (`feat/invite-csv-import`, [invite-csv-template.md](invite-csv-template.md)) — template on Google Sheets with dropdowns for company code, groups 1–3 and role (CSV itself cannot hold a dropdown); columns `ชื่อ, นามสกุล, บริษัท, กลุ่ม 1, กลุ่ม 2, กลุ่ม 3, gmail, บทบาท`; company by code only, role `user`/`moderator`/`admin` only; rows that fail are listed with the reason and never queued; reads UTF-8, falls back to `windows-874` for a file saved by Thai Excel. `.xlsx` deferred — no parser is installed and adding one drags lock-file churn
 
