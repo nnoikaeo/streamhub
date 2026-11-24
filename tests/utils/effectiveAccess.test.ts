@@ -18,9 +18,9 @@ import {
 import { isExpired } from '../../shared/utils/dates'
 
 const users = [
-  { uid: 'survey', name: 'Survey', company: 'OAYT' },
-  { uid: 'janine', name: 'Janine', company: 'STTH' },
-  { uid: 'nattha', name: 'Nattha', company: 'STTH', groups: ['finance'] },
+  { uid: 'survey', firstName: 'Survey', company: 'OAYT' },
+  { uid: 'janine', firstName: 'Janine', company: 'STTH' },
+  { uid: 'nattha', firstName: 'Nattha', company: 'STTH', groups: ['finance'] },
 ]
 
 const groups = [{ id: 'finance', name: 'การเงิน', members: ['nattha'] }]

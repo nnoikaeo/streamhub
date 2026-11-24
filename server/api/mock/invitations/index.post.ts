@@ -15,9 +15,19 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Gmail only — the form shows @gmail.com as a fixed suffix, and this stops
+    // a request built by hand from inviting another domain
+    if (!isGmailAddress(body.email)) {
+      throw createError({
+        statusCode: 400,
+        message: 'Only @gmail.com addresses can be invited'
+      })
+    }
+    const email = String(body.email).trim().toLowerCase()
+
     // Pre-check: Check users.json for existing user with this email
     const users = await readJSON<StoredUser>('users.json')
-    const existingUser = users.find(u => u.email === body.email)
+    const existingUser = users.find(u => u.email === email)
 
     if (existingUser) {
       if (existingUser.isActive) {
@@ -39,7 +49,7 @@ export default defineEventHandler(async (event) => {
     // Check for duplicate pending invitation
     const invitations = await readJSON<Invitation>('invitations.json')
     const pendingDuplicate = invitations.find(
-      inv => inv.email === body.email && inv.status === 'pending'
+      inv => inv.email === email && inv.status === 'pending'
     )
 
     if (pendingDuplicate) {
@@ -55,7 +65,9 @@ export default defineEventHandler(async (event) => {
 
     const invitation: Invitation = {
       id: `inv_${Date.now()}`,
-      email: body.email,
+      email,
+      firstName: cleanNamePart(body.firstName),
+      lastName: cleanNamePart(body.lastName),
       role: body.role,
       company: body.company,
       status: 'pending',
@@ -88,7 +100,7 @@ export default defineEventHandler(async (event) => {
       action: 'INVITE_USER',
       performedBy: body.invitedBy || 'system',
       performedByEmail: body.invitedByName || 'System',
-      target: body.email,
+      target: email,
       metadata: { role: body.role, company: body.company, invitationId: invitation.id, emailSent }
     })
 

@@ -26,6 +26,17 @@ describe('normalizeBulkItems — per-row (items[]) payload', () => {
     expect(result[1]).toMatchObject({ email: 'b@x.com', role: 'moderator', company: 'STTN', assignedGroups: ['g-mgmt'] })
   })
 
+  it('keeps each row\'s first and last name, trimmed, and empty when omitted', () => {
+    const [named, unnamed] = normalizeBulkItems({
+      items: [
+        { email: 'a@gmail.com', firstName: '  สมชาย ', lastName: 'ใจ  ดี', role: 'user', company: 'STSB' },
+        { email: 'b@gmail.com', firstName: 42, role: 'user', company: 'STSB' },
+      ],
+    })
+    expect(named).toMatchObject({ firstName: 'สมชาย', lastName: 'ใจ ดี' })
+    expect(unnamed).toMatchObject({ firstName: '', lastName: '' })
+  })
+
   it('lowercases and trims emails', () => {
     const [item] = normalizeBulkItems({ items: [{ email: '  B@X.COM ', role: 'user', company: 'STTH' }] })
     expect(item!.email).toBe('b@x.com')

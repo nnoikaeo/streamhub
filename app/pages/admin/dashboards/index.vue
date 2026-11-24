@@ -84,7 +84,7 @@ const getFolderName = (folderId: string): string => {
  */
 const getOwnerName = (uid: string): string => {
   const user = users.value.find(u => u.uid === uid)
-  return user ? user.name : uid
+  return userLabel(user) || uid
 }
 
 /**

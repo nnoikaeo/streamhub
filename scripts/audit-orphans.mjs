@@ -99,7 +99,7 @@ report('Companies with missing region ref',
 // user can be left pointing at a company code that no longer exists.
 report('Users with a dead company ref (user.company → missing company)',
   users.filter(u => u.company && !companyCodes.has(u.company)),
-  u => `uid=${u._id} email=${u.email ?? '?'} name="${u.name ?? '?'}" company=${u.company}`)
+  u => `uid=${u._id} email=${u.email ?? '?'} name="${[u.firstName, u.lastName].filter(Boolean).join(' ') || '?'}" company=${u.company}`)
 
 report('Groups with dead member refs (group.members[] → missing user)',
   groups.map(g => ({ g, dead: (g.members ?? []).filter(m => !userIds.has(m)) })).filter(x => x.dead.length),

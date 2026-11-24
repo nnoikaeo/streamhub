@@ -82,7 +82,7 @@ for (const m of moderators) {
   const inside = dashboards.filter(d => scope.has(d.folderId))
   const outside = dashboards.filter(d => !scope.has(d.folderId))
 
-  console.log(`\n👤 ${m.name ?? uid} (${m.email ?? uid})`)
+  console.log(`\n👤 ${[m.firstName, m.lastName].filter(Boolean).join(' ') || uid} (${m.email ?? uid})`)
   console.log(`   assigned: ${assigned.map(folderName).join(', ') || '(none)'}`)
   console.log(`   dashboards inside: ${inside.length} · outside: ${outside.length}`)
   for (const d of outside.slice(0, 3)) {

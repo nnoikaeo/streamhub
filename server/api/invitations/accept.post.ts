@@ -66,10 +66,13 @@ export default defineEventHandler(async (event) => {
     const updatedInvitation: Invitation = { ...invitation, ...invitationUpdates }
 
     // Create new user in Firestore
+    const { firstName, lastName } = nameAtAcceptance(invitation, displayName)
+
     const newUser: StoredUser = {
       uid,
       email,
-      name: displayName,
+      firstName,
+      lastName,
       role: invitation.role,
       company: invitation.company,
       groups: groupsForRole(invitation.role, invitation.assignedGroups),

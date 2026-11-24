@@ -3,6 +3,9 @@ export type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'cancelled'
 export interface Invitation {
   id: string
   email: string
+  /** Typed by the admin; optional. Written onto the user at acceptance. */
+  firstName?: string
+  lastName?: string
   role: 'user' | 'moderator' | 'admin'
   company: string
   status: InvitationStatus
@@ -25,6 +28,8 @@ export interface Invitation {
 
 export interface CreateInvitationInput {
   email: string
+  firstName?: string
+  lastName?: string
   role: 'user' | 'moderator' | 'admin'
   company: string
   message?: string
@@ -115,7 +120,8 @@ export type InvitationVerifyResponse =
 export interface StoredUser {
   uid: string
   email: string
-  name: string
+  firstName?: string
+  lastName?: string
   role: string
   company: string
   groups: string[]

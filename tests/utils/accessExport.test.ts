@@ -51,26 +51,27 @@ const groups = [
   { id: 'lead', name: 'Lead' },
 ]
 
-type TestUser = Pick<User, 'uid' | 'name' | 'email' | 'company' | 'groups' | 'isActive' | 'role'>
+type TestUser = Pick<User, 'uid' | 'firstName' | 'lastName' | 'email' | 'company' | 'groups' | 'isActive' | 'role'>
 
 const users: TestUser[] = [
-  { uid: 'somchai', name: 'สมชาย', email: 'somchai@x.com', company: 'STSS', groups: [], isActive: true, role: 'user' },
-  { uid: 'mana', name: 'มานะ', email: 'mana@x.com', company: 'STEB', groups: ['hotline', 'lead', 'gone'], isActive: true, role: 'user' },
-  { uid: 'piti', name: 'ปิติ', email: 'piti@x.com', company: 'STPK', groups: [], isActive: true, role: 'user' },
-  { uid: 'left', name: 'วิชัย', email: 'wichai@x.com', company: 'STSS', groups: [], isActive: false, role: 'user' },
-  { uid: 'mod', name: 'กุณฑลี', email: 'mod@x.com', company: 'STTH', groups: [], isActive: true, role: 'moderator' },
-  { uid: 'mod2', name: 'ชูใจ', email: 'mod2@x.com', company: 'STTH', groups: [], isActive: true, role: 'moderator' },
-  { uid: 'boss', name: 'แอดมิน', email: 'admin@x.com', company: 'STTH', groups: [], isActive: true, role: 'admin' },
+  { uid: 'somchai', firstName: 'สมชาย', lastName: 'ใจดี', email: 'somchai@x.com', company: 'STSS', groups: [], isActive: true, role: 'user' },
+  { uid: 'mana', firstName: 'มานะ', lastName: 'อดทน', email: 'mana@x.com', company: 'STEB', groups: ['hotline', 'lead', 'gone'], isActive: true, role: 'user' },
+  // No name typed at invite — the name cells stay empty, the gmail still identifies them
+  { uid: 'piti', email: 'piti@x.com', company: 'STPK', groups: [], isActive: true, role: 'user' },
+  { uid: 'left', firstName: 'วิชัย', lastName: 'มั่นคง', email: 'wichai@x.com', company: 'STSS', groups: [], isActive: false, role: 'user' },
+  { uid: 'mod', firstName: 'กุณฑลี', lastName: 'ชาญชัย', email: 'mod@x.com', company: 'STTH', groups: [], isActive: true, role: 'moderator' },
+  { uid: 'mod2', firstName: 'ชูใจ', lastName: 'ศรีสุข', email: 'mod2@x.com', company: 'STTH', groups: [], isActive: true, role: 'moderator' },
+  { uid: 'boss', firstName: 'แอดมิน', lastName: 'ระบบ', email: 'admin@x.com', company: 'STTH', groups: [], isActive: true, role: 'admin' },
 ]
 
 describe('usersCsv', () => {
-  it('writes ชื่อ อีเมล บริษัท กลุ่ม สถานะ, with group names and orphan ids dropped', () => {
+  it('writes ชื่อ นามสกุล บริษัท กลุ่ม gmail สถานะ, with group names and orphan ids dropped', () => {
     const rows = parse(usersCsv(users.slice(1, 4), groups))
     expect(rows).toEqual([
-      ['ชื่อ', 'อีเมล', 'บริษัท', 'กลุ่ม', 'สถานะ'],
-      ['มานะ', 'mana@x.com', 'STEB', 'Hotline, Lead', 'เปิดใช้งาน'],
-      ['ปิติ', 'piti@x.com', 'STPK', '', 'เปิดใช้งาน'],
-      ['วิชัย', 'wichai@x.com', 'STSS', '', 'ปิดใช้งาน'],
+      ['ชื่อ', 'นามสกุล', 'บริษัท', 'กลุ่ม', 'gmail', 'สถานะ'],
+      ['มานะ', 'อดทน', 'STEB', 'Hotline, Lead', 'mana@x.com', 'เปิดใช้งาน'],
+      ['', '', 'STPK', '', 'piti@x.com', 'เปิดใช้งาน'],
+      ['วิชัย', 'มั่นคง', 'STSS', '', 'wichai@x.com', 'ปิดใช้งาน'],
     ])
   })
 })
@@ -132,25 +133,25 @@ const scenarios: { name: string, access: AccessControl, restrictions: AccessRest
 describe('dashboardAccessCsv', () => {
   it('lists each person once with every reason, admins and disabled accounts left out', () => {
     const rows = exportFor(scenarios[0]!.access, scenarios[0]!.restrictions)
-    expect(rows[0]).toEqual(['ชื่อ', 'อีเมล', 'บริษัท', 'กลุ่ม', 'ได้สิทธิ์ผ่าน'])
-    const byName = Object.fromEntries(rows.slice(1).map((r) => [r[0], r]))
+    expect(rows[0]).toEqual(['ชื่อ', 'นามสกุล', 'บริษัท', 'กลุ่ม', 'gmail', 'role', 'ได้สิทธิ์ผ่าน'])
+    const byEmail = Object.fromEntries(rows.slice(1).map((r) => [r[4], r]))
 
-    expect(byName['สมชาย']).toEqual(['สมชาย', 'somchai@x.com', 'STSS', '', 'บริษัท STSS'])
-    expect(byName['มานะ']).toEqual(['มานะ', 'mana@x.com', 'STEB', 'Hotline, Lead', 'กลุ่ม Hotline'])
-    expect(byName['ปิติ']?.[4]).toBe('โฟลเดอร์ Ops · สิทธิ์ตรง')
-    expect(byName['กุณฑลี']?.[4]).toBe('ผู้ดูแลโฟลเดอร์ Hotline')
-    expect(byName['ชูใจ']?.[4]).toBe('ผู้ดูแลโฟลเดอร์ Ops')
-    expect(byName['วิชัย']).toBeUndefined()
-    expect(byName['แอดมิน']).toBeUndefined()
+    expect(byEmail['somchai@x.com']).toEqual(['สมชาย', 'ใจดี', 'STSS', '', 'somchai@x.com', 'user', 'บริษัท STSS'])
+    expect(byEmail['mana@x.com']).toEqual(['มานะ', 'อดทน', 'STEB', 'Hotline, Lead', 'mana@x.com', 'user', 'กลุ่ม Hotline'])
+    expect(byEmail['piti@x.com']).toEqual(['', '', 'STPK', '', 'piti@x.com', 'user', 'โฟลเดอร์ Ops · สิทธิ์ตรง'])
+    expect(byEmail['mod@x.com']?.slice(5)).toEqual(['moderator', 'ผู้ดูแลโฟลเดอร์ Hotline'])
+    expect(byEmail['mod2@x.com']?.[6]).toBe('ผู้ดูแลโฟลเดอร์ Ops')
+    expect(byEmail['wichai@x.com']).toBeUndefined()
+    expect(byEmail['admin@x.com']).toBeUndefined()
   })
 
   it('does not call a user a folder moderator just because a folder names them', () => {
     const rows = exportFor(scenarios[0]!.access, scenarios[0]!.restrictions)
-    expect(rows.find((r) => r[0] === 'สมชาย')?.[4]).not.toContain('ผู้ดูแลโฟลเดอร์')
+    expect(rows.find((r) => r[4] === 'somchai@x.com')?.[6]).not.toContain('ผู้ดูแลโฟลเดอร์')
   })
 
   it.each(scenarios)('names exactly who the server lets in — $name', ({ access, restrictions }) => {
-    const exported = exportFor(access, restrictions).slice(1).map((r) => r[1]).sort()
+    const exported = exportFor(access, restrictions).slice(1).map((r) => r[4]).sort()
 
     const dashboard = { folderId: 'hotline', access, restrictions }
     const allowed = users
@@ -187,7 +188,7 @@ describe('allDashboardsAccessCsv', () => {
   }))
 
   it('adds the dashboard id and name in front of the per-dashboard columns', () => {
-    expect(all()[0]).toEqual(['แดชบอร์ด id', 'แดชบอร์ด', 'ชื่อ', 'อีเมล', 'บริษัท', 'กลุ่ม', 'ได้สิทธิ์ผ่าน'])
+    expect(all()[0]).toEqual(['แดชบอร์ด id', 'แดชบอร์ด', 'ชื่อ', 'นามสกุล', 'บริษัท', 'กลุ่ม', 'gmail', 'role', 'ได้สิทธิ์ผ่าน'])
   })
 
   it.each(scenarios.map((s, i) => ({ ...s, i })))(
@@ -213,7 +214,7 @@ describe('allDashboardsAccessCsv', () => {
       isExpiredFn: isExpired,
     })).slice(1)
     // ปิติ comes in through Ops, which inherits; the two moderators manage the chain
-    expect(rows.map((r) => r[2]).sort()).toEqual(['กุณฑลี', 'ชูใจ', 'ปิติ'].sort())
+    expect(rows.map((r) => r[6]).sort()).toEqual(['mod2@x.com', 'mod@x.com', 'piti@x.com'].sort())
   })
 
   it('stops at a folder that names itself as an ancestor', () => {

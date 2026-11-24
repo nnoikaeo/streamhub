@@ -32,6 +32,8 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 // --- Queue item type ---
 interface QueueItem {
   id: number
+  firstName: string
+  lastName: string
   email: string
   role: 'user' | 'moderator' | 'admin'
   company: string
@@ -42,13 +44,17 @@ interface QueueItem {
 }
 
 // Form state (single entry)
-const form = ref({
+const emptyForm = () => ({
+  firstName: '',
+  lastName: '',
+  /** What is in the Gmail box — the part before @gmail.com */
   email: '',
   role: 'user' as 'user' | 'moderator' | 'admin',
   company: '',
   message: '',
   assignedGroups: [] as string[],
 })
+const form = ref(emptyForm())
 
 const queue = ref<QueueItem[]>([])
 let nextId = 1
@@ -57,19 +63,26 @@ const submitting = ref(false)
 const error = ref('')
 const addError = ref('')
 
+interface CreatedInvitation {
+  id?: string
+  email: string
+  firstName?: string
+  lastName?: string
+  role: string
+  company: string
+  assignedGroups?: string[]
+}
+
 // Results after submit
 const results = ref<{
-  created: { id?: string; email: string; role: string; company: string; assignedGroups?: string[] }[]
+  created: CreatedInvitation[]
   skipped: { email: string; reason: string }[]
 } | null>(null)
 
 // Dropdown data (sourced from composable that handles Firestore/JSON mode automatically)
 const groups = computed(() => (allGroups.value ?? []).filter(g => g.isActive !== false))
 
-const canAdd = computed(() => {
-  const e = form.value.email.trim()
-  return e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && form.value.company
-})
+const canAdd = computed(() => !!toGmailAddress(form.value.email) && !!form.value.company)
 
 const canSubmit = computed(() => queue.value.length > 0)
 
@@ -83,14 +96,14 @@ function getGroupNames(ids: string[]) {
 
 function addToQueue() {
   addError.value = ''
-  const email = form.value.email.trim().toLowerCase()
+  const email = toGmailAddress(form.value.email)
 
-  if (!email || !form.value.company) {
-    addError.value = 'กรุณากรอก Email และเลือกบริษัท'
+  if (!form.value.email.trim() || !form.value.company) {
+    addError.value = 'กรุณากรอก Gmail และเลือกบริษัท'
     return
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    addError.value = 'รูปแบบ Email ไม่ถูกต้อง'
+  if (!email) {
+    addError.value = 'รับเฉพาะบัญชี @gmail.com'
     return
   }
   if (queue.value.some(q => q.email === email)) {
@@ -100,6 +113,8 @@ function addToQueue() {
 
   queue.value.push({
     id: nextId++,
+    firstName: form.value.firstName.trim(),
+    lastName: form.value.lastName.trim(),
     email,
     role: form.value.role,
     company: form.value.company,
@@ -110,7 +125,7 @@ function addToQueue() {
   })
 
   // Reset all fields after adding
-  form.value = { email: '', role: 'user', company: '', message: '', assignedGroups: [] }
+  form.value = emptyForm()
 }
 
 function removeFromQueue(id: number) {
@@ -151,7 +166,7 @@ async function handleSubmit() {
     const headers = await getAuthHeaders()
     const res = await $fetch<{
       success: boolean
-      data?: { created: { id?: string; email: string; role: string; company: string; assignedGroups?: string[] }[]; skipped: { email: string; reason: string }[] }
+      data?: { created: CreatedInvitation[]; skipped: { email: string; reason: string }[] }
       message?: string
     }>(`${apiBase}/bulk`, {
       method: 'POST',
@@ -159,6 +174,8 @@ async function handleSubmit() {
       body: {
         items: queue.value.map(q => ({
           email: q.email,
+          firstName: q.firstName || undefined,
+          lastName: q.lastName || undefined,
           role: q.role,
           company: q.company,
           message: q.message || undefined,
@@ -193,7 +210,7 @@ function close() {
 }
 
 function reset() {
-  form.value = { email: '', role: 'user', company: '', message: '', assignedGroups: [] }
+  form.value = emptyForm()
   queue.value = []
   nextId = 1
   submitting.value = false
@@ -227,19 +244,23 @@ onMounted(loadDropdownData)
           <thead>
             <tr>
               <th>#</th>
-              <th>Email</th>
-              <th>Role</th>
+              <th>ชื่อ</th>
+              <th>นามสกุล</th>
               <th>บริษัท</th>
               <th>กลุ่ม</th>
+              <th>Gmail</th>
+              <th>บทบาท</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(inv, idx) in results.created" :key="inv.id || inv.email">
               <td class="queue-cell--num">{{ idx + 1 }}</td>
-              <td>{{ inv.email }}</td>
-              <td><span :class="roleBadgeClass(inv.role)">{{ roleLabel(inv.role) }}</span></td>
+              <td>{{ inv.firstName || '—' }}</td>
+              <td>{{ inv.lastName || '—' }}</td>
               <td>{{ inv.company }}</td>
               <td class="text-gray-500">{{ inv.assignedGroups?.length ? getGroupNames(inv.assignedGroups).join(', ') : '—' }}</td>
+              <td>{{ inv.email }}</td>
+              <td><span :class="roleBadgeClass(inv.role)">{{ roleLabel(inv.role) }}</span></td>
             </tr>
           </tbody>
         </table>
@@ -269,60 +290,85 @@ onMounted(loadDropdownData)
       <div v-if="error" class="alert-error">{{ error }}</div>
 
       <div class="form-fields">
-        <!-- Row 1: Email + Role + Company -->
+        <!-- Order agreed with One Data (2026-11): name, company, groups, gmail, role -->
         <div class="form-row form-row--3col">
-          <div class="form-field form-field--email">
-            <label class="form-label">Email <span class="required">*</span></label>
+          <div class="form-field">
+            <label for="bulk-first-name" class="form-label">ชื่อ</label>
             <input
-              v-model="form.email"
-              type="email"
+              id="bulk-first-name"
+              v-model="form.firstName"
+              type="text"
               class="theme-form-input"
-              placeholder="user@company.com"
+              maxlength="100"
+              autocomplete="off"
               @keydown.enter.prevent="addToQueue"
             >
           </div>
           <div class="form-field">
-            <label class="form-label">Role <span class="required">*</span></label>
-            <select v-model="form.role" class="theme-form-select">
-              <option value="user">User</option>
-              <option value="moderator">Moderator</option>
-              <option value="admin">Admin</option>
-            </select>
+            <label for="bulk-last-name" class="form-label">นามสกุล</label>
+            <input
+              id="bulk-last-name"
+              v-model="form.lastName"
+              type="text"
+              class="theme-form-input"
+              maxlength="100"
+              autocomplete="off"
+              @keydown.enter.prevent="addToQueue"
+            >
           </div>
           <div class="form-field">
-            <label class="form-label">บริษัท <span class="required">*</span></label>
+            <label for="bulk-company" class="form-label">บริษัท <span class="required">*</span></label>
             <CompanyDropdownFilter
               v-model="form.company"
               :companies="adminCompanies"
               :regions="regions"
               :show-icon="false"
+              input-id="bulk-company"
               placeholder="-- เลือกบริษัท --"
             />
           </div>
         </div>
 
-        <!-- Row 2: Groups + Message -->
-        <div class="form-row form-row--2col form-row--stretch">
-          <div class="form-field">
-            <label class="form-label">กลุ่มผู้ใช้</label>
-            <p v-if="form.role === 'admin'" class="text-sm text-gray-400">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม</p>
-            <div v-else class="multi-select-list">
-              <label v-for="group in groups" :key="group.id" class="multi-select-item">
-                <input v-model="form.assignedGroups" type="checkbox" :value="group.id" >
-                {{ group.name }}
-              </label>
-              <p v-if="groups.length === 0" class="text-sm text-gray-400">ไม่มี group</p>
-            </div>
+        <div class="form-field">
+          <p class="form-label">กลุ่มผู้ใช้</p>
+          <p v-if="form.role === 'admin'" class="text-sm text-gray-400">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม</p>
+          <div v-else class="multi-select-list multi-select-list--grid">
+            <label v-for="group in groups" :key="group.id" class="multi-select-item">
+              <input v-model="form.assignedGroups" type="checkbox" :value="group.id" >
+              {{ group.name }}
+            </label>
+            <p v-if="groups.length === 0" class="text-sm text-gray-400">ไม่มี group</p>
           </div>
-          <div class="form-field">
-            <label class="form-label">ข้อความเพิ่มเติม</label>
-            <textarea
-              v-model="form.message"
-              class="theme-form-input message-textarea"
-              maxlength="500"
-              placeholder="ข้อความถึงผู้รับ (ไม่บังคับ)"
+        </div>
+
+        <div class="form-row form-row--3col">
+          <div class="form-field form-field--email">
+            <label for="bulk-email" class="form-label">Gmail <span class="required">*</span></label>
+            <GmailInput
+              v-model="form.email"
+              input-id="bulk-email"
+              @keydown.enter.prevent="addToQueue"
             />
           </div>
+          <div class="form-field">
+            <label for="bulk-role" class="form-label">บทบาท <span class="required">*</span></label>
+            <select id="bulk-role" v-model="form.role" class="theme-form-select">
+              <option value="user">User</option>
+              <option value="moderator">Moderator</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="bulk-message" class="form-label">ข้อความเพิ่มเติม</label>
+          <textarea
+            id="bulk-message"
+            v-model="form.message"
+            class="theme-form-input message-textarea"
+            maxlength="500"
+            placeholder="ข้อความถึงผู้รับ (ไม่บังคับ)"
+          />
         </div>
 
         <!-- Row 3: Add button -->
@@ -349,23 +395,27 @@ onMounted(loadDropdownData)
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Email</th>
-                  <th>Role</th>
+                  <th>ชื่อ</th>
+                  <th>นามสกุล</th>
                   <th>บริษัท</th>
                   <th>กลุ่ม</th>
+                  <th>Gmail</th>
+                  <th>บทบาท</th>
                   <th/>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(item, idx) in queue" :key="item.id">
                   <td class="queue-cell--num">{{ idx + 1 }}</td>
-                  <td class="queue-cell--email">{{ item.email }}</td>
-                  <td><span :class="roleBadgeClass(item.role)">{{ roleLabel(item.role) }}</span></td>
+                  <td>{{ item.firstName || '—' }}</td>
+                  <td>{{ item.lastName || '—' }}</td>
                   <td>{{ item.company }}</td>
                   <td class="queue-cell--groups">
                     <span v-if="item.groupNames.length">{{ item.groupNames.join(', ') }}</span>
                     <span v-else class="text-gray-400">—</span>
                   </td>
+                  <td class="queue-cell--email">{{ item.email }}</td>
+                  <td><span :class="roleBadgeClass(item.role)">{{ roleLabel(item.role) }}</span></td>
                   <td class="queue-cell--action">
                     <button
                       type="button"
@@ -395,11 +445,11 @@ onMounted(loadDropdownData)
 .form-row { display: flex; gap: 1rem; }
 .form-row--3col { display: flex; gap: 1rem; }
 .form-row--3col .form-field--email { flex: 2; }
-.form-row--2col { display: flex; gap: 1rem; }
-.form-row--stretch { align-items: stretch; }
-.form-row--stretch .form-field { display: flex; flex-direction: column; }
-.form-row--stretch .multi-select-list { flex: 1; }
-.form-row--stretch .message-textarea { flex: 1; resize: none; }
+.message-textarea { min-height: 3.5rem; resize: vertical; }
+.multi-select-list--grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); }
+@media (max-width: 640px) {
+  .form-row--3col { flex-direction: column; }
+}
 .form-label { font-size: 0.875rem; font-weight: 500; color: var(--color-text, #111827); }
 .required { color: #ef4444; }
 .form-hint { font-size: 0.75rem; color: #9ca3af; text-align: right; }

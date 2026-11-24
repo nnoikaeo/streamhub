@@ -51,9 +51,9 @@ describe('userGroupChips', () => {
 
 describe('groupMembers', () => {
   const users = [
-    { uid: 'u1', name: 'ก ข', groups: ['marketing', 'operations'] },
-    { uid: 'u2', name: 'Nopphol', groups: ['sales'] },
-    { uid: 'u3', name: 'No groups' },
+    { uid: 'u1', firstName: 'ก', lastName: 'ข', groups: ['marketing', 'operations'] },
+    { uid: 'u2', firstName: 'Nopphol', groups: ['sales'] },
+    { uid: 'u3', firstName: 'No groups' },
   ]
 
   it('reads membership from the user side', () => {
@@ -66,7 +66,7 @@ describe('groupMembers', () => {
 })
 
 describe('memberPreview', () => {
-  const m = (name: string) => ({ uid: name, name })
+  const m = (firstName: string) => ({ uid: firstName, firstName })
 
   it('lists everyone when within the limit', () => {
     expect(memberPreview([m('A'), m('B')])).toEqual({ names: ['A', 'B'], extra: 0 })
@@ -78,6 +78,13 @@ describe('memberPreview', () => {
 
   it('is empty for an empty group', () => {
     expect(memberPreview([])).toEqual({ names: [], extra: 0 })
+  })
+
+  it('joins first and last name, and falls back to the email for a member with no name', () => {
+    expect(memberPreview([
+      { uid: 'a', firstName: 'สมชาย', lastName: 'ใจดี' },
+      { uid: 'b', email: 'b@gmail.com' },
+    ]).names).toEqual(['สมชาย ใจดี', 'b@gmail.com'])
   })
 })
 

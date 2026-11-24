@@ -139,7 +139,7 @@ const setType = (type: DashboardType) => {
 
 const ownerDisplayName = computed(() => {
   if (!formData.owner) return '-'
-  return props.allUsers?.find(u => u.uid === formData.owner)?.name || formData.owner
+  return userLabel(props.allUsers?.find(u => u.uid === formData.owner)) || formData.owner
 })
 
 // Allow parent to trigger validation + submission via template ref (same pattern as FolderForm)

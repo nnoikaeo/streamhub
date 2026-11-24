@@ -132,14 +132,14 @@ const validate = createObjectValidator({
     (value) => validators.required(value, 'อีเมล'),
     (value) => validators.email(value),
   ],
-  name: [(value) => validators.required(value, 'ชื่อ')],
 })
 
 const { formData, errors, handleSubmit, setFieldTouched } = useForm({
   initialValues: {
     uid: props.user?.uid || '',
     email: props.user?.email || '',
-    name: props.user?.name || '',
+    firstName: props.user?.firstName || '',
+    lastName: props.user?.lastName || '',
     company: props.user?.company || 'STTH',
     role: props.user?.role || 'user',
     groups: props.user?.groups || [],
@@ -149,7 +149,9 @@ const { formData, errors, handleSubmit, setFieldTouched } = useForm({
     emit('submit', {
       user: {
         uid: values.uid,
-        name: values.name,
+        // Optional, as at invite time — the users table shows the email when both are blank
+        firstName: values.firstName.trim(),
+        lastName: values.lastName.trim(),
         company: values.company,
         role: values.role,
         // Admins hold no groups — see shared/utils/roleGroups.ts
@@ -180,33 +182,49 @@ defineExpose({ submit: handleSubmit })
 
 <template>
   <div class="user-form">
-    <FormField
-      v-model="formData.email"
-      type="email"
-      label="อีเมล"
-      placeholder="user@streamwash.com"
-      :error="errors.email"
-      :required="true"
-      :disabled="isEditMode"
-      :description="isEditMode ? '🔒 อีเมลไม่สามารถเปลี่ยนได้ เนื่องจากผูกกับ Firebase Auth' : undefined"
-      @blur="setFieldTouched('email')"
-    />
-
-    <FormField
-      v-model="formData.name"
-      type="text"
-      label="ชื่อจริง"
-      placeholder="เช่น John Doe"
-      :error="errors.name"
-      :required="true"
-      @blur="setFieldTouched('name')"
-    />
+    <!-- Order agreed with One Data (2026-11): name, company, groups, gmail, role -->
+    <div class="user-form__name-row">
+      <FormField
+        v-model="formData.firstName"
+        type="text"
+        label="ชื่อ"
+        placeholder="ตามคอลัมน์ ชื่อ ใน PIC"
+      />
+      <FormField
+        v-model="formData.lastName"
+        type="text"
+        label="นามสกุล"
+        placeholder="ตามคอลัมน์ นามสกุล ใน PIC"
+      />
+    </div>
 
     <FormField
       v-model="formData.company"
       type="grouped-select"
       label="บริษัท"
       :grouped-options="companyGroupedOptions"
+    />
+
+    <FormField
+      v-if="!isAdminRole"
+      v-model="formData.groups"
+      type="multi-select"
+      label="กลุ่ม"
+      :options="groupOptions"
+      description="เลือกกลุ่มที่ผู้ใช้คนนี้สังกัด"
+    />
+    <p v-else class="user-form__folder-hint">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม<template v-if="formData.groups.length"> — กลุ่มเดิมจะถูกนำออกเมื่อบันทึก</template></p>
+
+    <FormField
+      v-model="formData.email"
+      type="email"
+      label="Gmail"
+      placeholder="user@gmail.com"
+      :error="errors.email"
+      :required="true"
+      :disabled="isEditMode"
+      :description="isEditMode ? '🔒 เปลี่ยนไม่ได้ เนื่องจากผูกกับ Firebase Auth' : undefined"
+      @blur="setFieldTouched('email')"
     />
 
     <FormField
@@ -227,16 +245,6 @@ defineExpose({ submit: handleSubmit })
         เลือกโฟลเดอร์ที่ผู้ใช้คนนี้ดูแลในฐานะ moderator
       </p>
     </div>
-
-    <FormField
-      v-if="!isAdminRole"
-      v-model="formData.groups"
-      type="multi-select"
-      label="กลุ่ม"
-      :options="groupOptions"
-      description="เลือกกลุ่มที่ผู้ใช้คนนี้สังกัด"
-    />
-    <p v-else class="user-form__folder-hint">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม<template v-if="formData.groups.length"> — กลุ่มเดิมจะถูกนำออกเมื่อบันทึก</template></p>
   </div>
 </template>
 
@@ -245,6 +253,18 @@ defineExpose({ submit: handleSubmit })
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg, 1.25rem);
+}
+
+.user-form__name-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md, 1rem);
+}
+
+@media (max-width: 480px) {
+  .user-form__name-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .user-form__folder-section {

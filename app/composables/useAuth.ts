@@ -12,7 +12,9 @@ interface UserProfile {
   role?: string
   company?: string
   isActive?: boolean
-  name?: string
+  firstName?: string
+  lastName?: string
+  email?: string
   groups?: string[]
 }
 
@@ -95,7 +97,7 @@ export const useAuth = () => {
               const userData: UserData = {
                 uid: userCredential.user.uid,
                 email: userCredential.user.email,
-                displayName: resolveDisplayName(newUser.name, userCredential.user.displayName),
+                displayName: resolveDisplayName(fullName(newUser), userCredential.user.displayName),
                 photoURL: userCredential.user.photoURL,
                 role: newUser.role,
                 company: newUser.company,
@@ -118,7 +120,7 @@ export const useAuth = () => {
       const userData: UserData = {
         uid: userCredential.user.uid,
         email: userCredential.user.email,
-        displayName: resolveDisplayName(mockUser.name, userCredential.user.displayName),
+        displayName: resolveDisplayName(fullName(mockUser), userCredential.user.displayName),
         photoURL: userCredential.user.photoURL,
         role: mockUser.role,
         company: mockUser.company,
@@ -209,7 +211,7 @@ export const useAuth = () => {
             const userData: UserData = {
               uid: user.uid,
               email: user.email,
-              displayName: resolveDisplayName(mockUser.name, user.displayName),
+              displayName: resolveDisplayName(fullName(mockUser), user.displayName),
               photoURL: user.photoURL,
               role: mockUser.role,
               company: mockUser.company,

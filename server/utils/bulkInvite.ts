@@ -13,6 +13,8 @@
 
 export interface NormalizedInviteItem {
   email: string
+  firstName: string
+  lastName: string
   role: string
   company: string
   message: string
@@ -59,6 +61,8 @@ export function normalizeBulkItems(body: BulkInviteBody): NormalizedInviteItem[]
         const it = asRecord(raw)
         return {
           email: cleanEmail(it.email),
+          firstName: cleanNamePart(it.firstName),
+          lastName: cleanNamePart(it.lastName),
           role: asString(it.role) ?? role ?? '',
           company: asString(it.company) ?? company ?? '',
           message: asString(it.message) ?? '',
@@ -74,6 +78,8 @@ export function normalizeBulkItems(body: BulkInviteBody): NormalizedInviteItem[]
     return emails
       .map((email) => ({
         email: cleanEmail(email),
+        firstName: '',
+        lastName: '',
         role: role ?? '',
         company: company ?? '',
         message: message ?? '',

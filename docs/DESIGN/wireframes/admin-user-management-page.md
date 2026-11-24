@@ -11,7 +11,7 @@
 **User Management = Search, Filter, Edit, Delete, Toggle Active**
 
 - View all users with company/role/group/status filters
-- Download the filtered list as CSV (ชื่อ อีเมล บริษัท กลุ่ม สถานะ) — for comparing with One Data's PIC sheet (#518)
+- Download the filtered list as CSV (ชื่อ นามสกุล บริษัท กลุ่ม gmail สถานะ) — for comparing with One Data's PIC sheet (#518; columns reordered 2026-11)
 - Edit user info: name, company, role, groups, moderator folders
 - New users are invited via `/admin/invitations` only (no direct create here)
 - Every user record is backed by a real Firebase Auth UID
@@ -43,26 +43,31 @@
 
 ---
 
-## Edit User Modal (v2.0 — Approved 2026-04-16)
+## Edit User Modal (v3.0 — field order agreed with One Data 2026-11)
 
 ```text
 ┌──────────────────────────────────────────────────┐
 │  แก้ไขผู้ใช้                                  ✕ │
 ├──────────────────────────────────────────────────┤
 │                                                    │
-│  อีเมล *                                         │
-│  ┌────────────────────────────────────────────┐  │
-│  │ 🔒 survey.streamwash@gmail.com             │  │ ← disabled (read-only)
-│  └────────────────────────────────────────────┘  │
-│                                                    │
-│  ชื่อจริง *                                      │
-│  ┌────────────────────────────────────────────┐  │
-│  │ Survey Streamwash                          │  │
-│  └────────────────────────────────────────────┘  │
+│  ชื่อ                     นามสกุล                │
+│  ┌─────────────────────┐  ┌─────────────────────┐ │
+│  │ สมชาย               │  │ ใจดี                │ │ ← optional, both
+│  └─────────────────────┘  └─────────────────────┘ │
 │                                                    │
 │  บริษัท                                          │
 │  ┌────────────────────────────────────────────┐  │
-│  │ OAYT (Hub) - บริษัท ออเร้นจ์ เอส ฯ     ▼ │  │
+│  │ STSB (Hub) - บริษัท สตรีมวอช (กรุงเทพใต้) ▼│  │
+│  └────────────────────────────────────────────┘  │
+│                                                    │
+│  กลุ่ม                     (hidden for admin)    │
+│  ┌────────────────────────────────────────────┐  │
+│  │ [Technician ✕]  + เพิ่มกลุ่ม ▼            │  │
+│  └────────────────────────────────────────────┘  │
+│                                                    │
+│  Gmail *                                         │
+│  ┌────────────────────────────────────────────┐  │
+│  │ 🔒 somchai.j@gmail.com                     │  │ ← disabled (read-only)
 │  └────────────────────────────────────────────┘  │
 │                                                    │
 │  บทบาท                                           │
@@ -72,19 +77,8 @@
 │                                                    │
 │  ╔══ แสดงเฉพาะเมื่อ บทบาท = Moderator ══════╗  │
 │  ║  โฟลเดอร์ที่จัดการได้                      ║  │
-│  ║  ┌──────────────────────────────────────┐  ║  │
-│  ║  │ ☑  Sales Reports                    │  ║  │
-│  ║  │ ☐  Finance Reports                  │  ║  │
-│  ║  │     ├── ☐  Q1 Reports               │  ║  │
-│  ║  │     └── ☐  Q2 Reports               │  ║  │
-│  ║  │ ☐  Operations                       │  ║  │
-│  ║  └──────────────────────────────────────┘  ║  │
+│  ║  ☑ Sales Reports  ☐ Finance Reports  …     ║  │
 │  ╚═════════════════════════════════════════════╝  │
-│                                                    │
-│  กลุ่ม                                           │
-│  ┌────────────────────────────────────────────┐  │
-│  │ [sales ✕] [operations ✕]  + เพิ่มกลุ่ม ▼ │  │
-│  └────────────────────────────────────────────┘  │
 │                                                    │
 │                      [ ยกเลิก ]  [ บันทึก ]      │
 └──────────────────────────────────────────────────┘
@@ -92,14 +86,16 @@
 
 ### Field Behavior
 
-| Field | Create | Edit | Notes |
-|-------|--------|------|-------|
-| อีเมล | — | disabled (read-only) | Email is set by Firebase Auth, cannot change |
-| ชื่อจริง | required | editable | |
-| บริษัท | required | editable | Grouped by region |
-| บทบาท | required | editable | admin / moderator / user |
-| โฟลเดอร์ที่จัดการได้ | — | editable | แสดงเฉพาะเมื่อ role = moderator |
-| กลุ่ม | — | editable | Multi-select จาก AdminGroup list |
+| Field | Edit | Notes |
+|-------|------|-------|
+| ชื่อ / นามสกุล | editable, optional | Spelled as in the PIC's ชื่อ-สกุล column. Both blank ⇒ the table shows `—` and dialogs show the email (`userLabel`) |
+| บริษัท | editable | Grouped by region |
+| กลุ่ม | editable | Multi-select from AdminGroup list; hidden for admin, cleared on save |
+| Gmail | disabled (read-only) | Set by Firebase Auth, cannot change |
+| บทบาท | editable | admin / moderator / user |
+| โฟลเดอร์ที่จัดการได้ | editable | แสดงเฉพาะเมื่อ role = moderator |
+
+The single "ชื่อจริง *" field (v2.0) is gone: users no longer store `name` (see [database-schema.md](../../GUIDES/database-schema.md#4-users-collection)).
 
 ---
 

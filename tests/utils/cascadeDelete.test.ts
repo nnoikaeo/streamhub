@@ -21,7 +21,7 @@ import type { AdminGroup } from '../../app/types/admin'
 const user = (uid: string, groups: string[] = []): User => ({
   uid,
   email: `${uid}@example.com`,
-  name: uid,
+  firstName: uid,
   role: 'user',
   company: 'STTH',
   groups,

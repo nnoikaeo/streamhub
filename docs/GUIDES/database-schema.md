@@ -171,8 +171,9 @@ Group (1) ──── access given to ────► (many) Dashboards
 ```typescript
 {
   uid: string                    // Firebase Auth UID (document ID)
-  email: string                  // Email address (unique)
-  name: string                   // Display name
+  email: string                  // @gmail.com address (unique) — invitations accept no other domain
+  firstName?: string             // ชื่อ — optional, typed by the admin at invite time
+  lastName?: string              // นามสกุล — optional
   photoURL?: string              // Profile photo URL
   role: 'user' | 'moderator' | 'admin'  // Role
   company: string                // Company code (STTH, STTN, etc.) - ALL users including admins
@@ -185,6 +186,10 @@ Group (1) ──── access given to ────► (many) Dashboards
 }
 ```
 
+> ⚠️ **No `name` field.** Until 2026-11 users held one `name` string, filled from the Google account at acceptance ("ช่าง STSB", "Hotline Streamwash"), which matched nobody in One Data's PIC sheet — that sheet keys people by ชื่อ and นามสกุล. Read the name through `fullName(user)` (`''` when neither part is set) or `userLabel(user)` (falls back to the email) in `shared/utils/userName.ts`; never join the two parts by hand. `scripts/migrate-user-names.mjs` moved the old field: `split`, then `drop-name` once the new build was live.
+>
+> At acceptance the name typed on the invitation wins; an invitation without one falls back to the Google display name split at the first space (`nameAtAcceptance`).
+
 > ⚠️ **Timestamps are ISO strings on the wire.** `User` in `app/types/dashboard.ts` declares `createdAt`/`updatedAt` as `Date` — the hydrated client shape — while Firestore returns `Timestamp` and the JSON store holds ISO strings. Anything describing a row as it is written or returned uses `StoredUser` (`app/types/invitation.ts`), not `User`. `jsonDatabase`'s `JsonRecord` constraint types them as `unknown` for the same reason, so both shapes satisfy it.
 
 **Example Regular User:**
@@ -192,8 +197,9 @@ Group (1) ──── access given to ────► (many) Dashboards
 ```json
 {
   "uid": "uid_somchai",
-  "email": "somchai@stth.com",
-  "name": "สมชาย ใจดี",
+  "email": "somchai.j@gmail.com",
+  "firstName": "สมชาย",
+  "lastName": "ใจดี",
   "photoURL": "https://...",
   "role": "user",
   "company": "STTH",
@@ -209,8 +215,9 @@ Group (1) ──── access given to ────► (many) Dashboards
 ```json
 {
   "uid": "uid_moderator1",
-  "email": "moderator@stth.com",
-  "name": "มนัส ผู้จัดการ",
+  "email": "manat.m@gmail.com",
+  "firstName": "มนัส",
+  "lastName": "ผู้จัดการ",
   "role": "moderator",
   "company": "STTH",
   "groups": ["sales"],
@@ -225,8 +232,9 @@ Group (1) ──── access given to ────► (many) Dashboards
 ```json
 {
   "uid": "uid_admin1",
-  "email": "admin@streamvoice.com",
-  "name": "Admin Thailand",
+  "email": "it.admin@gmail.com",
+  "firstName": "Admin",
+  "lastName": "Thailand",
   "role": "admin",
   "company": "STTH",
   "groups": [],
@@ -433,7 +441,9 @@ match /dashboards/{dashboardId} {
 ```typescript
 {
   id: string                     // Invitation ID (document ID)
-  email: string                  // Invited email
+  email: string                  // Invited address — @gmail.com only, checked on every server path
+  firstName?: string             // Optional — copied onto the user at acceptance
+  lastName?: string              // Optional
   role: 'user' | 'moderator' | 'admin'  // Assigned role
   company: string                // Company code to invite to
   status: 'pending' | 'accepted' | 'expired' | 'cancelled'  // Status
@@ -460,7 +470,9 @@ match /dashboards/{dashboardId} {
 ```json
 {
   "id": "inv_001",
-  "email": "newuser@stth.com",
+  "email": "newuser@gmail.com",
+  "firstName": "สมหญิง",
+  "lastName": "รักงาน",
   "role": "moderator",
   "company": "STTH",
   "status": "pending",

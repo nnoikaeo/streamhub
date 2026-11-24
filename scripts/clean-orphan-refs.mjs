@@ -82,7 +82,7 @@ const planField = (collection, docs, field, alive, label) =>
     .filter(change => change.dropped.length > 0)
 
 const changes = [
-  ...planField('users', users, 'groups', id => groupIds.has(id), u => u.email ?? u.name ?? '?'),
+  ...planField('users', users, 'groups', id => groupIds.has(id), u => u.email ?? '?'),
   ...planField('groups', groups, 'members', id => userIds.has(id), g => g.name ?? '?'),
   ...planField('folders', folders, 'assignedModerators', id => userIds.has(id), f => f.name ?? '?'),
 ]
