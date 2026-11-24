@@ -290,7 +290,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
     if (perms.access.company.includes(u.company)) {
       warnings.push({
         type: 'redundant-grant',
-        message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — บริษัท ${u.company} มีสิทธิ์อยู่แล้ว`,
+        message: `${userLabel(u)} มีสิทธิ์ตรงซ้ำซ้อน — บริษัท ${u.company} มีสิทธิ์อยู่แล้ว`,
       })
     }
     for (const gid of perms.access.direct.groups) {
@@ -298,7 +298,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
       if (group?.members.includes(uid)) {
         warnings.push({
           type: 'redundant-grant',
-          message: `${u.name} มีสิทธิ์ตรงซ้ำซ้อน — อยู่ในกลุ่ม ${group.name} อยู่แล้ว`,
+          message: `${userLabel(u)} มีสิทธิ์ตรงซ้ำซ้อน — อยู่ในกลุ่ม ${group.name} อยู่แล้ว`,
         })
         break
       }
@@ -321,7 +321,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
       if (hasInheritedAccess) {
         warnings.push({
           type: 'revoke-vs-inherited-grant',
-          message: `${u.name} ถูกระงับ แต่ยังมีสิทธิ์จากโฟลเดอร์ "${folder.name}" (สิทธิ์สืบทอด)`,
+          message: `${userLabel(u)} ถูกระงับ แต่ยังมีสิทธิ์จากโฟลเดอร์ "${folder.name}" (สิทธิ์สืบทอด)`,
         })
         break
       }
@@ -344,7 +344,7 @@ const conflicts = computed<ConflictWarning[]>(() => {
       if (hasDirectAccess) {
         warnings.push({
           type: 'grant-vs-inherited-revoke',
-          message: `${u.name} มีสิทธิ์ที่นี่ แต่ถูกระงับในโฟลเดอร์ "${folder.name}"`,
+          message: `${userLabel(u)} มีสิทธิ์ที่นี่ แต่ถูกระงับในโฟลเดอร์ "${folder.name}"`,
         })
       }
     }
@@ -361,7 +361,7 @@ const effectiveAccessExpanded = ref(true)
 
 interface EffectiveAccessEntry {
   uid: string
-  name: string
+  label: string
   company: string
   sources: string[]
 }
@@ -398,7 +398,7 @@ const strandedPrompt = ref(false)
 
 const strandedMessage = computed(() => {
   const names = strandedUids.value.map(
-    (uid) => nonAdminUsers.value.find((u) => u.uid === uid)?.name ?? uid,
+    (uid) => userLabel(nonAdminUsers.value.find((u) => u.uid === uid)) || uid,
   )
   return `ข้อจำกัดของ ${names.join(' · ')} ไม่มีสิทธิ์รองรับแล้ว จะถูกลบไปพร้อมการบันทึก`
 })
@@ -415,9 +415,9 @@ const confirmStrandedCleanup = async () => {
 }
 
 const effectiveAccess = computed<EffectiveAccessEntry[]>(() =>
-  accessibleUsers(accessEntries.value).map(({ uid, name, company, sources }) => ({
+  accessibleUsers(accessEntries.value).map(({ uid, label, company, sources }) => ({
     uid,
-    name,
+    label,
     // User.company is optional in the type but every non-admin carries one
     company: company ?? '',
     // The bar has room for the whole chain — the picker badge shows the short form
@@ -871,7 +871,7 @@ watch(() => props.allFolders, (folders) => {
                 :key="entry.uid"
                 class="effective-row"
               >
-                <span class="effective-row__name">{{ entry.name }}</span>
+                <span class="effective-row__name">{{ entry.label }}</span>
                 <span class="effective-row__sources">
                   <span v-for="(src, i) in entry.sources" :key="i" class="effective-row__source-badge">{{ src }}</span>
                 </span>
@@ -999,7 +999,7 @@ watch(() => props.allFolders, (folders) => {
                 :key="entry.uid"
                 class="effective-row"
               >
-                <span class="effective-row__name">{{ entry.name }}</span>
+                <span class="effective-row__name">{{ entry.label }}</span>
                 <span class="effective-row__sources">
                   <span v-for="(src, i) in entry.sources" :key="i" class="effective-row__source-badge">{{ src }}</span>
                 </span>

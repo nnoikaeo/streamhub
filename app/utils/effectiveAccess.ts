@@ -36,7 +36,7 @@ export interface InheritedSource {
 export interface AccessInput {
   permissions: PermissionSnapshot
   /** Users eligible for access — admins are excluded by the caller. */
-  users: { uid: string, name: string, company?: string, groups?: string[] }[]
+  users: (NamedUser & { uid: string, company?: string, groups?: string[] })[]
   /**
    * Group names only. Members come from each user's `groups[]` — the side the
    * server enforces — not `groups.members[]`, which can drift (BUG-005).
@@ -66,7 +66,10 @@ export interface AccessSource {
 
 export interface AccessEntry {
   uid: string
-  name: string
+  /** What the page shows — `userLabel`, so a user with no name shows the email */
+  label: string
+  firstName?: string
+  lastName?: string
   company?: string
   /** Why they have access, grants on the item itself first. */
   sources: AccessSource[]
@@ -89,7 +92,14 @@ export function buildAccessEntries(input: AccessInput): AccessEntry[] {
   const add = (uid: string, source: AccessSource) => {
     const user = users.find((u) => u.uid === uid)
     if (!user) return
-    const entry = byUid.get(uid) ?? { uid, name: user.name, company: user.company, sources: [] }
+    const entry = byUid.get(uid) ?? {
+      uid,
+      label: userLabel(user),
+      firstName: user.firstName ?? undefined,
+      lastName: user.lastName ?? undefined,
+      company: user.company,
+      sources: [],
+    }
     const already = entry.sources.some(
       (s) => s.kind === source.kind && s.name === source.name && s.viaFolder === source.viaFolder,
     )
@@ -146,7 +156,7 @@ export function buildAccessEntries(input: AccessInput): AccessEntry[] {
     if (entry) entry.blockedBy = reason
   }
 
-  return Array.from(byUid.values()).sort((a, b) => a.name.localeCompare(b.name))
+  return Array.from(byUid.values()).sort((a, b) => a.label.localeCompare(b.label))
 }
 
 /** Entries that actually resolve to access right now. */

@@ -10,7 +10,9 @@
 export interface User {
   uid: string
   email: string
-  name: string
+  /** Optional; read through `fullName` / `userLabel`, never joined by hand */
+  firstName?: string
+  lastName?: string
   role: 'user' | 'moderator' | 'admin'
   company: string
   groups: string[]

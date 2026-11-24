@@ -92,7 +92,7 @@ const filteredUsers = computed(() => {
   if (memberSearch.value) {
     const q = memberSearch.value.toLowerCase()
     list = list.filter(
-      u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+      u => fullName(u).toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
     )
   }
 
@@ -237,7 +237,7 @@ defineExpose({ submit: handleSubmit })
               @click="addMember(user.uid)"
             >
               <div class="user-item__info">
-                <span class="user-item__name">{{ user.name }}</span>
+                <span class="user-item__name">{{ userLabel(user) }}</span>
                 <span class="user-item__email">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
               </div>
               <span class="user-item__add">+</span>
@@ -268,7 +268,7 @@ defineExpose({ submit: handleSubmit })
               class="selected-item"
             >
               <div class="selected-item__info">
-                <span class="selected-item__name">{{ user.name }}</span>
+                <span class="selected-item__name">{{ userLabel(user) }}</span>
                 <span class="selected-item__company">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
               </div>
               <button

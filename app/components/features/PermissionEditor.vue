@@ -93,7 +93,7 @@
                 @click="toggleDirectUser(u.uid)"
               >
                 <div class="user-item__info">
-                  <span class="user-item__name">{{ u.name }}</span>
+                  <span class="user-item__name">{{ userLabel(u) }}</span>
                   <span class="user-item__email">{{ u.role ? ({ admin: 'Admin', moderator: 'Moderator', user: 'User' }[u.role] ?? u.role) + ' · ' + u.company : u.company }}</span>
                   <span v-if="groupChipsFor(u).shown.length" class="group-chips">
                     <span
@@ -222,7 +222,7 @@
                     {{ memberPreview(membersOf(gid)).names.join(', ') }}<template v-if="memberPreview(membersOf(gid)).extra">
                       <span
                         class="selected-item__members-more"
-                        :title="membersOf(gid).slice(3).map((m) => m.name).join(', ')"
+                        :title="membersOf(gid).slice(3).map((m) => userLabel(m)).join(', ')"
                       >+{{ memberPreview(membersOf(gid)).extra }}</span></template>
                   </span>
                   <span v-else class="selected-item__warn">⚠ ยังไม่มีสมาชิก — ยังไม่มีใครได้สิทธิ์จากกลุ่มนี้</span>
@@ -323,7 +323,7 @@
             >
               <div class="user-item__info">
                   <span class="user-item__name">
-                    {{ u.name }}
+                    {{ userLabel(u) }}
                     <span v-if="userHasAccessNow(u)" class="access-tag access-tag--has">มีสิทธิ์อยู่</span>
                   </span>
                   <span class="user-item__email">{{ u.role ? ({ admin: 'Admin', moderator: 'Moderator', user: 'User' }[u.role] ?? u.role) + ' · ' + u.company : u.company }}</span>
@@ -523,7 +523,7 @@ function deepClone<T>(obj: T): T {
 }
 
 function getUserName(uid: string): string {
-  return props.allUsers.find((u) => u.uid === uid)?.name ?? 'Unknown'
+  return userLabel(props.allUsers.find((u) => u.uid === uid)) || 'Unknown'
 }
 
 function getUserRoleCompany(uid: string): string {
@@ -636,7 +636,7 @@ const filteredUsers = computed(() => {
   if (grantSearch.value) {
     const q = grantSearch.value.toLowerCase()
     list = list.filter(
-      (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
+      (u) => fullName(u).toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
     )
   }
   return list
@@ -782,7 +782,7 @@ const filteredRestrictionUsers = computed(() => {
   if (restrictionSearch.value) {
     const q = restrictionSearch.value.toLowerCase()
     list = list.filter(
-      (u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
+      (u) => fullName(u).toLowerCase().includes(q) || u.email.toLowerCase().includes(q),
     )
   }
   // Users who currently have access sort to the top — revoking them has effect.

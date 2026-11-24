@@ -54,7 +54,7 @@ const filteredAvailable = computed(() => {
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase()
     available = available.filter(u =>
-      u.name.toLowerCase().includes(q) ||
+      fullName(u).toLowerCase().includes(q) ||
       u.email.toLowerCase().includes(q) ||
       u.company?.toLowerCase().includes(q)
     )
@@ -138,7 +138,7 @@ const handleCancel = () => {
             @click="addModerator(user.uid)"
           >
             <div class="user-info">
-              <span class="user-name">{{ user.name }}</span>
+              <span class="user-name">{{ userLabel(user) }}</span>
               <span class="user-company">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
             </div>
             <span class="user-action user-action--add">&gt;&gt;</span>
@@ -162,7 +162,7 @@ const handleCancel = () => {
             class="user-row user-row--assigned"
           >
             <div class="user-info">
-              <span class="user-name">{{ user.name }}</span>
+              <span class="user-name">{{ userLabel(user) }}</span>
               <span class="user-company">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
             </div>
             <button

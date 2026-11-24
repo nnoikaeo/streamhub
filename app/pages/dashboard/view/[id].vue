@@ -486,7 +486,8 @@ const embedZoomStyle = computed(() => getEmbedZoomStyle(embedZoom.value, dashboa
 
 const ownerName = computed(() => {
   if (owner.value) {
-    return `${owner.value.name} (${owner.value.email})`
+    const name = fullName(owner.value)
+    return name ? `${name} (${owner.value.email})` : owner.value.email
   }
   return 'Unknown'
 })

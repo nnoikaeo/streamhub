@@ -224,7 +224,8 @@ if (command === 'seed') {
   batch.set(db.collection('users').doc(uid), {
     uid,
     email: `${uid}@qa.invalid`,
-    name: 'QA Cascade Fixture',
+    firstName: 'QA Cascade',
+    lastName: 'Fixture',
     // Moderator so the folder assignment matches how the reference is created
     // for real; the cascade itself counts folders regardless of role.
     role: 'moderator',

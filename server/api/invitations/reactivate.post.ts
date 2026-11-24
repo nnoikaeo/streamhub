@@ -10,11 +10,20 @@ export default defineEventHandler(async (event) => {
     console.log('[API] POST /api/invitations/reactivate -', body.email)
 
     const { email, role, company, groups, performedBy, performedByEmail } = body
+    // Optional — a name left blank keeps the one the account already has
+    const firstName = cleanNamePart(body.firstName)
+    const lastName = cleanNamePart(body.lastName)
 
     if (!email) {
       throw createError({
         statusCode: 400,
         message: 'Email is required'
+      })
+    }
+    if (!isGmailAddress(email)) {
+      throw createError({
+        statusCode: 400,
+        message: 'Only @gmail.com addresses can be invited'
       })
     }
 
@@ -40,6 +49,10 @@ export default defineEventHandler(async (event) => {
       company: company || inactiveUser.company,
       groups: groupsForRole(role || inactiveUser.role, groups || inactiveUser.groups),
       updatedAt: now
+    }
+    if (firstName || lastName) {
+      updates.firstName = firstName
+      updates.lastName = lastName
     }
 
     // Mirror the rewritten groups[] onto groups.members[] in the same batch —

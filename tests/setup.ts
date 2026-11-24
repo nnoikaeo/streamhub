@@ -4,10 +4,12 @@ import * as dateUtils from '../shared/utils/dates'
 import * as embedUrlUtils from '../shared/utils/embedUrl'
 import * as sheetUrlUtils from '../shared/utils/sheetUrl'
 import * as roleGroupsUtils from '../shared/utils/roleGroups'
+import * as userNameUtils from '../shared/utils/userName'
+import * as gmailUtils from '../shared/utils/gmail'
 
 // Provide the shared/utils auto-imports as globals — the real implementations,
 // so tests exercise the same narrowing the app and server run in production.
-Object.assign(globalThis, errorUtils, dateUtils, embedUrlUtils, sheetUrlUtils, roleGroupsUtils)
+Object.assign(globalThis, errorUtils, dateUtils, embedUrlUtils, sheetUrlUtils, roleGroupsUtils, userNameUtils, gmailUtils)
 
 // Provide Nitro auto-imports as globals for server handler tests.
 //

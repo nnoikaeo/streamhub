@@ -24,7 +24,8 @@ interface GroupRef {
 
 interface ExportUser {
   uid: string
-  name: string
+  firstName?: string
+  lastName?: string
   email: string
   company?: string
   groups?: string[]
@@ -70,20 +71,25 @@ function sourceText(source: AccessSource): string {
   return source.viaFolder ? `โฟลเดอร์ ${source.viaFolder} · ${base}` : base
 }
 
-export const USERS_CSV_HEADERS = ['ชื่อ', 'อีเมล', 'บริษัท', 'กลุ่ม', 'สถานะ'] as const
+/**
+ * Column order agreed with One Data (2026-11): name first, as the PIC keys
+ * people by ชื่อ and นามสกุล, then where they sit, then the account.
+ */
+export const USERS_CSV_HEADERS = ['ชื่อ', 'นามสกุล', 'บริษัท', 'กลุ่ม', 'gmail', 'สถานะ'] as const
 
 export function usersCsv(users: readonly ExportUser[], groups: readonly GroupRef[]): string {
   const rows = users.map((user) => [
-    user.name,
-    user.email,
+    user.firstName?.trim() ?? '',
+    user.lastName?.trim() ?? '',
     user.company ?? '',
     groupNames(user.groups, groups),
+    user.email,
     user.isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน',
   ])
   return toCsv(USERS_CSV_HEADERS, rows)
 }
 
-export const ACCESS_CSV_HEADERS = ['ชื่อ', 'อีเมล', 'บริษัท', 'กลุ่ม', 'ได้สิทธิ์ผ่าน'] as const
+export const ACCESS_CSV_HEADERS = ['ชื่อ', 'นามสกุล', 'บริษัท', 'กลุ่ม', 'gmail', 'role', 'ได้สิทธิ์ผ่าน'] as const
 
 export interface DashboardAccessInput {
   /** Saved grants resolved by `buildAccessEntries` — restricted users are left out here. */
@@ -137,12 +143,14 @@ function accessRows(input: DashboardAccessInput): string[][] {
     .map(([uid, why]) => ({ user: byUid.get(uid), why }))
     .filter((r): r is { user: ExportUser, why: string[] } =>
       !!r.user && r.user.isActive && r.user.role !== 'admin')
-    .sort((a, b) => a.user.name.localeCompare(b.user.name))
+    .sort((a, b) => userLabel(a.user).localeCompare(userLabel(b.user)))
     .map(({ user, why }) => [
-      user.name,
-      user.email,
+      user.firstName?.trim() ?? '',
+      user.lastName?.trim() ?? '',
       user.company ?? '',
       groupNames(user.groups, groups),
+      user.email,
+      user.role,
       why.join(' / '),
     ])
 }

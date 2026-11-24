@@ -3,7 +3,7 @@
  *
  * Firebase Auth carries the Google account's name, which the user owns and we
  * cannot change. The name an admin sets on /admin/users lives on the Firestore
- * profile (`users.name`). The two only agree until an admin edits the profile —
+ * profile (`users.firstName` / `lastName`, joined by `fullName`). The two only agree until an admin edits the profile —
  * after that the header kept showing the Google name, so the header and the
  * users table named the same account differently.
  *

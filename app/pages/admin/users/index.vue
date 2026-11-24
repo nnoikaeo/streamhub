@@ -9,7 +9,7 @@ import { useAdminBreadcrumbs } from '~/composables/useAdminBreadcrumbs'
  * - Display all users in DataTable
  * - Edit, Delete, Toggle Active operations
  * - Filter by role, company, group, active status
- * - Download the filtered list as CSV (ชื่อ อีเมล บริษัท กลุ่ม สถานะ) to compare with the One Data PIC sheet
+ * - Download the filtered list as CSV (ชื่อ นามสกุล บริษัท กลุ่ม gmail สถานะ) to compare with the One Data PIC sheet
  * - Search by email or name
  * - Protected by admin middleware
  *
@@ -179,6 +179,22 @@ const columns = [
   { key: 'isActive', label: 'สถานะ', sortable: true, width: '85px', isStatusColumn: true },
 ]
 
+/**
+ * Rows for the table. DataTable's name column reads `item.name`; users no
+ * longer store one, so the row carries the joined name for display and sort
+ * only — it is never written back.
+ */
+/** "สมชาย ใจดี (somchai@gmail.com)", or the email alone when there is no name. */
+const nameWithEmail = (user: User | null | undefined): string => {
+  if (!user) return ''
+  const name = fullName(user)
+  return name ? `${name} (${user.email})` : user.email
+}
+
+const tableRows = computed(() =>
+  filteredUsers.value.map(user => ({ ...user, name: fullName(user) || '—' }))
+)
+
 /** Groups for the filter dropdown, by name. */
 const sortedGroups = computed(() => [...groups.value].sort((a, b) => a.name.localeCompare(b.name)))
 
@@ -192,7 +208,7 @@ const filteredUsers = computed(() => {
       const query = searchQuery.value.toLowerCase()
       const matches =
         user.email.toLowerCase().includes(query) ||
-        user.name.toLowerCase().includes(query)
+        fullName(user).toLowerCase().includes(query)
       if (!matches) return false
     }
 
@@ -225,7 +241,7 @@ const filteredUsers = computed(() => {
  * Save handler for Edit User modal.
  *
  * Splits the form payload into two writes:
- *   1. updateUser(uid, { name, company, role, groups })
+ *   1. updateUser(uid, { firstName, lastName, company, role, groups })
  *   2. applyFolderAssignments — syncs `assignedModerators` on each affected folder
  *      based on role transition (see docs/OPERATIONS/edit-user-form-plan.md).
  */
@@ -275,7 +291,8 @@ const performSaveUser = async (payload: UserFormSubmitPayload) => {
 
   try {
     await updateUser(user.uid, {
-      name: user.name,
+      firstName: user.firstName,
+      lastName: user.lastName,
       company: user.company,
       role: user.role,
       groups: user.groups,
@@ -327,8 +344,8 @@ const confirmToggleActive = async () => {
     showToggleDialog.value = false
     showToast(
       newStatus
-        ? `เปิดใช้งาน ${user.name || user.email} เรียบร้อยแล้ว`
-        : `ปิดใช้งาน ${user.name || user.email} เรียบร้อยแล้ว`
+        ? `เปิดใช้งาน ${userLabel(user)} เรียบร้อยแล้ว`
+        : `ปิดใช้งาน ${userLabel(user)} เรียบร้อยแล้ว`
     )
     userToToggle.value = null
   } catch (error) {
@@ -517,7 +534,7 @@ const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${
       <template #table>
         <DataTable
           :columns="columns"
-          :data="filteredUsers"
+          :data="tableRows"
           :loading="loading"
           :actions="actions"
           empty-message="ไม่พบผู้ใช้"
@@ -552,8 +569,8 @@ const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${
         :is-open="showConfirmDialog"
         title="ลบผู้ใช้"
         :message="deleteUserWarning
-          ? `${userToDelete?.name} (${userToDelete?.email}) ถูกอ้างอิงอยู่ใน ${deleteUserWarning} — ลบแล้วจะถอดออกจากที่เหล่านั้นด้วย ยืนยันหรือไม่?`
-          : `คุณแน่ใจว่าต้องการลบผู้ใช้ ${userToDelete?.name} (${userToDelete?.email}) หรือไม่?`"
+          ? `${nameWithEmail(userToDelete)} ถูกอ้างอิงอยู่ใน ${deleteUserWarning} — ลบแล้วจะถอดออกจากที่เหล่านั้นด้วย ยืนยันหรือไม่?`
+          : `คุณแน่ใจว่าต้องการลบผู้ใช้ ${nameWithEmail(userToDelete)} หรือไม่?`"
         :loading="loading"
         @confirm="confirmDeleteUser"
         @cancel="showConfirmDialog = false"
@@ -563,7 +580,7 @@ const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${
       <ConfirmDialog
         :is-open="showDemoteDialog"
         title="ถอดสิทธิ์ผู้ดูแลโฟลเดอร์"
-        :message="`${pendingSave?.user?.name ?? 'ผู้ใช้รายนี้'} ดูแลอยู่ ${demoteFolderCount} โฟลเดอร์ — เปลี่ยนบทบาทแล้วจะถูกถอดออกจากทุกโฟลเดอร์ และเลื่อนกลับเป็น moderator ภายหลังจะไม่ได้คืนอัตโนมัติ ยืนยันหรือไม่?`"
+        :message="`${fullName(pendingSave?.user) || 'ผู้ใช้รายนี้'} ดูแลอยู่ ${demoteFolderCount} โฟลเดอร์ — เปลี่ยนบทบาทแล้วจะถูกถอดออกจากทุกโฟลเดอร์ และเลื่อนกลับเป็น moderator ภายหลังจะไม่ได้คืนอัตโนมัติ ยืนยันหรือไม่?`"
         confirm-text="ยืนยัน"
         :is-danger="true"
         :loading="loading"
@@ -575,8 +592,8 @@ const groupBadgeClass = (id: string) => GROUP_COLOURS.has(id) ? `group-badge--${
         :is-open="showToggleDialog"
         :title="userToToggle?.isActive ? 'ปิดใช้งานผู้ใช้' : 'เปิดใช้งานผู้ใช้'"
         :message="userToToggle?.isActive
-          ? `คุณแน่ใจว่าต้องการปิดใช้งาน ${userToToggle?.name} (${userToToggle?.email}) หรือไม่? ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้`
-          : `คุณแน่ใจว่าต้องการเปิดใช้งาน ${userToToggle?.name} (${userToToggle?.email}) หรือไม่?`"
+          ? `คุณแน่ใจว่าต้องการปิดใช้งาน ${nameWithEmail(userToToggle)} หรือไม่? ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้`
+          : `คุณแน่ใจว่าต้องการเปิดใช้งาน ${nameWithEmail(userToToggle)} หรือไม่?`"
         :loading="loading"
         :is-danger="userToToggle?.isActive"
         :confirm-text="userToToggle?.isActive ? 'ปิดใช้งาน' : 'เปิดใช้งาน'"

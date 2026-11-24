@@ -43,7 +43,7 @@ const isLoading = ref(true)
 const isModerator = computed(() => (profile.value?.role ?? user.value?.role) === 'moderator')
 
 const displayName = computed(
-  () => profile.value?.name || user.value?.displayName || user.value?.email?.split('@')[0] || 'ผู้ใช้'
+  () => fullName(profile.value) || user.value?.displayName || user.value?.email?.split('@')[0] || 'ผู้ใช้'
 )
 
 const initial = computed(() => displayName.value.charAt(0).toUpperCase())

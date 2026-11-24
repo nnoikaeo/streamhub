@@ -28,7 +28,7 @@ export default defineEventHandler(async (event: H3Event) => {
 
   // Resolve user info — dual-mode (Firestore in prod, JSON in dev/mock)
   const user = await resolveUser(auth.uid)
-  const userName = user?.name || auth.name || 'Unknown'
+  const userName = fullName(user) || auth.name || 'Unknown'
   const userEmail = user?.email || auth.email || ''
   const company = user?.company || ''
 
