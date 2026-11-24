@@ -338,6 +338,19 @@ The One Data team wants StreamHub access to match their PIC sheet (One_Data_PIC_
 - [ ] **Comparison file, every tool at once** — One Data kept the PIC as it is and asked for a **separate file** shared only with their team (2026-10-08): `One_Data_PIC_StreamHub_Check`, owned by the One Data account, reads the PIC with `IMPORTRANGE` and never writes to it. Matching is by name (the company code is shown, not matched — one person can sit under two companies in the PIC), with a ชื่อแทน table for names spelled differently. Built and verified for **Master List** first: 2 people open it in StreamHub, 114 are named in the PIC — the gap is staff without a StreamHub account yet, not wrong grants · for all 17 tools at once, StreamHub writes **every dashboard's access in one CSV** (`/admin/users` → 📥 ดาวน์โหลดสิทธิ์ทุกแดชบอร์ด, TC 3.2.17) — the same rows each dashboard's own 📥 writes, with the dashboard id and name in front · the sheet side still needs a tool → dashboard table filled in by One Data
 - [x] **Looker "community visualization" warning** — measured 2026-10-06: Hotline's Search box is a community visualization; embedded, Looker covers it with a warning whose Continue button cannot be clicked, so search is unusable — StreamHub cannot fix it (Google's own `/embed/` URL does the same; the non-embed URL sends `X-Frame-Options: DENY`). Recorded as a rule for new reports in [looker-sharing-policy.md](looker-sharing-policy.md), section "ห้ามใช้ community visualization ที่ต้องโต้ตอบในรายงานที่จะฝัง" (#520) · fixing Hotline itself is the report owner's call
 
+### Meeting — 2026-11: One Data asks admins to set who a user is
+
+One Data reviewed `/admin/invitations` and `/admin/users` and asked that the admin, not the Google account, decide a user's name — the PIC keys people by ชื่อ and นามสกุล, and names taken from Google ("ช่าง STSB", "Hotline Streamwash") matched nobody. Every screen was agreed on a mock-up before any code.
+
+- [ ] **PR A — names, Gmail only, field order** (`feat/invite-user-name`)
+  - `users.name` replaced by optional `firstName` / `lastName`, read only through `fullName` / `userLabel` ([userName.ts](../../shared/utils/userName.ts)); a user with no name shows the email. At acceptance the typed name wins, else the Google name split at the first space
+  - Invitations go to `@gmail.com` only: the forms show the suffix as fixed text ([GmailInput.vue](../../app/components/ui/GmailInput.vue)) and every server path that creates, edits or reactivates checks again ([gmail.ts](../../shared/utils/gmail.ts))
+  - Field order on invite, bulk invite and edit user: ชื่อ · นามสกุล · บริษัท · กลุ่ม · Gmail · บทบาท
+  - CSV columns: users `ชื่อ, นามสกุล, บริษัท, กลุ่ม, gmail, สถานะ` · per dashboard `ชื่อ, นามสกุล, บริษัท, กลุ่ม, gmail, role, ได้สิทธิ์ผ่าน` · every dashboard: `แดชบอร์ด id, แดชบอร์ด` + the per-dashboard columns. One Data first asked for `role` in place of `ได้สิทธิ์ผ่าน` in the all-dashboards file, then kept both, so the two files still hold the same rows
+  - Data: `node scripts/migrate-user-names.mjs split --apply` **before** the deploy (the new build reads only the two parts), `drop-name --apply` after it is live and checked
+  - TC 3.2.18, 3.9.15–3.9.17 new; 3.2.16, 3.2.17, 3.10.27, 4.2.6 to re-run
+- [ ] **PR B — import invitations from CSV** — template on Google Sheets with dropdowns for company code, groups 1–3 and role (CSV itself cannot hold a dropdown); columns `ชื่อ, นามสกุล, บริษัท, กลุ่ม 1, กลุ่ม 2, กลุ่ม 3, gmail, บทบาท`; company by code only, role `user`/`moderator`/`admin` only; rows that fail are listed with the reason and never queued; reads UTF-8, falls back to `windows-874` for a file saved by Thai Excel. `.xlsx` deferred — no parser is installed and adding one drags lock-file churn
+
 ---
 
 ## Remaining Backlog (non-blocking)

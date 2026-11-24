@@ -15,13 +15,23 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Gmail only — the form shows @gmail.com as a fixed suffix, and this stops
+    // a request built by hand from inviting another domain
+    if (!isGmailAddress(body.email)) {
+      throw createError({
+        statusCode: 400,
+        message: 'Only @gmail.com addresses can be invited'
+      })
+    }
+    const email = String(body.email).trim().toLowerCase()
+
     const db = getAdminDb()
     if (!db) {
       throw createError({ statusCode: 503, message: 'Firestore not available' })
     }
 
     // Pre-check: Check users collection for existing user with this email
-    const existingUsers = await fsQuery<StoredUser>(db, 'users', 'email', body.email)
+    const existingUsers = await fsQuery<StoredUser>(db, 'users', 'email', email)
     const existingUser = existingUsers[0]
 
     if (existingUser) {
@@ -41,7 +51,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check for duplicate pending invitation
-    const pendingInvs = await fsQuery<Invitation>(db, 'invitations', 'email', body.email)
+    const pendingInvs = await fsQuery<Invitation>(db, 'invitations', 'email', email)
     const pendingDuplicate = pendingInvs.find(inv => inv.status === 'pending')
 
     if (pendingDuplicate) {
@@ -58,7 +68,9 @@ export default defineEventHandler(async (event) => {
 
     const invitation: Invitation = {
       id,
-      email: body.email,
+      email,
+      firstName: cleanNamePart(body.firstName),
+      lastName: cleanNamePart(body.lastName),
       role: body.role,
       company: body.company,
       status: 'pending',
@@ -91,7 +103,7 @@ export default defineEventHandler(async (event) => {
       action: 'INVITE_USER',
       performedBy: body.invitedBy || 'system',
       performedByEmail: body.invitedByName || 'System',
-      target: body.email,
+      target: email,
       metadata: { role: body.role, company: body.company, invitationId: id, emailSent }
     })
 

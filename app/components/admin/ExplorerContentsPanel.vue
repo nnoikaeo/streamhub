@@ -59,7 +59,7 @@ const canCreateDashboard = computed(() => !!props.currentFolderId)
 const getModeratorNames = (folder: Folder): string[] => {
   if (!props.allUsers || !folder.assignedModerators?.length) return []
   return folder.assignedModerators
-    .map(uid => props.allUsers!.find(u => u.uid === uid)?.name)
+    .map(uid => userLabel(props.allUsers!.find(u => u.uid === uid)))
     .filter(Boolean) as string[]
 }
 

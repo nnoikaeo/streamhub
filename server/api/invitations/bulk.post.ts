@@ -54,6 +54,12 @@ export default defineEventHandler(async (event) => {
       }
       seen.add(email)
 
+      // Gmail only — the server half of the form's fixed @gmail.com suffix
+      if (!isGmailAddress(email)) {
+        skipped.push({ email, reason: 'Only @gmail.com addresses can be invited' })
+        continue
+      }
+
       const activeUser = allUsers.find(u => u.email === email && u.isActive)
       if (activeUser) {
         skipped.push({ email, reason: 'User already active' })
@@ -77,6 +83,8 @@ export default defineEventHandler(async (event) => {
       const invitation: Invitation = {
         id,
         email,
+        firstName: item.firstName,
+        lastName: item.lastName,
         role: item.role as Invitation['role'],
         company: item.company,
         status: 'pending',

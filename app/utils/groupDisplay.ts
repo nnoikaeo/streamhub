@@ -17,9 +17,8 @@ interface GroupRef {
   name: string
 }
 
-interface MemberRef {
+interface MemberRef extends NamedUser {
   uid: string
-  name: string
   groups?: string[]
 }
 
@@ -60,7 +59,7 @@ export function memberPreview(
   limit = 3,
 ): { names: string[], extra: number } {
   return {
-    names: members.slice(0, limit).map((m) => m.name),
+    names: members.slice(0, limit).map((m) => userLabel(m)),
     extra: Math.max(0, members.length - limit),
   }
 }

@@ -12,6 +12,10 @@ export default defineEventHandler(async (event) => {
     if (!id) {
       throw createError({ statusCode: 400, message: 'Invitation ID is required' })
     }
+    // An edit cannot move an invitation off Gmail either
+    if (body.email !== undefined && !isGmailAddress(body.email)) {
+      throw createError({ statusCode: 400, message: 'Only @gmail.com addresses can be invited' })
+    }
 
     const existing = await findById<Invitation>('invitations.json', id)
     if (!existing) {

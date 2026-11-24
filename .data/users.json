@@ -2,7 +2,8 @@
   {
     "uid": "61JSdbE674TqRBHHUu9ezdzFul93",
     "email": "it.streamwash@gmail.com",
-    "name": "IT Streamwash",
+    "firstName": "IT",
+    "lastName": "Streamwash",
     "role": "admin",
     "company": "STTH",
     "groups": [],
@@ -13,7 +14,8 @@
   {
     "uid": "9c7TScfkuGX7W4dq9P8GHjhrbIu1",
     "email": "n.noikaeo@gmail.com",
-    "name": "Nopphol Noikaeo",
+    "firstName": "Nopphol",
+    "lastName": "Noikaeo",
     "role": "moderator",
     "company": "STTH",
     "groups": [
@@ -27,7 +29,8 @@
   {
     "uid": "user_nattha_mod",
     "email": "nattha@streamwash.com",
-    "name": "Nattha Moderator",
+    "firstName": "Nattha",
+    "lastName": "Moderator",
     "role": "moderator",
     "company": "STTH",
     "groups": [
@@ -40,7 +43,8 @@
   {
     "uid": "user_teerak_user",
     "email": "teerak@streamwash.com",
-    "name": "Teerak User",
+    "firstName": "Teerak",
+    "lastName": "User",
     "role": "user",
     "company": "STTH",
     "groups": [
@@ -53,7 +57,8 @@
   {
     "uid": "user_janine_user",
     "email": "janine@streamwash.com",
-    "name": "Janine User",
+    "firstName": "Janine",
+    "lastName": "User",
     "role": "user",
     "company": "STTH",
     "groups": [
@@ -67,7 +72,8 @@
   {
     "uid": "user_somchai_mod",
     "email": "somchai@streamwash.com",
-    "name": "Somchai Moderator",
+    "firstName": "Somchai",
+    "lastName": "Moderator",
     "role": "moderator",
     "company": "STTH",
     "groups": [
@@ -80,7 +86,8 @@
   {
     "uid": "nvWqA4V84cMCNBNFzXTo3XxhXL93",
     "email": "survey.streamwash@gmail.com",
-    "name": "Survey Streamwash",
+    "firstName": "Survey",
+    "lastName": "Streamwash",
     "role": "user",
     "company": "INFE",
     "groups": [

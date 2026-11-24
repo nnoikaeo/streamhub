@@ -135,7 +135,7 @@ export class JSONMockService implements IDashboardService {
 
       if (response.success && response.data) {
         const user = response.data
-        this.log(`✅ getUser: Found ${user.name} (role: ${user.role})`)
+        this.log(`✅ getUser: Found ${userLabel(user)} (role: ${user.role})`)
         return user
       }
 

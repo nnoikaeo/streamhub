@@ -56,7 +56,11 @@ const filteredInvitations = computed(() => {
     .filter(inv => {
       if (searchQuery.value) {
         const q = searchQuery.value.toLowerCase()
-        if (!inv.email.toLowerCase().includes(q) && !inv.invitedByName.toLowerCase().includes(q)) return false
+        if (
+          !inv.email.toLowerCase().includes(q) &&
+          !fullName(inv).toLowerCase().includes(q) &&
+          !inv.invitedByName.toLowerCase().includes(q)
+        ) return false
       }
       if (filterCompany.value && companyOf(inv).company !== filterCompany.value) return false
       if (filterStatus.value && effectiveStatus(inv) !== filterStatus.value) return false
@@ -208,9 +212,9 @@ const folderTree = computed(() => buildFolderTree(folders.value))
             v-model="searchQuery"
             type="text"
             name="invitation-search"
-            aria-label="ค้นหาตาม email หรือผู้เชิญ"
+            aria-label="ค้นหาตามชื่อ email หรือผู้เชิญ"
             class="theme-form-input"
-            placeholder="ค้นหาตาม email หรือผู้เชิญ..."
+            placeholder="ค้นหาตามชื่อ email หรือผู้เชิญ..."
             autocomplete="off"
           >
         </div>
@@ -300,7 +304,7 @@ const folderTree = computed(() => buildFolderTree(folders.value))
               <tr v-for="inv in paginatedInvitations" :key="inv.id">
                 <td>
                   <div class="flex flex-col">
-                    <span class="font-semibold">{{ inv.email.split('@')[0] }}</span>
+                    <span class="font-semibold">{{ fullName(inv) || inv.email.split('@')[0] }}</span>
                     <span class="text-sm text-gray-500">{{ inv.email }}</span>
                   </div>
                 </td>

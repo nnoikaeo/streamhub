@@ -36,6 +36,9 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 // Form state
 const form = ref({
+  firstName: '',
+  lastName: '',
+  /** What is in the Gmail box — the part before @gmail.com */
   email: '',
   role: 'user' as 'user' | 'moderator' | 'admin',
   company: '',
@@ -48,7 +51,10 @@ const submitting = ref(false)
 const error = ref('')
 const successCode = ref('')
 const pendingWarning = ref(false)
-const domainWarning = ref('')
+const gmailInput = ref<{ touch: () => void } | null>(null)
+
+/** The full address, or null while the box holds something that is not a Gmail account */
+const gmailAddress = computed(() => toGmailAddress(form.value.email))
 
 // Reactivation dialog
 const showReactivateDialog = ref(false)
@@ -77,43 +83,33 @@ async function loadDropdownData() {
   }
 }
 
-const GOOGLE_DOMAINS = ['gmail.com', 'googlemail.com']
-
-function isLikelyGoogleAccount(email: string): boolean {
-  const domain = email.split('@')[1]?.toLowerCase()
-  if (!domain) return false
-  return GOOGLE_DOMAINS.includes(domain)
-}
-
 function checkPendingWarning() {
-  if (!form.value.email) return
+  const address = gmailAddress.value
+  if (!address) {
+    pendingWarning.value = false
+    return
+  }
   const hasPending = invitations.value.some(
-    inv => inv.email.toLowerCase() === form.value.email.toLowerCase() && inv.status === 'pending'
+    inv => inv.email.toLowerCase() === address && inv.status === 'pending'
   )
   pendingWarning.value = hasPending
 }
 
-function checkDomainWarning() {
-  const email = form.value.email.trim()
-  if (!email || !email.includes('@')) {
-    domainWarning.value = ''
-    return
-  }
-  if (!isLikelyGoogleAccount(email)) {
-    const domain = email.split('@')[1]
-    domainWarning.value = `อีเมล @${domain} อาจไม่ใช่ Google Account — ผู้ใช้อาจไม่สามารถเข้าดู Looker Dashboard ได้ หากบริษัทใช้ Google Workspace กับ domain นี้ สามารถเพิกเฉยคำเตือนนี้ได้`
-  } else {
-    domainWarning.value = ''
-  }
-}
-
 async function handleSubmit() {
   error.value = ''
+  const email = gmailAddress.value
+  if (!email) {
+    gmailInput.value?.touch()
+    error.value = 'กรอก Gmail ให้ถูกต้อง — รับเฉพาะบัญชี @gmail.com'
+    return
+  }
   submitting.value = true
 
   try {
     const payload = {
-      email: form.value.email.trim(),
+      email,
+      firstName: form.value.firstName.trim() || undefined,
+      lastName: form.value.lastName.trim() || undefined,
       role: form.value.role,
       company: form.value.company,
       message: form.value.message || undefined,
@@ -155,7 +151,9 @@ async function handleReactivate() {
     await $fetch(`${apiBase}/reactivate`, {
       method: 'POST',
       body: {
-        email: typeof existingEmail === 'string' ? existingEmail : form.value.email.trim(),
+        email: typeof existingEmail === 'string' ? existingEmail : gmailAddress.value,
+        firstName: form.value.firstName.trim() || undefined,
+        lastName: form.value.lastName.trim() || undefined,
         role: form.value.role,
         company: form.value.company,
         groups: groupsForRole(form.value.role, form.value.assignedGroups),
@@ -185,11 +183,10 @@ function close() {
 }
 
 function reset() {
-  form.value = { email: '', role: 'user', company: '', message: '', assignedFolders: [], assignedGroups: [] }
+  form.value = { firstName: '', lastName: '', email: '', role: 'user', company: '', message: '', assignedFolders: [], assignedGroups: [] }
   error.value = ''
   successCode.value = ''
   pendingWarning.value = false
-  domainWarning.value = ''
   showReactivateDialog.value = false
   existingInactiveUser.value = null
   submitting.value = false
@@ -234,83 +231,95 @@ onMounted(loadDropdownData)
         ⚠️ Email นี้มี invitation ที่ยังรอตอบรับอยู่แล้ว
       </div>
 
-      <!-- Domain warning -->
-      <div v-if="domainWarning" class="alert-domain-warning">
-        ⚠️ {{ domainWarning }}
-      </div>
-
       <!-- Error -->
       <div v-if="error" class="alert-error">{{ error }}</div>
 
       <div class="form-fields">
-        <!-- Row 1: Email + Role + Company -->
-        <div class="form-row form-row--3col">
-          <!-- Email -->
-          <div class="form-field form-field--email">
-            <label for="invite-email" class="form-label">Email <span class="required">*</span></label>
+        <!-- Order agreed with One Data (2026-11): name, company, groups, gmail, role -->
+        <div class="form-row form-row--2col">
+          <div class="form-field">
+            <label for="invite-first-name" class="form-label">ชื่อ</label>
             <input
-              id="invite-email"
-              v-model="form.email"
-              type="email"
-              name="invite-email"
+              id="invite-first-name"
+              v-model="form.firstName"
+              type="text"
+              name="invite-first-name"
               class="theme-form-input"
-              placeholder="user@company.com"
+              maxlength="100"
               autocomplete="off"
-              @blur="checkPendingWarning(); checkDomainWarning()"
             >
           </div>
-
-          <!-- Role -->
           <div class="form-field">
-            <label for="invite-role" class="form-label">Role <span class="required">*</span></label>
+            <label for="invite-last-name" class="form-label">นามสกุล</label>
+            <input
+              id="invite-last-name"
+              v-model="form.lastName"
+              type="text"
+              name="invite-last-name"
+              class="theme-form-input"
+              maxlength="100"
+              autocomplete="off"
+            >
+          </div>
+        </div>
+        <p class="form-note">ไม่บังคับ · สะกดให้ตรงกับคอลัมน์ ชื่อ-สกุล ใน PIC</p>
+
+        <div class="form-field">
+          <label for="invite-company" class="form-label">บริษัท <span class="required">*</span></label>
+          <CompanyDropdownFilter
+            v-model="form.company"
+            :companies="adminCompanies"
+            :regions="regions"
+            :show-icon="false"
+            input-id="invite-company"
+            placeholder="-- เลือกบริษัท --"
+          />
+        </div>
+
+        <div class="form-field">
+          <p class="form-label">กลุ่มผู้ใช้</p>
+          <p v-if="form.role === 'admin'" class="text-sm text-gray-400">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม</p>
+          <div v-else class="multi-select-list multi-select-list--grid">
+            <label v-for="group in groups" :key="group.id" class="multi-select-item">
+              <input v-model="form.assignedGroups" type="checkbox" :value="group.id" >
+              {{ group.name }}
+            </label>
+            <p v-if="groups.length === 0" class="text-sm text-gray-400">ไม่มี group</p>
+          </div>
+        </div>
+
+        <div class="form-row form-row--2col">
+          <div class="form-field form-field--email">
+            <label for="invite-email" class="form-label">Gmail <span class="required">*</span></label>
+            <GmailInput
+              ref="gmailInput"
+              v-model="form.email"
+              input-id="invite-email"
+              required
+              @blur="checkPendingWarning"
+            />
+          </div>
+
+          <div class="form-field">
+            <label for="invite-role" class="form-label">บทบาท <span class="required">*</span></label>
             <select id="invite-role" v-model="form.role" name="invite-role" class="theme-form-select">
               <option value="user">User</option>
               <option value="moderator">Moderator</option>
               <option value="admin">Admin</option>
             </select>
           </div>
-
-          <!-- Company -->
-          <div class="form-field">
-            <label for="invite-company" class="form-label">บริษัท <span class="required">*</span></label>
-            <CompanyDropdownFilter
-              v-model="form.company"
-              :companies="adminCompanies"
-              :regions="regions"
-              :show-icon="false"
-              input-id="invite-company"
-              placeholder="-- เลือกบริษัท --"
-            />
-          </div>
         </div>
 
-        <!-- Row 2: Groups + Message -->
-        <div class="form-row form-row--2col form-row--stretch">
-          <!-- Groups -->
-          <div class="form-field">
-            <p class="form-label">กลุ่มผู้ใช้</p>
-            <p v-if="form.role === 'admin'" class="text-sm text-gray-400">ผู้ดูแลระบบเข้าถึงทุกแดชบอร์ดอยู่แล้ว จึงไม่ต้องอยู่กลุ่ม</p>
-            <div v-else class="multi-select-list">
-              <label v-for="group in groups" :key="group.id" class="multi-select-item">
-                <input v-model="form.assignedGroups" type="checkbox" :value="group.id" >
-                {{ group.name }}
-              </label>
-              <p v-if="groups.length === 0" class="text-sm text-gray-400">ไม่มี group</p>
-            </div>
-          </div>
-
-          <!-- Message -->
-          <div class="form-field">
-            <label for="invite-message" class="form-label">ข้อความเพิ่มเติม</label>
-            <textarea
-              id="invite-message"
-              v-model="form.message"
-              name="invite-message"
-              class="theme-form-input message-textarea"
-              maxlength="500"
-              placeholder="ข้อความถึงผู้รับ invitation (ไม่บังคับ)"
-            />
-          </div>
+        <div class="form-field">
+          <label for="invite-message" class="form-label">ข้อความเพิ่มเติม</label>
+          <textarea
+            id="invite-message"
+            v-model="form.message"
+            name="invite-message"
+            class="theme-form-input message-textarea"
+            maxlength="500"
+            placeholder="ข้อความถึงผู้รับ invitation (ไม่บังคับ)"
+          />
         </div>
 
         <!-- Folders (moderator only) — full width -->
@@ -345,13 +354,14 @@ onMounted(loadDropdownData)
 .form-fields { display: flex; flex-direction: column; gap: 1rem; }
 .form-field { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; min-width: 0; }
 .form-row { display: flex; gap: 1rem; }
-.form-row--3col { display: flex; gap: 1rem; }
-.form-row--3col .form-field--email { flex: 2; }
 .form-row--2col { display: flex; gap: 1rem; }
-.form-row--stretch { align-items: stretch; }
-.form-row--stretch .form-field { display: flex; flex-direction: column; }
-.form-row--stretch .multi-select-list { flex: 1; }
-.form-row--stretch .message-textarea { flex: 1; resize: none; }
+.form-row--2col .form-field--email { flex: 2; }
+.form-note { margin: -0.5rem 0 0; font-size: 0.75rem; color: var(--color-text-secondary, #616161); }
+.message-textarea { min-height: 4.5rem; resize: vertical; }
+.multi-select-list--grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); }
+@media (max-width: 640px) {
+  .form-row--2col { flex-direction: column; }
+}
 .form-label { font-size: 0.875rem; font-weight: 500; color: var(--color-text, #111827); }
 .required { color: #ef4444; }
 .form-hint { font-size: 0.75rem; color: #9ca3af; text-align: right; }
@@ -381,15 +391,6 @@ onMounted(loadDropdownData)
   border-radius: 0.375rem;
   font-size: 0.875rem;
   color: #a16207;
-}
-.alert-domain-warning {
-  padding: 0.75rem;
-  background: #fff7ed;
-  border: 1px solid #fdba74;
-  border-radius: 0.375rem;
-  font-size: 0.813rem;
-  color: #9a3412;
-  line-height: 1.5;
 }
 .alert-error {
   padding: 0.75rem;

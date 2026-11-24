@@ -71,7 +71,7 @@ function storedUser(over: Partial<User> = {}): User {
   return {
     uid: 'user_admin',
     email: 'admin@example.com',
-    name: 'Admin',
+    firstName: 'Admin',
     role: 'admin',
     company: 'ORAY',
     groups: [],

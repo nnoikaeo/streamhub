@@ -10,11 +10,20 @@ export default defineEventHandler(async (event) => {
     console.log('[API] POST /api/mock/invitations/reactivate -', body.email)
 
     const { email, role, company, groups, performedBy, performedByEmail } = body
+    // Optional — a name left blank keeps the one the account already has
+    const firstName = cleanNamePart(body.firstName)
+    const lastName = cleanNamePart(body.lastName)
 
     if (!email) {
       throw createError({
         statusCode: 400,
         message: 'Email is required'
+      })
+    }
+    if (!isGmailAddress(email)) {
+      throw createError({
+        statusCode: 400,
+        message: 'Only @gmail.com addresses can be invited'
       })
     }
 
@@ -36,6 +45,7 @@ export default defineEventHandler(async (event) => {
       role: role || user.role,
       company: company || user.company,
       groups: groupsForRole(role || user.role, groups || user.groups),
+      ...(firstName || lastName ? { firstName, lastName } : {}),
       updatedAt: now
     }
     users[userIndex] = updatedUser

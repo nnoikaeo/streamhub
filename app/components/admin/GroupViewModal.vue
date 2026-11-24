@@ -152,10 +152,10 @@ const formatDate = (dateStr?: string): string => {
             class="group-view__member"
           >
             <div class="group-view__avatar" :class="`group-view__avatar--${user.role}`">
-              {{ getInitials(user.name) }}
+              {{ getInitials(userLabel(user)) }}
             </div>
             <div class="group-view__member-info">
-              <span class="group-view__member-name">{{ user.name }}</span>
+              <span class="group-view__member-name">{{ userLabel(user) }}</span>
               <span class="group-view__member-email">{{ getRoleLabel(user.role) }} · {{ user.company }}</span>
             </div>
             <span

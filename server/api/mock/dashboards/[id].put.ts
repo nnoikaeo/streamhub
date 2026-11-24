@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
       logAuditEvent({
         action: auditAction,
         userId: auth.uid,
-        userName: user?.name || auth.name || 'Unknown',
+        userName: fullName(user) || auth.name || 'Unknown',
         userEmail: user?.email || auth.email || '',
         company: user?.company || '',
         dashboardId: id,

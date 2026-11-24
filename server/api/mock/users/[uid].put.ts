@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const updates: Record<string, unknown> = {}
-    const allowedFields = ['name', 'role', 'company', 'groups', 'isActive', 'assignedFolders']
+    const allowedFields = ['firstName', 'lastName', 'role', 'company', 'groups', 'isActive', 'assignedFolders']
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
